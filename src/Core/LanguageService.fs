@@ -10,7 +10,8 @@ open DTO
 
 [<ReflectedDefinition>]
 module LanguageService =
-    let url s = sprintf @"http://localhost:8083/%s" s
+    let port = 8089
+    let url s = sprintf @"http://localhost:%d/%s" port s
     // flag to send tooltip response to the proper event stream
     let mutable private toolbarFlag = false
 
@@ -115,17 +116,18 @@ module LanguageService =
     let findDeclaration fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
         |> request (url "finddeclaration")
-        |> send 
+        |> send
 
     let compilerLocation () =
         "" |> request (url "compilerlocation") |> send
 
     let start () =
         //TODO: Change path (from settings?)
-        let child = Globals.spawn("D:\\Programowanie\\Ionide\\VSCode\\ionide-vscode-fsharp\\release\\bin\\fsautocomplete.suave.exe")
+        let child = Globals.spawn("D:\\Programowanie\\Ionide\\VSCode\\ionide-vscode-fsharp\\release\\bin\\fsautocomplete.suave.exe", [| string port|])
         service <- Some child
         compilerLocation ()
         child.stderr.on("data", unbox<Function>( fun n -> Globals.console.error (n.ToString()))) |> ignore
+        child.stdout.on("data", unbox<Function>( fun n -> Globals.console.log (n.ToString()))) |> ignore
         ()
 
     let stop () =

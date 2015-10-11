@@ -27,6 +27,8 @@ module DTO =
         Severity : string
         /// Type of the Error
         Subcategory : string
+        ///File Name
+        FileName : string
         }
 
     type Declaration = {

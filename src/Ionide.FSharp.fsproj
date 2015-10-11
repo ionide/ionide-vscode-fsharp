@@ -33,9 +33,13 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
   <ItemGroup>
+    <Compile Include="Helpers.fs" />
     <Compile Include="Core\DTO.fs" />
     <Compile Include="Core\Events.fs" />
     <Compile Include="Core\LanguageService.fs" />
+    <Compile Include="Components\Linter.fs" />
+    <Compile Include="Components\Tooltip.fs" />
+    <Compile Include="Components\Autocomplete.fs" />
     <Compile Include="fsharp.fs" />
     <Compile Include="main.fs" />
     <None Include="vscode-bindings.fsx" />

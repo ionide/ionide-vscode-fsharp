@@ -12,7 +12,7 @@ let root = __SOURCE_DIRECTORY__
 // Compile F# type to an atom module
 // --------------------------------------------------------------------------------------
 
-open System.Reflection 
+open System.Reflection
 open Microsoft.FSharp.Quotations
 open FunScript.Compiler
 
@@ -59,7 +59,7 @@ let translateModules (typ : System.Type) fileName =
       [ yield "var vscode = require('vscode');"
         yield "var child_process = require('child_process');"
         yield "var XMLHttpRequest = require('xhr2');"
-        yield "var window = { JSON: JSON, XMLHttpRequest : XMLHttpRequest, console: console };"
+        yield "var window = { JSON: JSON, XMLHttpRequest : XMLHttpRequest, console: console, Promise : Promise };"
         yield ""
         yield "function wrappedFunScript() { \n" + coreJS + "\n }"
         yield "var _funcs = wrappedFunScript();"

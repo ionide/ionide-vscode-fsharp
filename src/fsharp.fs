@@ -14,7 +14,6 @@ open Ionide.VSCode.FSharp
 type FSharp() =
     member x.activate(disposables: Disposable[]) =
         LanguageService.start ()
-        Events.CompilerLocationEvent.Publish
-        |> Observable.add (fun a -> Globals.console.log a)
-        //|> Event.add (fun a -> Globals.console.log a)
+        Linter.activate disposables
+        Tooltip.activate disposables
         ()
