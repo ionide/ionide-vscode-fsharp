@@ -22,9 +22,17 @@ module Tooltip =
                     |> Observable.once (fun o ->
                         let range = doc.getWordRangeAtPosition pos
                         let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
+                        let htmlContent =
+                            res.Split('\n')
+                            |> Array.filter((<>) "")
+                            |> Array.map (fun n ->
+                                let el = createEmpty<IHTMLContentElement> ()
+                                el.tagName <- "p"
+                                el.text <- n
+                                el)
                         let result = createEmpty<IComputeExtraInfoResult> ()
                         result.range <- range
-                        result.value <- res
+                        result.htmlContent <- htmlContent
                         resolve.Invoke result )
                     )
                 |> unbox<Thenable<_>>
