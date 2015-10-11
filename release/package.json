@@ -1,0 +1,19 @@
+{
+	"name": "Ionide-fsharp",
+	"version": "0.0.1",
+	"publisher": "Krzysztof Cieslak",
+	"engines": {
+		"vscode": "*"
+	},
+	"main": "./fsharp",
+	"contributes": {
+		"languages": [{
+        "id": "fsharp",
+        "extensions": [ ".fs", ".fsx" ]
+    }]
+	},
+	"activationEvents": ["onLanguage:fsharp"],
+	"devDependencies": {
+		"vscode": "*"
+	}
+}
