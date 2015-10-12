@@ -25,10 +25,9 @@ module Linter =
                     Diagnostic.Create(unbox severity, loc, d.Message) )
                 |> Seq.toArray
                 |> languages.Globals.addDiagnostics
-            currentDiagnostic <- Some diag
-          )
+            currentDiagnostic <- Some diag )
         |> ignore
-        
+
     let activate (disposables: Disposable[]) =
         workspace.Globals.onDidChangeTextDocument
         |> EventHandler.add handler () disposables

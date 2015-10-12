@@ -40,7 +40,8 @@ module LanguageService =
     let private send i (req : Async<string []>)  =
         Globals.Promise.Create(fun (resolve : Func<Result<'T>,_>) (error : Func<obj,_>) ->
             async {
-                let! r = req
+                let! r = req 
+                r |> Array.iter Globals.console.log
                 let result = r.[i] |> parseResponse
                 if result.Kind = "error" || result.Kind = "info" then error.Invoke (result.Kind |> unbox<string>)
                 else resolve.Invoke result
