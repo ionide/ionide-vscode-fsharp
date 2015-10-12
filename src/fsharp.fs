@@ -18,4 +18,5 @@ type FSharp() =
         Tooltip.activate disposables
         Autocomplete.activate disposables
         ParameterHints.activate disposables
+        Declaration.activate disposables
         ()
