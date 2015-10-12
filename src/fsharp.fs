@@ -19,4 +19,5 @@ type FSharp() =
         Autocomplete.activate disposables
         ParameterHints.activate disposables
         Declaration.activate disposables
+        Occurrences.activate disposables
         ()

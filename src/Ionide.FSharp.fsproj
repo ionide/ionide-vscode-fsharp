@@ -41,6 +41,7 @@
     <Compile Include="Components\Autocomplete.fs" />
     <Compile Include="Components\ParameterHints.fs" />
     <Compile Include="Components\Declaration.fs" />
+    <Compile Include="Components\Occurrences.fs" />
     <Compile Include="fsharp.fs" />
     <Compile Include="main.fs" />
     <None Include="vscode-bindings.fsx" />

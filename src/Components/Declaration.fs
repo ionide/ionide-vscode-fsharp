@@ -7,7 +7,7 @@ open FunScript.TypeScript.vscode
 open FunScript.TypeScript.vscode.Modes
 
 open DTO
-
+ 
 [<ReflectedDefinition>]
 module Declaration =
     let private createProvider () =

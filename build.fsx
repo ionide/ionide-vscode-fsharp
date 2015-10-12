@@ -25,6 +25,7 @@ open Fake.ZipHelper
 #load "src/Components/Autocomplete.fs"
 #load "src/Components/ParameterHints.fs"
 #load "src/Components/Declaration.fs"
+#load "src/Components/Occurrences.fs"
 #load "src/fsharp.fs"
 #load "src/main.fs"
 #endif
