@@ -67,6 +67,25 @@ module DTO =
         Overloads: OverloadSignature [] []
     }
 
+    type OverloadParameter = {
+        Name : string
+        CanonicalTypeTextForSorting : string
+        Display : string
+        Description : string
+    }
+    type Overload = {
+        Tip : OverloadSignature [] []
+        TypeText : string
+        Parameters : OverloadParameter []
+        IsStaticArguments : bool
+    }
+
+    type Method = {
+      Name : string
+      CurrentParameter : int
+      Overloads : Overload []
+    }
+
     type CompilerLocation = {
         Fcs : string
         Fsi : string
@@ -81,3 +100,4 @@ module DTO =
     type TooltipResult = Result<OverloadSignature[][]>
     type ParseResult = Result<Error[]>
     type FindDeclarationResult = Result<Declaration>
+    type MethodResult = Result<Method>

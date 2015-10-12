@@ -16,4 +16,6 @@ type FSharp() =
         LanguageService.start ()
         Linter.activate disposables
         Tooltip.activate disposables
+        Autocomplete.activate disposables
+        ParameterHints.activate disposables
         ()
