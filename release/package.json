@@ -13,6 +13,9 @@
     }]
 	},
 	"activationEvents": ["onLanguage:fsharp"],
+	"extensionDependencies": [
+        "vscode.fsharp"
+    ],
 	"devDependencies": {
 		"vscode": "*"
 	}
