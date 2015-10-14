@@ -11,8 +11,8 @@ open DTO
 module Linter =
     let mutable private currentDiagnostic : Disposable option = None
 
-    let private handler (event : TextDocumentChangeEvent) =
-        LanguageService.parse (event.document.getPath ()) (event.document.getText ())
+    let private parse path text =
+        LanguageService.parse path text
         |> Promise.success (fun (ev : ParseResult) ->
             currentDiagnostic |> Option.iter (fun cd -> cd.dispose () |> ignore)
             let diag =
@@ -28,7 +28,19 @@ module Linter =
             currentDiagnostic <- Some diag )
         |> ignore
 
+    let private handler (event : TextDocumentChangeEvent) =
+        parse (event.document.getPath ()) (event.document.getText ())
+
+
+    let private handlerOpen (event : TextDocument) =
+        parse (event.getPath ()) (event.getText ())
+        //TODO: Find project and prase
+
     let activate (disposables: Disposable[]) =
         workspace.Globals.onDidChangeTextDocument
         |> EventHandler.add handler () disposables
+
+        workspace.Globals.onDidOpenTextDocument
+        |> EventHandler.add handlerOpen () disposables
+
         ()
