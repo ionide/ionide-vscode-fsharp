@@ -20,4 +20,5 @@ type FSharp() =
         ParameterHints.activate disposables
         Declaration.activate disposables
         Occurrences.activate disposables
+        Outline.activate disposables
         ()

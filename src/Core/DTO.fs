@@ -24,6 +24,7 @@ module DTO =
         EndColumn : int
         /// Description of the error
         Message : string
+        ///Severity of the error - warning or error
         Severity : string
         /// Type of the Error
         Subcategory : string
@@ -92,6 +93,29 @@ module DTO =
         MSBuild : string
     }
 
+    type Range = {
+        StartColumn: int
+        StartLine: int
+        EndColumn: int
+        EndLine: int
+    }
+
+    type Symbol ={
+        UniqueName: string
+        Name: string
+        Glyph: string
+        GlyphChar: string
+        IsTopLevel: bool
+        Range: Range
+        BodyRange : Range
+    }
+
+    type Symbols = {
+        Declaration : Symbol;
+        Nested : Symbol []
+    }
+
+
     type Result<'T> = {Kind : string; Data : 'T}
     type CompilerLocationResult = Result<CompilerLocation>
     type HelptextResult = Result<Helptext>
@@ -101,3 +125,4 @@ module DTO =
     type ParseResult = Result<Error[]>
     type FindDeclarationResult = Result<Declaration>
     type MethodResult = Result<Method>
+    type DeclarationResult = Result<Symbols[]>

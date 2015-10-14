@@ -3,7 +3,7 @@
 open System
 open FunScript
 open FunScript.TypeScript
-open FunScript.TypeScript.fs
+open FunScript.TypeScript.fs 
 open FunScript.TypeScript.child_process
 
 open DTO
@@ -40,7 +40,7 @@ module LanguageService =
     let private send i (req : Async<string []>)  =
         Globals.Promise.Create(fun (resolve : Func<Result<'T>,_>) (error : Func<obj,_>) ->
             async {
-                let! r = req 
+                let! r = req
                 r |> Array.iter Globals.console.log
                 let result = r.[i] |> parseResponse
                 if result.Kind = "error" || result.Kind = "info" then error.Invoke (result.Kind |> unbox<string>)
@@ -92,6 +92,11 @@ module LanguageService =
     let findDeclaration fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
         |> request (url "finddeclaration")
+        |> send 0
+
+    let declarations fn =
+        {DeclarationsRequest.FileName = fn}
+        |> request (url "declarations")
         |> send 0
 
     let compilerLocation () =
