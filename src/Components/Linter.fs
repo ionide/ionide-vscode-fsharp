@@ -32,15 +32,19 @@ module Linter =
         parse (event.document.getPath ()) (event.document.getText ())
 
 
-    let private handlerOpen (event : TextDocument) =
-        parse (event.getPath ()) (event.getText ())
+    let private handlerOpen (event : TextEditor) =
+        let file = event.getTextDocument ()
+        parse (file.getPath ()) (file.getText ())
         //TODO: Find project and prase
 
     let activate (disposables: Disposable[]) =
         workspace.Globals.onDidChangeTextDocument
         |> EventHandler.add handler () disposables
 
-        workspace.Globals.onDidOpenTextDocument
+        window.Globals.onDidChangeActiveTextEditor
         |> EventHandler.add handlerOpen () disposables
+
+        let file = window.Globals.getActiveTextEditor().getTextDocument ()
+        parse (file.getPath ()) (file.getText ())
 
         ()
