@@ -4,12 +4,31 @@ open System
 open FunScript
 open FunScript.TypeScript
 open FunScript.TypeScript.vscode
+open FunScript.TypeScript.path
+open FunScript.TypeScript.fs
 
 open DTO
 
 [<ReflectedDefinition>]
 module Linter =
     let mutable private currentDiagnostic : Disposable option = None
+
+    let private project p =
+        let rec findFsProj dir =
+            if Globals.lstatSync(dir).isDirectory() then
+                let files = Globals.readdirSync dir
+                let projfile = files |> Array.tryFind(fun s -> s.EndsWith(".fsproj"))
+                match projfile with
+                | None ->
+                    let parent = if dir.LastIndexOf(Globals.sep) > 0 then dir.Substring(0, dir.LastIndexOf Globals.sep) else ""
+                    if System.String.IsNullOrEmpty parent then None else findFsProj parent
+                | Some p -> dir + Globals.sep + p |> Some
+            else None
+
+        p
+        |> Globals.dirname
+        |> findFsProj
+        |> Option.map (fun n -> LanguageService.project n )
 
     let private parse path text =
         LanguageService.parse path text
@@ -28,14 +47,19 @@ module Linter =
             currentDiagnostic <- Some diag )
         |> ignore
 
+    let parseFile (file : TextDocument) =
+        let path = file.getPath ()
+        let prom = project path
+        match prom with
+        | Some p -> p |> Promise.success (fun _ -> parse path (file.getText ())) |> ignore
+        | None -> parse path (file.getText ())
+
+
     let private handler (event : TextDocumentChangeEvent) =
         parse (event.document.getPath ()) (event.document.getText ())
 
-
     let private handlerOpen (event : TextEditor) =
-        let file = event.getTextDocument ()
-        parse (file.getPath ()) (file.getText ())
-        //TODO: Find project and prase
+        parseFile <| event.getTextDocument ()
 
     let activate (disposables: Disposable[]) =
         workspace.Globals.onDidChangeTextDocument
@@ -44,7 +68,4 @@ module Linter =
         window.Globals.onDidChangeActiveTextEditor
         |> EventHandler.add handlerOpen () disposables
 
-        let file = window.Globals.getActiveTextEditor().getTextDocument ()
-        parse (file.getPath ()) (file.getText ())
-
-        ()
+        parseFile <| window.Globals.getActiveTextEditor().getTextDocument ()
