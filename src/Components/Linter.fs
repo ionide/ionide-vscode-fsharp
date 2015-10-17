@@ -68,4 +68,5 @@ module Linter =
         window.Globals.onDidChangeActiveTextEditor
         |> EventHandler.add handlerOpen () disposables
 
-        parseFile <| window.Globals.getActiveTextEditor().getTextDocument ()
+        let editor = window.Globals.getActiveTextEditor()
+        if JS.isDefined editor then parseFile <| editor.getTextDocument ()
