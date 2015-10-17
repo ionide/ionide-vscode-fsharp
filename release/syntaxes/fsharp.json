@@ -57,7 +57,7 @@
         "anonymous_functions": {
             "patterns": [
                 {
-                    "name": "meta.function.anonymous",
+                    "name": "function.anonymous",
                     "begin": "\\b(fun)\\b",
                     "end": "(->)",
                     "beginCaptures": {
@@ -139,7 +139,7 @@
         "definition": {
             "patterns": [
                 {
-                    "name": "meta.binding.fsharp",
+                    "name": "binding.fsharp",
                     "begin": "(val mutable|val|let mutable|let|member|static member|override|let!)(\\s+rec|mutable)?(\\s+private|internal|public)?\\s+(\\([^\\s-]*\\)|[_a-zA-Z]([_a-zA-Z0-9,\\.]|(?<=,)\\s)*)",
                     "end": "((``.*``)|(with)|=|$)",
                     "beginCaptures": {
@@ -182,20 +182,20 @@
                     "match": "\\b(function|yield!|yield|class|match|delegate|of|new|in|as|if|then|else|elif|for|begin|end|inherit|do|let\\!|return\\!|return|interface|with|member|try|finally|and|when|use|use\\!)\\b"
                 },
                 {
-                    "name": "meta.preprocessor.fsharp",
+                    "name": "preprocessor.fsharp",
                     "begin": "^\\s*#\\s*(light)\\b",
                     "end": "(\\s|$)"
                 },
                 {
                     "name": "keyword.other.fsharp",
-                    "match": "(\\|>|\\->|\\<\\-|:>|:\\?>|:|\\[|\\]|\\;|<>|=|@|\\|\\||&&|{|}|\\||_|\\.\\.|\\+|\\-|\\*|\\/|\\^|\\!|\\>|\\>\\=|\\>\\>|\\<|\\<\\=|\\<\\<)"
+                    "match": "(\\|>|\\->|\\<\\-|:>|:\\?>|:|\\[|\\]|\\;|<>|=|@|\\|\\||&&|{|}|\\||_|\\.\\.|\\+|\\-|\\*|\\/|\\^|\\!|\\>|\\>\\=|\\>\\>|\\<|\\<\\=|\\<\\<|\\(|\\)|[|])"
                 }
             ]
         },
         "modules": {
             "patterns": [
                 {
-                    "name": "entity.name.section.fsharp",
+                   
                     "begin": "\\b(namespace|module)(\\s+public|internal|private)?\\s+([a-zA-Z][a-zA-Z0-9'_. ]*)",
                     "end": "(\\s|$)",
                     "beginCaptures": {
@@ -225,7 +225,7 @@
                     ]
                 },
                 {
-                    "name": "meta.namespace.open.fsharp",
+                    "name": "namespace.open.fsharp",
                     "begin": "\\b(open)\\s+([A-Z][a-zA-Z0-9'_]*)(?=(\\.[A-Z][a-zA-Z0-9_]*)*)",
                     "end": "(\\s|$)",
                     "beginCaptures": {
@@ -252,7 +252,7 @@
                     ]
                 },
                 {
-                    "name": "meta.namespace.alias.fsharp",
+                    "name": "namespace.alias.fsharp",
                     "begin": "^\\s*(module)\\s+([A-Z][a-zA-Z0-9'_]*)\\s*(=)\\s*([A-Z][a-zA-Z0-9'_]*)",
                     "end": "(\\s|$)",
                     "beginCaptures": {
