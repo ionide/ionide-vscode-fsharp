@@ -9,8 +9,13 @@
 	"contributes": {
 		"languages": [{
         "id": "fsharp",
-        "extensions": [ ".fs", ".fsx" ]
-    }]
+        "extensions": [ ".fs", ".fsx", ".fsi" ]
+    }],
+		"grammars": [{
+        "language": "fsharp",
+        "scopeName": "source.fsharp",
+        "path": "./syntaxes/fsharp.json"
+        }]
 	},
 	"activationEvents": ["onLanguage:fsharp"],
 	"extensionDependencies": [
