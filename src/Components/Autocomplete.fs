@@ -17,7 +17,7 @@ module Autocomplete =
             |> Promise.success (fun o ->
                 o.Data |> Array.map (fun c ->
                     let range = doc.getWordRangeAtPosition pos
-                    let length = range._end.character - range.start.character
+                    let length = if JS.isDefined range then range._end.character - range.start.character else 0.
                     let result = createEmpty<ISuggestions> ()
                     let sug = createEmpty<ISuggestion> ()
                     sug._type <- c.Glyph.ToLower()
