@@ -3,7 +3,7 @@
 open System
 open FunScript
 open FunScript.TypeScript
-open FunScript.TypeScript.fs 
+open FunScript.TypeScript.fs
 open FunScript.TypeScript.child_process
 
 open DTO
@@ -104,7 +104,8 @@ module LanguageService =
 
     let start () =
         //TODO: Change path (from settings?)
-        let child = Globals.spawn("D:\\Programowanie\\Ionide\\VSCode\\ionide-vscode-fsharp\\release\\bin\\fsautocomplete.suave.exe", [| string port|])
+        let path = (VSCode.getPluginPath "ionide-fsharp") + "/bin/fsautocomplete.suave.exe"
+        let child = Globals.spawn(path, [| string port|])
         service <- Some child
         child.stderr.on("data", unbox<Function>( fun n -> Globals.console.error (n.ToString()))) |> ignore
         child.stdout.on("data", unbox<Function>( fun n -> Globals.console.log (n.ToString()))) |> ignore

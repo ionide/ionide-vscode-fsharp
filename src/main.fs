@@ -61,7 +61,12 @@ let translateModules (typ : System.Type) fileName =
         yield "var XMLHttpRequest = require('xhr2');"
         yield "var fs = require('fs');"
         yield "var path = require('path');"
-        yield "var window = { JSON: JSON, XMLHttpRequest : XMLHttpRequest, console: console, Promise : Promise };"
+        yield "var window = {
+                    JSON: JSON,
+                    XMLHttpRequest : XMLHttpRequest,
+                    console: console,
+                    Promise : Promise,
+                    process: process };"
         yield ""
         yield "function wrappedFunScript() { \n" + coreJS + "\n }"
         yield "var _funcs = wrappedFunScript();"
