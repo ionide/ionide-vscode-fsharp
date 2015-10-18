@@ -14,7 +14,7 @@ module Autocomplete =
         let provider = createEmpty<Modes.ISuggestSupport> ()
         provider.suggest <- (fun doc pos _ ->
             LanguageService.completion (doc.getPath ()) (int pos.line) (int pos.character)
-            |> Promise.success (fun o ->
+            |> Promise.success (fun (o : CompletionResult) ->
                 o.Data |> Array.map (fun c ->
                     let range = doc.getWordRangeAtPosition pos
                     let length = if JS.isDefined range then range._end.character - range.start.character else 0.
@@ -22,7 +22,7 @@ module Autocomplete =
                     let sug = createEmpty<ISuggestion> ()
                     sug._type <- c.Glyph.ToLower()
                     sug.label <- c.Name
-                    sug.codeSnippet <- c.Name
+                    sug.codeSnippet <- c.Code
                     result.currentWord <- c.Name
                     result.suggestions <- [| sug; |]
                     result.incomplete <- true

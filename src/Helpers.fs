@@ -81,7 +81,7 @@ module Helpers =
             else
                 Globals._process.env?HOME + "/.vscode/extensions/" + pluginName
 
-        let isMono () = Globals._process.platform = "win32"
+        let isMono () = Globals._process.platform = "win32" |> not
 
 
     //module Proces
