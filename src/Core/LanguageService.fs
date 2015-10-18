@@ -103,9 +103,8 @@ module LanguageService =
         "" |> request (url "compilerlocation") |> send 0
 
     let start () =
-        //TODO: Change path (from settings?)
         let path = (VSCode.getPluginPath "ionide-fsharp") + "/bin/fsautocomplete.suave.exe"
-        let child = Globals.spawn(path, [| string port|])
+        let child = if VSCode.isMono () then Globals.spawn("mono", [| path; string port|]) else Globals.spawn(path, [| string port|])
         service <- Some child
         child.stderr.on("data", unbox<Function>( fun n -> Globals.console.error (n.ToString()))) |> ignore
         child.stdout.on("data", unbox<Function>( fun n -> Globals.console.log (n.ToString()))) |> ignore
