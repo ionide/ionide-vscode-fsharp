@@ -54,9 +54,12 @@ module Linter =
         | Some p -> p |> Promise.success (fun _ -> parse path (file.getText ())) |> ignore
         | None -> parse path (file.getText ())
 
+    let mutable private timer = None : NodeJS.Timer option
 
     let private handler (event : TextDocumentChangeEvent) =
-        parse (event.document.getPath ()) (event.document.getText ())
+        timer |> Option.iter(Globals.clearTimeout)
+        timer <- Some (Globals.setTimeout((fun n -> parse (event.document.getPath ()) (event.document.getText ())), 500.) )
+
 
     let private handlerOpen (event : TextEditor) =
         parseFile <| event.getTextDocument ()

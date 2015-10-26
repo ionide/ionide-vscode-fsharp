@@ -66,7 +66,9 @@ let translateModules (typ : System.Type) fileName =
                     XMLHttpRequest : XMLHttpRequest,
                     console: console,
                     Promise : Promise,
-                    process: process };"
+                    process: process,
+                    setTimeout: setTimeout,
+                    clearTimeout: clearTimeout };"
         yield ""
         yield "function wrappedFunScript() { \n" + coreJS + "\n }"
         yield "var _funcs = wrappedFunScript();"
