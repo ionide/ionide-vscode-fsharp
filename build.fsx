@@ -17,15 +17,14 @@ open Fake.ZipHelper
 #else
 
 #load "src/vscode-bindings.fsx"
-#load "src/Helpers.fs"
 #load "src/Core/DTO.fs"
 #load "src/Core/LanguageService.fs"
 #load "src/Components/Linter.fs"
 #load "src/Components/Tooltip.fs"
 #load "src/Components/Autocomplete.fs"
 #load "src/Components/ParameterHints.fs"
-#load "src/Components/Declaration.fs"
-#load "src/Components/Occurrences.fs"
+#load "src/Components/Definition.fs"
+#load "src/Components/References.fs"
 #load "src/Components/Outline.fs"
 #load "src/fsharp.fs"
 #load "src/main.fs"

@@ -3,7 +3,7 @@
 	"version": "0.0.1",
 	"publisher": "Krzysztof Cieslak",
 	"engines": {
-		"vscode": "*"
+		"vscode": "^0.10.0"
 	},
 	"main": "./fsharp",
 	"contributes": {

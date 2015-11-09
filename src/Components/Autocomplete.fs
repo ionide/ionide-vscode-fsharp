@@ -4,46 +4,46 @@ open System
 open FunScript
 open FunScript.TypeScript
 open FunScript.TypeScript.vscode
-open FunScript.TypeScript.vscode.Modes
+open FunScript.TypeScript.vscode.languages
 
 open DTO
+open Ionide.VSCode.Helpers
 
 [<ReflectedDefinition>]
 module Autocomplete =
     let private createProvider () =
-        let provider = createEmpty<Modes.ISuggestSupport> ()
-        provider.suggest <- (fun doc pos _ ->
-            LanguageService.completion (doc.getPath ()) (int pos.line) (int pos.character)
-            |> Promise.success (fun (o : CompletionResult) ->
-                o.Data |> Array.map (fun c ->
-                    let range = doc.getWordRangeAtPosition pos
-                    let length = if JS.isDefined range then range._end.character - range.start.character else 0.
-                    let result = createEmpty<ISuggestions> ()
-                    let sug = createEmpty<ISuggestion> ()
-                    sug._type <- c.Glyph.ToLower()
-                    sug.label <- c.Name
-                    sug.codeSnippet <- c.Code
-                    result.currentWord <- c.Name
-                    result.suggestions <- [| sug; |]
-                    result.incomplete <- true
-                    result.overwriteBefore <- length
-                    result.overwriteAfter <- 0.
-                    result)
-                )
+        let provider = createEmpty<CompletionItemProvider> ()
+
+        let mapCompletion (doc : TextDocument) (pos : Position) (o : CompletionResult) =
+            o.Data |> Array.map (fun c ->
+                let range = doc.getWordRangeAtPosition pos
+                let length = if JS.isDefined range then range._end.character - range.start.character else 0.
+                let result = createEmpty<CompletionItem> ()
+                //sug._type <- c.Glyph.ToLower()
+                result.label <- c.Name
+                result.insertText <- c.Code
+                result)
+
+        let mapHelptext (sug : CompletionItem) (o : HelptextResult) =
+            let res = (o.Data.Overloads |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
+            sug.documentation <- res
+            sug
+
+        provider.``provideCompletionItems <-`` (fun doc pos _ ->
+            LanguageService.parse doc.fileName (doc.getText ())
+            |> Promise.bind (fun _ -> LanguageService.completion (doc.fileName) (int pos.line + 1) (int pos.character + 1))
+            |> Promise.success (mapCompletion doc pos)
             |> Promise.toThenable)
-        provider.getSuggestionDetails <- (fun doc pos sug _ ->
+
+        provider.``resolveCompletionItem <-``(fun sug _ ->
             LanguageService.helptext sug.label
-            |> Promise.success (fun (o : HelptextResult) ->
-                let res = (o.Data.Overloads |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
-                sug.documentationLabel <- res
-                sug
-                )
-            |> Promise.toThenable
-        )
+            |> Promise.success (mapHelptext sug)
+            |> Promise.toThenable)
+
         provider
 
-    let activate (disposables: Disposable[]) =
-        vscode.Modes.Globals.SuggestSupport.register("fsharp", createProvider())
+    let activate selector (disposables: Disposable[]) =
+        Globals.registerCompletionItemProviderOverload2(selector, createProvider(), [|"."|])
         |> ignore
 
         ()

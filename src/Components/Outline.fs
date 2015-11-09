@@ -4,41 +4,49 @@ open System
 open FunScript
 open FunScript.TypeScript
 open FunScript.TypeScript.vscode
-open FunScript.TypeScript.vscode.Modes
+open FunScript.TypeScript.vscode.languages
 
 open DTO
+open Ionide.VSCode.Helpers
 
 [<ReflectedDefinition>]
 module Outline =
     let private createProvider () =
-        let provider = createEmpty<IOutlineSupport > ()
-        provider.``getOutline <-`` (fun doc _ ->
-            LanguageService.declarations (doc.getPath ())
+        let provider = createEmpty<DocumentSymbolProvider > ()
+        provider.``provideDocumentSymbols <-`` (fun doc _ ->
+            LanguageService.declarations doc.fileName
             |> Promise.success (fun (o : DeclarationResult) ->
                 o.Data
                 |> Array.map (fun s ->
-                    let oc = createEmpty<IOutlineEntry> ()
-                    oc.label <- s.Declaration.Name
-                    oc._type <- s.Declaration.Glyph
-                    oc.range <- Range.Create(float s.Declaration.BodyRange.StartLine,
-                                             float s.Declaration.BodyRange.StartColumn,
-                                             float s.Declaration.BodyRange.EndLine,
-                                             float s.Declaration.BodyRange.EndColumn)
-                    oc.children <- s.Nested |> Array.map (fun s ->
-                        let oc = createEmpty<IOutlineEntry> ()
-                        oc.label <- s.Name
-                        oc._type <- s.Glyph
-                        oc.range <- Range.Create(float s.BodyRange.StartLine,
-                                                 float s.BodyRange.StartColumn,
-                                                 float s.BodyRange.EndLine,
-                                                 float s.BodyRange.EndColumn)
+                    let oc = createEmpty<SymbolInformation> ()
+                    oc.name <- s.Declaration.Name
+                    //oc._type <- s.Declaration.Glyph
+
+                    let loc = createEmpty<Location> ()
+                    loc.range <-  Range.Create(float s.Declaration.BodyRange.StartLine - 1.,
+                                             float s.Declaration.BodyRange.StartColumn - 1.,
+                                             float s.Declaration.BodyRange.EndLine - 1.,
+                                             float s.Declaration.BodyRange.EndColumn - 1.)
+                    loc.uri <- Uri.file doc.fileName
+                    oc.location <- loc
+                    let ocs =  s.Nested |> Array.map (fun s ->
+                        let oc = createEmpty<SymbolInformation> ()
+                        oc.name <- s.Name
+                        //oc._type <- s.Glyph
+                        let loc = createEmpty<Location> ()
+                        loc.range <-  Range.Create(float s.BodyRange.StartLine - 1.,
+                                                 float s.BodyRange.StartColumn - 1.,
+                                                 float s.BodyRange.EndLine - 1.,
+                                                 float s.BodyRange.EndColumn - 1.)
+                        loc.uri <- Uri.file doc.fileName
+                        oc.location <- loc
                         oc )
-                    oc  )
-                )
+                    seq { yield oc; yield! ocs } |> Seq.toArray  )
+                |> Array.fold (fun acc e -> Array.append e acc ) [||] )
             |> Promise.toThenable )
         provider
 
-    let activate (disposables: Disposable[]) =
-        Globals.OutlineSupport.register("fsharp", createProvider())
+    let activate selector (disposables: Disposable[]) =
+        Globals.registerDocumentSymbolProvider(selector, createProvider())
         |> ignore
         ()

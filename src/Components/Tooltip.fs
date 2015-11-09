@@ -4,36 +4,40 @@ open System
 open FunScript
 open FunScript.TypeScript
 open FunScript.TypeScript.vscode
-open FunScript.TypeScript.vscode.Modes
+open FunScript.TypeScript.vscode.languages
 
 open DTO
+
+open Ionide.VSCode.Helpers
 
 [<ReflectedDefinition>]
 module Tooltip =
 
     let private createProvider () =
-        let provider = createEmpty<IExtraInfoSupport> ()
-        provider.``computeInfo <-`` (fun doc pos _ ->
-            LanguageService.tooltip (doc.getPath ()) (int pos.line) (int pos.character)
-            |> Promise.success (fun o ->
-                let range = doc.getWordRangeAtPosition pos
-                let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
-                let htmlContent =
-                    res.Split('\n')
-                    |> Array.filter((<>) "")
-                    |> Array.map (fun n ->
-                        let el = createEmpty<IHTMLContentElement> ()
-                        el.tagName <- "p"
-                        el.text <- n
-                        el)
-                let result = createEmpty<IComputeExtraInfoResult> ()
-                result.range <- range
-                result.htmlContent <- htmlContent
-                result )
+        let provider = createEmpty<HoverProvider> ()
+
+        let mapResult (doc : TextDocument) (pos : Position) o =
+            let range = doc.getWordRangeAtPosition pos
+            let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
+            let content =
+                res.Split('\n')
+                |> Array.filter((<>) "")
+                |> Array.map (fun n ->
+                    let el = createEmpty<MarkedString> ()
+                    el.value <- n
+                    el)
+            let result = createEmpty<Hover> ()
+            result.range <- range
+            result.contents <- content
+            result
+
+        provider.``provideHover <-``(fun doc pos _ ->
+            LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+            |> Promise.success (mapResult doc pos)
             |> Promise.toThenable )
         provider
 
-    let activate (disposables: Disposable[]) =
-        Globals.ExtraInfoSupport.register("fsharp", createProvider())
+    let activate selector (disposables: Disposable[]) =
+        Globals.registerHoverProvider(selector, createProvider())
         |> ignore
         ()

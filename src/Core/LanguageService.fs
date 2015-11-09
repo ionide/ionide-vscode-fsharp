@@ -7,6 +7,7 @@ open FunScript.TypeScript.fs
 open FunScript.TypeScript.child_process
 
 open DTO
+open Ionide.VSCode.Helpers
 
 [<ReflectedDefinition>]
 module LanguageService =
@@ -104,7 +105,7 @@ module LanguageService =
 
     let start () =
         let path = (VSCode.getPluginPath "ionide-fsharp") + "/bin/fsautocomplete.suave.exe"
-        let child = if VSCode.isMono () then Globals.spawn("mono", [| path; string port|]) else Globals.spawn(path, [| string port|])
+        let child = if Process.isMono () then Globals.spawn("mono", [| path; string port|]) else Globals.spawn(path, [| string port|])
         service <- Some child
         child.stderr.on("data", unbox<Function>( fun n -> Globals.console.error (n.ToString()))) |> ignore
         child.stdout.on("data", unbox<Function>( fun n -> Globals.console.log (n.ToString()))) |> ignore

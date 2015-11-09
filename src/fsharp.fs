@@ -14,11 +14,14 @@ open Ionide.VSCode.FSharp
 type FSharp() =
     member x.activate(disposables: Disposable[]) =
         LanguageService.start ()
+        let df = createEmpty<DocumentFilter> ()
+        df.language <- "fsharp"
+        let df' = [|df|]
         Linter.activate disposables
-        Tooltip.activate disposables
-        Autocomplete.activate disposables
-        ParameterHints.activate disposables
-        Declaration.activate disposables
-        Occurrences.activate disposables
-        Outline.activate disposables
+        Tooltip.activate df' disposables
+        Autocomplete.activate df' disposables
+        ParameterHints.activate df' disposables
+        Definition.activate df' disposables
+        Reference.activate df' disposables
+        Outline.activate df' disposables
         ()

@@ -4,14 +4,21 @@ open System
 open FunScript
 open FunScript.TypeScript
 open FunScript.TypeScript.vscode
+open FunScript.TypeScript.vscode.languages
 open FunScript.TypeScript.path
 open FunScript.TypeScript.fs
 
 open DTO
+open Ionide.VSCode.Helpers
 
 [<ReflectedDefinition>]
 module Linter =
-    let mutable private currentDiagnostic : Disposable option = None
+    type DiagnosticCollection with
+        [<JSEmitInline("{0}.set({1},{2})")>]
+        member __.set'(uri : Uri, diagnostics : Diagnostic[]) : unit = failwith "never"
+
+
+    let mutable private currentDiagnostic = Globals.createDiagnosticCollection ()
 
     let private project p =
         let rec findFsProj dir =
@@ -31,24 +38,23 @@ module Linter =
         |> Option.map (fun n -> LanguageService.project n )
 
     let private parse path text =
+
+        let mapResult (ev : ParseResult) =
+            ev.Data
+            |> Seq.distinctBy (fun d -> d.Severity, d.StartLine, d.StartColumn)
+            |> Seq.map (fun d ->
+                let range = Range.Create(float d.StartLine - 1., float d.StartColumn - 1., float d.EndLine - 1., float d.EndColumn - 1.)
+                let loc = Location.Create (Uri.file d.FileName, range)
+                let severity = if d.Severity = "Error" then 0 else 1
+                Diagnostic.Create(range, d.Message, unbox severity) )
+            |> Seq.toArray
+
         LanguageService.parse path text
-        |> Promise.success (fun (ev : ParseResult) ->
-            currentDiagnostic |> Option.iter (fun cd -> cd.dispose () |> ignore)
-            let diag =
-                ev.Data
-                |> Seq.distinctBy (fun d -> d.Severity, d.StartLine, d.StartColumn)
-                |> Seq.map (fun d ->
-                    let range = Range.Create(float d.StartLine, float d.StartColumn, float d.EndLine, float d.EndColumn)
-                    let loc = Location.Create (Uri.file d.FileName, range)
-                    let severity = if d.Severity = "Error" then 2 else 1
-                    Diagnostic.Create(unbox severity, loc, d.Message) )
-                |> Seq.toArray
-                |> languages.Globals.addDiagnostics
-            currentDiagnostic <- Some diag )
+        |> Promise.success (fun (ev : ParseResult) ->  (Uri.file path, mapResult ev) |> currentDiagnostic.set'  )
         |> ignore
 
     let parseFile (file : TextDocument) =
-        let path = file.getPath ()
+        let path = file.fileName
         let prom = project path
         match prom with
         | Some p -> p |> Promise.success (fun _ -> parse path (file.getText ())) |> ignore
@@ -58,11 +64,11 @@ module Linter =
 
     let private handler (event : TextDocumentChangeEvent) =
         timer |> Option.iter(Globals.clearTimeout)
-        timer <- Some (Globals.setTimeout((fun n -> parse (event.document.getPath ()) (event.document.getText ())), 500.) )
+        timer <- Some (Globals.setTimeout((fun n -> parse (event.document.fileName) (event.document.getText ())), 500.) )
 
 
     let private handlerOpen (event : TextEditor) =
-        parseFile <| event.getTextDocument ()
+        parseFile event.document
 
     let activate (disposables: Disposable[]) =
         workspace.Globals.onDidChangeTextDocument
@@ -71,5 +77,5 @@ module Linter =
         window.Globals.onDidChangeActiveTextEditor
         |> EventHandler.add handlerOpen () disposables
 
-        let editor = window.Globals.getActiveTextEditor()
-        if JS.isDefined editor then parseFile <| editor.getTextDocument ()
+        let editor = window.Globals.activeTextEditor
+        if JS.isDefined editor then parseFile editor.document
