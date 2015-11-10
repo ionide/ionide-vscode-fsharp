@@ -11,8 +11,13 @@ open Ionide.VSCode.Helpers
 
 [<ReflectedDefinition>]
 module LanguageService =
-    let private port = 8089
-    let private url s = sprintf @"http://localhost:%d/%s" port s
+    let genPort () =
+        let r = Globals.Math.random ()
+        let r' = r * (8999. - 8100.) + 8100.
+        r'.ToString().Substring(0,4)
+
+    let port = genPort ()
+    let private url s = sprintf @"http://localhost:%s/%s" port s
 
     let mutable private service : ChildProcess option =  None
 
