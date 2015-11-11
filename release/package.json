@@ -15,9 +15,30 @@
         "language": "fsharp",
         "scopeName": "source.fsharp",
         "path": "./syntaxes/fsharp.json"
-        }]
+        }],
+		"commands": [{
+			"command": "fsi.Start",
+			"title": "FSI: Start"
+		},{
+			"command": "fsi.SendLine",
+			"title": "FSI: Send Line"
+		},{
+			"command": "fsi.SendSelection",
+			"title": "FSI: Send Selection"
+		},{
+			"command": "fsi.SendFile",
+			"title": "FSI: Send File"
+		}],
+		"outputChannels": [
+			"F# Interactive"
+		]
 	},
-	"activationEvents": ["onLanguage:fsharp"],
+	"activationEvents": [
+		"onLanguage:fsharp",
+		"onCommand:fsi.Start",
+		"onCommand:fsi.SendLine",
+		"onCommand:fsi.SendSelection",
+		"onCommand:fsi.SendFile"],
 	"extensionDependencies": [
         "vscode.fsharp"
     ],

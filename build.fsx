@@ -26,6 +26,7 @@ open Fake.ZipHelper
 #load "src/Components/Definition.fs"
 #load "src/Components/References.fs"
 #load "src/Components/Outline.fs"
+#load "src/Components/Fsi.fs"
 #load "src/fsharp.fs"
 #load "src/main.fs"
 #endif

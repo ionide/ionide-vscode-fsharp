@@ -42,6 +42,7 @@
     <Compile Include="Components\Definition.fs" />
     <Compile Include="Components\References.fs" />
     <Compile Include="Components\Outline.fs" />
+    <Compile Include="Components\Fsi.fs" />
     <Compile Include="fsharp.fs" />
     <Compile Include="main.fs" />
     <None Include="vscode-bindings.fsx" />
