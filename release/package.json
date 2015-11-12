@@ -1,7 +1,21 @@
 {
 	"name": "Ionide-fsharp",
-	"version": "0.0.1",
-	"publisher": "Krzysztof Cieslak",
+	"version": "0.2.0",
+	"publisher": "Ionide",
+	"description": "F# Language Support",
+	"categories":[
+		 "Linters", "Languages", "Snippets"
+	],
+	"license":"SEE LICENSE IN LICENSE.md",
+	"icon": "images/logo.png",
+	"bugs": {
+		"url": "https://github.com/ionide/ionide-vscode-fsharp/issues"
+	},
+	"homepage": "http://iondie.io",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ionide/ionide-vscode-fsharp.git"
+	},
 	"engines": {
 		"vscode": "^0.10.0"
 	},
@@ -31,7 +45,17 @@
 		}],
 		"outputChannels": [
 			"F# Interactive"
-		]
+		],
+		"keybindings": [{
+        "command": "fsi.SendLine",
+        "key": "alt+/",
+        "mac": "alt+/"
+    },
+		{
+				"command": "fsi.SendSelection",
+				"key": "alt+Enter",
+				"mac": "alt+Enter"
+		}]
 	},
 	"activationEvents": [
 		"onLanguage:fsharp",

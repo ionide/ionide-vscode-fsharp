@@ -22,7 +22,7 @@ module Fsi =
     let private start () =
         fsiProcess |> Option.iter(fun fp -> fp.kill ())
         fsiProcess <-
-            Process.spawn "Fsi.exe" "" ""
+            (if Process.isWin () then Process.spawn "Fsi.exe" "" "" else Process.spawn "fsharpi" "" "")
             |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun fo -> fo.clear () ))
             |> Process.onOutput handle
             |> Some
