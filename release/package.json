@@ -1,6 +1,6 @@
 {
 	"name": "Ionide-fsharp",
-	"version": "0.2.1",
+	"version": "0.2.2",
 	"publisher": "Ionide",
 	"description": "F# Language Support",
 	"categories":[
@@ -11,7 +11,7 @@
 	"bugs": {
 		"url": "https://github.com/ionide/ionide-vscode-fsharp/issues"
 	},
-	"homepage": "http://iondie.io",
+	"homepage": "http://ionide.io",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/ionide/ionide-vscode-fsharp.git"
