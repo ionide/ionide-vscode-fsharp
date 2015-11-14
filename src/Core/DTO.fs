@@ -127,3 +127,18 @@ module DTO =
     type FindDeclarationResult = Result<Declaration>
     type MethodResult = Result<Method>
     type DeclarationResult = Result<Symbols[]>
+
+[<ReflectedDefinition>]
+module Utils =
+    let convertToInt code =
+        match code with
+        | "C" -> 6
+        | "E" -> 12
+        | "S" -> 6
+        | "I" -> 7
+        | "N" -> 8
+        | "M" -> 1
+        | "P" -> 9
+        | "F" -> 4
+        | "T" -> 6
+        | _ -> 0

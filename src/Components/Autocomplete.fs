@@ -19,7 +19,7 @@ module Autocomplete =
                 let range = doc.getWordRangeAtPosition pos
                 let length = if JS.isDefined range then range._end.character - range.start.character else 0.
                 let result = createEmpty<CompletionItem> ()
-                //sug._type <- c.Glyph.ToLower()
+                result.kind <- c.GlyphChar |> Utils.convertToInt |> unbox
                 result.label <- c.Name
                 result.insertText <- c.Code
                 result)

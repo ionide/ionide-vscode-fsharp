@@ -20,7 +20,7 @@ module Outline =
                 |> Array.map (fun s ->
                     let oc = createEmpty<SymbolInformation> ()
                     oc.name <- s.Declaration.Name
-                    //oc._type <- s.Declaration.Glyph
+                    oc.kind <- s.Declaration.GlyphChar |> Utils.convertToInt |> unbox
 
                     let loc = createEmpty<Location> ()
                     loc.range <-  Range.Create(float s.Declaration.BodyRange.StartLine - 1.,
@@ -32,7 +32,7 @@ module Outline =
                     let ocs =  s.Nested |> Array.map (fun s ->
                         let oc = createEmpty<SymbolInformation> ()
                         oc.name <- s.Name
-                        //oc._type <- s.Glyph
+                        oc.kind <- s.GlyphChar |> Utils.convertToInt |> unbox
                         let loc = createEmpty<Location> ()
                         loc.range <-  Range.Create(float s.BodyRange.StartLine - 1.,
                                                  float s.BodyRange.StartColumn - 1.,
