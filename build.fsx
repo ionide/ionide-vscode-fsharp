@@ -71,7 +71,7 @@ let run cmd args dir =
 // --------------------------------------------------------------------------------------
 
 Target "Clean" (fun _ ->
-    CopyFiles "release" ["README.md"; "LICENSE"; "RELEASE_NOTES.md"]
+    CopyFiles "release" ["README.md"; "LICENSE.md"; "RELEASE_NOTES.md"]
 )
 
 #if MONO
