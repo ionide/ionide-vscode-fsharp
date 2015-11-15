@@ -14,12 +14,25 @@ module Autocomplete =
     let private createProvider () =
         let provider = createEmpty<CompletionItemProvider> ()
 
+        let convertToInt code =
+            match code with
+            | "C" -> 6
+            | "E" -> 12
+            | "S" -> 6
+            | "I" -> 7
+            | "N" -> 8
+            | "M" -> 1
+            | "P" -> 9
+            | "F" -> 4
+            | "T" -> 6
+            | _ -> 0
+
         let mapCompletion (doc : TextDocument) (pos : Position) (o : CompletionResult) =
             o.Data |> Array.map (fun c ->
                 let range = doc.getWordRangeAtPosition pos
                 let length = if JS.isDefined range then range._end.character - range.start.character else 0.
                 let result = createEmpty<CompletionItem> ()
-                result.kind <- c.GlyphChar |> Utils.convertToInt |> unbox
+                result.kind <- c.GlyphChar |> convertToInt |> unbox
                 result.label <- c.Name
                 result.insertText <- c.Code
                 result)

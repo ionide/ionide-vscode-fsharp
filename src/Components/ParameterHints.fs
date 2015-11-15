@@ -20,15 +20,18 @@ module ParameterHints =
                 let signature = createEmpty<SignatureInformation> ()
                 let tip = c.Tip.[0].[0]
                 signature.label <-  tip.Signature
-                signature.parameters <- [||]
-                    //c.Parameters |> Array.map (fun p ->
-                    //    let parameter = createEmpty<IParameter> ()
-                    //    parameter.label <- p.Name
-                    //    parameter )
+                signature.documentation <- tip.Comment
+                signature.parameters <-
+                    c.Parameters |> Array.map (fun p ->
+                        let parameter = createEmpty<ParameterInformation> ()
+                        parameter.label <- p.Name
+                        parameter.documentation <- p.Description
+                        parameter )
                 signature )
             res.activeParameter <- float (o.Data.CurrentParameter)
             res.activeSignature <- 0.
             res.signatures <- sigs
+            Globals.console.log res
             res
 
         provider.``provideSignatureHelp <-`` (fun doc pos _ ->

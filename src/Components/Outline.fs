@@ -13,6 +13,20 @@ open Ionide.VSCode.Helpers
 module Outline =
     let private createProvider () =
         let provider = createEmpty<DocumentSymbolProvider > ()
+        let convertToInt code =
+            match code with
+            | "C" -> 4
+            | "E" -> 6
+            | "S" -> 6
+            | "I" -> 10
+            | "N" -> 1
+            | "M" -> 11
+            | "P" -> 6
+            | "F" -> 7
+            | "T" -> 4
+            | _ -> 0
+        
+        
         provider.``provideDocumentSymbols <-`` (fun doc _ ->
             LanguageService.declarations doc.fileName
             |> Promise.success (fun (o : DeclarationResult) ->
@@ -20,7 +34,7 @@ module Outline =
                 |> Array.map (fun s ->
                     let oc = createEmpty<SymbolInformation> ()
                     oc.name <- s.Declaration.Name
-                    oc.kind <- s.Declaration.GlyphChar |> Utils.convertToInt |> unbox
+                    oc.kind <- s.Declaration.GlyphChar |> convertToInt |> unbox
 
                     let loc = createEmpty<Location> ()
                     loc.range <-  Range.Create(float s.Declaration.BodyRange.StartLine - 1.,
@@ -32,7 +46,7 @@ module Outline =
                     let ocs =  s.Nested |> Array.map (fun s ->
                         let oc = createEmpty<SymbolInformation> ()
                         oc.name <- s.Name
-                        oc.kind <- s.GlyphChar |> Utils.convertToInt |> unbox
+                        oc.kind <- s.GlyphChar |> convertToInt |> unbox
                         let loc = createEmpty<Location> ()
                         loc.range <-  Range.Create(float s.BodyRange.StartLine - 1.,
                                                  float s.BodyRange.StartColumn - 1.,
