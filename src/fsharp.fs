@@ -25,4 +25,5 @@ type FSharp() =
         Reference.activate df' disposables
         Outline.activate df' disposables
         Fsi.activate disposables  
+        QuickInfo.activate disposables
         ()
