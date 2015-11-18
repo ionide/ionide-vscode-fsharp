@@ -27,7 +27,7 @@ module Fsi =
             |> Process.onOutput handle
             |> Some
         fsiOutput <-
-            window.Globals.createOutputChannel("F# Ineractive")
+            window.Globals.createOutputChannel("F# Interactive")
             |> Some
         fsiOutput |> Option.iter (fun fo -> fo.show (2 |> unbox) )
 
