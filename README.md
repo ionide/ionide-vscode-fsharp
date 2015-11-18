@@ -1,4 +1,4 @@
-#Ionide-VSCode: F#
+#Ionide-VSCode: FSharp
 
 It's part of [Ionide](http://ionide.io) plugin suite.
 F# IDE-like possibilities in Atom editor and Visual Studio Code
