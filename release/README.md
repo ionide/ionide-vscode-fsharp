@@ -1,4 +1,4 @@
-#Ionide-VSCode: F#
+#Ionide-VSCode: FSharp
 
 It's part of [Ionide](http://ionide.io) plugin suite.
 F# IDE-like possibilities in Atom editor and Visual Studio Code
@@ -23,7 +23,7 @@ F# IDE-like possibilities in Atom editor and Visual Studio Code
 This can be obtained by installing Visual Studio 2013 / 2015 or downloading:
 
 * [Visual F# Tools 3.1.2](http://www.microsoft.com/en-us/download/details.aspx?id=44011)
-* [Microsoft Built Tools 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40760)
+* [Microsoft Build Tools 2013](https://www.microsoft.com/en-us/download/details.aspx?id=40760)
 
 ### Mono
 
