@@ -57,3 +57,7 @@ temp
 .fake
 .vs
 *.js
+.vscode
+.orig
+release.cmd
+paket-files

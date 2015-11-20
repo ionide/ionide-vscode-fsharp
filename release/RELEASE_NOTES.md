@@ -1,3 +1,6 @@
+#### 1.0.2 - 20.11.2015
+* First release from FAKE
+
 #### 1.0.1 - 19.11.2015
 * Fix paths for Linux
 
