@@ -1,3 +1,6 @@
+#### 1.0.3 - 21.11.2015
+* Fix dependecy
+
 #### 1.0.2 - 20.11.2015
 * First release from FAKE
 
