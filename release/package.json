@@ -66,6 +66,9 @@
 	"extensionDependencies": [
         "vscode.fsharp"
     ],
+	"dependencies": {
+		"xhr2": "*"
+	},
 	"devDependencies": {
 		"vscode": "*"
 	}
