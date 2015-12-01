@@ -13,9 +13,6 @@ open Fake.ProcessHelper
 open Fake.ReleaseNotesHelper
 open Fake.ZipHelper
 
-#if MONO
-#else
-
 #load "src/vscode-bindings.fsx"
 #load "src/Core/DTO.fs"
 #load "src/Core/LanguageService.fs"
@@ -30,7 +27,6 @@ open Fake.ZipHelper
 #load "src/Components/QuickInfo.fs"
 #load "src/fsharp.fs"
 #load "src/main.fs"
-#endif
 
 
 // Git configuration (used for publishing documentation in gh-pages branch)
@@ -72,11 +68,7 @@ let npmTool =
     | _ -> __SOURCE_DIRECTORY__ </> "packages/Npm.js/tools/npm.cmd"
     
 let vsceTool =
-    #if MONO
-        "vsce"
-    #else
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) </> "npm" </> "vsce.cmd"
-    #endif
     
 
 // --------------------------------------------------------------------------------------
@@ -88,24 +80,9 @@ Target "Clean" (fun _ ->
     CopyFiles "release" ["README.md"; "LICENSE.md"; "RELEASE_NOTES.md"]
 )
 
-#if MONO
-Target "BuildGenerator" (fun () ->
-    [ __SOURCE_DIRECTORY__ </> "src" </> "Ionide.FSharp.fsproj" ]
-    |> MSBuildDebug "" "Rebuild"
-    |> Log "AppBuild-Output: "
-)
-
-Target "RunGenerator" (fun () ->
-    (TimeSpan.FromMinutes 5.0)
-    |> ProcessHelper.ExecProcess (fun p ->
-        p.FileName <- __SOURCE_DIRECTORY__ </> "src" </> "bin" </> "Debug" </> "Ionide.FSharp.exe" )
-    |> ignore
-)
-#else
 Target "RunScript" (fun () ->
     Ionide.VSCode.Generator.translateModules typeof<Ionide.VSCode.FSharp> (".." </> "release" </> "fsharp.js")
 )
-#endif
 
 Target "InstallVSCE" ( fun _ ->
     killProcess "npm"
@@ -193,16 +170,9 @@ Target "ReleaseGitHub" (fun _ ->
 Target "Default" DoNothing
 Target "Release" DoNothing
 
-#if MONO
-"Clean"
-    ==> "BuildGenerator"
-    ==> "RunGenerator"
-    ==> "Default"
-#else
 "Clean"
     ==> "RunScript"
     ==> "Default"
-#endif
 
 "Default"
   ==> "SetVersion"
