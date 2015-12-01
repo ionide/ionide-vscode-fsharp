@@ -8,7 +8,7 @@ open FunScript.TypeScript.vscode.languages
 open FunScript.TypeScript.path
 open FunScript.TypeScript.fs
 
-open DTO
+open DTO 
 open Ionide.VSCode.Helpers
 
 [<ReflectedDefinition>]
@@ -35,7 +35,6 @@ module Linter =
         p
         |> Globals.dirname
         |> findFsProj
-        |> Option.map (fun n -> LanguageService.project n )
 
     let private parse path text =
 
@@ -57,7 +56,10 @@ module Linter =
         let path = file.fileName
         let prom = project path
         match prom with
-        | Some p -> p |> Promise.success (fun _ -> parse path (file.getText ())) |> ignore
+        | Some p -> p
+                    |> LanguageService.project
+                    |> Promise.success (fun _ -> parse path (file.getText ()))
+                    |> ignore
         | None -> parse path (file.getText ())
 
     let mutable private timer = None : NodeJS.Timer option
