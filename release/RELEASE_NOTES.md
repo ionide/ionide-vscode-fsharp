@@ -1,8 +1,11 @@
+#### 1.0.5 - 01.12.2015
+* Fix quick info priority
+
 #### 1.0.4 - 26.11.2015
 * Fix grammar
 
 #### 1.0.3 - 21.11.2015
-* Fix dependecy
+* Fix dependency 
 
 #### 1.0.2 - 20.11.2015
 * First release from FAKE
