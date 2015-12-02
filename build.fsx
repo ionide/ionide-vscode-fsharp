@@ -64,7 +64,7 @@ let run cmd args dir =
 
 let npmTool =
     match isUnix with
-    | true -> "/usr/local/bin/npm"
+    | true -> "npm" // Use the npm that is in PATH
     | _ -> __SOURCE_DIRECTORY__ </> "packages/Npm.js/tools/npm.cmd"
 
 let vsceTool =
