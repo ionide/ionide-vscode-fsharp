@@ -109,8 +109,13 @@ module LanguageService =
         "" |> request (url "compilerlocation") |> send 0
 
     let start () =
-        let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
-        let child = if Process.isMono () then Globals.spawn("mono", [| path; string port|]) else Globals.spawn(path, [| string port|])
+        let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp")
+        let child =
+          if Process.isMono () then
+            Globals.spawn("bash", [| path + "runAutoComplete.sh"; string port|])
+          else 
+            Globals.spawn(path + "/bin/FsAutoComplete.Suave.exe", [| string port|])
+        let child = if Process.isMono () then Globals.spawn("bash", [| path; string port|]) else Globals.spawn(path, [| string port|])
         service <- Some child
         child.stderr.on("data", unbox<Function>( fun n -> Globals.console.error (n.ToString()))) |> ignore
         child.stdout.on("data", unbox<Function>( fun n -> Globals.console.log (n.ToString()))) |> ignore
