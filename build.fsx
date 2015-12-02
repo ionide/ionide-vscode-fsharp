@@ -66,14 +66,14 @@ let npmTool =
     match isUnix with
     | true -> "/usr/local/bin/npm"
     | _ -> __SOURCE_DIRECTORY__ </> "packages/Npm.js/tools/npm.cmd"
-    
+
 let vsceTool =
     #if MONO
         "vsce"
     #else
         "packages" </> "Node.js" </> "vsce.cmd" |> FullName
     #endif
-    
+
 
 // --------------------------------------------------------------------------------------
 // Build the Generator project and run it
@@ -96,12 +96,12 @@ Target "InstallVSCE" ( fun _ ->
 Target "SetVersion" (fun _ ->
     let fileName = "./release/package.json"
     let lines =
-        File.ReadAllLines fileName        
+        File.ReadAllLines fileName
         |> Seq.map (fun line ->
             if line.TrimStart().StartsWith("\"version\":") then
-                let indent = line.Substring(0,line.IndexOf("\""))                 
+                let indent = line.Substring(0,line.IndexOf("\""))
                 sprintf "%s\"version\": \"%O\"," indent release.NugetVersion
-            else line) 
+            else line)
     File.WriteAllLines(fileName,lines)
 )
 
@@ -113,16 +113,11 @@ Target "BuildPackage" ( fun _ ->
 )
 
 Target "PublishToGallery" ( fun _ -> 
-    let publisher =
-        match getBuildParam "vsce-publisher" with
-        | s when not (String.IsNullOrWhiteSpace s) -> s
-        | _ -> getUserPassword "VSCE Publisher: "
-        
     let token =
         match getBuildParam "vsce-token" with
         | s when not (String.IsNullOrWhiteSpace s) -> s
         | _ -> getUserPassword "VSCE Token: "
-        
+
     killProcess "vsce"
     run vsceTool (sprintf "publish --pat %s" token) "release"
 )
@@ -151,12 +146,12 @@ Target "ReleaseGitHub" (fun _ ->
 
     Branches.tag "" release.NugetVersion
     Branches.pushTag "" remote release.NugetVersion
-    
+
     let file = !! ("./temp" </> "*.vsix") |> Seq.head
-    
+
     // release on github
     createClient user pw
-    |> createDraft gitOwner gitName release.NugetVersion (release.SemVer.PreRelease <> None) release.Notes 
+    |> createDraft gitOwner gitName release.NugetVersion (release.SemVer.PreRelease <> None) release.Notes
     |> uploadFile file
     |> releaseDraft
     |> Async.RunSynchronously
