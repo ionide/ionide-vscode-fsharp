@@ -34,7 +34,7 @@ module Autocomplete =
                 let result = createEmpty<CompletionItem> ()
                 result.kind <- c.GlyphChar |> convertToInt |> unbox
                 result.label <- c.Name
-                result.insertText <- c.Code
+                result.insertText <- c.ReplacementText
                 result)
 
         let mapHelptext (sug : CompletionItem) (o : HelptextResult) =

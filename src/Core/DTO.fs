@@ -40,7 +40,7 @@ module DTO =
 
     type Completion = {
         Name : string
-        Code : string
+        ReplacementText : string
         Glyph : string
         GlyphChar: string
     }
