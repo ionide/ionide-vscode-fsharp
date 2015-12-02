@@ -1,6 +1,6 @@
 {
 	"name": "Ionide-fsharp",
-	"version": "1.0.5",
+	"version": "1.0.6",
 	"publisher": "Ionide",
 	"description": "F# Language Support",
 	"categories":[

@@ -1,3 +1,6 @@
+#### 1.0.6 - 02.12.2015
+* Fix backtick autocomplete problem
+
 #### 1.0.5 - 01.12.2015
 * Fix quick info priority
 
