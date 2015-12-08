@@ -1,3 +1,6 @@
+#### 1.0.7 - 08.12.2015
+* Fix error handling in FSI
+
 #### 1.0.6 - 02.12.2015
 * Fix backtick autocomplete problem
 
