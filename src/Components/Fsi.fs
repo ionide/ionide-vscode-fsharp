@@ -25,6 +25,7 @@ module Fsi =
             (if Process.isWin () then Process.spawn "Fsi.exe" "" "" else Process.spawn "fsharpi" "" "")
             |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun fo -> fo.clear () ))
             |> Process.onOutput handle
+            |> Process.onError handle
             |> Some
         fsiOutput <-
             window.Globals.createOutputChannel("F# Interactive")
