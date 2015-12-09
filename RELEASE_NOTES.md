@@ -1,3 +1,6 @@
+#### 1.1.0 - 09.12.2015
+* Update FSAC version
+
 #### 1.0.7 - 08.12.2015
 * Fix error handling in FSI
 
