@@ -1,3 +1,6 @@
+#### 1.1.1 - 05.01.2016
+* Update FSAC version
+
 #### 1.1.0 - 09.12.2015
 * Update FSAC version
 
