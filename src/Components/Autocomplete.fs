@@ -58,5 +58,4 @@ module Autocomplete =
     let activate selector (disposables: Disposable[]) =
         Globals.registerCompletionItemProviderOverload2(selector, createProvider(), [|"."|])
         |> ignore
-
         ()

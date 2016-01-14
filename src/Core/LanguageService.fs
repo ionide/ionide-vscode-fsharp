@@ -5,7 +5,7 @@ open FunScript
 open FunScript.TypeScript
 open FunScript.TypeScript.fs
 open FunScript.TypeScript.child_process
-  
+
 open DTO
 open Ionide.VSCode.Helpers
 
@@ -29,6 +29,7 @@ module LanguageService =
         req.Method <- "POST"
 
         let str = Globals.JSON.stringify data
+        str |> Globals.console.log
         let data = System.Text.Encoding.UTF8.GetBytes str
         let stream = req.GetRequestStream()
         stream.Write (data, 0, data.Length )
@@ -71,7 +72,7 @@ module LanguageService =
         |> send 0
 
     let completion fn line col =
-        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
+        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = "Contains"}
         |> request (url "completion")
         |> send 1
 
