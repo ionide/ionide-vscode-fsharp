@@ -1,3 +1,6 @@
+#### 1.1.2 - 14.01.2016
+* Filter completion result on FSAC side
+
 #### 1.1.1 - 05.01.2016
 * Fix path error
 
