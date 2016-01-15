@@ -1,3 +1,6 @@
+#### 1.2.0 - 15.01.2016
+* Send SilentCd and line number file when sending comands to Fsi
+
 #### 1.1.2 - 14.01.2016
 * Filter completion result on FSAC side
 
