@@ -32,26 +32,42 @@ module Fsi =
             |> Some
         fsiOutput |> Option.iter (fun fo -> fo.show (2 |> unbox) )
 
-    let private send (msg : string) =
+    let private send (msg : string) file =
+
         if fsiProcess.IsNone then start ()
         let msg = msg.Replace("\uFEFF", "") + ";;\n"
         fsiOutput |> Option.iter (fun fo -> fo.append msg)
-        fsiProcess |> Option.iter (fun fp -> fp.stdin.write(msg, "utf-8" |> unbox) |> ignore)
+        let msg' =
+            try
+                let dir = path.Globals.dirname file
+                "\n"
+                + (sprintf "# silentCd @\"%s\" ;; " dir) + "\n"
+                + (sprintf "# %d @\"%s\" " 1 file) + "\n"
+                + msg
+            with
+            | _ -> msg
+
+        fsiProcess |> Option.iter (fun fp -> fp.stdin.write(msg', "utf-8" |> unbox) |> ignore)
 
     let private sendLine () =
         let editor = window.Globals.activeTextEditor
+        let file = editor.document.fileName
         let pos = editor.selection.start
         let line = editor.document.lineAt pos
-        send line.text
+        send line.text file
 
     let private sendSelection () =
         let editor = window.Globals.activeTextEditor
+        let file = editor.document.fileName
         let range = Range.Create (editor.selection.anchor, editor.selection.active)
-        editor.document.getText range |> send
+        let text = editor.document.getText range
+        send text file
 
     let private sendFile () =
         let editor = window.Globals.activeTextEditor
-        editor.document.getText () |> send
+        let file = editor.document.fileName
+        let text = editor.document.getText ()
+        send text file
 
     let activate (disposables: Disposable[]) =
         commands.Globals.registerCommand("fsi.Start", start |> unbox) |> ignore
