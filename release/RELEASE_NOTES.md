@@ -1,3 +1,6 @@
+#### 1.2.1 - 26.01.2016
+* Update FSAC
+
 #### 1.2.0 - 15.01.2016
 * Send SilentCd and line number file when sending comands to Fsi
 
