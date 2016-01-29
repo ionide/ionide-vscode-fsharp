@@ -1,0 +1,35 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40418.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Ionide.FSharp", "src\Ionide.FSharp.fsproj", "{D1081029-2369-4DAA-9F33-2353C5C9ED02}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{67EDE4A4-AC6E-407A-987D-A4B6334C29F2}"
+	ProjectSection(SolutionItems) = preProject
+		build.fsx = build.fsx
+		release\package.json = release\package.json
+		paket.dependencies = paket.dependencies
+		paket.lock = paket.lock
+		README.md = README.md
+		RELEASE_NOTES.md = RELEASE_NOTES.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D1081029-2369-4DAA-9F33-2353C5C9ED02}.Debug|x86.ActiveCfg = Debug|x86
+		{D1081029-2369-4DAA-9F33-2353C5C9ED02}.Debug|x86.Build.0 = Debug|x86
+		{D1081029-2369-4DAA-9F33-2353C5C9ED02}.Release|x86.ActiveCfg = Release|x86
+		{D1081029-2369-4DAA-9F33-2353C5C9ED02}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = src\Ionide.FSharp.fsproj
+	EndGlobalSection
+EndGlobal
