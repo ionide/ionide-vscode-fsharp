@@ -1,3 +1,6 @@
+#### 1.2.2 - 26.01.2016
+* Add proper deactivation
+
 #### 1.2.1 - 26.01.2016
 * Update FSAC
 
