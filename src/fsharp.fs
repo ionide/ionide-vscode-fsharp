@@ -24,6 +24,10 @@ type FSharp() =
         Definition.activate df' disposables
         Reference.activate df' disposables
         Outline.activate df' disposables
-        Fsi.activate disposables  
+        Fsi.activate disposables
         QuickInfo.activate disposables
         ()
+
+    member x.deactivate(disposables: Disposable[]) =
+        LanguageService.stop ()
+
