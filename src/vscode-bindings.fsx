@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------------------
 
 #if INTERACTIVE
-#I "../lib"
+#I "../paket-files/github.com/ionide/ionide-vscode-helpers/release"
 #I "../packages/FunScript/lib/net40"
 
 #r "FunScript.dll"

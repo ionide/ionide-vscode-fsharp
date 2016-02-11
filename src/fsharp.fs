@@ -1,4 +1,5 @@
 [<ReflectedDefinition>]
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module Ionide.VSCode
 
 open System

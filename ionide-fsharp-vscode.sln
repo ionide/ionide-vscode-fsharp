@@ -1,13 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40418.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Ionide.FSharp", "src\Ionide.FSharp.fsproj", "{D1081029-2369-4DAA-9F33-2353C5C9ED02}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{67EDE4A4-AC6E-407A-987D-A4B6334C29F2}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		build.cmd = build.cmd
 		build.fsx = build.fsx
+		build.sh = build.sh
 		release\package.json = release\package.json
 		paket.dependencies = paket.dependencies
 		paket.lock = paket.lock
