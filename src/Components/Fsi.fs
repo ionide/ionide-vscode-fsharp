@@ -17,26 +17,26 @@ module Fsi =
     let private handle (data : obj) =
         if data <> null then
             let response = data.ToString().Replace("\\","\\\\")
-            fsiOutput |> Option.iter (fun fo -> fo.append response |> ignore)
+            fsiOutput |> Option.iter (fun outChannel -> outChannel.append response |> ignore)
 
     let private start () =
         fsiProcess |> Option.iter(fun fp -> fp.kill ())
         fsiProcess <-
             (if Process.isWin () then Process.spawn "Fsi.exe" "" "" else Process.spawn "fsharpi" "" "")
-            |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun fo -> fo.clear () ))
+            |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun outChannel -> outChannel.clear () ))
             |> Process.onOutput handle
             |> Process.onError handle
             |> Some
         fsiOutput <-
             window.Globals.createOutputChannel("F# Interactive")
             |> Some
-        fsiOutput |> Option.iter (fun fo -> fo.show (2 |> unbox) )
+        fsiOutput |> Option.iter (fun outChannel -> outChannel.show (2 |> unbox) )
 
     let private send (msg : string) file =
 
         if fsiProcess.IsNone then start ()
         let msg = msg.Replace("\uFEFF", "") + ";;\n"
-        fsiOutput |> Option.iter (fun fo -> fo.append msg)
+        fsiOutput |> Option.iter (fun outChannel -> outChannel.append msg)
         let msg' =
             try
                 let dir = path.Globals.dirname file
@@ -69,8 +69,11 @@ module Fsi =
         let text = editor.document.getText ()
         send text file
 
+    
+
     let activate (disposables: Disposable[]) =
         commands.Globals.registerCommand("fsi.Start", start |> unbox) |> ignore
         commands.Globals.registerCommand("fsi.SendLine", sendLine |> unbox) |> ignore
         commands.Globals.registerCommand("fsi.SendSelection", sendSelection |> unbox) |> ignore
         commands.Globals.registerCommand("fsi.SendFile", sendFile |> unbox) |> ignore
+

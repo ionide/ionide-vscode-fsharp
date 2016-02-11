@@ -88,6 +88,19 @@ Target "RunScript" (fun () ->
     Ionide.VSCode.Generator.translateModules typeof<Ionide.VSCode.FSharp> (".." </> "release" </> "fsharp.js")
 )
 
+
+let releaseBin  = "release/bin"
+let fsacBin     = "paket-files/github.com/ionide/FsAutoComplete/bin/release"
+
+Target "CopyFSAC" (fun _ ->
+    ensureDirectory releaseBin
+    CleanDir releaseBin
+
+    !! (fsacBin + "/*")
+    |> CopyFiles  releaseBin 
+)
+
+
 Target "InstallVSCE" ( fun _ ->
     killProcess "npm"
     run npmTool "install -g vsce" ""
@@ -166,6 +179,7 @@ Target "Release" DoNothing
 
 "Clean"
     ==> "RunScript"
+    ==> "CopyFSAC"
     ==> "Default"
 
 "Default"

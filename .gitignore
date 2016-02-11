@@ -1,3 +1,5 @@
+release/bin
+
 # Logs
 logs
 *.log
@@ -31,6 +33,7 @@ Test/
 Test/obj/
 Test/bin/
 .paket/paket.exe
+paket-files
 packages
 Test/Script.fsx
 Test/Script.fsx

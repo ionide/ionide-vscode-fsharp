@@ -50,23 +50,23 @@
     <None Include="vscode-bindings.fsx" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FunScript.TypeScript.Binding.lib">
+      <HintPath>..\paket-files\github.com\ionide\ionide-vscode-helpers\release\FunScript.TypeScript.Binding.lib.dll</HintPath>
+    </Reference>
+    <Reference Include="FunScript.TypeScript.Binding.node">
+      <HintPath>..\paket-files\github.com\ionide\ionide-vscode-helpers\release\FunScript.TypeScript.Binding.node.dll</HintPath>
+    </Reference>
+    <Reference Include="FunScript.TypeScript.Binding.vscode">
+      <HintPath>..\paket-files\github.com\ionide\ionide-vscode-helpers\release\FunScript.TypeScript.Binding.vscode.dll</HintPath>
+    </Reference>
+    <Reference Include="Ionide.Helpers">
+      <HintPath>..\paket-files\github.com\ionide\ionide-vscode-helpers\release\Ionide.Helpers.dll</HintPath>
+    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
-    <Reference Include="FunScript.TypeScript.Binding.vscode">
-      <HintPath>..\lib\FunScript.TypeScript.Binding.vscode.dll</HintPath>
-    </Reference>
-    <Reference Include="FunScript.TypeScript.Binding.lib">
-      <HintPath>..\lib\FunScript.TypeScript.Binding.lib.dll</HintPath>
-    </Reference>
-    <Reference Include="FunScript.TypeScript.Binding.node">
-      <HintPath>..\lib\FunScript.TypeScript.Binding.node.dll</HintPath>
-    </Reference>
-    <Reference Include="Ionide.Helpers">
-      <HintPath>..\lib\Ionide.Helpers.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1')">
