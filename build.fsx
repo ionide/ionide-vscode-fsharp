@@ -89,21 +89,6 @@ Target "RunScript" (fun () ->
 )
 
 
-
-let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar"
-let fsgrammarRelease = "release/syntaxes"
-
-Target "CopyGrammar" (fun _ ->
-    ensureDirectory fsgrammarRelease
-    CleanDir fsgrammarRelease
-    CopyFiles fsgrammarRelease [
-        fsgrammarDir </> "fsharp.fsi.json"
-        fsgrammarDir </> "fsharp.fsl.json"
-        fsgrammarDir </> "fsharp.fsx.json"
-        fsgrammarDir </> "fsharp.json"
-    ]
-)
-
 let releaseBin  = "release/bin"
 let fsacBin     = "paket-files/github.com/ionide/FsAutoComplete/bin/release"
 
@@ -194,7 +179,6 @@ Target "Release" DoNothing
 
 "Clean"
     ==> "RunScript"
-    ==> "CopyGrammar"
     ==> "CopyFSAC"
     ==> "Default"
 
