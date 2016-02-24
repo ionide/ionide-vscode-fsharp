@@ -14,6 +14,7 @@ open Fake.ReleaseNotesHelper
 open Fake.ZipHelper
 
 #load "src/vscode-bindings.fsx"
+#load "src/Core/Bindings.fs"
 #load "src/Core/DTO.fs"
 #load "src/Core/LanguageService.fs"
 #load "src/Components/Linter.fs"
@@ -97,7 +98,7 @@ Target "CopyFSAC" (fun _ ->
     CleanDir releaseBin
 
     !! (fsacBin + "/*")
-    |> CopyFiles  releaseBin 
+    |> CopyFiles  releaseBin
 )
 
 
@@ -125,7 +126,7 @@ Target "BuildPackage" ( fun _ ->
     |> Seq.iter(MoveFile "./temp/")
 )
 
-Target "PublishToGallery" ( fun _ -> 
+Target "PublishToGallery" ( fun _ ->
     let token =
         match getBuildParam "vsce-token" with
         | s when not (String.IsNullOrWhiteSpace s) -> s
@@ -179,7 +180,7 @@ Target "Release" DoNothing
 
 "Clean"
     ==> "RunScript"
-    ==> "CopyFSAC"
+    //==> "CopyFSAC"
     ==> "Default"
 
 "Default"

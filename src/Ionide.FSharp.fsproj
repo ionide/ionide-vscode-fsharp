@@ -34,6 +34,7 @@
   <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
   <ItemGroup>
     <None Include="paket.references" />
+    <Compile Include="Core\Bindings.fs" />
     <Compile Include="Core\DTO.fs" />
     <Compile Include="Core\LanguageService.fs" />
     <Compile Include="Components\Linter.fs" />
