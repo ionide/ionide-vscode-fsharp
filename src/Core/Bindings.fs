@@ -6,15 +6,30 @@ open FunScript.TypeScript
 open FunScript.TypeScript.vscode
 
 type TextDocumentContentProvider = interface end
+type EventEmitter<'T> = interface end
 
 [<AutoOpen>]
 module Bindings =
 
     type TextDocumentContentProvider with
-        [<FunScript.JSEmitInline "({0}.onDidStopChanging({1}, {2}))">]
+        [<FunScript.JSEmitInline "({0}.provideTextDocumentContent({1}, {2}))">]
         member __.provideTextDocumentContent(uri : Uri, token : CancellationToken) : Thenable<string> = failwith "JS"
-        [<FunScript.JSEmitInline "({0}.onDidStopChanging = {1})">]
+        [<FunScript.JSEmitInline "({0}.provideTextDocumentContent = {1})">]
         member __.``provideTextDocumentContent <-``(func : System.Func<Uri* CancellationToken , Thenable<string>>) : unit = failwith "JS"
 
-    type workspace.Globals with
-        member __.registerTextDocumentContentProvider(scheme : string, provider : TextDocumentContentProvider) : Disposable = failwith "JS"
+        [<FunScript.JSEmitInline "({0}.onDidChange())">]
+        member __.onDidChange() : vscode.Event<Uri> = failwith "JS"
+
+        [<FunScript.JSEmitInline "({0}.onDidChange = {1})">]
+        member __.``onDidChange <-`` (func : System.Func<unit,vscode.Event<Uri>>) : unit = failwith "JS"
+
+    type EventEmitter<'T> with
+        [<FunScript.JSEmitInline "({0}.event)">]
+        member __.event : vscode.Event<'T> = failwith "JS"
+
+        [<FunScript.JSEmitInline "({0}.fire({1}))">]
+        member __.fire(a : 'T) : unit = failwith "JS"
+
+        [<FunScript.JSEmitInline "(new vscode.EventEmitter())">]
+        static member Create() : EventEmitter<'T> = failwith "JS"
+

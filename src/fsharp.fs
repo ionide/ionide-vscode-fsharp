@@ -27,6 +27,7 @@ type FSharp() =
         Outline.activate df' disposables
         Fsi.activate disposables
         QuickInfo.activate disposables
+        FSharpFormatting.activate disposables
         ()
 
     member x.deactivate(disposables: Disposable[]) =

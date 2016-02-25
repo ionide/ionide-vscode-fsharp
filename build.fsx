@@ -94,6 +94,7 @@ Target "RunScript" (fun () ->
 let releaseBin  = "release/bin"
 let fsacBin     = "paket-files/github.com/ionide/FsAutoComplete/bin/release"
 
+
 Target "CopyFSAC" (fun _ ->
     ensureDirectory releaseBin
     CleanDir releaseBin
@@ -102,6 +103,16 @@ Target "CopyFSAC" (fun _ ->
     |> CopyFiles  releaseBin
 )
 
+let releaseBinFF = "release/bin_ff"
+let ffbin = "paket-files/github.com/ionide/FSharpFormatting.CLI/build"
+
+Target "CopyFSharpFormatting" (fun _ ->
+    ensureDirectory releaseBinFF
+    CleanDir releaseBinFF
+
+    !! (ffbin + "/*")
+    |> CopyFiles  releaseBinFF
+)
 
 Target "InstallVSCE" ( fun _ ->
     killProcess "npm"
@@ -182,6 +193,7 @@ Target "Release" DoNothing
 "Clean"
     ==> "RunScript"
     //==> "CopyFSAC"
+    ==> "CopyFSharpFormatting"
     ==> "Default"
 
 "Default"
