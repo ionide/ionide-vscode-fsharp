@@ -45,6 +45,13 @@
 		},{
 			"command": "ff.Show",
 			"title": "F# Formatting: Show"
+		},{
+			"command": "webpreview.Show",
+			"title": "Ionide: Show Web View"
+		}
+        ,{
+			"command": "webpreview.Refresh",
+			"title": "Ionide: Refresh Web View"
 		}],
 		"outputChannels": [
 			"F# Interactive"
@@ -70,7 +77,8 @@
         "vscode.fsharp"
     ],
 	"dependencies": {
-		"xhr2": "*"
+		"xhr2": "*",
+        "toml": "*"
 	},
 	"devDependencies": {
 		"vscode": "*"
