@@ -34,7 +34,11 @@ module FSharpFormatting =
 
             Process.exec path "mono" (sprintf "%s %s" file output)
             |> Promise.success (fun (e,i,o) ->
-                fs.Globals.readFileSync output |> fun b ->b.ToString()
+
+                let style = "height: 100%; width: 100%; background-color: white;"
+                sprintf "<iframe style='%s' src='file:///%s' />" style output
+
+               // fs.Globals.readFileSync output |> fun b ->b.ToString()
             )
             |> Promise.toThenable
 
