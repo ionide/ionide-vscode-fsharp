@@ -1,3 +1,7 @@
+#### 1.3.0 - 25.02.2016
+* Add WebPreview
+* Add FSharp.Formatting integration
+
 #### 1.2.2 - 26.01.2016
 * Add proper deactivation
 
