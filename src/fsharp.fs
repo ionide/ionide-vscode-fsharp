@@ -28,6 +28,7 @@ type FSharp() =
         Fsi.activate disposables
         QuickInfo.activate disposables
         FSharpFormatting.activate disposables
+        WebPreview.activate disposables
         ()
 
     member x.deactivate(disposables: Disposable[]) =
