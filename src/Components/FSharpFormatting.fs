@@ -19,27 +19,38 @@ module FSharpFormatting =
 
     let private path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin_ff/FSharpFormattingCLI.exe"
     let private output = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/temp/temp.html"
+    let private eventEmitter = EventEmitter.Create ()
+    let private previewUri = Uri.parse "fsharpformatting://preview"
 
-    let generate () =
-        let editor = vscode.window.Globals.activeTextEditor
-        let file = editor.document.fileName
 
-        Process.exec path "mono" (sprintf "%s %s" file output)
-        |> Promise.success (fun (e,i,o) ->
-            fs.Globals.readFileSync output |> fun b ->b.ToString()
-        )
+    let private update = eventEmitter.fire
+
+    let private createProvider () =
+        let provider = createEmpty<TextDocumentContentProvider> ()
+
+        let generate () =
+            let editor = vscode.window.Globals.activeTextEditor
+            let file = editor.document.fileName
+
+            Process.exec path "mono" (sprintf "%s %s" file output)
+            |> Promise.success (fun (e,i,o) ->
+                fs.Globals.readFileSync output |> fun b ->b.ToString()
+            )
+            |> Promise.toThenable
+
+        provider.``provideTextDocumentContent <-``((fun _ -> generate ()) |> unbox<_>)
+        provider.onDidChange <- eventEmitter.event
+        provider
 
     let show () =
-        generate ()
-        |> Promise.bind (fun _ ->
-            let uri = Uri.parse( sprintf "file:///%s" output )
-            vscode.commands.Globals.executeCommandOverload2("vscode.previewHtml", uri, 2)
-            |> Promise.toPromise
-        )
+        vscode.commands.Globals.executeCommandOverload2("vscode.previewHtml", previewUri, 2)
 
     let activate (disposables: Disposable[]) =
+        let prov = createProvider ()
+        registerTextDocumentContentProvider("fsharpformatting", prov) |> ignore
+
         workspace.Globals.onDidSaveTextDocument
-        |> EventHandler.add (fun _ -> show ()) () disposables
+        |> EventHandler.add (fun _ -> eventEmitter.fire previewUri) () disposables
 
         commands.Globals.registerCommand("ff.Show", show |> unbox) |> ignore
 

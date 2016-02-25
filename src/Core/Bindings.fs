@@ -17,11 +17,8 @@ module Bindings =
         [<FunScript.JSEmitInline "({0}.provideTextDocumentContent = {1})">]
         member __.``provideTextDocumentContent <-``(func : System.Func<Uri* CancellationToken , Thenable<string>>) : unit = failwith "JS"
 
-        [<FunScript.JSEmitInline "({0}.onDidChange())">]
-        member __.onDidChange() : vscode.Event<Uri> = failwith "JS"
-
-        [<FunScript.JSEmitInline "({0}.onDidChange = {1})">]
-        member __.``onDidChange <-`` (func : System.Func<unit,vscode.Event<Uri>>) : unit = failwith "JS"
+        [<FunScript.JSEmitInline "({0}.onDidChange)">]
+        member __.onDidChange with get() : vscode.Event<Uri> = failwith "JS" and set (v : vscode.Event<Uri>) : unit = failwith "JS"
 
     type EventEmitter<'T> with
         [<FunScript.JSEmitInline "({0}.event)">]

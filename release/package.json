@@ -44,7 +44,7 @@
 			"title": "FSI: Send File"
 		},{
 			"command": "ff.Show",
-			"title": "F# Formatting:Show"
+			"title": "F# Formatting: Show"
 		}],
 		"outputChannels": [
 			"F# Interactive"
