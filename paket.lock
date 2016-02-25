@@ -19,12 +19,13 @@ GIT
   specs:
      (b81a80ede2179222a5639cf866423d9bc6c2f0b4)
       build: build.cmd
-  remote: git@github.com:ionide/ionide-fsgrammar.git
+  remote: git@github.com:ionide/FSharpFormatting.CLI.git
   specs:
-     (7672ca5d35651c899fa9c095db5e94d45cb9f0ba)
+     (dda1756ab2a9af5cacb084da29a81f772277174c)
+      build: build.cmd
   remote: git@github.com:ionide/FsAutoComplete.git
   specs:
-     (43364293eb5da2eb8599aa2d70324324b3b1adbb)
+     (e8fdda0e620b58d687f1d758ecec9c3683379735)
       build: build.cmd LocalRelease
 GITHUB
   remote: fsharp/FAKE

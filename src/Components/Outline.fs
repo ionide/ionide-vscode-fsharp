@@ -25,8 +25,8 @@ module Outline =
             | "F" -> 7
             | "T" -> 4
             | _ -> 0
-        
-        
+
+
         provider.``provideDocumentSymbols <-`` (fun doc _ ->
             LanguageService.declarations doc.fileName
             |> Promise.success (fun (o : DeclarationResult) ->

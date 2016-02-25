@@ -14,6 +14,7 @@ open Fake.ReleaseNotesHelper
 open Fake.ZipHelper
 
 #load "src/vscode-bindings.fsx"
+#load "src/Core/Bindings.fs"
 #load "src/Core/DTO.fs"
 #load "src/Core/LanguageService.fs"
 #load "src/Components/Linter.fs"
@@ -25,6 +26,8 @@ open Fake.ZipHelper
 #load "src/Components/Outline.fs"
 #load "src/Components/Fsi.fs"
 #load "src/Components/QuickInfo.fs"
+#load "src/Components/FSharpFormatting.fs"
+#load "src/Components/Webpreview.fs"
 #load "src/fsharp.fs"
 #load "src/main.fs"
 
@@ -92,14 +95,25 @@ Target "RunScript" (fun () ->
 let releaseBin  = "release/bin"
 let fsacBin     = "paket-files/github.com/ionide/FsAutoComplete/bin/release"
 
+
 Target "CopyFSAC" (fun _ ->
     ensureDirectory releaseBin
     CleanDir releaseBin
 
     !! (fsacBin + "/*")
-    |> CopyFiles  releaseBin 
+    |> CopyFiles  releaseBin
 )
 
+let releaseBinFF = "release/bin_ff"
+let ffbin = "paket-files/github.com/ionide/FSharpFormatting.CLI/build"
+
+Target "CopyFSharpFormatting" (fun _ ->
+    ensureDirectory releaseBinFF
+    CleanDir releaseBinFF
+
+    !! (ffbin + "/*")
+    |> CopyFiles  releaseBinFF
+)
 
 Target "InstallVSCE" ( fun _ ->
     killProcess "npm"
@@ -125,7 +139,7 @@ Target "BuildPackage" ( fun _ ->
     |> Seq.iter(MoveFile "./temp/")
 )
 
-Target "PublishToGallery" ( fun _ -> 
+Target "PublishToGallery" ( fun _ ->
     let token =
         match getBuildParam "vsce-token" with
         | s when not (String.IsNullOrWhiteSpace s) -> s
@@ -179,7 +193,8 @@ Target "Release" DoNothing
 
 "Clean"
     ==> "RunScript"
-    ==> "CopyFSAC"
+    //==> "CopyFSAC"
+    ==> "CopyFSharpFormatting"
     ==> "Default"
 
 "Default"

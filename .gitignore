@@ -1,4 +1,5 @@
 release/bin
+release/bin_ff
 
 # Logs
 logs
@@ -63,3 +64,4 @@ temp
 .orig
 release.cmd
 paket-files
+issueList.md

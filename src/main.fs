@@ -61,6 +61,7 @@ let translateModules (typ : System.Type) fileName =
         yield "var XMLHttpRequest = require('xhr2');"
         yield "var fs = require('fs');"
         yield "var path = require('path');"
+        yield "var toml = require('toml');"
         yield "var window = {
                     Math: Math,
                     JSON: JSON,
