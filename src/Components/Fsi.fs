@@ -22,7 +22,7 @@ module Fsi =
     let private start () =
         fsiProcess |> Option.iter(fun fp -> fp.kill ())
         fsiProcess <-
-            (if Process.isWin () then Process.spawn "Fsi.exe" "" "" else Process.spawn "fsharpi" "" "")
+            (if Process.isWin () then Process.spawn "Fsi.exe" "" "--fsi-server-input-codepage:65001" else Process.spawn "fsharpi" "" "--fsi-server-input-codepage:65001")
             |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun outChannel -> outChannel.clear () ))
             |> Process.onOutput handle
             |> Process.onError handle
@@ -35,7 +35,7 @@ module Fsi =
     let private send (msg : string) file =
 
         if fsiProcess.IsNone then start ()
-        let msg = msg.Replace("\uFEFF", "") + ";;\n"
+        let msg = msg + ";;\n"
         fsiOutput |> Option.iter (fun outChannel -> outChannel.append msg)
         let msg' =
             try
