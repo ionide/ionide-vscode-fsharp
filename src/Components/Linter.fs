@@ -7,6 +7,7 @@ open FunScript.TypeScript.vscode
 open FunScript.TypeScript.vscode.languages
 open FunScript.TypeScript.path
 open FunScript.TypeScript.fs
+open System.Net
 
 open DTO 
 open Ionide.VSCode.Helpers
@@ -53,7 +54,7 @@ module Linter =
         |> ignore
 
     let parseFile (file : TextDocument) =
-        let path = file.fileName
+        let path = file.fileName |> WebUtility.UrlEncode
         let prom = project path
         match prom with
         | Some p -> p
