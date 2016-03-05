@@ -15,15 +15,15 @@ NUGET
     Octokit (0.18.0)
       Microsoft.Net.Http
 GIT
-  remote: git@github.com:ionide/ionide-vscode-helpers.git
+  remote: https://github.com/ionide/ionide-vscode-helpers.git
   specs:
      (b81a80ede2179222a5639cf866423d9bc6c2f0b4)
       build: build.cmd
-  remote: git@github.com:ionide/FSharpFormatting.CLI.git
+  remote: https://github.com/ionide/FSharpFormatting.CLI.git
   specs:
      (dda1756ab2a9af5cacb084da29a81f772277174c)
       build: build.cmd
-  remote: git@github.com:ionide/FsAutoComplete.git
+  remote: https://github.com/ionide/FsAutoComplete.git
   specs:
      (e8fdda0e620b58d687f1d758ecec9c3683379735)
       build: build.cmd LocalRelease
