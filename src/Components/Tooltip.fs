@@ -18,17 +18,30 @@ module Tooltip =
 
         let mapResult (doc : TextDocument) (pos : Position) o =
             let range = doc.getWordRangeAtPosition pos
-            let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
-            let content =
-                res.Split('\n')
-                |> Array.filter((<>) "")
-                |> Array.map (fun n ->
+            let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head
+            
+            let markStr lang (value:string) = 
+                let ms = createEmpty<MarkedString> ()
+                ms.language <- lang; ms.value <- value.Trim()
+                ms
+            let sigContent =
+                res.Signature.Split('\n')
+                |> Array.filter(String.IsNullOrWhiteSpace>>not)
+                |> Array.map (fun n -> 
                     let el = createEmpty<MarkedString> ()
-                    el.value <- n
-                    el)
+                    el.language <- "fsharp"; el.value <- n; el)
+            let commentContent =
+                res.Comment.Split('\n')
+                |> Array.filter(String.IsNullOrWhiteSpace>>not) 
+                |> Array.mapi (fun i n -> 
+                    let el = createEmpty<MarkedString> ()
+                    el.value <- if i = 0 && not(String.IsNullOrWhiteSpace n) 
+                                then "\n" + n.Trim() 
+                                else n.Trim()
+                    el.language <- "markdown"; el)
             let result = createEmpty<Hover> ()
             result.range <- range
-            result.contents <- content
+            result.contents <- Array.append sigContent commentContent
             result
 
         provider.``provideHover <-``(fun doc pos _ ->

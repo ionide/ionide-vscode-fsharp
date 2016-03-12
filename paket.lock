@@ -25,10 +25,10 @@ GIT
       build: build.cmd
   remote: https://github.com/ionide/FsAutoComplete.git
   specs:
-     (e8fdda0e620b58d687f1d758ecec9c3683379735)
+     (7f2d9f69f791a49ed5ee55e946ba4ee279659177)
       build: build.cmd LocalRelease
 GITHUB
   remote: fsharp/FAKE
   specs:
-    modules/Octokit/Octokit.fsx (e71048b08b7aefebb3adeaa4518915510d55785c)
+    modules/Octokit/Octokit.fsx (58dce73f9a069ae7fbfbae993f5e6f06ed9218d5)
       Octokit

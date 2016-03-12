@@ -194,7 +194,7 @@ Target "Release" DoNothing
 
 "Clean"
     ==> "RunScript"
-    //==> "CopyFSAC"
+    ==> "CopyFSAC"
     ==> "CopyFSharpFormatting"
     ==> "Default"
 
