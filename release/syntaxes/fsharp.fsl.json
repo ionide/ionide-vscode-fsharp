@@ -1,0 +1,14 @@
+{
+    "name": "F#.fsl",
+    "scopeName": "source.fsharp.fsl",
+    "fileTypes": [
+        "fsl"
+    ],
+    "foldingStartMarker": "",
+    "foldingStopMarker": "",
+    "patterns": [
+        {
+            "include": "source.fsharp"
+        }
+    ]
+}

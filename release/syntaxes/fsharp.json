@@ -1,8 +1,8 @@
 {
-    "name": "fsharp",
+    "name": "F#",
     "scopeName": "source.fsharp",
     "fileTypes": [
-        "fs", "fsx", "fsi"
+        "fs"
     ],
     "foldingStartMarker": "",
     "foldingStopMarker": "",
@@ -140,7 +140,7 @@
             "patterns": [
                 {
                     "name": "binding.fsharp",
-                    "begin": "(val mutable|val|let mutable|let inline|let|member inline|member|static member inline|static member|override|let!)(\\s+rec|mutable)?(\\s+private|internal|public)?\\s+(\\([^\\s-]*\\)|[_a-zA-Z]([_a-zA-Z0-9,\\.]|(?<=,)\\s)*)",
+                    "begin": "(val mutable|val|let mutable|let|member|static member|override|let!)(\\s+rec|mutable)?(\\s+private|internal|public)?\\s+(\\([^\\s-]*\\)|[_a-zA-Z]([_a-zA-Z0-9,\\.]|(?<=,)\\s)*)",
                     "end": "((``.*``)|(with)|=|$)",
                     "beginCaptures": {
                         "1": {
@@ -182,20 +182,20 @@
                     "match": "\\b(function|yield!|yield|class|match|delegate|of|new|in|as|if|then|else|elif|for|begin|end|inherit|do|let\\!|return\\!|return|interface|with|member|try|finally|and|when|use|use\\!)\\b"
                 },
                 {
-                    "name": "preprocessor.fsharp",
+                    "name": "meta.preprocessor.fsharp",
                     "begin": "^\\s*#\\s*(light)\\b",
                     "end": "(\\s|$)"
                 },
                 {
                     "name": "keyword.other.fsharp",
-                    "match": "(\\|>|\\->|\\<\\-|:>|:\\?>|:|\\[|\\]|\\;|<>|=|@|\\|\\||&&|{|}|\\||_|\\.\\.|\\+|\\-|\\*|\\/|\\^|\\!|\\>|\\>\\=|\\>\\>|\\<|\\<\\=|\\<\\<|\\(|\\)|[|])"
+                    "match": "(\\|>|\\->|\\<\\-|:>|:\\?>|:|\\[|\\]|\\;|<>|=|@|\\|\\||&&|{|}|\\||_|\\.\\.|\\+|\\-|\\*|\\/|\\^|\\!|\\>|\\>\\=|\\>\\>|\\<|\\<\\=|\\<\\<)"
                 }
             ]
         },
         "modules": {
             "patterns": [
                 {
-                   
+                    "name": "entity.name.section.fsharp",
                     "begin": "\\b(namespace|module)(\\s+public|internal|private)?\\s+([a-zA-Z][a-zA-Z0-9'_. ]*)",
                     "end": "(\\s|$)",
                     "beginCaptures": {
@@ -456,7 +456,7 @@
                         "1": {
                             "name": "string.quoted.single.fsharp"
                         },
-                        "1": {
+                        "2": {
                             "name": "variable.other.binding.fsharp"
                         },
                         "3": {
