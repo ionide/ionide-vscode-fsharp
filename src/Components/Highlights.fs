@@ -24,7 +24,7 @@ module Highlights =
             LanguageService.parse doc.fileName (doc.getText ())
             |> Promise.bind (fun _ -> LanguageService.symbolUse (doc.fileName) (int pos.line + 1) (int pos.character + 1))
             |> Promise.success mapResult
-            |> unbox )
+            |> Promise.toThenable )
         provider
 
     let activate selector (disposables: Disposable[]) =
