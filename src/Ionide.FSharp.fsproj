@@ -44,6 +44,7 @@
     <Compile Include="Components\Definition.fs" />
     <Compile Include="Components\References.fs" />
     <Compile Include="Components\Outline.fs" />
+    <Compile Include="Components\Highlights.fs" />
     <Compile Include="Components\Fsi.fs" />
     <Compile Include="Components\QuickInfo.fs" />
     <Compile Include="Components\FSharpFormatting.fs" />
