@@ -14,7 +14,7 @@ module ParameterHints =
     let private createProvider () =
         let provider = createEmpty<SignatureHelpProvider> ()
 
-        let mapResult o = 
+        let mapResult o =
             let res = createEmpty<SignatureHelp> ()
             let sigs = o.Data.Overloads |> Array.map (fun c ->
                 let signature = createEmpty<SignatureInformation> ()
@@ -31,7 +31,6 @@ module ParameterHints =
             res.activeParameter <- float (o.Data.CurrentParameter)
             res.activeSignature <- 0.
             res.signatures <- sigs
-            Globals.console.log res
             res
 
         provider.``provideSignatureHelp <-`` (fun doc pos _ ->
@@ -39,10 +38,11 @@ module ParameterHints =
             |> Promise.bind (fun _ -> LanguageService.methods (doc.fileName) (int pos.line + 1) (int pos.character + 1))
             |> Promise.success mapResult
             |> Promise.toThenable )
+        
         provider
 
     let activate selector (disposables: Disposable[]) =
-        Globals.registerSignatureHelpProviderOverload2(selector, createProvider(), [|"("|])
+        Globals.registerSignatureHelpProviderOverload2(selector, createProvider(), "(", ",")
         |> ignore
 
         ()
