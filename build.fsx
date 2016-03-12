@@ -116,6 +116,23 @@ Target "CopyFSharpFormatting" (fun _ ->
     |> CopyFiles  releaseBinFF
 )
 
+let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar"
+let fsgrammarRelease = "release/syntaxes"
+
+
+Target "CopyGrammar" (fun _ ->
+    ensureDirectory fsgrammarRelease
+    CleanDir fsgrammarRelease
+    CopyFiles fsgrammarRelease [
+        fsgrammarDir </> "fsharp.fsi.json"
+        fsgrammarDir </> "fsharp.fsl.json"
+        fsgrammarDir </> "fsharp.fsx.json"
+        fsgrammarDir </> "fsharp.json"
+    ]
+)
+
+
+
 Target "InstallVSCE" ( fun _ ->
     killProcess "npm"
     run npmTool "install -g vsce" ""
@@ -196,6 +213,7 @@ Target "Release" DoNothing
     ==> "RunScript"
     ==> "CopyFSAC"
     ==> "CopyFSharpFormatting"
+    ==> "CopyGrammar"
     ==> "Default"
 
 "Default"

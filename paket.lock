@@ -27,6 +27,9 @@ GIT
   specs:
      (7f2d9f69f791a49ed5ee55e946ba4ee279659177)
       build: build.cmd LocalRelease
+  remote: git@github.com:ionide/ionide-fsgrammar.git
+  specs:
+     (6ea6d7df11d43208cf25c45ef83fb3acc2d3ae9d)
 GITHUB
   remote: fsharp/FAKE
   specs:
