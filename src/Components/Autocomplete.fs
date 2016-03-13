@@ -16,16 +16,16 @@ module Autocomplete =
 
         let convertToInt code =
             match code with
-            | "C" -> 6
-            | "E" -> 12
-            | "S" -> 6
-            | "I" -> 7
-            | "N" -> 8
-            | "M" -> 1
-            | "P" -> 9
-            | "F" -> 4
-            | "T" -> 6
-            | _ -> 0
+            | "C" -> 6  (*  CompletionItemKind.Class      *)
+            | "E" -> 12 (*  CompletionItemKind.Enum       *)
+            | "S" -> 11 (*  CompletionItemKind.Value      *)
+            | "I" -> 7  (*  CompletionItemKind.Interface  *)
+            | "N" -> 8  (*  CompletionItemKind.Module     *)
+            | "M" -> 1  (*  CompletionItemKind.Method     *)
+            | "P" -> 9  (*  CompletionItemKind.Property   *)
+            | "F" -> 4  (*  CompletionItemKind.Field      *)
+            | "T" -> 6  (*  CompletionItemKind.Class      *)
+            | _   -> 0
 
         let mapCompletion (doc : TextDocument) (pos : Position) (o : CompletionResult) =
             o.Data |> Array.map (fun c ->
@@ -38,8 +38,9 @@ module Autocomplete =
                 result)
 
         let mapHelptext (sug : CompletionItem) (o : HelptextResult) =
-            let res = (o.Data.Overloads |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
-            sug.documentation <- res
+            let res = (o.Data.Overloads |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head
+            sug.documentation <- res.Comment
+            sug.detail <- res.Signature
             sug
 
         provider.``provideCompletionItems <-`` (fun doc pos _ ->

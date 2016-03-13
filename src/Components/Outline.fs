@@ -15,17 +15,16 @@ module Outline =
         let provider = createEmpty<DocumentSymbolProvider > ()
         let convertToInt code =
             match code with
-            | "C" -> 4
-            | "E" -> 6
-            | "S" -> 6
-            | "I" -> 10
-            | "N" -> 1
-            | "M" -> 11
-            | "P" -> 6
-            | "F" -> 7
-            | "T" -> 4
+            | "C" -> 4      (*  CompletionItemKind.Class      *)
+            | "E" -> 6      (*  CompletionItemKind.Enum       *)
+            | "S" -> 6      (*  CompletionItemKind.Value      *)
+            | "I" -> 10     (*  CompletionItemKind.Interface  *)
+            | "N" -> 1      (*  CompletionItemKind.Module     *)
+            | "M" -> 11     (*  CompletionItemKind.Method     *)
+            | "P" -> 6      (*  CompletionItemKind.Property   *)
+            | "F" -> 7      (*  CompletionItemKind.Field      *)
+            | "T" -> 4      (*  CompletionItemKind.Class      *)
             | _ -> 0
-
 
         provider.``provideDocumentSymbols <-`` (fun doc _ ->
             LanguageService.declarations doc.fileName
@@ -55,9 +54,8 @@ module Outline =
                         loc.uri <- Uri.file doc.fileName
                         oc.location <- loc
                         oc )
-                    seq { yield oc; yield! ocs } |> Seq.toArray  )
-                |> Array.fold (fun acc e -> Array.append e acc ) [||] )
-            |> Promise.toThenable )
+                    ocs |> Array.append (Array.create 1 oc))
+                |> Array.concat) |> Promise.toThenable )
         provider
 
     let activate selector (disposables: Disposable[]) =

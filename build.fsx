@@ -78,6 +78,12 @@ let vsceTool =
         "packages" </> "Node.js" </> "vsce.cmd" |> FullName
     #endif
 
+let codeTool =
+    #if MONO
+        "code"
+    #else
+        ProgramFilesX86  </> "Microsoft VS Code" </> "Code.exe"
+    #endif
 
 // --------------------------------------------------------------------------------------
 // Build the Generator project and run it
@@ -157,6 +163,12 @@ Target "BuildPackage" ( fun _ ->
     |> Seq.iter(MoveFile "./temp/")
 )
 
+Target "TryPackage"(fun _ ->
+    killProcess "code"
+    run codeTool (sprintf "./temp/Ionide-fsharp-%s.vsix" release.NugetVersion) ""
+)
+
+
 Target "PublishToGallery" ( fun _ ->
     let token =
         match getBuildParam "vsce-token" with
@@ -169,6 +181,8 @@ Target "PublishToGallery" ( fun _ ->
 
 #load "paket-files/fsharp/FAKE/modules/Octokit/Octokit.fsx"
 open Octokit
+
+
 
 Target "ReleaseGitHub" (fun _ ->
     let user =
@@ -210,17 +224,22 @@ Target "Default" DoNothing
 Target "Release" DoNothing
 
 "Clean"
-    ==> "RunScript"
-    ==> "CopyFSAC"
-    ==> "CopyFSharpFormatting"
-    ==> "CopyGrammar"
-    ==> "Default"
+==> "RunScript"
+==> "CopyFSAC"
+==> "CopyFSharpFormatting"
+==> "CopyGrammar"
+==> "Default"
 
 "Default"
-  ==> "SetVersion"
-  ==> "InstallVSCE"
-  ==> "BuildPackage"
-  ==> "ReleaseGitHub"
-  ==> "PublishToGallery"
-  ==> "Release"
+==> "SetVersion"
+==> "InstallVSCE"
+==> "BuildPackage"
+==> "ReleaseGitHub"
+==> "PublishToGallery"
+==> "Release"
+
+
+"BuildPackage"
+==> "TryPackage"
+
 RunTargetOrDefault "Default"
