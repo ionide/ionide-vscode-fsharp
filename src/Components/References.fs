@@ -15,15 +15,15 @@ module Reference =
         let provider = createEmpty<ReferenceProvider> ()
 
         let mapResult (doc : TextDocument) (o : SymbolUseResult) =  
-            o.Data.Uses
-            |> Array.map (fun s ->
-                let res = createEmpty<Location> ()
-                res.range <-  Range.Create(float s.StartLine - 1., float s.StartColumn - 1., float s.EndLine - 1., float s.EndColumn - 1.)
-                res.uri <- Uri.file doc.fileName
-                res  )
+            o.Data.Uses |> Array.map (fun s ->
+                let loc = createEmpty<Location> ()
+                loc.range <-  Range.Create(float s.StartLine - 1., float s.StartColumn - 1., float s.EndLine - 1., float s.EndColumn - 1.)
+                loc.uri <- Uri.file doc.fileName
+                loc  )
 
         provider.``provideReferences <-`` (fun doc pos _ _ ->
-            LanguageService.symbolUse (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+            LanguageService.parse doc.fileName (doc.getText ())
+            |> Promise.bind (fun _ -> LanguageService.symbolUse (doc.fileName) (int pos.line + 1) (int pos.character + 1))
             |> Promise.success (mapResult doc)
             |> Promise.toThenable )
         provider
