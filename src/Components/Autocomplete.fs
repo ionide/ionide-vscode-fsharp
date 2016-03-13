@@ -16,15 +16,15 @@ module Autocomplete =
 
         let convertToInt code =
             match code with
-            | "C" -> 6  (*  CompletionItemKind.Class      *)
-            | "E" -> 12 (*  CompletionItemKind.Enum       *)
-            | "S" -> 11 (*  CompletionItemKind.Value      *)
-            | "I" -> 7  (*  CompletionItemKind.Interface  *)
-            | "N" -> 8  (*  CompletionItemKind.Module     *)
-            | "M" -> 1  (*  CompletionItemKind.Method     *)
-            | "P" -> 9  (*  CompletionItemKind.Property   *)
-            | "F" -> 4  (*  CompletionItemKind.Field      *)
-            | "T" -> 6  (*  CompletionItemKind.Class      *)
+            | "C" -> 6      (*  CompletionItemKind.Class      *)
+            | "E" -> 12     (*  CompletionItemKind.Enum       *)
+            | "S" -> 6      (*  CompletionItemKind.Value      *)
+            | "I" -> 7      (*  CompletionItemKind.Interface  *)
+            | "N" -> 8      (*  CompletionItemKind.Module     *)
+            | "M" -> 1      (*  CompletionItemKind.Method     *)
+            | "P" -> 9      (*  CompletionItemKind.Property   *)
+            | "F" -> 4      (*  CompletionItemKind.Field      *)
+            | "T" -> 6      (*  CompletionItemKind.Class      *)
             | _   -> 0
 
         let mapCompletion (doc : TextDocument) (pos : Position) (o : CompletionResult) =

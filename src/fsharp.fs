@@ -24,7 +24,7 @@ type FSharp() =
         ParameterHints.activate df' disposables
         Definition.activate df' disposables
         Reference.activate df' disposables
-        Outline.activate df' disposables
+        Symbols.activate df' disposables
         Highlights.activate df' disposables
         Fsi.activate disposables
         QuickInfo.activate disposables

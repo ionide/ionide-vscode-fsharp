@@ -15,12 +15,12 @@ module Definition =
         let provider = createEmpty<DefinitionProvider > ()
 
         let mapResult (doc : TextDocument) (pos : Position) (o : FindDeclarationResult) =
-            let res = createEmpty<Location> ()
+            let loc = createEmpty<Location> ()
             let range = doc.getWordRangeAtPosition pos
-            let length = range._end.character - range.start.character
-            res.uri <- Uri.file o.Data.File
-            res.range <- Range.Create(float o.Data.Line - 1., float o.Data.Column - 1., float o.Data.Line - 1., float o.Data.Column + length  - 1.)
-            [| res |]
+            let length = range._end.character - range.start.character            
+            loc.uri <- Uri.file o.Data.File
+            loc.range <- Range.Create(float o.Data.Line - 1., float o.Data.Column - 1., float o.Data.Line - 1., float o.Data.Column + length  - 1.)
+            [| loc |]
 
         provider.``provideDefinition <-`` (fun doc pos _ ->
             LanguageService.parse doc.fileName (doc.getText ())
