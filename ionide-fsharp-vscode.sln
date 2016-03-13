@@ -18,6 +18,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{67EDE4A4
 		RELEASE_NOTES.md = RELEASE_NOTES.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "release", "release", "{BFA5D453-C8E9-42A8-9B45-59DD7544AF8C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "syntaxes", "syntaxes", "{454F17D1-97A2-4DE6-9748-A65AF3B0CC33}"
+	ProjectSection(SolutionItems) = preProject
+		release\syntaxes\fsharp.fsi.json = release\syntaxes\fsharp.fsi.json
+		release\syntaxes\fsharp.fsl.json = release\syntaxes\fsharp.fsl.json
+		release\syntaxes\fsharp.fsx.json = release\syntaxes\fsharp.fsx.json
+		release\syntaxes\fsharp.json = release\syntaxes\fsharp.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -31,6 +41,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{454F17D1-97A2-4DE6-9748-A65AF3B0CC33} = {BFA5D453-C8E9-42A8-9B45-59DD7544AF8C}
 	EndGlobalSection
 	GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = src\Ionide.FSharp.fsproj

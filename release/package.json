@@ -22,57 +22,85 @@
 	"main": "./fsharp",
 	"contributes": {
 		"languages": [{
-        "id": "fsharp",
+        "id": "F#",
         "extensions": [ ".fs", ".fsx", ".fsi" ]
     }],
-		"grammars": [{
-        "language": "fsharp",
+    "grammars": [
+      {
+        "language": "F#",
         "scopeName": "source.fsharp",
         "path": "./syntaxes/fsharp.json"
-        }],
-		"commands": [{
-			"command": "fsi.Start",
-			"title": "FSI: Start"
-		},{
-			"command": "fsi.SendLine",
-			"title": "FSI: Send Line"
-		},{
-			"command": "fsi.SendSelection",
-			"title": "FSI: Send Selection"
-		},{
-			"command": "fsi.SendFile",
-			"title": "FSI: Send File"
-		},{
-			"command": "ff.Show",
-			"title": "F# Formatting: Show"
-		},{
-			"command": "webpreview.Show",
-			"title": "Ionide: Show Web View"
-		}
-        ,{
-			"command": "webpreview.Refresh",
-			"title": "Ionide: Refresh Web View"
-		}],
+      },
+      {
+        "language": "F#",
+        "scopeName": "source.fsharp.fsx",
+        "path": "./syntaxes/fsharp.fsx.json"
+      },
+      {
+        "language": "F#",
+        "scopeName": "source.fsharp.fsi",
+        "path": "./syntaxes/fsharp.fsi.json"
+      },
+      {
+        "language": "F#",
+        "scopeName": "source.fsharp.fsl",
+        "path": "./syntaxes/fsharp.fsl.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "fsi.Start",
+        "title": "FSI: Start"
+      },
+      {
+        "command": "fsi.SendLine",
+        "title": "FSI: Send Line"
+      },
+      {
+        "command": "fsi.SendSelection",
+        "title": "FSI: Send Selection"
+      },
+      {
+        "command": "fsi.SendFile",
+        "title": "FSI: Send File"
+      },
+      {
+        "command": "ff.Show",
+        "title": "F# Formatting: Show"
+      },
+      {
+        "command": "webpreview.Show",
+        "title": "Ionide: Show Web View"
+      },
+      {
+        "command": "webpreview.Refresh",
+        "title": "Ionide: Refresh Web View"
+      }
+    ],
 		"outputChannels": [
 			"F# Interactive"
 		],
-		"keybindings": [{
+    "keybindings": [
+      {
         "command": "fsi.SendLine",
         "key": "alt+/",
         "mac": "alt+/"
-    },
-		{
-				"command": "fsi.SendSelection",
-				"key": "alt+Enter",
-				"mac": "alt+Enter"
-		}]
+      },
+      {
+        "command": "fsi.SendSelection",
+        "key": "alt+Enter",
+        "mac": "alt+Enter"
+      }
+    ]
 	},
 	"activationEvents": [
-		"onLanguage:fsharp",
+		"onLanguage:F#",
 		"onCommand:fsi.Start",
 		"onCommand:fsi.SendLine",
 		"onCommand:fsi.SendSelection",
-		"onCommand:fsi.SendFile"],
+    "onCommand:fsi.SendFile",
+    "onCommand:fsharp.Methods"
+	],
 	"extensionDependencies": [
         "vscode.fsharp"
     ],
