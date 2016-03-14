@@ -23,7 +23,8 @@
 	"contributes": {
 		"languages": [{
         "id": "F#",
-        "extensions": [ ".fs", ".fsx", ".fsi" ]
+        "extensions": [ ".fs", ".fsx", ".fsi" ],
+        "configuration": "./fsharp.configuration.json"
     }],
     "grammars": [
       {
