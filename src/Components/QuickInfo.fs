@@ -12,12 +12,15 @@ open Ionide.VSCode.Helpers
 [<ReflectedDefinition>]
 module QuickInfo =
     let mutable private item : StatusBarItem option = None
+    
+    let logError (o : obj) = 
+            Globals.console.warn o
 
     let private handle' (event : TextEditorSelectionChangeEvent) =
         let doc = event.textEditor.document
         let pos = event.selections.[0].active
         LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-        |> Promise.success (fun o ->
+        |> Promise.either (fun o ->
             let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
             let t = res.Split('\n').[0]
             item |> Option.iter (fun n -> n.hide ())
@@ -27,7 +30,7 @@ module QuickInfo =
             i.show ()
             item <- Some i
             ()
-        )
+        ) logError
         |> ignore
 
     let mutable private timer = None : NodeJS.Timer option

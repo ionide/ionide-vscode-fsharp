@@ -43,10 +43,14 @@ module Tooltip =
             result.range <- range
             result.contents <- Array.append sigContent commentContent
             result
+            
+        let logError (o : obj) = 
+            Globals.console.warn o
+            null |> unbox<Hover>
 
         provider.``provideHover <-``(fun doc pos _ ->
             LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-            |> Promise.success (mapResult doc pos)
+            |> Promise.either (mapResult doc pos) logError
             |> Promise.toThenable )
         provider
 
