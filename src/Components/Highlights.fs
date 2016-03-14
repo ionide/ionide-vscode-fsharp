@@ -18,6 +18,7 @@ module Highlights =
             o.Data.Uses |> Array.map (fun d ->
                 let res = createEmpty<DocumentHighlight> ()
                 res.range <- Range.Create(float d.StartLine - 1., float d.StartColumn - 1., float d.EndLine - 1., float d.EndColumn - 1.)
+                res.kind <- (0 |> unbox)
                 res )
 
         provider.``provideDocumentHighlights <-`` (fun doc pos _ ->
