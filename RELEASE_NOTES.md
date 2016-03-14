@@ -1,3 +1,6 @@
+### 1.4.1 - 14.03.2016
+* Fix bracketmatching and commenting
+
 ### 1.4.0 - 14.03.2016
 * Add current symbol highlighting
 * Add XML comments for tooltips and autocomplete   
