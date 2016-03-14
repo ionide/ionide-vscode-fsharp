@@ -1,3 +1,7 @@
+### 1.4.0 - 14.03.2016
+* Add current symbol highlighting
+* Add XML comments for tooltips and autocomplete   
+
 #### 1.3.0 - 25.02.2016
 * Add WebPreview
 * Add FSharp.Formatting integration
