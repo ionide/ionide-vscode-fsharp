@@ -29,4 +29,8 @@ module Bindings =
 
         [<FunScript.JSEmitInline "(new vscode.EventEmitter())">]
         static member Create() : EventEmitter<'T> = failwith "JS"
+        
+    type WorkspaceEdit with
+        [<FunScript.JSEmitInline "(new vscode.WorkspaceEdit())">]
+        static member Create() : WorkspaceEdit = failwith "JS"
 

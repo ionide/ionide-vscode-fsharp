@@ -81,6 +81,11 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
         |> request (url "symboluse")
         |> send 0
+        
+    let symbolUseProject fn line col =
+        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
+        |> request (url "symboluseproject")
+        |> send 0
 
     let methods fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}

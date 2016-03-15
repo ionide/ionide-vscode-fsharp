@@ -25,6 +25,7 @@ open Fake.ZipHelper
 #load "src/Components/References.fs"
 #load "src/Components/Symbols.fs"
 #load "src/Components/Highlights.fs"
+#load "src/Components/Rename.fs"
 #load "src/Components/Fsi.fs"
 #load "src/Components/QuickInfo.fs"
 #load "src/Components/FSharpFormatting.fs"
@@ -221,16 +222,21 @@ Target "ReleaseGitHub" (fun _ ->
 // --------------------------------------------------------------------------------------
 
 Target "Default" DoNothing
+Target "Build" DoNothing
 Target "Release" DoNothing
+
+"Clean"
+==> "RunScript"
+==> "Default"
 
 "Clean"
 ==> "RunScript"
 ==> "CopyFSAC"
 ==> "CopyFSharpFormatting"
 ==> "CopyGrammar"
-==> "Default"
+==> "Build"
 
-"Default"
+"Build"
 ==> "SetVersion"
 ==> "InstallVSCE"
 ==> "BuildPackage"
