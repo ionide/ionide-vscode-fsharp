@@ -82,7 +82,7 @@ let codeTool =
     #if MONO
         "code"
     #else
-        ProgramFilesX86  </> "Microsoft VS Code" </> "Code.exe"
+        ProgramFilesX86  </> "Microsoft VS Code" </> "bin/code.cmd"
     #endif
 
 // --------------------------------------------------------------------------------------
