@@ -53,20 +53,23 @@ module Linter =
         |> ignore
 
     let parseFile (file : TextDocument) =
-        let path = file.fileName
-        let prom = project path
-        match prom with
-        | Some p -> p
-                    |> LanguageService.project
-                    |> Promise.success (fun _ -> parse path (file.getText ()))
-                    |> ignore
-        | None -> parse path (file.getText ())
+        if file.languageId = "F#" then
+            let path = file.fileName
+            let prom = project path
+            match prom with
+            | Some p -> p
+                        |> LanguageService.project
+                        |> Promise.success (fun _ -> parse path (file.getText ()))
+                        |> ignore
+            | None -> parse path (file.getText ())
 
     let mutable private timer = None : NodeJS.Timer option
 
     let private handler (event : TextDocumentChangeEvent) =
         timer |> Option.iter(Globals.clearTimeout)
-        timer <- Some (Globals.setTimeout((fun n -> parse (event.document.fileName) (event.document.getText ())), 500.) )
+        timer <- Some (Globals.setTimeout((fun _ -> 
+            if event.document.languageId = "F#" then
+                parse (event.document.fileName) (event.document.getText ())), 500.) )
 
 
     let private handlerOpen (event : TextEditor) =
