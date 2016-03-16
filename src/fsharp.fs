@@ -15,6 +15,7 @@ open Ionide.VSCode.FSharp
 type FSharp() =
     member x.activate(disposables: Disposable[]) =
         LanguageService.start ()
+        // Project.activate ()
         let df = createEmpty<DocumentFilter> ()
         df.language <- "fsharp"
         let df' = [|df|]
@@ -26,7 +27,7 @@ type FSharp() =
         Reference.activate df' disposables 
         Symbols.activate df' disposables
         Highlights.activate df' disposables
-        Rename.activate df' disposables
+       // Rename.activate df' disposables
         Fsi.activate disposables
         QuickInfo.activate disposables
         FSharpFormatting.activate disposables
