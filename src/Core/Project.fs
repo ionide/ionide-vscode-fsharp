@@ -33,18 +33,27 @@ module Project =
         let rec findProjs dir = 
             let files = Globals.readdirSync dir 
             files
-            |> Array.collect(fun s ->
+            |> Array.toList
+            |> List.collect(fun s ->
                 try
+                    let s = dir + Globals.sep + s
                     if Globals.statSync(s).isDirectory () then
-                        findProjs (dir + Globals.sep + s) 
+                        findProjs (s) 
                     else    
-                       if s.EndsWith ".fsproj" then [| s |] else [||] 
+                       if s.EndsWith ".fsproj" then [ s ] else [] 
                 with
-                | _ -> [||]            
+                | _ -> []            
             ) 
     
         workspace.Globals.rootPath |> findProjs
         
     let activate () =
-        findAll ()
-        |> Array.iter (LanguageService.project >> ignore)
+        match findAll () with
+        | [] -> ()
+        | [x] -> LanguageService.project x |> ignore
+        | x::tail ->
+            tail 
+            |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> LanguageService.project e) )
+               (LanguageService.project x)
+            |> ignore
+    
