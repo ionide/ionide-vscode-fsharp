@@ -23,8 +23,7 @@ module Definition =
             [| loc |]
 
         provider.``provideDefinition <-`` (fun doc pos _ ->
-            LanguageService.parse doc.fileName (doc.getText ())
-            |> Promise.bind (fun _ -> LanguageService.findDeclaration (doc.fileName) (int pos.line + 1) (int pos.character + 1))
+            LanguageService.findDeclaration (doc.fileName) (int pos.line + 1) (int pos.character + 1)
             |> Promise.success (mapResult doc pos)
             |> Promise.toThenable )
         provider

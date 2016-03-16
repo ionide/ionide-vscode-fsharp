@@ -26,8 +26,7 @@ module Rename =
             res 
 
         provider.``provideRenameEdits <-``(fun doc pos newName _ ->
-            LanguageService.parse doc.fileName (doc.getText ())
-            |> Promise.bind (fun _ -> LanguageService.symbolUseProject (doc.fileName) (int pos.line + 1) (int pos.character + 1))
+            LanguageService.symbolUseProject (doc.fileName) (int pos.line + 1) (int pos.character + 1)
             |> Promise.success (mapResult doc newName)
             |> Promise.toThenable )
         provider

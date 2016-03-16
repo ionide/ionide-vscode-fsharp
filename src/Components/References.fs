@@ -22,8 +22,7 @@ module Reference =
                 loc  )
 
         provider.``provideReferences <-`` (fun doc pos _ _ ->
-            LanguageService.parse doc.fileName (doc.getText ())
-            |> Promise.bind (fun _ -> LanguageService.symbolUseProject (doc.fileName) (int pos.line + 1) (int pos.character + 1))
+            LanguageService.symbolUseProject (doc.fileName) (int pos.line + 1) (int pos.character + 1)
             |> Promise.success (mapResult doc)
             |> Promise.toThenable )
         provider

@@ -22,8 +22,7 @@ module Highlights =
                 res )
 
         provider.``provideDocumentHighlights <-`` (fun doc pos _ ->
-            LanguageService.parse doc.fileName (doc.getText ())
-            |> Promise.bind (fun _ -> LanguageService.symbolUse (doc.fileName) (int pos.line + 1) (int pos.character + 1))
+            LanguageService.symbolUse (doc.fileName) (int pos.line + 1) (int pos.character + 1)
             |> Promise.success mapResult
             |> Promise.toThenable )
         provider
