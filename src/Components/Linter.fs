@@ -18,23 +18,7 @@ module Linter =
         member __.set'(uri : Uri, diagnostics : Diagnostic[]) : unit = failwith "never"
 
 
-    let mutable private currentDiagnostic = Globals.createDiagnosticCollection ()
-
-    let private project p =
-        let rec findFsProj dir =
-            if Globals.lstatSync(dir).isDirectory() then
-                let files = Globals.readdirSync dir
-                let projfile = files |> Array.tryFind(fun s -> s.EndsWith(".fsproj"))
-                match projfile with
-                | None ->
-                    let parent = if dir.LastIndexOf(Globals.sep) > 0 then dir.Substring(0, dir.LastIndexOf Globals.sep) else ""
-                    if System.String.IsNullOrEmpty parent then None else findFsProj parent
-                | Some p -> dir + Globals.sep + p |> Some
-            else None
-
-        p
-        |> Globals.dirname
-        |> findFsProj
+    let mutable private currentDiagnostic = Globals.createDiagnosticCollection ()    
 
     let private parse path text =
 
@@ -53,9 +37,9 @@ module Linter =
         |> ignore
 
     let parseFile (file : TextDocument) =
-        if file.languageId = "F#" then
+        if file.languageId = "fsharp" then
             let path = file.fileName
-            let prom = project path
+            let prom = Project.find path
             match prom with
             | Some p -> p
                         |> LanguageService.project
@@ -68,7 +52,7 @@ module Linter =
     let private handler (event : TextDocumentChangeEvent) =
         timer |> Option.iter(Globals.clearTimeout)
         timer <- Some (Globals.setTimeout((fun _ -> 
-            if event.document.languageId = "F#" then
+            if event.document.languageId = "fsharp" then
                 parse (event.document.fileName) (event.document.getText ())), 500.) )
 
 

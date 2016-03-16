@@ -37,6 +37,7 @@
     <Compile Include="Core\Bindings.fs" />
     <Compile Include="Core\DTO.fs" />
     <Compile Include="Core\LanguageService.fs" />
+    <Compile Include="Core\Project.fs" />
     <Compile Include="Components\Linter.fs" />
     <Compile Include="Components\Tooltip.fs" />
     <Compile Include="Components\Autocomplete.fs" />

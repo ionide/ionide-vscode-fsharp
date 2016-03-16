@@ -22,28 +22,28 @@
 	"main": "./fsharp",
 	"contributes": {
 		"languages": [{
-        "id": "F#",
+        "id": "fsharp",
         "extensions": [ ".fs", ".fsx", ".fsi" ],
         "configuration": "./fsharp.configuration.json"
     }],
     "grammars": [
       {
-        "language": "F#",
+        "language": "fsharp",
         "scopeName": "source.fsharp",
         "path": "./syntaxes/fsharp.json"
       },
       {
-        "language": "F#",
+        "language": "fsharp",
         "scopeName": "source.fsharp.fsx",
         "path": "./syntaxes/fsharp.fsx.json"
       },
       {
-        "language": "F#",
+        "language": "fsharp",
         "scopeName": "source.fsharp.fsi",
         "path": "./syntaxes/fsharp.fsi.json"
       },
       {
-        "language": "F#",
+        "language": "fsharp",
         "scopeName": "source.fsharp.fsl",
         "path": "./syntaxes/fsharp.fsl.json"
       }
@@ -99,8 +99,8 @@
 		"onCommand:fsi.Start",
 		"onCommand:fsi.SendLine",
 		"onCommand:fsi.SendSelection",
-    "onCommand:fsi.SendFile",
-    "onCommand:fsharp.Methods"
+        "onCommand:fsi.SendFile",
+        "onCommand:fsharp.Methods"
 	],
 	"extensionDependencies": [
         "vscode.fsharp"

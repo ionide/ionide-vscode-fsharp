@@ -16,7 +16,7 @@ type FSharp() =
     member x.activate(disposables: Disposable[]) =
         LanguageService.start ()
         let df = createEmpty<DocumentFilter> ()
-        df.language <- "F#"
+        df.language <- "fsharp"
         let df' = [|df|]
         Linter.activate disposables
         Tooltip.activate df' disposables

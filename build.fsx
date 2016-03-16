@@ -17,6 +17,7 @@ open Fake.ZipHelper
 #load "src/Core/Bindings.fs"
 #load "src/Core/DTO.fs"
 #load "src/Core/LanguageService.fs"
+#load "src/Core/Project.fs"
 #load "src/Components/Linter.fs"
 #load "src/Components/Tooltip.fs"
 #load "src/Components/Autocomplete.fs"
