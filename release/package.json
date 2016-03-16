@@ -95,7 +95,7 @@
     ]
 	},
 	"activationEvents": [
-		"onLanguage:F#",
+		"onLanguage:fsharp",
 		"onCommand:fsi.Start",
 		"onCommand:fsi.SendLine",
 		"onCommand:fsi.SendSelection",
