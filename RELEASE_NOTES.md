@@ -1,3 +1,7 @@
+### 1.5.0 - 16.03.2016
+* Add rename 
+* Make finding references work in multiple projects
+
 ### 1.4.2 - 16.03.2016
 * Revert languageId changes
 
