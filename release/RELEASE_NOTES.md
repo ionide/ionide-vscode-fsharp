@@ -1,3 +1,6 @@
+### 1.4.2 - 16.03.2016
+* Revert languageId changes
+
 ### 1.4.1 - 14.03.2016
 * Fix bracketmatching and commenting
 
