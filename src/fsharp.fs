@@ -11,27 +11,33 @@ open FunScript.TypeScript.child_process
 open FunScript.TypeScript.vscode
 
 open Ionide.VSCode.FSharp
+open Ionide.VSCode.Helpers
 
 type FSharp() =
     member x.activate(disposables: Disposable[]) =
-        LanguageService.start ()
-        Project.activate ()
         let df = createEmpty<DocumentFilter> ()
         df.language <- "fsharp"
         let df' = [|df|]
-        Linter.activate disposables
-        Tooltip.activate df' disposables
-        Autocomplete.activate df' disposables
-        ParameterHints.activate df' disposables
-        Definition.activate df' disposables
-        Reference.activate df' disposables 
-        Symbols.activate df' disposables
-        Highlights.activate df' disposables
-        Rename.activate df' disposables
-        Fsi.activate disposables
-        QuickInfo.activate disposables
-        FSharpFormatting.activate disposables
-        WebPreview.activate disposables
+        
+        LanguageService.start ()
+        Project.activate () 
+        |> Promise.success (fun _ -> 
+            Linter.activate disposables
+            Tooltip.activate df' disposables
+            Autocomplete.activate df' disposables
+            ParameterHints.activate df' disposables
+            Definition.activate df' disposables
+            Reference.activate df' disposables 
+            Symbols.activate df' disposables
+            Highlights.activate df' disposables
+            Rename.activate df' disposables
+            Fsi.activate disposables
+            QuickInfo.activate disposables
+            FSharpFormatting.activate disposables
+            WebPreview.activate disposables)
+        |> ignore
+        
+        
         ()
 
     member x.deactivate(disposables: Disposable[]) =

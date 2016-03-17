@@ -33,4 +33,9 @@ module Bindings =
     type WorkspaceEdit with
         [<FunScript.JSEmitInline "(new vscode.WorkspaceEdit())">]
         static member Create() : WorkspaceEdit = failwith "JS"
+            
+    type window.Globals with
+    
+        [<FunScript.JSEmitInline "(vscode.window.visibleTextEditors)">]
+        static member visibleTextEditors with get () : TextEditor[] = failwith "JS"
 

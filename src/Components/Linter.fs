@@ -34,7 +34,7 @@ module Linter =
 
         LanguageService.parse path text
         |> Promise.success (fun (ev : ParseResult) ->  (Uri.file path, mapResult ev) |> currentDiagnostic.set'  )
-        |> ignore
+
 
     let parseFile (file : TextDocument) =
         if file.languageId = "fsharp" then
@@ -45,7 +45,8 @@ module Linter =
                         |> LanguageService.project
                         |> Promise.success (fun _ -> parse path (file.getText ()))
                         |> ignore
-            | None -> parse path (file.getText ())
+            | None -> parse path (file.getText ()) |> ignore
+            
 
     let mutable private timer = None : NodeJS.Timer option
 
@@ -53,7 +54,7 @@ module Linter =
         timer |> Option.iter(Globals.clearTimeout)
         timer <- Some (Globals.setTimeout((fun _ -> 
             if event.document.languageId = "fsharp" then
-                parse (event.document.fileName) (event.document.getText ())), 500.) )
+                parse (event.document.fileName) (event.document.getText ()) |> ignore), 500.) )
 
 
     let private handlerOpen (event : TextEditor) =
@@ -66,5 +67,20 @@ module Linter =
         window.Globals.onDidChangeActiveTextEditor
         |> EventHandler.add handlerOpen () disposables
 
-        let editor = window.Globals.activeTextEditor
-        if JS.isDefined editor then parseFile editor.document
+        match window.Globals.visibleTextEditors |> Array.toList with
+        | [] -> Promise.lift (null |> unbox)  
+        | [x] -> 
+            let path = x.document.fileName
+            let content = x.document.getText()
+            parse path content
+        | x::tail ->
+            let path = x.document.fileName
+            let content = x.document.getText()
+            
+            tail 
+            |> List.fold (fun acc e ->
+                    let path = e.document.fileName
+                    let content = e.document.getText()
+                    acc |> Promise.bind(fun _ -> parse path content) )
+               (parse path content)
+        |> ignore

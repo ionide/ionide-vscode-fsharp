@@ -37,7 +37,9 @@ module Project =
             |> List.collect(fun s ->
                 try
                     let s = dir + Globals.sep + s
-                    if Globals.statSync(s).isDirectory () then
+                    if s = ".git" || s = "paket-files" then
+                        []
+                    elif Globals.statSync(s).isDirectory () then
                         findProjs (s) 
                     else    
                        if s.EndsWith ".fsproj" then [ s ] else [] 
@@ -49,11 +51,10 @@ module Project =
         
     let activate () =
         match findAll () with
-        | [] -> ()
-        | [x] -> LanguageService.project x |> ignore
+        | [] -> Promise.lift (null |> unbox)  
+        | [x] -> LanguageService.project x
         | x::tail ->
             tail 
             |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> LanguageService.project e) )
                (LanguageService.project x)
-            |> ignore
     
