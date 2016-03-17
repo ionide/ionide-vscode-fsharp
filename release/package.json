@@ -23,6 +23,7 @@
 	"contributes": {
 		"languages": [{
         "id": "fsharp",
+        "aliases": [ "F#" ],
         "extensions": [ ".fs", ".fsx", ".fsi" ],
         "configuration": "./fsharp.configuration.json"
     }],
