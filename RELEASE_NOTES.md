@@ -1,3 +1,6 @@
+### 1.5.1 - 17.03.2016
+* Fix startup behaviour
+
 ### 1.5.0 - 16.03.2016
 * Add rename 
 * Make finding references work in multiple projects
