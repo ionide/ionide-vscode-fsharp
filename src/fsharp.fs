@@ -21,22 +21,19 @@ type FSharp() =
         
         LanguageService.start ()
         Project.activate () 
-        |> Promise.success (fun _ -> 
-            Linter.activate disposables
-            Tooltip.activate df' disposables
-            Autocomplete.activate df' disposables
-            ParameterHints.activate df' disposables
-            Definition.activate df' disposables
-            Reference.activate df' disposables 
-            Symbols.activate df' disposables
-            Highlights.activate df' disposables
-            Rename.activate df' disposables
-            Fsi.activate disposables
-            QuickInfo.activate disposables
-            FSharpFormatting.activate disposables
-            WebPreview.activate disposables)
-        |> ignore
-        
+        Linter.activate disposables 
+        Tooltip.activate df' disposables
+        Autocomplete.activate df' disposables
+        ParameterHints.activate df' disposables
+        Definition.activate df' disposables
+        Reference.activate df' disposables 
+        Symbols.activate df' disposables
+        Highlights.activate df' disposables
+        Rename.activate df' disposables
+        Fsi.activate disposables
+        QuickInfo.activate disposables
+        FSharpFormatting.activate disposables
+        WebPreview.activate disposables
         
         ()
 

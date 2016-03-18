@@ -43,9 +43,10 @@ module Linter =
             match prom with
             | Some p -> p
                         |> LanguageService.project
-                        |> Promise.success (fun _ -> parse path (file.getText ()))
-                        |> ignore
-            | None -> parse path (file.getText ()) |> ignore
+                        |> Promise.bind (fun _ -> parse path (file.getText ()))
+            | None -> parse path (file.getText ())  
+        else
+            Promise.lift (null |> unbox)  
             
 
     let mutable private timer = None : NodeJS.Timer option
@@ -69,18 +70,9 @@ module Linter =
 
         match window.Globals.visibleTextEditors |> Array.toList with
         | [] -> Promise.lift (null |> unbox)  
-        | [x] -> 
-            let path = x.document.fileName
-            let content = x.document.getText()
-            parse path content
+        | [x] -> parseFile x.document 
         | x::tail ->
-            let path = x.document.fileName
-            let content = x.document.getText()
-            
             tail 
-            |> List.fold (fun acc e ->
-                    let path = e.document.fileName
-                    let content = e.document.getText()
-                    acc |> Promise.bind(fun _ -> parse path content) )
-               (parse path content)
+            |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document ) )
+               (parseFile x.document )
         |> ignore
