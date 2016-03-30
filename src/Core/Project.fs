@@ -8,7 +8,7 @@ open FunScript.TypeScript.vscode.languages
 open FunScript.TypeScript.path
 open FunScript.TypeScript.fs
 
-open DTO 
+open DTO
 open Ionide.VSCode.Helpers
 
 [<ReflectedDefinition>]
@@ -28,10 +28,10 @@ module Project =
         p
         |> Globals.dirname
         |> findFsProj
-        
-    let findAll () = 
-        let rec findProjs dir = 
-            let files = Globals.readdirSync dir 
+
+    let findAll () =
+        let rec findProjs dir =
+            let files = Globals.readdirSync dir
             files
             |> Array.toList
             |> List.collect(fun s ->
@@ -40,21 +40,22 @@ module Project =
                     if s = ".git" || s = "paket-files" then
                         []
                     elif Globals.statSync(s).isDirectory () then
-                        findProjs (s) 
-                    else    
-                       if s.EndsWith ".fsproj" then [ s ] else [] 
+                        findProjs (s)
+                    else
+                       if s.EndsWith ".fsproj" then [ s ] else []
                 with
-                | _ -> []            
-            ) 
-    
-        workspace.Globals.rootPath |> findProjs
-        
+                | _ -> []
+            )
+
+        match workspace.Globals.rootPath with
+            | null -> []
+            | rootPath -> rootPath |> findProjs
+
     let activate () =
         match findAll () with
-        | [] -> Promise.lift (null |> unbox)  
+        | [] -> Promise.lift (null |> unbox)
         | [x] -> LanguageService.project x
         | x::tail ->
-            tail 
+            tail
             |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> LanguageService.project e) )
                (LanguageService.project x)
-    
