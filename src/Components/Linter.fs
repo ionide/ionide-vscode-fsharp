@@ -26,10 +26,14 @@ module Linter =
             ev.Data
             |> Seq.distinctBy (fun d -> d.Severity, d.StartLine, d.StartColumn)
             |> Seq.map (fun d ->
-                let range = Range.Create(float d.StartLine - 1., float d.StartColumn - 1., float d.EndLine - 1., float d.EndColumn - 1.)
-                let loc = Location.Create (Uri.file d.FileName, range)
-                let severity = if d.Severity = "Error" then 0 else 1
-                Diagnostic.Create(range, d.Message, unbox severity) )
+                try
+                    let range = Range.Create(float d.StartLine - 1., float d.StartColumn - 1., float d.EndLine - 1., float d.EndColumn - 1.)
+                    let loc = Location.Create (Uri.file d.FileName, range)
+                    let severity = if d.Severity = "Error" then 0 else 1
+                    Diagnostic.Create(range, d.Message, unbox severity) |> Some
+                with
+                | _ -> None )
+            |> Seq.choose id
             |> Seq.toArray
 
         LanguageService.parse path text
