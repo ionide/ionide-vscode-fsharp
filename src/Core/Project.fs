@@ -17,7 +17,7 @@ module Project =
         let rec findFsProj dir =
             if Globals.lstatSync(dir).isDirectory() then
                 let files = Globals.readdirSync dir
-                let projfile = files |> Array.tryFind(fun s -> s.EndsWith(".fsproj"))
+                let projfile = files |> Array.tryFind(fun s -> s.EndsWith(".fsproj") || s.EndsWith "project.json")
                 match projfile with
                 | None ->
                     let parent = if dir.LastIndexOf(Globals.sep) > 0 then dir.Substring(0, dir.LastIndexOf Globals.sep) else ""
