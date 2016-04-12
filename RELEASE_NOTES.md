@@ -1,3 +1,6 @@
+### 1.6.0 - 12.04.2016
+* Add .Net Core support
+
 ### 1.5.2 - 18.03.2016
 * Fix startup behaviour
 
