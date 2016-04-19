@@ -63,7 +63,10 @@ module Linter =
 
 
     let private handlerOpen (event : TextEditor) =
-        parseFile event.document
+        if JS.isDefined event then
+            parseFile event.document
+        else
+            Promise.lift ()
 
     let activate (disposables: Disposable[]) =
         workspace.Globals.onDidChangeTextDocument
