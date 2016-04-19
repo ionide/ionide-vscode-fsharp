@@ -1,3 +1,6 @@
+### 1.6.1 - 19.04.2016
+* Add some more null checking
+
 ### 1.6.0 - 12.04.2016
 * Add .Net Core support
 
