@@ -1,3 +1,6 @@
+### 1.6.2 - 21.04.2016
+* Small performance fix
+
 ### 1.6.1 - 19.04.2016
 * Add some more null checking
 
