@@ -34,10 +34,10 @@ module Project =
             let files = Globals.readdirSync dir
             files
             |> Array.toList
-            |> List.collect(fun s ->
+            |> List.collect(fun s' ->
                 try
-                    let s = dir + Globals.sep + s
-                    if s = ".git" || s = "paket-files" then
+                    let s = dir + Globals.sep + s'
+                    if s' = ".git" || s' = "paket-files" then
                         []
                     elif Globals.statSync(s).isDirectory () then
                         findProjs (s)
