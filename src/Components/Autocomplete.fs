@@ -44,8 +44,8 @@ module Autocomplete =
             sug
 
         provider.``provideCompletionItems <-`` (fun doc pos _ ->
-            LanguageService.parse doc.fileName (doc.getText ())
-            |> Promise.bind (fun _ -> LanguageService.completion (doc.fileName) (int pos.line + 1) (int pos.character + 1))
+            let ln = doc.lineAt pos.line
+            LanguageService.completion (doc.fileName) ln.text (int pos.line + 1) (int pos.character + 1)
             |> Promise.success (mapCompletion doc pos)
             |> Promise.toThenable)
 

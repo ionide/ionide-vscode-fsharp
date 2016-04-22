@@ -1,7 +1,6 @@
 NUGET
   remote: https://www.nuget.org/api/v2
-  specs:
-    FAKE (4.25.2)
+    FAKE (4.25.4)
     FunScript (1.1.94)
     Microsoft.Bcl (1.1.10) - framework: net10, net11, net20, net30, net35, net40, net40-full
       Microsoft.Bcl.Build (>= 1.0.14)
@@ -16,22 +15,17 @@ NUGET
       Microsoft.Net.Http  - framework: net10, net11, net20, net30, net35, net40, net40-full
 GIT
   remote: https://github.com/ionide/ionide-vscode-helpers.git
-  specs:
      (b81a80ede2179222a5639cf866423d9bc6c2f0b4)
       build: build.cmd
   remote: https://github.com/ionide/FSharpFormatting.CLI.git
-  specs:
      (8b996684032cebe1ba052696fb30081fab023b1f)
       build: build.cmd
   remote: https://github.com/ionide/FsAutoComplete.git
-  specs:
-     (8be5fa64fdd5b8f811c7dda1beaa3b861c5808b2)
+     (40248ae40c8b30921565fb573091e3917ff2a3cf)
       build: build.cmd LocalRelease
   remote: git@github.com:ionide/ionide-fsgrammar.git
-  specs:
      (8061b5296321522633b16d7df66af8cf5fcd3784)
 GITHUB
   remote: fsharp/FAKE
-  specs:
-    modules/Octokit/Octokit.fsx (59dfade480c5f9107107f11af366aaae1f4a9157)
+    modules/Octokit/Octokit.fsx (db3139b0bf8a93047a68ca10f0135f1e94a10cae)
       Octokit

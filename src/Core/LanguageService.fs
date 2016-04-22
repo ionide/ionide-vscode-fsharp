@@ -72,8 +72,8 @@ module LanguageService =
         |> request (url "helptext")
         |> send 0
 
-    let completion fn line col =
-        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = "Contains"}
+    let completion fn sl line col =
+        {CompletionRequest.Line = line; FileName = fn; Column = col; Filter = "Contains"; SourceLine = sl}
         |> request (url "completion")
         |> send 1
 
