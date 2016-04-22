@@ -1,3 +1,6 @@
+### 1.6.3 - 22.04.2016
+* Make completion faster
+
 ### 1.6.2 - 21.04.2016
 * Small performance fix
 
