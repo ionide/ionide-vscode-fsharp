@@ -18,16 +18,13 @@ module ParameterHints =
             let res = createEmpty<SignatureHelp> ()
             let sigs = o.Data.Overloads |> Array.map (fun c ->
                 try
-                    let signature = createEmpty<SignatureInformation> ()
                     let tip = c.Tip.[0].[0]
-                    signature.label <-  tip.Signature
-                    signature.documentation <- tip.Comment
-                    signature.parameters <-
-                        c.Parameters |> Array.map (fun p ->
-                            let parameter = createEmpty<ParameterInformation> ()
-                            parameter.label <- p.Name
-                            parameter.documentation <- p.Description
-                            parameter )
+                    let signature = SignatureInformation.Create (tip.Signature, tip.Comment)
+                    c.Parameters |> Array.iter (fun p ->
+                        let parameter = ParameterInformation.Create (p.Name, p.CanonicalTypeTextForSorting)
+                        signature.parameters.pushOverload2(parameter )
+                        |> ignore
+                    )
                     Some signature
                 with 
                 | e -> 
@@ -36,6 +33,7 @@ module ParameterHints =
             res.activeParameter <- float (o.Data.CurrentParameter)
             res.activeSignature <- 0.
             res.signatures <- sigs
+            Globals.console.log res
             res
 
             
