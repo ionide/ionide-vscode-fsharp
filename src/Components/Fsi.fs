@@ -20,17 +20,22 @@ module Fsi =
             fsiOutput |> Option.iter (fun outChannel -> outChannel.append response |> ignore)
 
     let private start () =
-        fsiProcess |> Option.iter(fun fp -> fp.kill ())
-        fsiProcess <-
-            (if Process.isWin () then Process.spawn "Fsi.exe" "" "--fsi-server-input-codepage:65001" else Process.spawn "fsharpi" "" "--fsi-server-input-codepage:65001")
-            |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun outChannel -> outChannel.clear () ))
-            |> Process.onOutput handle
-            |> Process.onError handle
-            |> Some
-        fsiOutput <-
-            window.Globals.createOutputChannel("F# Interactive")
-            |> Some
-        fsiOutput |> Option.iter (fun outChannel -> outChannel.show (2 |> unbox) )
+        try
+            fsiProcess |> Option.iter(fun fp -> fp.kill ())
+            fsiProcess <-
+                (if Process.isWin () then Process.spawn "Fsi.exe" "" "--fsi-server-input-codepage:65001" else Process.spawn "fsharpi" "" "--fsi-server-input-codepage:65001")
+                |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun outChannel -> outChannel.clear () ))
+                |> Process.onOutput handle
+                |> Process.onError handle
+                |> Some
+            fsiOutput <-
+                window.Globals.createOutputChannel("F# Interactive")
+                |> Some
+            fsiOutput |> Option.iter (fun outChannel -> outChannel.show (2 |> unbox) )
+        with
+        | _ ->
+            window.Globals.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore
+            
 
     let private send (msg : string) file =
 
