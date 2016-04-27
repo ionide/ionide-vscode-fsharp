@@ -1,3 +1,6 @@
+### 1.6.4 - 27.04.2016
+* Add better error message for FSI spawn
+
 ### 1.6.3 - 22.04.2016
 * Make completion faster
 
