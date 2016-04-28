@@ -1,3 +1,6 @@
+### 1.6.7 - 28.04.2016
+* Add better error message for FSAC spawn
+
 ### 1.6.6 - 27.04.2016
 * Add better error message for FSI spawn
 
