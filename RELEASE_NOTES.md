@@ -1,3 +1,6 @@
+### 1.6.8 - 28.04.2016
+* Fix typo
+
 ### 1.6.7 - 28.04.2016
 * Add better error message for FSAC spawn
 
