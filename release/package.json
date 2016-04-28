@@ -100,15 +100,16 @@
 		"onCommand:fsi.Start",
 		"onCommand:fsi.SendLine",
 		"onCommand:fsi.SendSelection",
-        "onCommand:fsi.SendFile",
-        "onCommand:fsharp.Methods"
+    "onCommand:fsi.SendFile",
+    "onCommand:fsharp.Methods",
+    "onCommand:webpreview.Show"
 	],
 	"extensionDependencies": [
         "vscode.fsharp"
     ],
 	"dependencies": {
 		"xhr2": "*",
-        "toml": "*"
+    "toml": "*"
 	},
 	"devDependencies": {
 		"vscode": "*"
