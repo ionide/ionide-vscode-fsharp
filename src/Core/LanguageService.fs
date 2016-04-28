@@ -4,6 +4,7 @@ open System
 open FunScript
 open FunScript.TypeScript
 open FunScript.TypeScript.fs
+open FunScript.TypeScript.vscode
 open FunScript.TypeScript.child_process
 
 open DTO
@@ -116,12 +117,20 @@ module LanguageService =
         "" |> request (url "compilerlocation") |> send 0
 
     let start () =
-        let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
-        let child = if Process.isMono () then Globals.spawn("mono", [| path; string port|]) else Globals.spawn(path, [| string port|])
-        service <- Some child
-        child.stderr.on("data", unbox<Function>( fun n -> Globals.console.error (n.ToString()))) |> ignore
-        child.stdout.on("data", unbox<Function>( fun n -> Globals.console.log (n.ToString()))) |> ignore
-        ()
+        try
+            let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
+            let child = if Process.isMono () then Globals.spawn("mono", [| path; string port|]) else Globals.spawn(path, [| string port|])
+            service <- Some child
+            child.stderr.on("data", unbox<Function>( fun n -> Globals.console.error (n.ToString()))) |> ignore
+            child.stdout.on("data", unbox<Function>( fun n -> Globals.console.log (n.ToString()))) |> ignore
+        with 
+        | _ -> 
+            if Process.isMono () then
+                "Failed to start language services. Please check if mono is in PATH"
+            else
+                "Failed to start language services. Please check if Microsoft Built Tools 2013 are installed"
+            |> window.Globals.showErrorMessage 
+            |> ignore
 
     let stop () =
         service |> Option.iter (fun n -> n.kill "SIGKILL")
