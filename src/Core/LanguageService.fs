@@ -128,7 +128,7 @@ module LanguageService =
             if Process.isMono () then
                 "Failed to start language services. Please check if mono is in PATH"
             else
-                "Failed to start language services. Please check if Microsoft Built Tools 2013 are installed"
+                "Failed to start language services. Please check if Microsoft Build Tools 2013 are installed"
             |> window.Globals.showErrorMessage 
             |> ignore
 
