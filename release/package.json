@@ -80,7 +80,8 @@
       }
     ],
 		"outputChannels": [
-			"F# Interactive"
+			"F# Interactive",
+      "Forge"
 		],
     "keybindings": [
       {

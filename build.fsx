@@ -31,6 +31,7 @@ open Fake.ZipHelper
 #load "src/Components/QuickInfo.fs"
 #load "src/Components/FSharpFormatting.fs"
 #load "src/Components/Webpreview.fs"
+#load "src/Components/Forge.fs"
 #load "src/fsharp.fs"
 #load "src/main.fs"
 
