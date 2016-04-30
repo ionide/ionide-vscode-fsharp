@@ -77,6 +77,14 @@
       {
         "command": "webpreview.Refresh",
         "title": "Ionide: Refresh Web View"
+      },
+      {
+        "command": "fsharp.MoveFileUp",
+        "title": "F#: Move File Up"
+      },
+      {
+        "command": "fsharp.MoveFileDown",
+        "title": "F#: Move File Down"
       }
     ],
 		"outputChannels": [
@@ -93,6 +101,14 @@
         "command": "fsi.SendSelection",
         "key": "alt+Enter",
         "mac": "alt+Enter"
+      },
+      {
+        "command": "fsharp.MoveFileUp",
+        "key": "ctrl+shift+up"
+      },
+      {
+        "command": "fsharp.MoveFileDown",
+        "key": "ctrl+shift+down"
       }
     ]
 	},
