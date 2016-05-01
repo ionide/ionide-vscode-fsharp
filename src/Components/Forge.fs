@@ -29,6 +29,16 @@ module Forge =
         Process.spawnWithNotification location "mono" cmd outputChannel
         |> ignore
 
+    let private execForge cmd =
+        Process.exec location "mono" cmd
+        
+    let private handleForgeList (error : FunScript.TypeScript.Error, stdout : Buffer, stderr : Buffer) =
+        if(stdout.toString() = "") then
+            [||]
+        else
+            stdout.toString().Split('\n')
+            |> Array.filter((<>) "" )
+
     let onFsFileCreateHandler (uri : Uri) = 
         sprintf "add file -n %s" uri.fsPath |> spawnForge
 
@@ -44,6 +54,35 @@ module Forge =
         let editor = vscode.window.Globals.activeTextEditor
         if editor.document.languageId = "fsharp" then
             sprintf "move file -n %s -d" editor.document.fileName |> spawnForge
+            
+    let newProject () = 
+        "list templates"
+        |> execForge
+        |> Promise.success handleForgeList
+        |> window.Globals.showQuickPick
+        |> Promise.toPromise
+        |> Promise.success (fun template ->
+            if JS.isDefined template then
+                let opts = createEmpty<InputBoxOptions> ()
+                opts.prompt <- "Project directory"
+                window.Globals.showInputBox (opts)
+                |> Promise.toPromise
+                |> Promise.success (fun dir ->
+                    let opts = createEmpty<InputBoxOptions> ()
+                    opts.prompt <- "Project name"
+                    window.Globals.showInputBox(opts)
+                    |> Promise.toPromise
+                    |> Promise.success (fun name ->
+                        sprintf "new project -n %s -t %s --folder %s" name template dir
+                        |> spawnForge
+                    
+                    
+                    )
+                ) 
+                |> ignore       
+            ()
+        )
+        
     
     let activate disposables = 
         let watcher = workspace.Globals.createFileSystemWatcher ("**/*.fs")
@@ -51,4 +90,5 @@ module Forge =
         watcher.onDidDelete.Add(onFsFileRemovedHandler, null, disposables)
         commands.Globals.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox) |> ignore 
         commands.Globals.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox) |> ignore
+        commands.Globals.registerCommand("fsharp.NewProject", newProject |> unbox) |> ignore
         () 

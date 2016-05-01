@@ -85,6 +85,10 @@
       {
         "command": "fsharp.MoveFileDown",
         "title": "F#: Move File Down"
+      },
+      {
+        "command": "fsharp.NewProject",
+        "title": "F#: New Project"
       }
     ],
 		"outputChannels": [
@@ -119,7 +123,8 @@
 		"onCommand:fsi.SendSelection",
     "onCommand:fsi.SendFile",
     "onCommand:fsharp.Methods",
-    "onCommand:webpreview.Show"
+    "onCommand:webpreview.Show",
+    "onCommand:fsharp.NewProject"
 	],
 	"extensionDependencies": [
         "vscode.fsharp"
