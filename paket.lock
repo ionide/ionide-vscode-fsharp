@@ -24,11 +24,11 @@ GIT
      (40248ae40c8b30921565fb573091e3917ff2a3cf)
       build: build.cmd LocalRelease
   remote: https://github.com/fsprojects/Forge.git
-     (149655b1c5f7c468872cce4ba1626bec97fb65ef)
+     (0ce0281d45e8f7368f447fc33bf22406b4992801)
       build: build.cmd
   remote: git@github.com:ionide/ionide-fsgrammar.git
      (8061b5296321522633b16d7df66af8cf5fcd3784)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (b6f259615a85b9b4b715be927e7f60a34967e8fa)
+    modules/Octokit/Octokit.fsx (26ea4dbb3d60352b88162bb32577015af2e7c44e)
       Octokit

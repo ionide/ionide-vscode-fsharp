@@ -21,10 +21,11 @@ module Forge =
 
     let private location = (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "bin_forge" </> "Forge.exe"
 
-    let private spawnForge cmd =
+    let private spawnForge (cmd : string) =
+        let cmd = cmd.Replace("\r", "").Replace("\n", "")
         let outputChannel = window.Globals.createOutputChannel "Forge"
         outputChannel.clear ()
-        outputChannel.append (location+"\n")
+        outputChannel.append ("forge " + cmd + "\n")
 
         Process.spawnWithNotification location "mono" cmd outputChannel
         |> ignore
@@ -64,7 +65,7 @@ module Forge =
         |> Promise.success (fun template ->
             if JS.isDefined template then
                 let opts = createEmpty<InputBoxOptions> ()
-                opts.prompt <- "Project directory"
+                opts.prompt <- "Project directory" 
                 window.Globals.showInputBox (opts)
                 |> Promise.toPromise
                 |> Promise.success (fun dir ->
@@ -74,9 +75,7 @@ module Forge =
                     |> Promise.toPromise
                     |> Promise.success (fun name ->
                         sprintf "new project -n %s -t %s --folder %s" name template dir
-                        |> spawnForge
-                    
-                    
+                        |> spawnForge                    
                     )
                 ) 
                 |> ignore       
