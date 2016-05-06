@@ -28,7 +28,7 @@ module Forge =
         outputChannel.append ("forge " + cmd + "\n")
 
         Process.spawnWithNotification location "mono" cmd outputChannel
-        |> ignore
+        
 
     let private execForge cmd =
         Process.exec location "mono" cmd
@@ -49,15 +49,17 @@ module Forge =
     let moveFileUp () = 
         let editor = vscode.window.Globals.activeTextEditor
         if editor.document.languageId = "fsharp" then
-            sprintf "move file -n %s -u" editor.document.fileName |> spawnForge
+            sprintf "move file -n %s -u" editor.document.fileName |> spawnForge |> ignore
     
     let moveFileDown () =
         let editor = vscode.window.Globals.activeTextEditor
         if editor.document.languageId = "fsharp" then
-            sprintf "move file -n %s -d" editor.document.fileName |> spawnForge
+            sprintf "move file -n %s -d" editor.document.fileName |> spawnForge |> ignore
             
     let refreshTemplates () = 
-        "refresh" |> spawnForge
+        let cp = "refresh" |> spawnForge
+        cp.on("exit", (fun _ ->  window.Globals.showInformationMessage "Templates refreshed") |> unbox )
+
             
     let newProject () = 
         "list templates"
@@ -88,7 +90,9 @@ module Forge =
             else
                 window.Globals.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command"
                 |> Promise.toPromise
-                |> Promise.success ignore
+                |> Promise.success ignore )
+        |> Promise.success (fun _ ->
+            window.Globals.showInformationMessage "Project created"
         )
         
     
