@@ -56,30 +56,39 @@ module Forge =
         if editor.document.languageId = "fsharp" then
             sprintf "move file -n %s -d" editor.document.fileName |> spawnForge
             
+    let refreshTemplates () = 
+        "refresh" |> spawnForge
+            
     let newProject () = 
         "list templates"
         |> execForge
         |> Promise.success handleForgeList
-        |> window.Globals.showQuickPick
-        |> Promise.toPromise
-        |> Promise.success (fun template ->
-            if JS.isDefined template then
-                let opts = createEmpty<InputBoxOptions> ()
-                opts.prompt <- "Project directory" 
-                window.Globals.showInputBox (opts)
+        |> Promise.success (fun n -> 
+            if n.length <> 0. then
+                window.Globals.showQuickPick (Promise.lift n)
                 |> Promise.toPromise
-                |> Promise.success (fun dir ->
-                    let opts = createEmpty<InputBoxOptions> ()
-                    opts.prompt <- "Project name"
-                    window.Globals.showInputBox(opts)
-                    |> Promise.toPromise
-                    |> Promise.success (fun name ->
-                        sprintf "new project -n %s -t %s --folder %s" name template dir
-                        |> spawnForge                    
-                    )
-                ) 
-                |> ignore       
-            ()
+                |> Promise.success (fun template ->
+                    if JS.isDefined template then
+                        let opts = createEmpty<InputBoxOptions> ()
+                        opts.prompt <- "Project directory" 
+                        window.Globals.showInputBox (opts)
+                        |> Promise.toPromise
+                        |> Promise.success (fun dir ->
+                            let opts = createEmpty<InputBoxOptions> ()
+                            opts.prompt <- "Project name"
+                            window.Globals.showInputBox(opts)
+                            |> Promise.toPromise
+                            |> Promise.success (fun name ->
+                                sprintf "new project -n %s -t %s --folder %s" name template dir
+                                |> spawnForge                    
+                            )
+                        ) 
+                        |> ignore       
+                    ())
+            else
+                window.Globals.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command"
+                |> Promise.toPromise
+                |> Promise.success ignore
         )
         
     
@@ -90,4 +99,5 @@ module Forge =
         commands.Globals.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox) |> ignore 
         commands.Globals.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox) |> ignore
         commands.Globals.registerCommand("fsharp.NewProject", newProject |> unbox) |> ignore
+        commands.Globals.registerCommand("fsharp.RefreshProjectTemplates", refreshTemplates |> unbox) |> ignore
         () 
