@@ -1,6 +1,6 @@
 NUGET
   remote: https://www.nuget.org/api/v2
-    FAKE (4.25.5)
+    FAKE (4.26)
     FunScript (1.1.94)
     Microsoft.Bcl (1.1.10) - framework: net10, net11, net20, net30, net35, net40, net40-full
       Microsoft.Bcl.Build (>= 1.0.14)
@@ -21,7 +21,7 @@ GIT
      (8b996684032cebe1ba052696fb30081fab023b1f)
       build: build.cmd
   remote: https://github.com/ionide/FsAutoComplete.git
-     (40248ae40c8b30921565fb573091e3917ff2a3cf)
+     (e291884b2b52da09f24924a899e8ac84be42c9bc)
       build: build.cmd LocalRelease
   remote: https://github.com/fsprojects/Forge.git
      (0ce0281d45e8f7368f447fc33bf22406b4992801)
@@ -30,5 +30,5 @@ GIT
      (8061b5296321522633b16d7df66af8cf5fcd3784)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (26ea4dbb3d60352b88162bb32577015af2e7c44e)
+    modules/Octokit/Octokit.fsx (32e262c11174b196dc8af16a577c8c3aa0ab0b2b)
       Octokit

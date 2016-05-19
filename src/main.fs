@@ -76,7 +76,8 @@ let translateModules (typ : System.Type) fileName =
         yield "var _funcs = wrappedFunScript();"
         yield "var _self = _funcs[0]();"
         yield ""
-        yield "exports.activate = _funcs[1](_self);" ]
+        yield "exports.activate = _funcs[1](_self);"
+        yield "exports.deactivate = _funcs[2](_self);" ]
       |> String.concat "\n"
     System.IO.File.WriteAllText(System.IO.Path.Combine(root, fileName), moduleJS)
 

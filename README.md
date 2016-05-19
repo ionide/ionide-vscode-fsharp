@@ -40,7 +40,7 @@ This can be obtained by installing Visual Studio 2013 / 2015 or downloading:
 More details how to obtain and install F# on different platforms can be found on http://fsharp.org/
 
 ## WebPreview
-`WebView` allows the user to override the default conventions used to run and preview web applications. To do so You need to create an `.ionide` file in the root folder of Your project opened by Atom. The configuration file uses the [TOML](https://github.com/toml-lang/toml) language.
+`WebView` allows the user to override the default conventions used to run and preview web applications. To do so You need to create an `.ionide` file in the root folder of Your project opened by VSCode. The configuration file uses the [TOML](https://github.com/toml-lang/toml) language.
 
 Here is the default configuration values used if the `.ionide` file doesn't exist or some entry is missing:
 
