@@ -21,7 +21,7 @@ GIT
      (8b996684032cebe1ba052696fb30081fab023b1f)
       build: build.cmd
   remote: https://github.com/ionide/FsAutoComplete.git
-     (589acc5c83709f76d4c0e1b3779bcc03283625b0)
+     (e291884b2b52da09f24924a899e8ac84be42c9bc)
       build: build.cmd LocalRelease
   remote: git@github.com:ionide/ionide-fsgrammar.git
      (8061b5296321522633b16d7df66af8cf5fcd3784)
