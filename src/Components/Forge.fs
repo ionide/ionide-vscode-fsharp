@@ -59,7 +59,16 @@ module Forge =
     let refreshTemplates () = 
         let cp = "refresh" |> spawnForge
         cp.on("exit", (fun _ ->  window.Globals.showInformationMessage "Templates refreshed") |> unbox )
-
+        
+    let addCurrentFileToProject () = 
+        let editor = vscode.window.Globals.activeTextEditor
+        if editor.document.languageId = "fsharp" then
+            sprintf "add file -n %s" editor.document.fileName |> spawnForge |> ignore
+            
+    let removeCurrentFileFromProject () = 
+        let editor = vscode.window.Globals.activeTextEditor
+        if editor.document.languageId = "fsharp" then
+            sprintf "remove file -n %s" editor.document.fileName |> spawnForge |> ignore
             
     let newProject () = 
         "list templates"
@@ -104,4 +113,6 @@ module Forge =
         commands.Globals.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox) |> ignore
         commands.Globals.registerCommand("fsharp.NewProject", newProject |> unbox) |> ignore
         commands.Globals.registerCommand("fsharp.RefreshProjectTemplates", refreshTemplates |> unbox) |> ignore
+        commands.Globals.registerTextEditorCommand("fsharp.AddFileToProject", addCurrentFileToProject |> unbox) |> ignore
+        commands.Globals.registerTextEditorCommand("fsharp.RemoveFileFromProject", removeCurrentFileFromProject |> unbox) |> ignore
         () 

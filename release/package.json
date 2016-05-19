@@ -93,6 +93,14 @@
       {
         "command": "fsharp.RefreshProjectTemplates",
         "title": "F#: Refresh Project Templates"
+      },
+      {
+        "command": "fsharp.AddFileToProject",
+        "title": "F#: Add Current File To Project"
+      },
+      {
+        "command": "fsharp.RemoveFileFromProject",
+        "title": "F#: Remove Current File From Project"
       }
     ],
 		"outputChannels": [
