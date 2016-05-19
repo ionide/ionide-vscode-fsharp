@@ -20,7 +20,7 @@ type FSharp() =
         let df' = [|df|]
         
         LanguageService.start ()
-        Project.activate () 
+        Project.activate () |> ignore
         Linter.activate disposables 
         Tooltip.activate df' disposables
         Autocomplete.activate df' disposables
@@ -34,6 +34,7 @@ type FSharp() =
         QuickInfo.activate disposables
         FSharpFormatting.activate disposables
         WebPreview.activate disposables
+        Forge.activate disposables
         
         ()
 

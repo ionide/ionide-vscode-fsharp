@@ -1,5 +1,6 @@
 release/bin
 release/bin_ff
+release/bin_forge
 
 # Logs
 logs

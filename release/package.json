@@ -77,10 +77,35 @@
       {
         "command": "webpreview.Refresh",
         "title": "Ionide: Refresh Web View"
+      },
+      {
+        "command": "fsharp.MoveFileUp",
+        "title": "F#: Move File Up"
+      },
+      {
+        "command": "fsharp.MoveFileDown",
+        "title": "F#: Move File Down"
+      },
+      {
+        "command": "fsharp.NewProject",
+        "title": "F#: New Project"
+      },
+      {
+        "command": "fsharp.RefreshProjectTemplates",
+        "title": "F#: Refresh Project Templates"
+      },
+      {
+        "command": "fsharp.AddFileToProject",
+        "title": "F#: Add Current File To Project"
+      },
+      {
+        "command": "fsharp.RemoveFileFromProject",
+        "title": "F#: Remove Current File From Project"
       }
     ],
 		"outputChannels": [
-			"F# Interactive"
+			"F# Interactive",
+      "Forge"
 		],
     "keybindings": [
       {
@@ -92,6 +117,14 @@
         "command": "fsi.SendSelection",
         "key": "alt+Enter",
         "mac": "alt+Enter"
+      },
+      {
+        "command": "fsharp.MoveFileUp",
+        "key": "ctrl+shift+up"
+      },
+      {
+        "command": "fsharp.MoveFileDown",
+        "key": "ctrl+shift+down"
       }
     ]
 	},
@@ -102,7 +135,9 @@
 		"onCommand:fsi.SendSelection",
     "onCommand:fsi.SendFile",
     "onCommand:fsharp.Methods",
-    "onCommand:webpreview.Show"
+    "onCommand:webpreview.Show",
+    "onCommand:fsharp.NewProject",
+    "onCommand:fsharp.RefreshProjectTemplates"
 	],
 	"extensionDependencies": [
         "vscode.fsharp"

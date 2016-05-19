@@ -51,6 +51,7 @@
     <Compile Include="Components\QuickInfo.fs" />
     <Compile Include="Components\FSharpFormatting.fs" />
     <Compile Include="Components\WebPreview.fs" />
+    <Compile Include="Components\Forge.fs" />
     <Compile Include="fsharp.fs" />
     <Compile Include="main.fs" />
     <None Include="vscode-bindings.fsx" />

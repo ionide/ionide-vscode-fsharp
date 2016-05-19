@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------------------
 
 #I "packages/FAKE/tools"
-#r "packages/FAKE/tools/FakeLib.dll"
+#r "packages/FAKE/tools/FakeLib.dll" 
 open System
 open System.Diagnostics
 open System.IO
@@ -30,7 +30,8 @@ open Fake.ZipHelper
 #load "src/Components/Fsi.fs"
 #load "src/Components/QuickInfo.fs"
 #load "src/Components/FSharpFormatting.fs"
-#load "src/Components/WebPreview.fs"
+#load "src/Components/Webpreview.fs"
+#load "src/Components/Forge.fs"
 #load "src/fsharp.fs"
 #load "src/main.fs"
 
@@ -111,6 +112,18 @@ Target "CopyFSAC" (fun _ ->
 
     !! (fsacBin + "/*")
     |> CopyFiles  releaseBin
+)
+
+let releaseBinForge = "release/bin_forge"
+let forgeBin = "paket-files/github.com/fsprojects/Forge/temp/bin"
+    
+Target "CopyForge" (fun _ ->
+    ensureDirectory releaseBinForge
+    CleanDir releaseBinForge
+    
+    !! (forgeBin </> "Forge.exe" )
+    ++ (forgeBin </> "Mono.Posix.dll")
+    |> CopyFiles releaseBinForge
 )
 
 let releaseBinFF = "release/bin_ff"
@@ -234,6 +247,7 @@ Target "Release" DoNothing
 ==> "RunScript"
 ==> "CopyFSAC"
 ==> "CopyFSharpFormatting"
+==> "CopyForge"
 ==> "CopyGrammar"
 ==> "Build"
 
