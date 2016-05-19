@@ -1,3 +1,6 @@
+### 1.7.0 - 19.05.2016
+* Add Forge support
+
 ### 1.6.10 - 19.05.2016
 * Update FSAC
 
