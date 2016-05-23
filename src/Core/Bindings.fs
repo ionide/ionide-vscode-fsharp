@@ -38,4 +38,8 @@ module Bindings =
     
         [<FunScript.JSEmitInline "(vscode.window.visibleTextEditors)">]
         static member visibleTextEditors with get () : TextEditor[] = failwith "JS"
+        
+    type SignatureHelp with
+        [<FunScript.JSEmitInline "(new vscode.SignatureHelp())">]
+        static member Create() : SignatureHelp = failwith "JS"
 

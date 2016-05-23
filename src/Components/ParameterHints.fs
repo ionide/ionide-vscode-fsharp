@@ -15,7 +15,7 @@ module ParameterHints =
         let provider = createEmpty<SignatureHelpProvider> ()
 
         let mapResult o =
-            let res = createEmpty<SignatureHelp> ()
+            let res = SignatureHelp.Create ()
             let sigs = o.Data.Overloads |> Array.map (fun c ->
                 try
                     let tip = c.Tip.[0].[0]
@@ -31,7 +31,12 @@ module ParameterHints =
                     Globals.console.error e
                     None) |> Array.choose id
             res.activeParameter <- float (o.Data.CurrentParameter)
-            res.activeSignature <- 0.
+            res.activeSignature <- 
+                sigs 
+                |> Array.sortBy (fun n -> n.parameters.Length) 
+                |> Array.findIndex (fun s -> s.parameters.Length >= o.Data.CurrentParameter ) 
+                |> (+) 1
+                |> float
             res.signatures <- sigs
             Globals.console.log res
             res
