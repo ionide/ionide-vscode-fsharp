@@ -1,3 +1,6 @@
+### 1.8.0 - 23.05.2016
+* Add Signature Helper support
+
 ### 1.7.0 - 19.05.2016
 * Add Forge support
 
