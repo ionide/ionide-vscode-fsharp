@@ -21,7 +21,7 @@ GIT
      (8b996684032cebe1ba052696fb30081fab023b1f)
       build: build.cmd
   remote: https://github.com/ionide/FsAutoComplete.git
-     (244bb31085ee4d205eaf5e15984c79c0ea3a4619)
+     (90423567453c82104e852a188640cbfad5882aaa)
       build: build.cmd LocalRelease
   remote: https://github.com/fsprojects/Forge.git
      (7b61dba4b3b89b8c687230560d5df0e61c5be59a)
