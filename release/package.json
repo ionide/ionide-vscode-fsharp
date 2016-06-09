@@ -116,7 +116,7 @@
       {
         "command": "fsi.SendSelection",
         "key": "alt+Enter",
-        "mac": "alt+Enter"
+        "mac": "alt+Enter",
         "when":"editorFocus && !findWidgetVisible"
       },
       {
