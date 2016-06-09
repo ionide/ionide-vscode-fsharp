@@ -1,3 +1,6 @@
+### 1.8.3 - 09.06.2016
+* Update Forge integration
+
 ### 1.8.2 - 25.05.2016
 * Update FSAC
 
