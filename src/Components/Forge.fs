@@ -2,7 +2,7 @@ namespace Ionide.VSCode.FSharp
 
 open System
 open FunScript
-open FunScript.TypeScript
+open FunScript.TypeScript 
 open FunScript.TypeScript.vscode
 open FunScript.TypeScript.vscode.languages
 open FunScript.TypeScript.path
@@ -23,6 +23,7 @@ module Forge =
 
     let private spawnForge (cmd : string) =
         let cmd = cmd.Replace("\r", "").Replace("\n", "")
+        let cmd = (cmd + " --no-prompt")
         let outputChannel = window.Globals.createOutputChannel "Forge"
         outputChannel.clear ()
         outputChannel.append ("forge " + cmd + "\n")
@@ -31,7 +32,7 @@ module Forge =
         
 
     let private execForge cmd =
-        Process.exec location "mono" cmd
+        Process.exec location "mono" (cmd + " --no-prompt")
         
     let private handleForgeList (error : FunScript.TypeScript.Error, stdout : Buffer, stderr : Buffer) =
         if(stdout.toString() = "") then
