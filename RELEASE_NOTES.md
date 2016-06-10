@@ -1,3 +1,6 @@
+### 1.8.4 - 10.06.2016
+* Fix alt+enter keybinding
+
 ### 1.8.3 - 09.06.2016
 * Update Forge integration
 
