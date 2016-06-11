@@ -1,3 +1,6 @@
+### 1.9.0 - 11.06.2016
+* Add Project reference
+
 ### 1.8.4 - 10.06.2016
 * Fix alt+enter keybinding
 
