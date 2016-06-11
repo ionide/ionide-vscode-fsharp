@@ -1,3 +1,6 @@
+### 1.9.1 - 11.06.2016
+* Remove Project reference
+
 ### 1.9.0 - 11.06.2016
 * Add Project reference
 
