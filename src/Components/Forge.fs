@@ -2,7 +2,7 @@ namespace Ionide.VSCode.FSharp
 
 open System
 open FunScript
-open FunScript.TypeScript 
+open FunScript.TypeScript  
 open FunScript.TypeScript.vscode
 open FunScript.TypeScript.vscode.languages
 open FunScript.TypeScript.path
@@ -13,7 +13,7 @@ open Ionide.VSCode.Helpers
 
 [<ReflectedDefinition>]
 module Forge =
-
+ 
     let (</>) a b =
         if  Process.isWin ()
         then a + @"\" + b
@@ -91,6 +91,32 @@ module Forge =
                     ) )
                 |> ignore
 
+    let removeProjectReference () =
+        let projects = Project.getAll () |> List.toArray
+        if projects.Length <> 0 then
+            projects
+            |> Promise.lift
+            |> fun n ->
+                let opts = createEmpty<QuickPickOptions>()
+                opts.placeHolder <- "Project to edit"
+                window.Globals.showQuickPick(n,opts)
+                |> Promise.toPromise
+                |> Promise.bind (fun edit ->
+                    sprintf "list projectReferences -p %s" edit
+                    |> execForge
+                    |> Promise.success handleForgeList
+                    |> Promise.success (fun n ->
+                        if n.length <> 0. then
+                            let opts = createEmpty<QuickPickOptions>()
+                            opts.placeHolder <- "Reference"
+                            window.Globals.showQuickPick(n |> Promise.lift,opts)
+                            |> Promise.toPromise
+                            |> Promise.success (fun ref ->
+                                sprintf "remove project -n %s -p %s" ref edit |> spawnForge |> ignore )
+                            |> ignore
+                    ))
+            |> ignore
+
     let newProject () = 
         "list templates"
         |> execForge
@@ -137,4 +163,5 @@ module Forge =
         commands.Globals.registerTextEditorCommand("fsharp.AddFileToProject", addCurrentFileToProject |> unbox) |> ignore
         commands.Globals.registerTextEditorCommand("fsharp.RemoveFileFromProject", removeCurrentFileFromProject |> unbox) |> ignore
         commands.Globals.registerCommand("fsharp.AddProjectReference", addProjectReference |> unbox) |> ignore
+        commands.Globals.registerCommand("fsharp.RemoveProjectReference", removeProjectReference |> unbox) |> ignore
         () 

@@ -24,7 +24,7 @@ GIT
      (90423567453c82104e852a188640cbfad5882aaa)
       build: build.cmd LocalRelease
   remote: https://github.com/fsprojects/Forge.git
-     (b2ce55cfb380ef898aae7b46d7e4eda839fb6707)
+     (19e5ba663e05cdaecb56bff74f169345ff755a1e)
       build: build.cmd
   remote: git@github.com:ionide/ionide-fsgrammar.git
      (77ad35a24efc2d0acc84402250589a7f24b803ea)
