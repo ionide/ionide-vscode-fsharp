@@ -70,7 +70,27 @@ module Forge =
         let editor = vscode.window.Globals.activeTextEditor
         if editor.document.languageId = "fsharp" then
             sprintf "remove file -n %s" editor.document.fileName |> spawnForge |> ignore
-            
+
+    let addProjectReference () = 
+        let projects = Project.getAll () |> List.toArray
+        if projects.Length <> 0 then
+            projects
+            |> Promise.lift
+            |> fun n -> 
+                let opts = createEmpty<QuickPickOptions>()
+                opts.placeHolder <- "Project to edit"
+                window.Globals.showQuickPick(n,opts)
+                |> Promise.toPromise
+                |> Promise.success (fun edit ->
+                    let opts = createEmpty<QuickPickOptions>()
+                    opts.placeHolder <- "Reference"
+                    window.Globals.showQuickPick(n,opts)
+                    |> Promise.toPromise
+                    |> Promise.success (fun n -> 
+                        sprintf "add project -n %s -p %s" n edit |> spawnForge |> ignore
+                    ) )
+                |> ignore
+
     let newProject () = 
         "list templates"
         |> execForge
@@ -116,4 +136,5 @@ module Forge =
         commands.Globals.registerCommand("fsharp.RefreshProjectTemplates", refreshTemplates |> unbox) |> ignore
         commands.Globals.registerTextEditorCommand("fsharp.AddFileToProject", addCurrentFileToProject |> unbox) |> ignore
         commands.Globals.registerTextEditorCommand("fsharp.RemoveFileFromProject", removeCurrentFileFromProject |> unbox) |> ignore
+        commands.Globals.registerCommand("fsharp.AddProjectReference", addProjectReference |> unbox) |> ignore
         () 

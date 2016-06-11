@@ -51,6 +51,29 @@ module Project =
             | null -> []
             | rootPath -> rootPath |> findProjs
 
+    let getAll () =
+        let rec findProjs dir =
+            let files = Globals.readdirSync dir
+            files
+            |> Array.toList
+            |> List.collect(fun s' ->
+                try
+                    let s = dir + Globals.sep + s'
+                    if s' = ".git" || s' = "paket-files" then
+                        []
+                    elif Globals.statSync(s).isDirectory () then
+                        findProjs (s)
+                    else
+                       if s.EndsWith ".fsproj" || s.EndsWith ".csproj" || s.EndsWith ".vbproj" then [ s ] else []
+                with
+                | _ -> []
+            )
+
+        match workspace.Globals.rootPath with
+            | null -> []
+            | rootPath -> rootPath |> findProjs
+
+
     let activate () =
         match findAll () with
         | [] -> Promise.lift (null |> unbox)

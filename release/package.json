@@ -101,6 +101,10 @@
       {
         "command": "fsharp.RemoveFileFromProject",
         "title": "F#: Remove Current File From Project"
+      },
+      {
+        "command": "fsharp.AddProjectReference",
+        "title": "F#: Add Project Reference"
       }
     ],
 		"outputChannels": [
@@ -138,7 +142,8 @@
     "onCommand:fsharp.Methods",
     "onCommand:webpreview.Show",
     "onCommand:fsharp.NewProject",
-    "onCommand:fsharp.RefreshProjectTemplates"
+    "onCommand:fsharp.RefreshProjectTemplates",
+    "onCommand:fsharp.AddProjectReference"
 	],
 	"extensionDependencies": [
         "vscode.fsharp"

@@ -8,7 +8,8 @@
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
-			"stopOnEntry": false
+			"stopOnEntry": false,
+			"request": "launch"
 		}
 	]
 }
