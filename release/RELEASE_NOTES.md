@@ -1,3 +1,6 @@
+### 1.9.2 - 18.06.2016
+* Add and Remove reference
+
 ### 1.9.1 - 11.06.2016
 * Remove Project reference
 
