@@ -109,6 +109,14 @@
       {
         "command": "fsharp.RemoveProjectReference",
         "title": "F#: Remove Project Reference"
+      },
+      {
+        "command": "fsharp.AddReference",
+        "title": "F#: Add Reference"
+      },
+      {
+        "command": "fsharp.RemoveReference",
+        "title": "F#: Remove Reference"
       }
     ],
 		"outputChannels": [
@@ -148,7 +156,9 @@
     "onCommand:fsharp.NewProject",
     "onCommand:fsharp.RefreshProjectTemplates",
     "onCommand:fsharp.AddProjectReference",
-    "onCommand:fsharp.RemoveProjectReference"
+    "onCommand:fsharp.RemoveProjectReference",
+    "onCommand:fsharp.AddReference",
+    "onCommand:fsharp.RemoveReference"
 	],
 	"extensionDependencies": [
         "vscode.fsharp"

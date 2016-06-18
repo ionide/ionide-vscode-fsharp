@@ -71,6 +71,52 @@ module Forge =
         if editor.document.languageId = "fsharp" then
             sprintf "remove file -n %s" editor.document.fileName |> spawnForge |> ignore
 
+    let addReference () = 
+        let projects = Project.getAll () |> List.toArray
+        if projects.Length <> 0 then
+            projects
+            |> Promise.lift
+            |> fun n ->
+                let opts = createEmpty<QuickPickOptions>()
+                opts.placeHolder <- "Project to edit"
+                window.Globals.showQuickPick(n,opts)
+                |> Promise.toPromise
+                |> Promise.success (fun edit ->
+                    let opts = createEmpty<InputBoxOptions>()
+                    opts.placeHolder <- "Reference"
+                    window.Globals.showInputBox(opts)
+                    |> Promise.toPromise
+                    |> Promise.success (fun n -> 
+                        sprintf "add reference -n %s -p %s" n edit |> spawnForge |> ignore
+                    ) )  
+                |> ignore
+
+    let removeReference () =
+        let projects = Project.getAll () |> List.toArray
+        if projects.Length <> 0 then
+            projects
+            |> Promise.lift
+            |> fun n ->
+                let opts = createEmpty<QuickPickOptions>()
+                opts.placeHolder <- "Project to edit"
+                window.Globals.showQuickPick(n,opts)
+                |> Promise.toPromise
+                |> Promise.bind (fun edit ->
+                    sprintf "list references -p %s" edit
+                    |> execForge
+                    |> Promise.success handleForgeList
+                    |> Promise.success (fun n ->
+                        if n.length <> 0. then
+                            let opts = createEmpty<QuickPickOptions>()
+                            opts.placeHolder <- "Reference"
+                            window.Globals.showQuickPick(n |> Promise.lift,opts)
+                            |> Promise.toPromise
+                            |> Promise.success (fun ref ->
+                                sprintf "remove reference -n %s -p %s" ref edit |> spawnForge |> ignore )
+                            |> ignore
+                    ))
+            |> ignore
+
     let addProjectReference () = 
         let projects = Project.getAll () |> List.toArray
         if projects.Length <> 0 then
@@ -164,4 +210,6 @@ module Forge =
         commands.Globals.registerTextEditorCommand("fsharp.RemoveFileFromProject", removeCurrentFileFromProject |> unbox) |> ignore
         commands.Globals.registerCommand("fsharp.AddProjectReference", addProjectReference |> unbox) |> ignore
         commands.Globals.registerCommand("fsharp.RemoveProjectReference", removeProjectReference |> unbox) |> ignore
+        commands.Globals.registerCommand("fsharp.AddReference", addReference |> unbox) |> ignore
+        commands.Globals.registerCommand("fsharp.RemoveReference", removeReference |> unbox) |> ignore
         () 
