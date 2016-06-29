@@ -20,23 +20,22 @@ module Linter =
 
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
+    let private mapResult (ev : ParseResult) =
+        ev.Data
+        |> Seq.distinctBy (fun d -> d.Severity, d.StartLine, d.StartColumn)
+        |> Seq.choose (fun d ->
+            try
+                let range = Range(float d.StartLine - 1., float d.StartColumn - 1., float d.EndLine - 1., float d.EndColumn - 1.)
+                let loc = Location (Uri.file d.FileName, range |> Case1)
+                let severity = if d.Severity = "Error" then 0 else 1
+                (Diagnostic(range, d.Message, unbox severity), d.FileName) |> Some
+            with
+            | _ -> None )
+        |> ResizeArray
+
     let private parse path text =
-
-        let mapResult (ev : ParseResult) =
-            ev.Data
-            |> Seq.distinctBy (fun d -> d.Severity, d.StartLine, d.StartColumn)
-            |> Seq.choose (fun d ->
-                try
-                    let range = Range(float d.StartLine - 1., float d.StartColumn - 1., float d.EndLine - 1., float d.EndColumn - 1.)
-                    let loc = Location (Uri.file d.FileName, range |> Case1)
-                    let severity = if d.Severity = "Error" then 0 else 1
-                    Diagnostic(range, d.Message, unbox severity) |> Some
-                with
-                | _ -> None )
-            |> ResizeArray
-
         LanguageService.parse path text
-        |> Promise.success (fun (ev : ParseResult) ->  (Uri.file path, mapResult ev) |> currentDiagnostic.set  )
+        |> Promise.success (fun (ev : ParseResult) ->  (Uri.file path, mapResult ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set  )
 
 
     let parseFile (file : TextDocument) =
@@ -50,6 +49,20 @@ module Linter =
             | None -> parse path (file.getText ())
         else
             Promise.lift (null |> unbox)
+
+    let parseProject (file : TextDocument) =
+        promise {
+            if file.languageId = "fsharp" then
+                let path = file.fileName
+                let prom = Project.find path
+                if prom.IsSome then
+                    let! res = prom.Value |> LanguageService.parseProject
+                    res
+                    |> mapResult
+                    |> Seq.groupBy(fun (x,p) -> p)
+                    |> Seq.iter (fun (path, ev) ->  (Uri.file path, ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set   )
+
+        }
 
 
     let mutable private timer = None
@@ -69,6 +82,7 @@ module Linter =
 
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
+        workspace.onDidSaveTextDocument $ (parseProject, (), disposables) |> ignore
 
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
 

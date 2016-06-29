@@ -31,6 +31,10 @@ module LanguageService =
         {ProjectRequest.FileName = s}
         |> request (url "project") 0
 
+    let parseProject s =
+        {ProjectRequest.FileName = s}
+        |> request (url "parseProject") 0
+
     let parse path (text : string) =
         let lines = text.Replace("\uFEFF", "").Split('\n')
         {ParseRequest.FileName = path; ParseRequest.Lines = lines; ParseRequest.IsAsync = true }
