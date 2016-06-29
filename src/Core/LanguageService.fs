@@ -27,7 +27,6 @@ module LanguageService =
         ax.post (ep, obj)
         |> Promise.success(fun r -> (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>)
 
-
     let project s =
         {ProjectRequest.FileName = s}
         |> request (url "project") 0
