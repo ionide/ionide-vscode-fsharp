@@ -1,61 +1,54 @@
 namespace Ionide.VSCode.FSharp
 
 open System
-open FunScript
-open FunScript.TypeScript
-open FunScript.TypeScript.vscode
-open FunScript.TypeScript.vscode.languages
+open Fable.Core
+open Fable.Import
+open Fable.Import.vscode
+open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
 
-[<ReflectedDefinition>]
+
 module ParameterHints =
     let private createProvider () =
-        let provider = createEmpty<SignatureHelpProvider> ()
 
         let mapResult o =
-            let res = SignatureHelp.Create ()
-            let sigs = o.Data.Overloads |> Array.map (fun c ->
+            let res = SignatureHelp ()
+            let sigs = o.Data.Overloads |> Array.choose (fun c ->
                 try
                     let tip = c.Tip.[0].[0]
-                    let signature = SignatureInformation.Create (tip.Signature, tip.Comment)
+                    let signature = SignatureInformation (tip.Signature, tip.Comment)
                     c.Parameters |> Array.iter (fun p ->
-                        let parameter = ParameterInformation.Create (p.Name, p.CanonicalTypeTextForSorting)
-                        signature.parameters.pushOverload2(parameter )
+                        let parameter = ParameterInformation (p.Name, p.CanonicalTypeTextForSorting)
+                        signature.parameters.Add (parameter )
                         |> ignore
                     )
                     Some signature
                 with 
-                | e -> 
-                    Globals.console.error e
-                    None) |> Array.choose id
+                | e -> None) |> ResizeArray
             res.activeParameter <- float (o.Data.CurrentParameter)
             res.activeSignature <- 
                 sigs 
-                |> Array.sortBy (fun n -> n.parameters.Length) 
-                |> Array.findIndex (fun s -> s.parameters.Length >= o.Data.CurrentParameter ) 
+                |> Seq.sortBy (fun n -> n.parameters.Count) 
+                |> Seq.findIndex (fun s -> s.parameters.Count >= o.Data.CurrentParameter ) 
                 |> (+) 1
                 |> float
             res.signatures <- sigs
-            Globals.console.log res
             res
 
-            
-        let logError (o : obj) = 
-            Globals.console.error o
-            null |> unbox<SignatureHelp>
+        { new SignatureHelpProvider 
+          with
+            member this.provideSignatureHelp(doc,pos, ct) = 
+                promise {
+                   let! _ = LanguageService.parse doc.fileName (doc.getText ())
+                   let! res = LanguageService.methods (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+                   return mapResult res
 
-        provider.``provideSignatureHelp <-`` (fun doc pos _ ->
-            LanguageService.parse doc.fileName (doc.getText ())
-            |> Promise.bind (fun _ -> LanguageService.methods (doc.fileName) (int pos.line + 1) (int pos.character + 1))
-            |> Promise.either mapResult logError
-            |> Promise.toThenable )
-        
-        provider
+                } |> Case2 }
 
     let activate selector (disposables: Disposable[]) =
-        Globals.registerSignatureHelpProviderOverload2(selector, createProvider(), "(", ",")
+        languages.registerSignatureHelpProvider(selector, createProvider(), "(", ",")
         |> ignore
 
         ()

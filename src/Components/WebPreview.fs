@@ -1,26 +1,21 @@
 namespace Ionide.VSCode.FSharp
 
 open System
-open FunScript
-open FunScript.TypeScript
-open FunScript.TypeScript.vscode
-open FunScript.TypeScript.vscode.languages
-open FunScript.TypeScript.child_process
-open FunScript.TypeScript.fs
+open Fable.Core
+open Fable.Import
+open Fable.Import.vscode
+open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode
 open Ionide.VSCode.Helpers
 
 
-[<ReflectedDefinition>]
-module WebPreview =
-    [<FunScript.JSEmitInline "(vscode.workspace.registerTextDocumentContentProvider({0}, {1}))">]
-    let registerTextDocumentContentProvider(scheme : string, provider : TextDocumentContentProvider) : Disposable = failwith "JS"
 
+module WebPreview =
     let private previewUri = Uri.parse "webpreview://preview"
-    let private eventEmitter = EventEmitter.Create ()
-    let private update = eventEmitter.fire
+    let private eventEmitter = vscode.EventEmitter<Uri>()
+    let private update = eventEmitter.event
 
 
     let mutable linuxPrefix = ""
@@ -32,7 +27,7 @@ module WebPreview =
     let mutable startString = ""
     let mutable parameters = [||]
     let mutable startingPage = ""
-    let mutable fakeProcess : ChildProcess Option = None
+    let mutable fakeProcess : child_process.ChildProcess Option = None
 
 
 
@@ -50,24 +45,28 @@ module WebPreview =
         ()
 
     let private createProvider () =
-        let provider = createEmpty<TextDocumentContentProvider> ()
 
         let generate () =
             let src = sprintf "http://%s:%d/%s" host port startingPage
             let style = "height: 100%; width: 100%; background-color: white;"
             sprintf "<iframe style='%s' src='%s' />" style src
+        let v = eventEmitter.event
 
-        provider.``provideTextDocumentContent <-``((fun _ -> generate ()) |> unbox<_>)
-        provider.onDidChange <- eventEmitter.event
-        provider
+        let p =
+            { new TextDocumentContentProvider
+            with
+                member this.provideTextDocumentContent () = generate ()
+            }
+        p?onDidChange <- eventEmitter.event
+        p
+
 
     let parseResponse o =
         if JS.isDefined o && o <> null then
             let str =  o.ToString ()
             if str.Contains startString then
-                vscode.commands.Globals.executeCommandOverload2("vscode.previewHtml", previewUri, 2)
+                vscode.commands.executeCommand("vscode.previewHtml", previewUri, 2)
                 |> ignore
-            Globals.console.log <| o.ToString ()
         ()
 
     let close () =
@@ -86,16 +85,16 @@ module WebPreview =
             let args' = parameters |> Array.fold (fun acc e -> acc + " " + e) args
             Process.spawn command linuxPrefix args'
 
-        cp.stdout.on ("readable", unbox<Function> (cp.stdout.read >> parseResponse )) |> ignore
-        cp.stderr.on ("readable", unbox<Function> (cp.stdout.read >> (fun o -> if JS.isDefined o && o <> null then Globals.console.error  <| o.ToString ()) )) |> ignore
+        cp.stdout?on $ ("readable", (fun n -> cp.stdout?read $ () |> parseResponse )) |> ignore
+        cp.stderr?on $ ("readable", (cp.stdout?read $ () |> (fun o -> if JS.isDefined o && o <> null then Browser.console.error(o.ToString())) )) |> ignore
         fakeProcess <- Some cp
 
 
 
     let activate (disposables : Disposable[]) =
         let prov = createProvider ()
-        registerTextDocumentContentProvider("webpreview", prov) |> ignore
+        workspace.registerTextDocumentContentProvider("webpreview" |> unbox, prov) |> ignore
 
-        commands.Globals.registerCommand("webpreview.Show", show |> unbox) |> ignore
-        commands.Globals.registerCommand("webpreview.Refresh", (fun _ -> eventEmitter.fire previewUri) |> unbox) |> ignore
+        commands.registerCommand("webpreview.Show", show |> unbox) |> ignore
+        commands.registerCommand("webpreview.Refresh", (fun _ -> eventEmitter.fire previewUri) |> unbox) |> ignore
         ()

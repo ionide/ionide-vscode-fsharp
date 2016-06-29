@@ -1,32 +1,42 @@
 {
-	"name": "Ionide-fsharp",
-	"version": "1.9.2",
-	"publisher": "Ionide",
-	"description": "F# Language Support",
-	"categories":[
-		 "Linters", "Languages", "Snippets"
-	],
-	"license":"SEE LICENSE IN LICENSE.md",
-	"icon": "images/logo.png",
-	"bugs": {
-		"url": "https://github.com/ionide/ionide-vscode-fsharp/issues"
-	},
-	"homepage": "http://ionide.io",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/ionide/ionide-vscode-fsharp.git"
-	},
-	"engines": {
-		"vscode": "^0.10.0"
-	},
-	"main": "./fsharp",
-	"contributes": {
-		"languages": [{
+  "name": "Ionide-fsharp",
+  "version": "1.9.2",
+  "publisher": "Ionide",
+  "description": "F# Language Support",
+  "categories": [
+    "Linters",
+    "Languages",
+    "Snippets"
+  ],
+  "license": "SEE LICENSE IN LICENSE.md",
+  "icon": "images/logo.png",
+  "bugs": {
+    "url": "https://github.com/ionide/ionide-vscode-fsharp/issues"
+  },
+  "homepage": "http://ionide.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
+  },
+  "engines": {
+    "vscode": "^0.10.0"
+  },
+  "main": "./fsharp",
+  "contributes": {
+    "languages": [
+      {
         "id": "fsharp",
-        "aliases": [ "F#" ],
-        "extensions": [ ".fs", ".fsx", ".fsi" ],
+        "aliases": [
+          "F#"
+        ],
+        "extensions": [
+          ".fs",
+          ".fsx",
+          ".fsi"
+        ],
         "configuration": "./fsharp.configuration.json"
-    }],
+      }
+    ],
     "grammars": [
       {
         "language": "fsharp",
@@ -119,10 +129,10 @@
         "title": "F#: Remove Reference"
       }
     ],
-		"outputChannels": [
-			"F# Interactive",
+    "outputChannels": [
+      "F# Interactive",
       "Forge"
-		],
+    ],
     "keybindings": [
       {
         "command": "fsi.SendLine",
@@ -133,7 +143,7 @@
         "command": "fsi.SendSelection",
         "key": "alt+Enter",
         "mac": "alt+Enter",
-        "when":"editorFocus && !findWidgetVisible"
+        "when": "editorFocus && !findWidgetVisible"
       },
       {
         "command": "fsharp.MoveFileUp",
@@ -144,12 +154,12 @@
         "key": "ctrl+shift+down"
       }
     ]
-	},
-	"activationEvents": [
-		"onLanguage:fsharp",
-		"onCommand:fsi.Start",
-		"onCommand:fsi.SendLine",
-		"onCommand:fsi.SendSelection",
+  },
+  "activationEvents": [
+    "onLanguage:fsharp",
+    "onCommand:fsi.Start",
+    "onCommand:fsi.SendLine",
+    "onCommand:fsi.SendSelection",
     "onCommand:fsi.SendFile",
     "onCommand:fsharp.Methods",
     "onCommand:webpreview.Show",
@@ -159,15 +169,21 @@
     "onCommand:fsharp.RemoveProjectReference",
     "onCommand:fsharp.AddReference",
     "onCommand:fsharp.RemoveReference"
-	],
-	"extensionDependencies": [
-        "vscode.fsharp"
-    ],
-	"dependencies": {
-		"xhr2": "*",
-    "toml": "*"
-	},
-	"devDependencies": {
-		"vscode": "*"
-	}
+  ],
+  "extensionDependencies": [
+    "vscode.fsharp"
+  ],
+  "scripts": {
+    "build": "fable ../src/Ionide.FSharp.fsproj -s -o ../release -m commonjs"
+  },
+  "dependencies": {
+    "axios": "^0.12.0",
+    "fable-core": "*",
+    "toml": "*",
+    "xhr2": "*"
+  },
+  "devDependencies": {
+    "vscode": "*",
+    "fable-compiler": "*"
+  }
 }

@@ -63,6 +63,7 @@ temp
 .fake
 .vs
 *.js
+*.js.map
 .orig
 release.cmd
 paket-files

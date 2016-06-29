@@ -1,17 +1,16 @@
 namespace Ionide.VSCode.FSharp
 
 open System
-open FunScript
-open FunScript.TypeScript
-open FunScript.TypeScript.vscode
-open FunScript.TypeScript.child_process
+open Fable.Core
+open Fable.Import
+open Fable.Import.vscode
+open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
 
-[<ReflectedDefinition>]
 module Fsi =
-    let mutable fsiProcess : ChildProcess option = None
+    let mutable fsiProcess : child_process.ChildProcess option = None
     let mutable fsiOutput : OutputChannel option = None
 
     let private handle (data : obj) =
@@ -29,12 +28,12 @@ module Fsi =
                 |> Process.onError handle
                 |> Some
             fsiOutput <-
-                window.Globals.createOutputChannel("F# Interactive")
+                window.createOutputChannel("F# Interactive")
                 |> Some
             fsiOutput |> Option.iter (fun outChannel -> outChannel.show (2 |> unbox) )
         with
         | _ ->
-            window.Globals.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore
+            window.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore
             
 
     let private send (msg : string) file =
@@ -44,7 +43,7 @@ module Fsi =
         fsiOutput |> Option.iter (fun outChannel -> outChannel.append msg)
         let msg' =
             try
-                let dir = path.Globals.dirname file
+                let dir = path.dirname file
                 "\n"
                 + (sprintf "# silentCd @\"%s\" ;; " dir) + "\n"
                 + (sprintf "# %d @\"%s\" " 1 file) + "\n"
@@ -55,21 +54,22 @@ module Fsi =
         fsiProcess |> Option.iter (fun fp -> fp.stdin.write(msg', "utf-8" |> unbox) |> ignore)
 
     let private sendLine () =
-        let editor = window.Globals.activeTextEditor
+        let editor = window.activeTextEditor
         let file = editor.document.fileName
         let pos = editor.selection.start
         let line = editor.document.lineAt pos
         send line.text file
 
     let private sendSelection () =
-        let editor = window.Globals.activeTextEditor
+        let editor = window.activeTextEditor
         let file = editor.document.fileName
-        let range = Range.Create (editor.selection.anchor, editor.selection.active)
+        
+        let range = Range(editor.selection.anchor.line, editor.selection.anchor.character, editor.selection.active.line, editor.selection.active.character)
         let text = editor.document.getText range
         send text file
 
     let private sendFile () =
-        let editor = window.Globals.activeTextEditor
+        let editor = window.activeTextEditor
         let file = editor.document.fileName
         let text = editor.document.getText ()
         send text file
@@ -77,8 +77,8 @@ module Fsi =
     
 
     let activate (disposables: Disposable[]) =
-        commands.Globals.registerCommand("fsi.Start", start |> unbox) |> ignore
-        commands.Globals.registerCommand("fsi.SendLine", sendLine |> unbox) |> ignore
-        commands.Globals.registerCommand("fsi.SendSelection", sendSelection |> unbox) |> ignore
-        commands.Globals.registerCommand("fsi.SendFile", sendFile |> unbox) |> ignore
+        commands.registerCommand("fsi.Start", start |> unbox) |> ignore
+        commands.registerCommand("fsi.SendLine", sendLine |> unbox) |> ignore
+        commands.registerCommand("fsi.SendSelection", sendSelection |> unbox) |> ignore
+        commands.registerCommand("fsi.SendFile", sendFile |> unbox) |> ignore
 

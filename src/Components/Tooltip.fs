@@ -1,60 +1,57 @@
 namespace Ionide.VSCode.FSharp
 
 open System
-open FunScript
-open FunScript.TypeScript
-open FunScript.TypeScript.vscode
-open FunScript.TypeScript.vscode.languages
+open Fable.Core
+open Fable.Import
+open Fable.Import.vscode
+open Fable.Import.Node
 
 open DTO
-
 open Ionide.VSCode.Helpers
 
-[<ReflectedDefinition>]
 module Tooltip =
 
     let private createProvider () =
-        let provider = createEmpty<HoverProvider> ()
+
 
         let mapResult (doc : TextDocument) (pos : Position) o =
             let range = doc.getWordRangeAtPosition pos
             let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head
-            
-            let markStr lang (value:string) = 
-                let ms = createEmpty<MarkedString> ()
-                ms.language <- lang; ms.value <- value.Trim()
-                ms
+
+            let markStr lang (value:string) : MarkedString =
+                createObj [
+                    "language" ==> lang
+                    "value" ==> value.Trim()
+                ] |> Case2
             let sigContent =
                 res.Signature.Split('\n')
                 |> Array.filter(String.IsNullOrWhiteSpace>>not)
-                |> Array.map (fun n -> 
-                    let el = createEmpty<MarkedString> ()
-                    el.language <- "fsharp"; el.value <- n; el)
+                |> Array.map (markStr "fsharp")
             let commentContent =
                 res.Comment.Split('\n')
-                |> Array.filter(String.IsNullOrWhiteSpace>>not) 
-                |> Array.mapi (fun i n -> 
-                    let el = createEmpty<MarkedString> ()
-                    el.value <- if i = 0 && not(String.IsNullOrWhiteSpace n) 
-                                then "\n" + n.Trim() 
-                                else n.Trim()
-                    el.language <- "markdown"; el)
-            let result = createEmpty<Hover> ()
+                |> Array.filter(String.IsNullOrWhiteSpace>>not)
+                |> Array.mapi (fun i n ->
+                    let v =
+                        if i = 0 && not(String.IsNullOrWhiteSpace n)
+                        then "\n" + n.Trim()
+                        else n.Trim()
+                    markStr "markdown" v)
+            let result = createEmpty<Hover>
             result.range <- range
-            result.contents <- Array.append sigContent commentContent
+            result.contents <- Array.append sigContent commentContent |> ResizeArray
             result
-            
-        let logError (o : obj) = 
-            Globals.console.warn o
-            null |> unbox<Hover>
 
-        provider.``provideHover <-``(fun doc pos _ ->
-            LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-            |> Promise.either (mapResult doc pos) logError
-            |> Promise.toThenable )
-        provider
+        { new HoverProvider
+          with
+            member this.provideHover(doc, pos, _ ) =
+                promise {
+                    let! res = LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+                    return mapResult doc pos res
+                } |> Case2
+
+        }
 
     let activate selector (disposables: Disposable[]) =
-        Globals.registerHoverProvider(selector, createProvider())
+        languages.registerHoverProvider(selector, createProvider())
         |> ignore
         ()
