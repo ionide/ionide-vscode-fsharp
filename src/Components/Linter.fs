@@ -12,6 +12,12 @@ open Ionide.VSCode.Helpers
 
 module Linter =
 
+    [<Emit("setTimeout($0,$1)")>]
+    let setTimeout(cb, delay) : obj = failwith "JS Only"
+
+    [<Emit("clearTimeout($0)")>]
+    let clearTimeout(timer) : unit = failwith "JS Only"
+
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
     let private parse path text =
@@ -46,11 +52,11 @@ module Linter =
             Promise.lift (null |> unbox)
 
 
-    let mutable private timer = None : float option
+    let mutable private timer = None
 
     let private handler (event : TextDocumentChangeEvent) =
-        timer |> Option.iter(Browser.window.clearTimeout)
-        timer <- Some (Browser.window.setTimeout((fun _ ->
+        timer |> Option.iter(clearTimeout)
+        timer <- Some (setTimeout((fun _ ->
             if event.document.languageId = "fsharp" then
                 parse (event.document.fileName) (event.document.getText ()) |> ignore), 500.) )
 

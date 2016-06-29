@@ -1,7 +1,6 @@
 namespace Ionide.VSCode.FSharp
 
 open System
-open FunScript
 open Fable.Core
 open Fable.Import
 open Fable.Import.vscode

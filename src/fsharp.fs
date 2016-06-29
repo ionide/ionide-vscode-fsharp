@@ -3,7 +3,6 @@ module Ionide.VSCode.FSharp
 
 open System
 open System.Text.RegularExpressions
-open FunScript
 open Fable.Core
 open Fable.Import.vscode
 open Ionide.VSCode.Helpers
