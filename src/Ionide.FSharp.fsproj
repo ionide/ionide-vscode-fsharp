@@ -64,7 +64,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="Core/Bindings.fs" />
     <Compile Include="Core/DTO.fs" />
     <Compile Include="Core/LanguageService.fs" />
     <Compile Include="Core/Project.fs" />
