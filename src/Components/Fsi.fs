@@ -10,7 +10,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Fsi =
-    let mutable fsiProcess : child_process.ChildProcess option = None
+    let mutable fsiProcess : child_process_types.ChildProcess option = None
     let mutable fsiOutput : OutputChannel option = None
 
     let private handle (data : obj) =
@@ -34,7 +34,7 @@ module Fsi =
         with
         | _ ->
             window.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore
-            
+
 
     let private send (msg : string) file =
 
@@ -63,7 +63,7 @@ module Fsi =
     let private sendSelection () =
         let editor = window.activeTextEditor
         let file = editor.document.fileName
-        
+
         let range = Range(editor.selection.anchor.line, editor.selection.anchor.character, editor.selection.active.line, editor.selection.active.character)
         let text = editor.document.getText range
         send text file
@@ -74,7 +74,7 @@ module Fsi =
         let text = editor.document.getText ()
         send text file
 
-    
+
 
     let activate (disposables: Disposable[]) =
         commands.registerCommand("fsi.Start", start |> unbox) |> ignore

@@ -27,7 +27,7 @@ module WebPreview =
     let mutable startString = ""
     let mutable parameters = [||]
     let mutable startingPage = ""
-    let mutable fakeProcess : child_process.ChildProcess Option = None
+    let mutable fakeProcess : child_process_types.ChildProcess Option = None
 
 
 

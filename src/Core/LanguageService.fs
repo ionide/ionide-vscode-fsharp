@@ -21,7 +21,7 @@ module LanguageService =
     let port = genPort ()
     let private url s = sprintf @"http://localhost:%s/%s" port s
 
-    let mutable private service : child_process.ChildProcess option =  None
+    let mutable private service : child_process_types.ChildProcess option =  None
 
     let request<'a, 'b> ep id  (obj : 'a)=
         ax.post (ep, obj)
