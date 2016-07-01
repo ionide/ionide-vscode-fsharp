@@ -21,7 +21,7 @@ GIT
      (8b996684032cebe1ba052696fb30081fab023b1f)
       build: build.cmd
   remote: https://github.com/ionide/FsAutoComplete.git
-     (7c4cf4891d943e01b65869106e8613e5e57a5130)
+     (dc4f00c770401372310ad6b1b6d060daea4663b0)
       build: build.cmd LocalRelease
   remote: https://github.com/fsprojects/Forge.git
      (5a71633e50eec713046fdc2d5b2ba607f6debc12)
@@ -33,6 +33,6 @@ GITHUB
     modules/Octokit/Octokit.fsx (c56456abac6b744c3bb95b217687db19fd19b367)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
-    Fable.Import.Axios.fs (1475c6610234960a7fdf69f4034a973d930748fa)
-    Fable.Import.VSCode.fs (1475c6610234960a7fdf69f4034a973d930748fa)
-    Helpers.fs (1475c6610234960a7fdf69f4034a973d930748fa)
+    Fable.Import.Axios.fs (777815f9c3f9b3925e42c6394c7f1f5fac124d6a)
+    Fable.Import.VSCode.fs (777815f9c3f9b3925e42c6394c7f1f5fac124d6a)
+    Helpers.fs (777815f9c3f9b3925e42c6394c7f1f5fac124d6a)

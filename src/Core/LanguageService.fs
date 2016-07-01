@@ -25,14 +25,16 @@ module LanguageService =
 
     let request<'a, 'b> ep id  (obj : 'a)=
         ax.post (ep, obj)
-        |> Promise.success(fun r -> (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>)
+        |> Promise.success(fun r ->
+            (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
+        )
 
     let project s =
         {ProjectRequest.FileName = s}
         |> request (url "project") 0
 
-    let parseProject s =
-        {ProjectRequest.FileName = s}
+    let parseProject () =
+        ""
         |> request (url "parseProject") 0
 
     let parse path (text : string) =

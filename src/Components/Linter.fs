@@ -50,20 +50,16 @@ module Linter =
         else
             Promise.lift (null |> unbox)
 
-    let parseProject (file : TextDocument) =
+    let parseProject () =
         promise {
-            if file.languageId = "fsharp" then
-                let path = file.fileName
-                let prom = Project.find path
-                if prom.IsSome then
-                    let! res = prom.Value |> LanguageService.parseProject
-                    res
-                    |> mapResult
-                    |> Seq.groupBy(fun (x,p) -> p)
-                    |> Seq.iter (fun (path, ev) ->  (Uri.file path, ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set   )
+
+            let! res = LanguageService.parseProject ()
+            res
+            |> mapResult
+            |> Seq.groupBy(fun (x,p) -> p)
+            |> Seq.iter (fun (path, ev) ->  (Uri.file path, ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set   )
 
         }
-
 
     let mutable private timer = None
 
@@ -86,11 +82,12 @@ module Linter =
 
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
 
-        match window.visibleTextEditors |> Seq.toList with
-        | [] -> Promise.lift (null |> unbox)
-        | [x] -> parseFile x.document
-        | x::tail ->
-            tail
-            |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document ) )
-               (parseFile x.document )
-        |> ignore
+        parseProject()
+        // match window.visibleTextEditors |> Seq.toList with
+        // | [] -> Promise.lift (null |> unbox)
+        // | [x] -> parseFile x.document
+        // | x::tail ->
+        //     tail
+        //     |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document ) )
+        //        (parseFile x.document )
+        // |> ignore
