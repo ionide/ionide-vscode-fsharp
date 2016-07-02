@@ -139,10 +139,8 @@ module Forge =
 
     let newProject () =
         promise {
-            let! n =
-                "list templates"
-                |> execForge
-                |> Promise.success handleForgeList
+            let! lst = "list templates" |> execForge
+            let n =  handleForgeList lst
             if n.Count <> 0 then
                 let! template = window.showQuickPick ( n |> Case1)
                 if JS.isDefined template then

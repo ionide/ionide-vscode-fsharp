@@ -82,12 +82,12 @@ module Linter =
 
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
 
-        parseProject()
-        // match window.visibleTextEditors |> Seq.toList with
-        // | [] -> Promise.lift (null |> unbox)
-        // | [x] -> parseFile x.document
-        // | x::tail ->
-        //     tail
-        //     |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document ) )
-        //        (parseFile x.document )
-        // |> ignore
+        parseProject() |> ignore
+        match window.visibleTextEditors |> Seq.toList with
+        | [] -> Promise.lift (null |> unbox)
+        | [x] -> parseFile x.document
+        | x::tail ->
+            tail
+            |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document ) )
+               (parseFile x.document )
+        |> ignore

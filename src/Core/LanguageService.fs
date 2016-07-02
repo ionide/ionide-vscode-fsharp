@@ -23,10 +23,13 @@ module LanguageService =
 
     let mutable private service : child_process_types.ChildProcess option =  None
 
-    let request<'a, 'b> ep id  (obj : 'a)=
+    let request<'a, 'b> ep id  (obj : 'a) =
+        Browser.console.log("Request:", obj)
         ax.post (ep, obj)
         |> Promise.success(fun r ->
-            (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
+            let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
+            Browser.console.log("Response", res)
+            res
         )
 
     let project s =

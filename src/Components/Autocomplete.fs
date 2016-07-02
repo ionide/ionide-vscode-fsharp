@@ -12,7 +12,7 @@ open Ionide.VSCode.Helpers
 
 module Autocomplete =
     let private createProvider () =
-        let provider = createEmpty<CompletionItemProvider> 
+        let provider = createEmpty<CompletionItemProvider>
 
         let convertToInt code =
             match code with
@@ -31,7 +31,7 @@ module Autocomplete =
             o.Data |> Array.map (fun c ->
                 let range = doc.getWordRangeAtPosition pos
                 let length = if JS.isDefined range then range.``end``.character - range.start.character else 0.
-                let result = createEmpty<CompletionItem> 
+                let result = createEmpty<CompletionItem>
                 result.kind <- c.GlyphChar |> convertToInt |> unbox
                 result.label <- c.Name
                 result.insertText <- c.ReplacementText
@@ -47,14 +47,14 @@ module Autocomplete =
 
         { new CompletionItemProvider
           with
-            member this.provideCompletionItems(doc, pos, ct) = 
+            member this.provideCompletionItems(doc, pos, ct) =
                 promise {
-                    let ln = doc.lineAt pos.line 
+                    let ln = doc.lineAt pos.line
                     let! res = LanguageService.completion (doc.fileName) ln.text (int pos.line + 1) (int pos.character + 1)
                     return mapCompletion doc pos res
                 } |> Case2
 
-            member this.resolveCompletionItem(sug, ct) = 
+            member this.resolveCompletionItem(sug, ct) =
                 promise {
                     let! res = LanguageService.helptext sug.label
                     return mapHelptext sug res
@@ -62,6 +62,6 @@ module Autocomplete =
             }
 
     let activate selector (disposables: Disposable[]) =
-        languages.registerCompletionItemProvider (selector, createProvider(), [|"."|])
+        languages.registerCompletionItemProvider (selector, createProvider())
         |> ignore
         ()
