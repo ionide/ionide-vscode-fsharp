@@ -94,4 +94,3 @@ module Linter =
             tail
             |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document ) )
                (parseFile x.document )
-        |> ignore

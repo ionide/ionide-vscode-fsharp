@@ -15,8 +15,10 @@ let activate(disposables: Disposable[]) =
 
 
     LanguageService.start ()
-    Project.activate ()
-    |> Promise.success(fun _ -> Linter.activate disposables) |> ignore
+    let p =
+        Project.activate ()
+        |> Promise.bind(fun _ -> Linter.activate disposables |> unbox)
+    window.setStatusBarMessage("F# Ionide initializing", p) |> ignore
     Tooltip.activate df' disposables
     Autocomplete.activate df' disposables
     ParameterHints.activate df' disposables
@@ -27,7 +29,6 @@ let activate(disposables: Disposable[]) =
     Rename.activate df' disposables
     Fsi.activate disposables
     QuickInfo.activate disposables
-    // FSharpFormatting.activate disposables
     WebPreview.activate disposables
     Forge.activate disposables
 
