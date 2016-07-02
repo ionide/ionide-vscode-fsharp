@@ -15,8 +15,8 @@ let activate(disposables: Disposable[]) =
 
 
     LanguageService.start ()
-    Project.activate () |> ignore
-    Linter.activate disposables |> ignore
+    Project.activate ()
+    |> Promise.success(fun _ -> Linter.activate disposables) |> ignore
     Tooltip.activate df' disposables
     Autocomplete.activate df' disposables
     ParameterHints.activate df' disposables

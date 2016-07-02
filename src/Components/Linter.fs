@@ -56,6 +56,9 @@ module Linter =
             let! res = LanguageService.parseProject ()
             res
             |> mapResult
+            |> fun n ->
+                currentDiagnostic.clear ()
+                n
             |> Seq.groupBy(fun (x,p) -> p)
             |> Seq.iter (fun (path, ev) ->  (Uri.file path, ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set   )
 
@@ -81,6 +84,7 @@ module Linter =
         workspace.onDidSaveTextDocument $ (parseProject, (), disposables) |> ignore
 
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
+
 
         parseProject() |> ignore
         match window.visibleTextEditors |> Seq.toList with

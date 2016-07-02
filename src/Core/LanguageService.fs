@@ -27,9 +27,14 @@ module LanguageService =
         Browser.console.log("Request:", obj)
         ax.post (ep, obj)
         |> Promise.success(fun r ->
-            let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
-            Browser.console.log("Response", res)
-            res
+            try
+                let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
+                Browser.console.log("Response", res, r.data)
+                res
+            with
+            | ex ->
+                Browser.console.error ex
+                null |> unbox
         )
 
     let project s =
