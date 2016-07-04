@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------------------
 
 #I "packages/FAKE/tools"
-#r "packages/FAKE/tools/FakeLib.dll" 
+#r "packages/FAKE/tools/FakeLib.dll"
 open System
 open System.Diagnostics
 open System.IO
@@ -13,27 +13,6 @@ open Fake.ProcessHelper
 open Fake.ReleaseNotesHelper
 open Fake.ZipHelper
 
-#load "src/vscode-bindings.fsx"
-#load "src/Core/Bindings.fs"
-#load "src/Core/DTO.fs"
-#load "src/Core/LanguageService.fs"
-#load "src/Core/Project.fs"
-#load "src/Components/Linter.fs"
-#load "src/Components/Tooltip.fs"
-#load "src/Components/Autocomplete.fs"
-#load "src/Components/ParameterHints.fs"
-#load "src/Components/Definition.fs"
-#load "src/Components/References.fs"
-#load "src/Components/Symbols.fs"
-#load "src/Components/Highlights.fs"
-#load "src/Components/Rename.fs"
-#load "src/Components/Fsi.fs"
-#load "src/Components/QuickInfo.fs"
-#load "src/Components/FSharpFormatting.fs"
-#load "src/Components/Webpreview.fs"
-#load "src/Components/Forge.fs"
-#load "src/fsharp.fs"
-#load "src/main.fs"
 
 
 // Git configuration (used for publishing documentation in gh-pages branch)
@@ -98,7 +77,8 @@ Target "Clean" (fun _ ->
 )
 
 Target "RunScript" (fun () ->
-    Ionide.VSCode.Generator.translateModules typeof<Ionide.VSCode.FSharp> (".." </> "release" </> "fsharp.js")
+    run npmTool "install" "release"
+    run npmTool "run build" "release"
 )
 
 
@@ -116,11 +96,11 @@ Target "CopyFSAC" (fun _ ->
 
 let releaseBinForge = "release/bin_forge"
 let forgeBin = "paket-files/github.com/fsprojects/Forge/temp/bin"
-    
+
 Target "CopyForge" (fun _ ->
     ensureDirectory releaseBinForge
     CleanDir releaseBinForge
-    
+
     !! (forgeBin </> "Forge.exe" )
     ++ (forgeBin </> "Mono.Posix.dll")
     |> CopyFiles releaseBinForge

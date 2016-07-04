@@ -1,12 +1,11 @@
 namespace Ionide.VSCode.FSharp
 
 open System
-open FunScript
-open FunScript.TypeScript
-open FunScript.TypeScript.vscode
-open FunScript.TypeScript.vscode.languages
-open FunScript.TypeScript.path
-open FunScript.TypeScript.fs
+open Fable.Core
+open Fable.Import
+open Fable.Import.vscode
+open Fable.Import.Node
+open Ionide.VSCode.Helpers
 
 open DTO
 open Ionide.VSCode.Helpers
@@ -15,31 +14,31 @@ open Ionide.VSCode.Helpers
 module Project =
     let find p =
         let rec findFsProj dir =
-            if Globals.lstatSync(dir).isDirectory() then
-                let files = Globals.readdirSync dir
-                let projfile = files |> Array.tryFind(fun s -> s.EndsWith(".fsproj") || s.EndsWith "project.json")
+            if fs.lstatSync(dir).isDirectory() then
+                let files = fs.readdirSync dir
+                let projfile = files |> Seq.tryFind(fun s -> s.EndsWith(".fsproj") || s.EndsWith "project.json")
                 match projfile with
                 | None ->
-                    let parent = if dir.LastIndexOf(Globals.sep) > 0 then dir.Substring(0, dir.LastIndexOf Globals.sep) else ""
+                    let parent = if dir.LastIndexOf(path.sep) > 0 then dir.Substring(0, dir.LastIndexOf path.sep) else ""
                     if System.String.IsNullOrEmpty parent then None else findFsProj parent
-                | Some p -> dir + Globals.sep + p |> Some
+                | Some p -> dir + path.sep + p |> Some
             else None
 
         p
-        |> Globals.dirname
+        |> path.dirname
         |> findFsProj
 
     let findAll () =
         let rec findProjs dir =
-            let files = Globals.readdirSync dir
+            let files = fs.readdirSync dir
             files
-            |> Array.toList
+            |> Seq.toList
             |> List.collect(fun s' ->
                 try
-                    let s = dir + Globals.sep + s'
+                    let s = dir + path.sep + s'
                     if s' = ".git" || s' = "paket-files" then
                         []
-                    elif Globals.statSync(s).isDirectory () then
+                    elif fs.statSync(s).isDirectory () then
                         findProjs (s)
                     else
                        if s.EndsWith ".fsproj" then [ s ] else []
@@ -47,21 +46,21 @@ module Project =
                 | _ -> []
             )
 
-        match workspace.Globals.rootPath with
+        match workspace.rootPath with
             | null -> []
             | rootPath -> rootPath |> findProjs
 
     let getAll () =
         let rec findProjs dir =
-            let files = Globals.readdirSync dir
+            let files = fs.readdirSync dir
             files
-            |> Array.toList
+            |> Seq.toList
             |> List.collect(fun s' ->
                 try
-                    let s = dir + Globals.sep + s'
+                    let s = dir + path.sep + s'
                     if s' = ".git" || s' = "paket-files" then
                         []
-                    elif Globals.statSync(s).isDirectory () then
+                    elif fs.statSync(s).isDirectory () then
                         findProjs (s)
                     else
                        if s.EndsWith ".fsproj" || s.EndsWith ".csproj" || s.EndsWith ".vbproj" then [ s ] else []
@@ -69,7 +68,7 @@ module Project =
                 | _ -> []
             )
 
-        match workspace.Globals.rootPath with
+        match workspace.rootPath with
             | null -> []
             | rootPath -> rootPath |> findProjs
 
