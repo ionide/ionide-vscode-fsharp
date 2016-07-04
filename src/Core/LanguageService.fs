@@ -43,7 +43,7 @@ module LanguageService =
 
     let parseProject () =
         ""
-        |> request (url "parseProject") 0
+        |> request (url "parseProjects") 0
 
     let parse path (text : string) =
         let lines = text.Replace("\uFEFF", "").Split('\n')
