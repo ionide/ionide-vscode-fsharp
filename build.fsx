@@ -106,17 +106,6 @@ Target "CopyForge" (fun _ ->
     |> CopyFiles releaseBinForge
 )
 
-let releaseBinFF = "release/bin_ff"
-let ffbin = "paket-files/github.com/ionide/FSharpFormatting.CLI/build"
-
-Target "CopyFSharpFormatting" (fun _ ->
-    ensureDirectory releaseBinFF
-    CleanDir releaseBinFF
-
-    !! (ffbin + "/*")
-    |> CopyFiles  releaseBinFF
-)
-
 let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar"
 let fsgrammarRelease = "release/syntaxes"
 
@@ -226,7 +215,6 @@ Target "Release" DoNothing
 "Clean"
 ==> "RunScript"
 ==> "CopyFSAC"
-==> "CopyFSharpFormatting"
 ==> "CopyForge"
 ==> "CopyGrammar"
 ==> "Build"
