@@ -1,7 +1,6 @@
 NUGET
   remote: https://www.nuget.org/api/v2
     FAKE (4.29.2)
-    FunScript (1.1.94)
     Microsoft.Bcl (1.1.10) - framework: net10, net11, net20, net30, net35, net40, net40-full
       Microsoft.Bcl.Build (>= 1.0.14)
     Microsoft.Bcl.Build (1.0.21) - import_targets: false, framework: net10, net11, net20, net30, net35, net40, net40-full
@@ -17,11 +16,8 @@ GIT
   remote: https://github.com/ionide/ionide-vscode-helpers.git
      (b81a80ede2179222a5639cf866423d9bc6c2f0b4)
       build: build.cmd
-  remote: https://github.com/ionide/FSharpFormatting.CLI.git
-     (8b996684032cebe1ba052696fb30081fab023b1f)
-      build: build.cmd
   remote: https://github.com/ionide/FsAutoComplete.git
-     (f9bbf7902ae223684f6337dfe117b3937a855a3f)
+     (322e5c42527fe26ee36465a37b5ca44b67d583bd)
       build: build.cmd LocalRelease
   remote: https://github.com/fsprojects/Forge.git
      (5a71633e50eec713046fdc2d5b2ba607f6debc12)
