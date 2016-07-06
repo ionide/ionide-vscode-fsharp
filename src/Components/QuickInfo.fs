@@ -25,15 +25,16 @@ module QuickInfo =
                 let doc = event.textEditor.document
                 let pos = event.selections.[0].active
                 let! o = LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-                let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
-                if JS.isDefined res then
-                    let t = res.Split('\n').[0]
-                    item |> Option.iter (fun n -> n.hide ())
-                    let i = window.createStatusBarItem (1 |> unbox, -1.)
-                    i.text <- t
-                    i.tooltip <- res
-                    i.show ()
-                    item <- Some i
+                if o |> unbox <> null then
+                    let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
+                    if JS.isDefined res then
+                        let t = res.Split('\n').[0]
+                        item |> Option.iter (fun n -> n.hide ())
+                        let i = window.createStatusBarItem (1 |> unbox, -1.)
+                        i.text <- t
+                        i.tooltip <- res
+                        i.show ()
+                        item <- Some i
         }
 
     let mutable private timer = None
