@@ -1,7 +1,7 @@
 source https://nuget.org/api/v2
 
 git https://github.com/ionide/ionide-vscode-helpers.git master build:"build.cmd"
-git https://github.com/ionide/FsAutoComplete.git master build:"build.cmd LocalRelease"
+git https://github.com/ionide/FsAutoComplete.git projectSymbols build:"build.cmd LocalRelease"
 git https://github.com/fsprojects/Forge.git master build:"build.cmd"
 git git@github.com:ionide/ionide-fsgrammar.git
 

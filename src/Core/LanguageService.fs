@@ -85,6 +85,10 @@ module LanguageService =
         {DeclarationsRequest.FileName = fn}
         |> request (url "declarations") 0
 
+
+    let declarationsProjects () =
+        "" |> request (url "declarationsProjects")  0
+
     let compilerLocation () =
         "" |> request (url "compilerlocation")  0
 

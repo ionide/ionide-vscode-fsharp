@@ -76,6 +76,7 @@
     <Compile Include="Components/Symbols.fs" />
     <Compile Include="Components/Highlights.fs" />
     <Compile Include="Components/Rename.fs" />
+    <Compile Include="Components/WorkspaceSymbols.fs" />
     <Compile Include="Components/Fsi.fs" />
     <Compile Include="Components/QuickInfo.fs" />
     <Compile Include="Components/WebPreview.fs" />

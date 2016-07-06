@@ -110,6 +110,7 @@ module DTO =
         IsTopLevel: bool
         Range: Range
         BodyRange : Range
+        File : string
     }
 
     type Symbols = {

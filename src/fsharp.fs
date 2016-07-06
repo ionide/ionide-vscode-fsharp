@@ -27,6 +27,8 @@ let activate(disposables: Disposable[]) =
     Symbols.activate df' disposables
     Highlights.activate df' disposables
     Rename.activate df' disposables
+    WorkspaceSymbols.activate df' disposables
+
     Fsi.activate disposables
     QuickInfo.activate disposables
     WebPreview.activate disposables
