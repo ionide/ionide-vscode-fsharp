@@ -16,12 +16,24 @@ GIT
   remote: https://github.com/ionide/ionide-vscode-helpers.git
      (b81a80ede2179222a5639cf866423d9bc6c2f0b4)
       build: build.cmd
+      os: windows
+     (b81a80ede2179222a5639cf866423d9bc6c2f0b4)
+      build: build.sh
+      os: mono
   remote: https://github.com/ionide/FsAutoComplete.git
      (810be5ada43482572575c16ba78f53e687ce8339)
       build: build.cmd LocalRelease
+      os: windows
+     (810be5ada43482572575c16ba78f53e687ce8339)
+      build: build.sh LocalRelease
+      os: mono
   remote: https://github.com/fsprojects/Forge.git
      (5a71633e50eec713046fdc2d5b2ba607f6debc12)
       build: build.cmd
+      os: windows
+     (5a71633e50eec713046fdc2d5b2ba607f6debc12)
+      build: build.sh
+      os: mono
   remote: git@github.com:ionide/ionide-fsgrammar.git
      (c8fea8dc0a224a2ceb2371bc5e941157aca3de9e)
 GITHUB
