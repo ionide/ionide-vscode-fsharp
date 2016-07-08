@@ -1,20 +1,13 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Name />
     <AssemblyName>Ionide.FSharp</AssemblyName>
     <RootNamespace>Ionide.FSharp</RootNamespace>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <SchemaVersion />
     <ProjectGuid>d1081029-2369-4daa-9f33-2353c5c9ed02</ProjectGuid>
-    <ProjectType />
     <OutputType>Exe</OutputType>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
-    <AutoGenerateBindingRedirects />
-    <TargetFSharpCoreVersion />
-    <DocumentationFile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
@@ -23,10 +16,7 @@
     <Tailcalls>false</Tailcalls>
     <OutputPath>bin\Debug</OutputPath>
     <DefineConstants>DEBUG</DefineConstants>
-    <WarningLevel />
     <PlatformTarget>x86</PlatformTarget>
-    <Prefer32Bit />
-    <OtherFlags />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugSymbols>false</DebugSymbols>
@@ -34,25 +24,9 @@
     <Optimize>true</Optimize>
     <Tailcalls>true</Tailcalls>
     <OutputPath>bin\Release</OutputPath>
-    <DefineConstants />
-    <WarningLevel />
     <PlatformTarget>x86</PlatformTarget>
-    <Prefer32Bit />
-    <OtherFlags />
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.VSCode.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Fable.Import.VSCode.fs</Link>
-    </Compile>
-    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Helpers.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Helpers.fs</Link>
-    </Compile>
-    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.Axios.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Fable.Import.Axios.fs</Link>
-    </Compile>
     <Reference Include="Fable.Core">
       <HintPath>../release/node_modules/fable-core/Fable.Core.dll</HintPath>
     </Reference>
@@ -63,6 +37,18 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../paket-files/Ionide/ionide-vscode-helpers/Fable.Import.VSCode.fs">
+      <Link>paket-files/Fable.Import.VSCode.fs</Link>
+      <Paket>true</Paket>
+    </Compile>
+    <Compile Include="../paket-files/Ionide/ionide-vscode-helpers/Helpers.fs">
+      <Link>paket-files/Helpers.fs</Link>
+      <Paket>true</Paket>
+    </Compile>
+    <Compile Include="../paket-files/Ionide/ionide-vscode-helpers/Fable.Import.Axios.fs">
+      <Link>paket-files/Fable.Import.Axios.fs</Link>
+      <Paket>true</Paket>
+    </Compile>
     <None Include="paket.references" />
     <Compile Include="Core/DTO.fs" />
     <Compile Include="Core/LanguageService.fs" />
