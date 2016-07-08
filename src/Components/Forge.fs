@@ -139,8 +139,20 @@ module Forge =
 
     let newProject () =
         promise {
-            let! lst = "list templates" |> execForge
-            let n =  handleForgeList lst
+            //let! lst = "list templates" |> execForge
+            // let n =  handleForgeList lst
+            let n =
+                [
+                    "classlib"
+                    "console"
+                    "fslabbasic"
+                    "fslabjournal"
+                    "pcl259"
+                    "suave"
+                    "windows"
+                ] |> ResizeArray
+
+
             if n.Count <> 0 then
                 let! template = window.showQuickPick ( n |> Case1)
                 if JS.isDefined template then
