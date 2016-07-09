@@ -160,7 +160,7 @@
         "properties": {
             "FSharp.automaticProjectModification": {
                 "type": "boolean",
-                "default": true,
+                "default": false,
                 "description": "Automatically shows FAKE output panel"
             }
         }
