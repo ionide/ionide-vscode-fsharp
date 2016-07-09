@@ -153,7 +153,18 @@
         "command": "fsharp.MoveFileDown",
         "key": "ctrl+shift+down"
       }
-    ]
+    ],
+    "configuration": {
+        "type": "object",
+        "title": "FAKE configuration",
+        "properties": {
+            "FSharp.automaticProjectModification": {
+                "type": "boolean",
+                "default": true,
+                "description": "Automatically shows FAKE output panel"
+            }
+        }
+    }
   },
   "activationEvents": [
     "onLanguage:fsharp",

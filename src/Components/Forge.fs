@@ -177,8 +177,9 @@ module Forge =
 
     let activate disposables =
         let watcher = workspace.createFileSystemWatcher ("**/*.fs")
-        watcher.onDidCreate $ (onFsFileCreateHandler, null, disposables) |> ignore
-        watcher.onDidDelete $ (onFsFileRemovedHandler, null, disposables) |> ignore
+        let cfg = workspace.getConfiguration ()
+        if cfg.get("FSharp.automaticProjectModification", false) then watcher.onDidCreate $ (onFsFileCreateHandler, null, disposables) |> ignore
+        if cfg.get("FSharp.automaticProjectModification", false) then watcher.onDidDelete $ (onFsFileRemovedHandler, null, disposables) |> ignore
         commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox) |> ignore
         commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox) |> ignore
         commands.registerCommand("fsharp.NewProject", newProject |> unbox) |> ignore
