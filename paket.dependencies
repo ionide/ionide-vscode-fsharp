@@ -8,7 +8,7 @@ git https://github.com/ionide/ionide-vscode-helpers.git master build:"build.sh",
 git https://github.com/ionide/FsAutoComplete.git projectSymbols build:"build.sh LocalRelease", OS: mono
 git https://github.com/fsprojects/Forge.git master build:"build.sh", OS: mono
 
-git git@github.com:ionide/ionide-fsgrammar.git
+git https://github.com/ionide/ionide-fsgrammar.git
 
 nuget FAKE
 nuget Npm.js
