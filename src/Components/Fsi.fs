@@ -21,8 +21,9 @@ module Fsi =
     let private start () =
         try
             fsiProcess |> Option.iter(fun fp -> fp.kill ())
+            let fsiExePath = if Process.isWin () then VSCode.getFsiFullPathWin "Fsi.exe" else "fsharpi"
             fsiProcess <-
-                (if Process.isWin () then Process.spawn "Fsi.exe" "" "--fsi-server-input-codepage:65001" else Process.spawn "fsharpi" "" "--fsi-server-input-codepage:65001")
+                (Process.spawn fsiExePath "" "--fsi-server-input-codepage:65001")
                 |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun outChannel -> outChannel.clear () ))
                 |> Process.onOutput handle
                 |> Process.onError handle
