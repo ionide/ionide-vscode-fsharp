@@ -151,6 +151,12 @@ module Forge =
                     "suave"
                     "windows"
                     "fsunit"
+                    "aspwebapi2"
+                    "websharperspa"
+                    "websharperserverclient"
+                    "websharpersuave"
+                    "servicefabrichost"
+                    "servicefabricsuavestateless"
                 ] |> ResizeArray
 
 
