@@ -150,6 +150,7 @@ module Forge =
                     "pcl259"
                     "suave"
                     "windows"
+                    "fsunit"
                 ] |> ResizeArray
 
 
@@ -190,4 +191,6 @@ module Forge =
         commands.registerCommand("fsharp.RemoveProjectReference", removeProjectReference |> unbox) |> ignore
         commands.registerCommand("fsharp.AddReference", addReference |> unbox) |> ignore
         commands.registerCommand("fsharp.RemoveReference", removeReference |> unbox) |> ignore
+        refreshTemplates () |> ignore
+
         ()
