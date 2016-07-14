@@ -56,8 +56,7 @@ module Forge =
             sprintf "move file -n %s -d" editor.document.fileName |> spawnForge |> ignore
 
     let refreshTemplates () =
-        let cp = "refresh" |> spawnForge
-        cp.on("exit", (fun _ ->  window.showInformationMessage "Templates refreshed") |> unbox )
+        "refresh" |> spawnForge |> ignore
 
     let addCurrentFileToProject () =
         let editor = vscode.window.activeTextEditor

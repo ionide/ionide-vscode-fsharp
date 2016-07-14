@@ -15,10 +15,10 @@ let activate(disposables: Disposable[]) =
 
 
     LanguageService.start ()
-    let p =
-        Project.activate ()
-        |> Promise.bind(fun _ -> Linter.activate disposables |> unbox)
-    window.setStatusBarMessage("F# Ionide initializing", p) |> ignore
+    Linter.activate disposables
+    |> Promise.bind(fun _ -> Project.activate ())
+    |> ignore
+
     Tooltip.activate df' disposables
     Autocomplete.activate df' disposables
     ParameterHints.activate df' disposables
