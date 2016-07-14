@@ -56,8 +56,7 @@ module Forge =
             sprintf "move file -n %s -d" editor.document.fileName |> spawnForge |> ignore
 
     let refreshTemplates () =
-        let cp = "refresh" |> spawnForge
-        cp.on("exit", (fun _ ->  window.showInformationMessage "Templates refreshed") |> unbox )
+        "refresh" |> spawnForge |> ignore
 
     let addCurrentFileToProject () =
         let editor = vscode.window.activeTextEditor
@@ -139,8 +138,27 @@ module Forge =
 
     let newProject () =
         promise {
-            let! lst = "list templates" |> execForge
-            let n =  handleForgeList lst
+            //let! lst = "list templates" |> execForge
+            // let n =  handleForgeList lst
+            let n =
+                [
+                    "classlib"
+                    "console"
+                    "fslabbasic"
+                    "fslabjournal"
+                    "pcl259"
+                    "suave"
+                    "windows"
+                    "fsunit"
+                    "aspwebapi2"
+                    "websharperspa"
+                    "websharperserverclient"
+                    "websharpersuave"
+                    "servicefabrichost"
+                    "servicefabricsuavestateless"
+                ] |> ResizeArray
+
+
             if n.Count <> 0 then
                 let! template = window.showQuickPick ( n |> Case1)
                 if JS.isDefined template then
@@ -165,8 +183,9 @@ module Forge =
 
     let activate disposables =
         let watcher = workspace.createFileSystemWatcher ("**/*.fs")
-        watcher.onDidCreate $ (onFsFileCreateHandler, null, disposables) |> ignore
-        watcher.onDidDelete $ (onFsFileRemovedHandler, null, disposables) |> ignore
+        let cfg = workspace.getConfiguration ()
+        if cfg.get("FSharp.automaticProjectModification", false) then watcher.onDidCreate $ (onFsFileCreateHandler, null, disposables) |> ignore
+        if cfg.get("FSharp.automaticProjectModification", false) then watcher.onDidDelete $ (onFsFileRemovedHandler, null, disposables) |> ignore
         commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox) |> ignore
         commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox) |> ignore
         commands.registerCommand("fsharp.NewProject", newProject |> unbox) |> ignore
@@ -177,4 +196,6 @@ module Forge =
         commands.registerCommand("fsharp.RemoveProjectReference", removeProjectReference |> unbox) |> ignore
         commands.registerCommand("fsharp.AddReference", addReference |> unbox) |> ignore
         commands.registerCommand("fsharp.RemoveReference", removeReference |> unbox) |> ignore
+        refreshTemplates () |> ignore
+
         ()
