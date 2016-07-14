@@ -26,35 +26,37 @@ module Symbols =
             | _   -> 0 |> unbox
 
         let mapRes (doc : TextDocument) o =
-             o.Data |> Array.map (fun syms ->
-                let oc = createEmpty<SymbolInformation>
-                oc.name <- syms.Declaration.Name
-                oc.kind <- syms.Declaration.GlyphChar |> convertToKind
-                oc.containerName <- syms.Declaration.Glyph
-                let loc = createEmpty<Location>
-                loc.range <-  Range
-                            ( float syms.Declaration.BodyRange.StartLine   - 1.,
-                                float syms.Declaration.BodyRange.StartColumn - 1.,
-                                float syms.Declaration.BodyRange.EndLine     - 1.,
-                                float syms.Declaration.BodyRange.EndColumn   - 1.)
-                loc.uri <- Uri.file doc.fileName
-                oc.location <- loc
-                let ocs =  syms.Nested |> Array.map (fun sym ->
+             if o |> unbox <> null then
+                o.Data |> Array.map (fun syms ->
                     let oc = createEmpty<SymbolInformation>
-                    oc.name <- sym.Name
-                    oc.kind <- sym.GlyphChar |> convertToKind
-                    oc.containerName <- sym.Glyph
+                    oc.name <- syms.Declaration.Name
+                    oc.kind <- syms.Declaration.GlyphChar |> convertToKind
+                    oc.containerName <- syms.Declaration.Glyph
                     let loc = createEmpty<Location>
                     loc.range <-  Range
-                                ( float sym.BodyRange.StartLine   - 1.,
-                                    float sym.BodyRange.StartColumn - 1.,
-                                    float sym.BodyRange.EndLine     - 1.,
-                                    float sym.BodyRange.EndColumn   - 1.)
+                                ( float syms.Declaration.BodyRange.StartLine   - 1.,
+                                    float syms.Declaration.BodyRange.StartColumn - 1.,
+                                    float syms.Declaration.BodyRange.EndLine     - 1.,
+                                    float syms.Declaration.BodyRange.EndColumn   - 1.)
                     loc.uri <- Uri.file doc.fileName
                     oc.location <- loc
-                    oc )
-                ocs |> Array.append (Array.create 1 oc)) |> Array.concat
-
+                    let ocs =  syms.Nested |> Array.map (fun sym ->
+                        let oc = createEmpty<SymbolInformation>
+                        oc.name <- sym.Name
+                        oc.kind <- sym.GlyphChar |> convertToKind
+                        oc.containerName <- sym.Glyph
+                        let loc = createEmpty<Location>
+                        loc.range <-  Range
+                                    ( float sym.BodyRange.StartLine   - 1.,
+                                        float sym.BodyRange.StartColumn - 1.,
+                                        float sym.BodyRange.EndLine     - 1.,
+                                        float sym.BodyRange.EndColumn   - 1.)
+                        loc.uri <- Uri.file doc.fileName
+                        oc.location <- loc
+                        oc )
+                    ocs |> Array.append (Array.create 1 oc)) |> Array.concat
+                else
+                    [||]
 
         { new DocumentSymbolProvider
           with

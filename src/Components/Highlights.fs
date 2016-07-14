@@ -13,17 +13,20 @@ module Highlights =
     let private createProvider () =
 
         let mapResult (o : SymbolUseResult) =
-            o.Data.Uses |> Array.map (fun d ->
-                let res = createEmpty<DocumentHighlight>
-                res.range <- Range(float d.StartLine - 1., float d.StartColumn - 1., float d.EndLine - 1., float d.EndColumn - 1.)
-                res.kind <- (0 |> unbox)
-                res )
-            |> ResizeArray
+            if o |> unbox <> null then
+                o.Data.Uses |> Array.map (fun d ->
+                    let res = createEmpty<DocumentHighlight>
+                    res.range <- Range(float d.StartLine - 1., float d.StartColumn - 1., float d.EndLine - 1., float d.EndColumn - 1.)
+                    res.kind <- (0 |> unbox)
+                    res )
+                |> ResizeArray
+            else
+                ResizeArray ()
 
 
-        { new DocumentHighlightProvider 
+        { new DocumentHighlightProvider
           with
-            member this.provideDocumentHighlights(doc, pos, ct) = 
+            member this.provideDocumentHighlights(doc, pos, ct) =
                 promise {
                     let! res = LanguageService.symbolUse (doc.fileName) (int pos.line + 1) (int pos.character + 1)
                     return mapResult res

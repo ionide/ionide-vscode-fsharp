@@ -28,15 +28,18 @@ module Autocomplete =
             | _   -> 0
 
         let mapCompletion (doc : TextDocument) (pos : Position) (o : CompletionResult) =
-            o.Data |> Array.map (fun c ->
-                let range = doc.getWordRangeAtPosition pos
-                let length = if JS.isDefined range then range.``end``.character - range.start.character else 0.
-                let result = createEmpty<CompletionItem>
-                result.kind <- c.GlyphChar |> convertToInt |> unbox
-                result.label <- c.Name
-                result.insertText <- c.ReplacementText
-                result)
-            |> ResizeArray
+            if o |> unbox <> null then
+                o.Data |> Array.map (fun c ->
+                    let range = doc.getWordRangeAtPosition pos
+                    let length = if JS.isDefined range then range.``end``.character - range.start.character else 0.
+                    let result = createEmpty<CompletionItem>
+                    result.kind <- c.GlyphChar |> convertToInt |> unbox
+                    result.label <- c.Name
+                    result.insertText <- c.ReplacementText
+                    result)
+                |> ResizeArray
+            else
+                ResizeArray ()
 
         let mapHelptext (sug : CompletionItem) (o : HelptextResult) =
             let res = (o.Data.Overloads |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head

@@ -29,34 +29,37 @@ module WorkspaceSymbols =
             path.relative (workspace.rootPath, f)
 
         let mapRes o =
-             o.Data |> Array.map (fun syms ->
-                let oc = createEmpty<SymbolInformation>
-                oc.name <- syms.Declaration.Name
-                oc.kind <- syms.Declaration.GlyphChar |> convertToKind
-                oc.containerName <- relative syms.Declaration.File
-                let loc = createEmpty<Location>
-                loc.range <-  Range
-                            ( float syms.Declaration.BodyRange.StartLine   - 1.,
-                                float syms.Declaration.BodyRange.StartColumn - 1.,
-                                float syms.Declaration.BodyRange.EndLine     - 1.,
-                                float syms.Declaration.BodyRange.EndColumn   - 1.)
-                loc.uri <- Uri.file syms.Declaration.File
-                oc.location <- loc
-                let ocs =  syms.Nested |> Array.map (fun sym ->
+             if o |> unbox <> null then
+                o.Data |> Array.map (fun syms ->
                     let oc = createEmpty<SymbolInformation>
-                    oc.name <- sym.Name
-                    oc.kind <- sym.GlyphChar |> convertToKind
-                    oc.containerName <- relative sym.File
+                    oc.name <- syms.Declaration.Name
+                    oc.kind <- syms.Declaration.GlyphChar |> convertToKind
+                    oc.containerName <- relative syms.Declaration.File
                     let loc = createEmpty<Location>
                     loc.range <-  Range
-                                ( float sym.BodyRange.StartLine   - 1.,
-                                    float sym.BodyRange.StartColumn - 1.,
-                                    float sym.BodyRange.EndLine     - 1.,
-                                    float sym.BodyRange.EndColumn   - 1.)
-                    loc.uri <- Uri.file sym.File
+                                ( float syms.Declaration.BodyRange.StartLine   - 1.,
+                                    float syms.Declaration.BodyRange.StartColumn - 1.,
+                                    float syms.Declaration.BodyRange.EndLine     - 1.,
+                                    float syms.Declaration.BodyRange.EndColumn   - 1.)
+                    loc.uri <- Uri.file syms.Declaration.File
                     oc.location <- loc
-                    oc )
-                ocs |> Array.append (Array.create 1 oc)) |> Array.concat
+                    let ocs =  syms.Nested |> Array.map (fun sym ->
+                        let oc = createEmpty<SymbolInformation>
+                        oc.name <- sym.Name
+                        oc.kind <- sym.GlyphChar |> convertToKind
+                        oc.containerName <- relative sym.File
+                        let loc = createEmpty<Location>
+                        loc.range <-  Range
+                                    ( float sym.BodyRange.StartLine   - 1.,
+                                        float sym.BodyRange.StartColumn - 1.,
+                                        float sym.BodyRange.EndLine     - 1.,
+                                        float sym.BodyRange.EndColumn   - 1.)
+                        loc.uri <- Uri.file sym.File
+                        oc.location <- loc
+                        oc )
+                    ocs |> Array.append (Array.create 1 oc)) |> Array.concat
+                else
+                    [||]
 
 
         { new WorkspaceSymbolProvider
