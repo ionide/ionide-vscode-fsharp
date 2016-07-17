@@ -32,7 +32,6 @@ module LanguageService =
                 else res
             with
             | ex ->
-                Browser.console.error ex
                 null |> unbox
         )
 
