@@ -1,3 +1,15 @@
+### 2.0.0 - 17.07.2016
+* Rewritten in Fable
+* Updated Forge version
+* Updated FSAC version
+* Automatic add/remove file from project is now optional (FSharp.automaticProjectModification)
+* Performance improvements for solution-wide features (rename, finding references)
+* Finding errors in all solution after saving file (visable in error panel)
+* Navigate to symbol working for whole solution
+* Forge templates refreshed on every plugin startup
+* Changed plugin startup beahviour - priority on getting currently opened file parsed and get feature working, parsing projects for solution-wide features in the background
+* Removed F# Formatting integration
+
 ### 1.9.2 - 18.06.2016
 * Add and Remove reference
 
@@ -50,7 +62,7 @@
 * Fix startup behaviour
 
 ### 1.5.0 - 16.03.2016
-* Add rename 
+* Add rename
 * Make finding references work in multiple projects
 
 ### 1.4.2 - 16.03.2016
@@ -61,7 +73,7 @@
 
 ### 1.4.0 - 14.03.2016
 * Add current symbol highlighting
-* Add XML comments for tooltips and autocomplete   
+* Add XML comments for tooltips and autocomplete
 
 #### 1.3.0 - 25.02.2016
 * Add WebPreview

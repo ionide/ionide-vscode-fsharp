@@ -1,6 +1,6 @@
 {
   "name": "Ionide-fsharp",
-  "version": "1.9.2",
+  "version": "2.0.0",
   "publisher": "Ionide",
   "description": "F# Language Support",
   "categories": [
@@ -156,12 +156,12 @@
     ],
     "configuration": {
         "type": "object",
-        "title": "FAKE configuration",
+        "title": "FSharp configuration",
         "properties": {
             "FSharp.automaticProjectModification": {
                 "type": "boolean",
                 "default": false,
-                "description": "Automatically shows FAKE output panel"
+                "description": "Automatically modifies fsproj on file add/remove"
             }
         }
     }
