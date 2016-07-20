@@ -1,3 +1,6 @@
+### 2.1.0 - 20.07.2016
+* Add keywords to autocomplete
+
 ### 2.0.0 - 17.07.2016
 * Rewritten in Fable
 * Updated Forge version
