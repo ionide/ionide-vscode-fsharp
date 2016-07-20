@@ -38,5 +38,5 @@ module Environment =
         |> List.tryFind dirExists
     
     let fsi = 
-        if true then "fsharpi"
+        if not isWin then "fsharpi"
         else getOrElse "" fsharpInstallationPath </> "fsi.exe"
