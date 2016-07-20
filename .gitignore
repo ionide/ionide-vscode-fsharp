@@ -58,6 +58,7 @@ src/atom-fsharp/lib/fsharp.js
 /temp/release
 src/atom-fsharp/bin-fantomas/
 release/syntaxes
+release/templates
 
 temp
 .fake

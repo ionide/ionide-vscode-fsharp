@@ -14,18 +14,19 @@ module Autocomplete =
     let private createProvider () =
         let provider = createEmpty<CompletionItemProvider>
 
-        let convertToInt code =
+        let convertToKind code =
             match code with
-            | "C" -> 6      (*  CompletionItemKind.Class      *)
-            | "E" -> 12     (*  CompletionItemKind.Enum       *)
-            | "S" -> 6      (*  CompletionItemKind.Value      *)
-            | "I" -> 7      (*  CompletionItemKind.Interface  *)
-            | "N" -> 8      (*  CompletionItemKind.Module     *)
-            | "M" -> 1      (*  CompletionItemKind.Method     *)
-            | "P" -> 9      (*  CompletionItemKind.Property   *)
-            | "F" -> 4      (*  CompletionItemKind.Field      *)
-            | "T" -> 6      (*  CompletionItemKind.Class      *)
-            | _   -> 0
+            | "C" -> CompletionItemKind.Class
+            | "E" -> CompletionItemKind.Enum
+            | "S" -> CompletionItemKind.Value
+            | "I" -> CompletionItemKind.Interface
+            | "N" -> CompletionItemKind.Module
+            | "M" -> CompletionItemKind.Method
+            | "P" -> CompletionItemKind.Property
+            | "F" -> CompletionItemKind.Field
+            | "T" -> CompletionItemKind.Class
+            | "K" -> CompletionItemKind.Keyword
+            | _   -> 0 |> unbox
 
         let mapCompletion (doc : TextDocument) (pos : Position) (o : CompletionResult) =
             if o |> unbox <> null then
@@ -33,7 +34,7 @@ module Autocomplete =
                     let range = doc.getWordRangeAtPosition pos
                     let length = if JS.isDefined range then range.``end``.character - range.start.character else 0.
                     let result = createEmpty<CompletionItem>
-                    result.kind <- c.GlyphChar |> convertToInt |> unbox
+                    result.kind <- c.GlyphChar |> convertToKind |> unbox
                     result.label <- c.Name
                     result.insertText <- c.ReplacementText
                     result)
