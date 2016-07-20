@@ -20,9 +20,10 @@ module Fsi =
 
     let private start () =
         try
+            //window.showInformationMessage ("FSI path: " + Environment.fsi) |> ignore
             fsiProcess |> Option.iter(fun fp -> fp.kill ())
             fsiProcess <-
-                (if Process.isWin () then Process.spawn "Fsi.exe" "" "--fsi-server-input-codepage:65001" else Process.spawn "fsharpi" "" "--fsi-server-input-codepage:65001")
+                (Process.spawn Environment.fsi "" "--fsi-server-input-codepage:65001")
                 |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun outChannel -> outChannel.clear () ))
                 |> Process.onOutput handle
                 |> Process.onError handle
