@@ -30,14 +30,19 @@ module Autocomplete =
 
         let mapCompletion (doc : TextDocument) (pos : Position) (o : CompletionResult) =
             if o |> unbox <> null then
-                o.Data |> Array.map (fun c ->
+                o.Data |> Array.choose (fun c ->
                     let range = doc.getWordRangeAtPosition pos
-                    let length = if JS.isDefined range then range.``end``.character - range.start.character else 0.
-                    let result = createEmpty<CompletionItem>
-                    result.kind <- c.GlyphChar |> convertToKind |> unbox
-                    result.label <- c.Name
-                    result.insertText <- c.ReplacementText
-                    result)
+                    let word = doc.getText range
+                    Browser.console.log word
+                    if word.Contains "." && c.GlyphChar = "K" then
+                        None
+                    else
+                        let length = if JS.isDefined range then range.``end``.character - range.start.character else 0.
+                        let result = createEmpty<CompletionItem>
+                        result.kind <- c.GlyphChar |> convertToKind |> unbox
+                        result.label <- c.Name
+                        result.insertText <- c.ReplacementText
+                        Some result)
                 |> ResizeArray
             else
                 ResizeArray ()
