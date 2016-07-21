@@ -53,7 +53,7 @@ module Fsi =
             | _ -> msg
 
         fsiProcess |> Option.iter (fun fp -> fp.stdin.write(msg', "utf-8" |> unbox) |> ignore)
-        commands.executeCommand "cursorDown" |> ignore
+
 
     let private sendLine () =
         let editor = window.activeTextEditor
@@ -61,6 +61,7 @@ module Fsi =
         let pos = editor.selection.start
         let line = editor.document.lineAt pos
         send line.text file
+        commands.executeCommand "cursorDown" |> ignore
 
     let private sendSelection () =
         let editor = window.activeTextEditor
