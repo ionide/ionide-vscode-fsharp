@@ -102,6 +102,7 @@ Target "CopyForge" (fun _ ->
     CleanDir releaseBinForge
 
     !! (forgeBin </> "Forge.exe" )
+    ++ (forgeBin </> "Mono.Posix.dll")
     |> CopyFiles releaseBinForge
 )
 
