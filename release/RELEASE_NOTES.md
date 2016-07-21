@@ -1,4 +1,7 @@
 ### 2.2.2 - 21.07.2016
+* Trigger autocomplete on .
+
+### 2.2.2 - 21.07.2016
 * Fix Forge new project issue.
 
 ### 2.2.1 - 21.07.2016
