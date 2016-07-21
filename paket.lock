@@ -1,6 +1,6 @@
 NUGET
   remote: https://www.nuget.org/api/v2
-    FAKE (4.32)
+    FAKE (4.33)
     Microsoft.Bcl (1.1.10) - framework: net10, net11, net20, net30, net35, net40, net40-full
       Microsoft.Bcl.Build (>= 1.0.14)
     Microsoft.Bcl.Build (1.0.21) - import_targets: false, framework: net10, net11, net20, net30, net35, net40, net40-full
@@ -38,7 +38,7 @@ GIT
      (c8fea8dc0a224a2ceb2371bc5e941157aca3de9e)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (094228d817b5bdb97f896a7d4a994d31e66be529)
+    modules/Octokit/Octokit.fsx (0cb2c2744556046b56d56f63c709bd540d86540e)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
     Fable.Import.Axios.fs (777815f9c3f9b3925e42c6394c7f1f5fac124d6a)
