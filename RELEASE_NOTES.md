@@ -1,3 +1,7 @@
+### 2.2.4 - 21.07.2016
+* Move cursor down only on send line to FSI
+* Try to fix keyword autocomplete
+
 ### 2.2.3 - 21.07.2016
 * Trigger autocomplete on .
 
