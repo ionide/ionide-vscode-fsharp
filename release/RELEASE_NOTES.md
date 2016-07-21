@@ -1,3 +1,7 @@
+### 2.2.0 - 21.07.2016
+* Don't add keywords to autocomplete unless it's simple tag (no keywords completion for Something. )
+* Better handling of Send to FSI commands.
+
 ### 2.1.0 - 20.07.2016
 * Add keywords to autocomplete
 
