@@ -53,6 +53,7 @@ module Fsi =
             | _ -> msg
 
         fsiProcess |> Option.iter (fun fp -> fp.stdin.write(msg', "utf-8" |> unbox) |> ignore)
+        commands.executeCommand "cursorDown" |> ignore
 
     let private sendLine () =
         let editor = window.activeTextEditor
@@ -65,9 +66,12 @@ module Fsi =
         let editor = window.activeTextEditor
         let file = editor.document.fileName
 
-        let range = Range(editor.selection.anchor.line, editor.selection.anchor.character, editor.selection.active.line, editor.selection.active.character)
-        let text = editor.document.getText range
-        send text file
+        if editor.selection.isEmpty then
+            sendLine ()
+        else
+            let range = Range(editor.selection.anchor.line, editor.selection.anchor.character, editor.selection.active.line, editor.selection.active.character)
+            let text = editor.document.getText range
+            send text file
 
     let private sendFile () =
         let editor = window.activeTextEditor
