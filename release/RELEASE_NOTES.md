@@ -1,3 +1,6 @@
+### 2.2.2 - 21.07.2016
+* Fix Forge new project issue.
+
 ### 2.2.1 - 21.07.2016
 * Try to fix finding FSI Path on Linux / Mac
 
