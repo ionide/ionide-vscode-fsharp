@@ -21,10 +21,10 @@ GIT
       build: build.sh
       os: mono
   remote: https://github.com/ionide/FsAutoComplete.git
-     (2903174dc9ac12a9420022254ea518f55c1e54bc)
+     (caf889845342a2264254c5e0269c38e4622dcd74)
       build: build.cmd LocalRelease
       os: windows
-     (2903174dc9ac12a9420022254ea518f55c1e54bc)
+     (caf889845342a2264254c5e0269c38e4622dcd74)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsprojects/Forge.git
@@ -34,7 +34,7 @@ GIT
      (22d2225486c5a50924442379e8a8b55145e2624d)
       build: build.sh
       os: mono
-  remote: git@github.com:ionide/ionide-fsgrammar.git
+  remote: https://github.com/ionide/ionide-fsgrammar.git
      (c8fea8dc0a224a2ceb2371bc5e941157aca3de9e)
 GITHUB
   remote: fsharp/FAKE
