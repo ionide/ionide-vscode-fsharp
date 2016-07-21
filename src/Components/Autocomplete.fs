@@ -70,6 +70,6 @@ module Autocomplete =
             }
 
     let activate selector (disposables: Disposable[]) =
-        languages.registerCompletionItemProvider (selector, createProvider())
+        languages.registerCompletionItemProvider (selector, createProvider(), ".")
         |> ignore
         ()
