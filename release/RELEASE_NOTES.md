@@ -1,6 +1,10 @@
+### 2.2.1 - 21.07.2016
+* Try to fix finding FSI Path on Linux / Mac
+
 ### 2.2.0 - 21.07.2016
 * Don't add keywords to autocomplete unless it's simple tag (no keywords completion for Something. )
 * Better handling of Send to FSI commands.
+* Don't require FSI to be in PATH on Windwos anymore.
 
 ### 2.1.0 - 20.07.2016
 * Add keywords to autocomplete
