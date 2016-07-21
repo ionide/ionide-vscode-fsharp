@@ -33,7 +33,6 @@ module Autocomplete =
                 o.Data |> Array.choose (fun c ->
                     let range = doc.getWordRangeAtPosition pos
                     let word = doc.getText range
-                    Browser.console.log word
                     if word.Contains "." && c.GlyphChar = "K" then
                         None
                     else
