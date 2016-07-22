@@ -40,7 +40,7 @@ module Fsi =
     let private send (msg : string) file =
 
         if fsiProcess.IsNone then start ()
-        let msg = msg + ";;\n"
+        let msg = msg + "\n;;\n"
         fsiOutput |> Option.iter (fun outChannel -> outChannel.append msg)
         let msg' =
             try
