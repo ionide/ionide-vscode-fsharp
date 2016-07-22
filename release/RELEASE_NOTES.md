@@ -1,3 +1,6 @@
+### 2.2.5 - 22.07.2016
+* Add new line before ;; when sending to FSI
+
 ### 2.2.4 - 21.07.2016
 * Move cursor down only on send line to FSI
 * Try to fix keyword autocomplete
