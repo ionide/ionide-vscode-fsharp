@@ -20,7 +20,7 @@ module Fsi =
 
     let private start () =
         try
-            //window.showInformationMessage ("FSI path: " + Environment.fsi) |> ignore
+            // window.showInformationMessage ("FSI path: " + Environment.fsi) |> ignore
             fsiProcess |> Option.iter(fun fp -> fp.kill ())
             fsiProcess <-
                 (Process.spawn Environment.fsi "" "--fsi-server-input-codepage:65001")
