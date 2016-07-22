@@ -1,3 +1,6 @@
+### 2.2.6 - 22.07.2016
+* Add configuration option to specify FSI dir
+
 ### 2.2.5 - 22.07.2016
 * Add new line before ;; when sending to FSI
 
