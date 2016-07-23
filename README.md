@@ -75,6 +75,16 @@ startingPage = ""
 
 * startingPage - webpage displayed in WebPreview - usually ` ` or `index.html`
 
+## How to contribute
+
+1. Clone repo
+2. Run `build.cmd Build` (or `build.sh Build`)
+3. Open folder in VSCode `code .`
+4. Make changes
+5. Press `F5` to build plugin and start experimental instance of VSCode
+6. Make PR ;)
+
+
 ## Contributing and copyright
 
 The project is hosted on [GitHub](https://github.com/ionide/ionide-vscode-fsharp) where you can [report issues](https://github.com/ionide/ionide-vscode-fsharp/issues), fork
