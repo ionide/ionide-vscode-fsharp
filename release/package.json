@@ -158,6 +158,11 @@
       "type": "object",
       "title": "FSharp configuration",
       "properties": {
+        "FSharp.logLanguageServiceRequestsToConsole": {
+          "type": "boolean",
+          "default": false,
+          "description": "Log language service (FSAC) requests to the developer tools console"
+        },
         "FSharp.automaticProjectModification": {
           "type": "boolean",
           "default": false,
