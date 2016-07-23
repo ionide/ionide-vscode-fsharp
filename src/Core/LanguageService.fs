@@ -100,20 +100,21 @@ module LanguageService =
         "" |> request (url "compilerlocation")  0
 
     let start () =
-        try
+        promise {
             let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
             let child = if Process.isMono () then child_process.spawn("mono", [| path; string port|] |> ResizeArray) else child_process.spawn(path, [| string port|] |> ResizeArray)
             service <- Some child
             child.stderr?on $ ("data", fun n -> Browser.console.error (n.ToString())) |> ignore
             child.stdout?on $ ("data", fun n -> Browser.console.log (n.ToString())) |> ignore
-        with
-        | _ ->
+        }
+        |> Promise.fail (fun x ->
             if Process.isMono () then
                 "Failed to start language services. Please check if mono is in PATH"
             else
                 "Failed to start language services. Please check if Microsoft Build Tools 2013 are installed"
             |> vscode.window.showErrorMessage
             |> ignore
+        )
 
     let stop () =
         service |> Option.iter (fun n -> n.kill "SIGKILL")

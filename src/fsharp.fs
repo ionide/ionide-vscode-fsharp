@@ -13,26 +13,28 @@ let activate(disposables: Disposable[]) =
     df.language <- Some "fsharp"
     let df' : DocumentSelector = df |> U3.Case2
 
-
     LanguageService.start ()
-    Linter.activate disposables
-    |> Promise.bind(fun _ -> Project.activate ())
+    |> Promise.success (fun t ->
+        Linter.activate disposables
+        |> Promise.bind(fun _ -> Project.activate ())
+        |> ignore
+
+        Tooltip.activate df' disposables
+        Autocomplete.activate df' disposables
+        ParameterHints.activate df' disposables
+        Definition.activate df' disposables
+        Reference.activate df' disposables
+        Symbols.activate df' disposables
+        Highlights.activate df' disposables
+        Rename.activate df' disposables
+        WorkspaceSymbols.activate df' disposables
+
+        Fsi.activate disposables
+        QuickInfo.activate disposables
+        WebPreview.activate disposables
+        Forge.activate disposables
+    )
     |> ignore
-
-    Tooltip.activate df' disposables
-    Autocomplete.activate df' disposables
-    ParameterHints.activate df' disposables
-    Definition.activate df' disposables
-    Reference.activate df' disposables
-    Symbols.activate df' disposables
-    Highlights.activate df' disposables
-    Rename.activate df' disposables
-    WorkspaceSymbols.activate df' disposables
-
-    Fsi.activate disposables
-    QuickInfo.activate disposables
-    WebPreview.activate disposables
-    Forge.activate disposables
 
     ()
 
