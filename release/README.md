@@ -18,7 +18,7 @@ F# IDE-like possibilities in Atom editor and Visual Studio Code
 ## Required software
 
 * F# >= 3.1
-* MSBuild >= 12
+* MSBuild 12
 
 ### Windows
 
@@ -74,6 +74,16 @@ startingPage = ""
 * parameters - list of parameters passed to FAKE.exe
 
 * startingPage - webpage displayed in WebPreview - usually ` ` or `index.html`
+
+## How to contribute
+
+1. Clone repo
+2. Run `build.cmd Build` (or `build.sh Build`)
+3. Open folder in VSCode `code .`
+4. Make changes
+5. Press `F5` to build plugin and start experimental instance of VSCode
+6. Make PR ;)
+
 
 ## Contributing and copyright
 

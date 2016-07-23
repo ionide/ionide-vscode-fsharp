@@ -1,3 +1,6 @@
+### 2.2.7 - 23.07.2016
+* Added FSAC request log (default off)
+
 ### 2.2.6 - 22.07.2016
 * Add configuration option to specify FSI dir
 
