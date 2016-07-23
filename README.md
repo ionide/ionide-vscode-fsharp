@@ -18,7 +18,7 @@ F# IDE-like possibilities in Atom editor and Visual Studio Code
 ## Required software
 
 * F# >= 3.1
-* MSBuild >= 12
+* MSBuild 12
 
 ### Windows
 
