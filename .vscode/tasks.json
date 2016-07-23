@@ -8,9 +8,14 @@
 
 {
 	"version": "0.1.0",
-    "command": "build.cmd",
     "isShellCommand": true,
 	"showOutput": "silent",
+    "osx": {
+        "command": "${workspaceRoot}/build.sh"
+    },
+    "windows": {
+        "command": "${workspaceRoot}/build.cmd"
+    },
     "args": [],
     "tasks": [
         {
