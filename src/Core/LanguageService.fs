@@ -13,6 +13,9 @@ open Ionide.VSCode.Helpers
 module LanguageService =
     let ax =  Node.require.Invoke "axios" |>  unbox<Axios.AxiosStatic>
 
+    let logRequests =
+        workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsToConsole", false)
+
     let genPort () =
         let r = JS.Math.random ()
         let r' = r * (8999. - 8100.) + 8100.
@@ -24,10 +27,15 @@ module LanguageService =
     let mutable private service : child_process_types.ChildProcess option =  None
 
     let request<'a, 'b> ep id  (obj : 'a) =
+        if logRequests then Browser.console.log ("[IONIDE-FSAC-REQ]", id, ep, obj)
         ax.post (ep, obj)
         |> Promise.success(fun r ->
             try
                 let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
+                if logRequests then
+                    match res?Kind |> unbox with
+                    | "error" -> Browser.console.error ("[IONIDE-FSAC-RES]", id, ep, res?Kind, res?Data)
+                    | _ -> Browser.console.info ("[IONIDE-FSAC-RES]", id, ep, res?Kind, res?Data)
                 if res?Kind |> unbox = "error" || res?Kind |> unbox = "info" then null |> unbox
                 else res
             with
