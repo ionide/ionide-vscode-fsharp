@@ -101,6 +101,10 @@
         "title": "F#: New Project"
       },
       {
+        "command": "fsharp.NewProjectNoFake",
+        "title": "F#: New Project (Without FAKE)"
+      },
+      {
         "command": "fsharp.RefreshProjectTemplates",
         "title": "F#: Refresh Project Templates"
       },
@@ -185,6 +189,7 @@
     "onCommand:fsharp.Methods",
     "onCommand:webpreview.Show",
     "onCommand:fsharp.NewProject",
+    "onCommand:fsharp.NewProjectNoFake",
     "onCommand:fsharp.RefreshProjectTemplates",
     "onCommand:fsharp.AddProjectReference",
     "onCommand:fsharp.RemoveProjectReference",

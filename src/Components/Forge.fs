@@ -182,6 +182,49 @@ module Forge =
                 |> ignore
         }
 
+    let newProjectNoFake () =
+        promise {
+            //let! lst = "list templates" |> execForge
+            // let n =  handleForgeList lst
+            let n =
+                [
+                    "classlib"
+                    "console"
+                    "fslabbasic"
+                    "fslabjournal"
+                    "pcl259"
+                    "suave"
+                    "windows"
+                    "fsunit"
+                    "aspwebapi2"
+                    "websharperspa"
+                    "websharperserverclient"
+                    "websharpersuave"
+                    "servicefabrichost"
+                    "servicefabricsuavestateless"
+                ] |> ResizeArray
+
+
+            if n.Count <> 0 then
+                let! template = window.showQuickPick ( n |> Case1)
+                if JS.isDefined template then
+                    let opts = createEmpty<InputBoxOptions>
+                    opts.prompt <- Some "Project directory"
+                    let! dir = window.showInputBox (opts)
+
+                    let opts = createEmpty<InputBoxOptions>
+                    opts.prompt <- Some "Project name"
+                    let! name =  window.showInputBox(opts)
+                    if JS.isDefined dir && JS.isDefined name then
+                        sprintf "new project -n %s -t %s --folder %s --no-fake" name template dir |> spawnForge |> ignore
+
+                        window.showInformationMessage "Project created"
+                        |> ignore
+            else
+                window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command"
+                |> ignore
+        }
+
 
 
     let activate disposables =
@@ -192,6 +235,7 @@ module Forge =
         commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox) |> ignore
         commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox) |> ignore
         commands.registerCommand("fsharp.NewProject", newProject |> unbox) |> ignore
+        commands.registerCommand("fsharp.NewProjectNoFake", newProjectNoFake |> unbox) |> ignore
         commands.registerCommand("fsharp.RefreshProjectTemplates", refreshTemplates |> unbox) |> ignore
         commands.registerTextEditorCommand("fsharp.AddFileToProject", addCurrentFileToProject |> unbox) |> ignore
         commands.registerTextEditorCommand("fsharp.RemoveFileFromProject", removeCurrentFileFromProject |> unbox) |> ignore
