@@ -79,7 +79,8 @@ module Forge =
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "Reference"
                 let! name = window.showInputBox(opts)
-                sprintf "add reference -n %s -p %s" name edit |> spawnForge |> ignore }
+                if JS.isDefined name && JS.isDefined edit then
+                    sprintf "add reference -n %s -p %s" name edit |> spawnForge |> ignore }
 
     let removeReference () =
         promise {
@@ -98,7 +99,8 @@ module Forge =
                     let opts = createEmpty<QuickPickOptions>
                     opts.placeHolder <- Some "Reference"
                     let! ref = window.showQuickPick(n |> Case1,opts)
-                    sprintf "remove reference -n %s -p %s" ref edit |> spawnForge |> ignore }
+                    if JS.isDefined ref && JS.isDefined edit then
+                        sprintf "remove reference -n %s -p %s" ref edit |> spawnForge |> ignore }
 
 
     let addProjectReference () =
@@ -112,8 +114,8 @@ module Forge =
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Reference"
                 let! n = window.showQuickPick(projects |> Case1, opts)
-
-                sprintf "add project -n %s -p %s" n edit |> spawnForge |> ignore }
+                if JS.isDefined n && JS.isDefined edit then
+                    sprintf "add project -n %s -p %s" n edit |> spawnForge |> ignore }
 
 
     let removeProjectReference () =
@@ -133,7 +135,8 @@ module Forge =
                     let opts = createEmpty<QuickPickOptions>
                     opts.placeHolder <- Some "Reference"
                     let! ref = window.showQuickPick(n |> Case1,opts)
-                    sprintf "remove project -n %s -p %s" ref edit |> spawnForge |> ignore }
+                    if JS.isDefined ref && JS.isDefined edit then
+                        sprintf "remove project -n %s -p %s" ref edit |> spawnForge |> ignore }
 
 
     let newProject () =
@@ -169,11 +172,11 @@ module Forge =
                     let opts = createEmpty<InputBoxOptions>
                     opts.prompt <- Some "Project name"
                     let! name =  window.showInputBox(opts)
+                    if JS.isDefined dir && JS.isDefined name then
+                        sprintf "new project -n %s -t %s --folder %s" name template dir |> spawnForge |> ignore
 
-                    sprintf "new project -n %s -t %s --folder %s" name template dir |> spawnForge |> ignore
-
-                    window.showInformationMessage "Project created"
-                    |> ignore
+                        window.showInformationMessage "Project created"
+                        |> ignore
             else
                 window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command"
                 |> ignore
