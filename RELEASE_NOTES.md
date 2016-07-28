@@ -1,3 +1,7 @@
+### 2.2.8 - 28.07.2016
+* Add New Project without FAKE command
+* Handle cancellation for F# project commands.
+
 ### 2.2.7 - 23.07.2016
 * Added FSAC request log (default off)
 
