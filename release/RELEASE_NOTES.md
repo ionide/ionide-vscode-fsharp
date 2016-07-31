@@ -1,3 +1,6 @@
+### 2.2.9 - 31.07.2016
+* Fix startup
+
 ### 2.2.8 - 28.07.2016
 * Add New Project without FAKE command
 * Handle cancellation for F# project commands.
