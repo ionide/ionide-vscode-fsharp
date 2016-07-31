@@ -28,13 +28,13 @@ let activate(disposables: Disposable[]) =
         Highlights.activate df' disposables
         Rename.activate df' disposables
         WorkspaceSymbols.activate df' disposables
-
-        Fsi.activate disposables
         QuickInfo.activate disposables
-        WebPreview.activate disposables
-        Forge.activate disposables
     )
     |> ignore
+    Forge.activate disposables
+    Fsi.activate disposables
+    WebPreview.activate disposables
+
 
     ()
 
