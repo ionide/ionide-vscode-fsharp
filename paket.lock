@@ -1,6 +1,6 @@
 NUGET
   remote: https://www.nuget.org/api/v2
-    FAKE (4.33)
+    FAKE (4.35.1)
     Microsoft.Bcl (1.1.10) - framework: net10, net11, net20, net30, net35, net40, net40-full
       Microsoft.Bcl.Build (>= 1.0.14)
     Microsoft.Bcl.Build (1.0.21) - import_targets: false, framework: net10, net11, net20, net30, net35, net40, net40-full
@@ -10,7 +10,7 @@ NUGET
     Node.js (5.3)
     Npm.js (2.13.1)
       Node.js (>= 0.12.7)
-    Octokit (0.20)
+    Octokit (0.21.1)
       Microsoft.Net.Http  - framework: net10, net11, net20, net30, net35, net40, net40-full
 GIT
   remote: https://github.com/ionide/ionide-vscode-helpers.git
@@ -28,17 +28,17 @@ GIT
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsprojects/Forge.git
-     (22d2225486c5a50924442379e8a8b55145e2624d)
+     (c573b9fe2abc462a22fa24eb6c9c0cbc52d14f95)
       build: build.cmd
       os: windows
-     (22d2225486c5a50924442379e8a8b55145e2624d)
+     (c573b9fe2abc462a22fa24eb6c9c0cbc52d14f95)
       build: build.sh
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
      (c8fea8dc0a224a2ceb2371bc5e941157aca3de9e)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (0cb2c2744556046b56d56f63c709bd540d86540e)
+    modules/Octokit/Octokit.fsx (def4ef86c0552d7126cbe6756c7b7fdda447245d)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
     Fable.Import.Axios.fs (777815f9c3f9b3925e42c6394c7f1f5fac124d6a)
