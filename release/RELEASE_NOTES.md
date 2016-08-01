@@ -1,3 +1,6 @@
+### 2.2.10 - 02.08.2016
+* Update Forge version
+
 ### 2.2.9 - 31.07.2016
 * Fix startup
 
