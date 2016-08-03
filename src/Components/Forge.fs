@@ -40,20 +40,20 @@ module Forge =
         |> ResizeArray
 
     let onFsFileCreateHandler (uri : Uri) =
-        sprintf "add file -n %s" uri.fsPath |> spawnForge
+        sprintf "add file -n \"%s\"" uri.fsPath |> spawnForge
 
     let onFsFileRemovedHandler (uri : Uri) =
-        sprintf "remove file -n %s" uri.fsPath |> spawnForge
+        sprintf "remove file -n \"%s\"" uri.fsPath |> spawnForge
 
     let moveFileUp () =
         let editor = vscode.window.activeTextEditor
         if editor.document.languageId = "fsharp" then
-            sprintf "move file -n %s -u" editor.document.fileName |> spawnForge |> ignore
+            sprintf "move file -n \"%s\" -u" editor.document.fileName |> spawnForge |> ignore
 
     let moveFileDown () =
         let editor = vscode.window.activeTextEditor
         if editor.document.languageId = "fsharp" then
-            sprintf "move file -n %s -d" editor.document.fileName |> spawnForge |> ignore
+            sprintf "move file -n \"%s\" -d" editor.document.fileName |> spawnForge |> ignore
 
     let refreshTemplates () =
         "refresh" |> spawnForge |> ignore
@@ -61,12 +61,12 @@ module Forge =
     let addCurrentFileToProject () =
         let editor = vscode.window.activeTextEditor
         if editor.document.languageId = "fsharp" then
-            sprintf "add file -n %s" editor.document.fileName |> spawnForge |> ignore
+            sprintf "add file -n \"%s\"" editor.document.fileName |> spawnForge |> ignore
 
     let removeCurrentFileFromProject () =
         let editor = vscode.window.activeTextEditor
         if editor.document.languageId = "fsharp" then
-            sprintf "remove file -n %s" editor.document.fileName |> spawnForge |> ignore
+            sprintf "remove file -n \"%s\"" editor.document.fileName |> spawnForge |> ignore
 
     let addReference () =
         promise {
@@ -80,7 +80,7 @@ module Forge =
                 opts.placeHolder <- Some "Reference"
                 let! name = window.showInputBox(opts)
                 if JS.isDefined name && JS.isDefined edit then
-                    sprintf "add reference -n %s -p %s" name edit |> spawnForge |> ignore }
+                    sprintf "add reference -n \"%s\" -p \"%s\"" name edit |> spawnForge |> ignore }
 
     let removeReference () =
         promise {
@@ -91,7 +91,7 @@ module Forge =
                 let! edit = window.showQuickPick(projects |> Case1,opts)
 
                 let! n =
-                    sprintf "list references -p %s" edit
+                    sprintf "list references -p \"%s\"" edit
                     |> execForge
                     |> Promise.success handleForgeList
 
@@ -100,7 +100,7 @@ module Forge =
                     opts.placeHolder <- Some "Reference"
                     let! ref = window.showQuickPick(n |> Case1,opts)
                     if JS.isDefined ref && JS.isDefined edit then
-                        sprintf "remove reference -n %s -p %s" ref edit |> spawnForge |> ignore }
+                        sprintf "remove reference -n \"%s\" -p \"%s\"" ref edit |> spawnForge |> ignore }
 
 
     let addProjectReference () =
@@ -115,7 +115,7 @@ module Forge =
                 opts.placeHolder <- Some "Reference"
                 let! n = window.showQuickPick(projects |> Case1, opts)
                 if JS.isDefined n && JS.isDefined edit then
-                    sprintf "add project -n %s -p %s" n edit |> spawnForge |> ignore }
+                    sprintf "add project -n \"%s\" -p \"%s\"" n edit |> spawnForge |> ignore }
 
 
     let removeProjectReference () =
@@ -127,7 +127,7 @@ module Forge =
                 let! edit = window.showQuickPick(projects |> Case1,opts)
 
                 let! n =
-                    sprintf "list projectReferences -p %s" edit
+                    sprintf "list projectReferences -p \"%s\"" edit
                     |> execForge
                     |> Promise.success handleForgeList
 
@@ -136,7 +136,7 @@ module Forge =
                     opts.placeHolder <- Some "Reference"
                     let! ref = window.showQuickPick(n |> Case1,opts)
                     if JS.isDefined ref && JS.isDefined edit then
-                        sprintf "remove project -n %s -p %s" ref edit |> spawnForge |> ignore }
+                        sprintf "remove project -n \"%s\" -p \"%s\"" ref edit |> spawnForge |> ignore }
 
 
     let newProject () =
@@ -173,7 +173,7 @@ module Forge =
                     opts.prompt <- Some "Project name"
                     let! name =  window.showInputBox(opts)
                     if JS.isDefined dir && JS.isDefined name then
-                        sprintf "new project -n %s -t %s --folder %s" name template dir |> spawnForge |> ignore
+                        sprintf "new project -n \"%s\" -t \"%s\" --folder \"%s\"" name template dir |> spawnForge |> ignore
 
                         window.showInformationMessage "Project created"
                         |> ignore
@@ -216,7 +216,7 @@ module Forge =
                     opts.prompt <- Some "Project name"
                     let! name =  window.showInputBox(opts)
                     if JS.isDefined dir && JS.isDefined name then
-                        sprintf "new project -n %s -t %s --folder %s --no-fake" name template dir |> spawnForge |> ignore
+                        sprintf "new project -n \"%s\" -t \"%s\" --folder \"%s\" --no-fake" name template dir |> spawnForge |> ignore
 
                         window.showInformationMessage "Project created"
                         |> ignore
