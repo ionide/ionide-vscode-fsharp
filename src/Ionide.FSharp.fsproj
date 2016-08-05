@@ -57,8 +57,8 @@
     <Compile Include="Components/ParameterHints.fs" />
     <Compile Include="Components/Definition.fs" />
     <Compile Include="Components/References.fs" />
-    <Compile Include="Components/Symbols.fs" />
     <Compile Include="Components/Highlights.fs" />
+    <Compile Include="Components/Symbols.fs" />
     <Compile Include="Components/Rename.fs" />
     <Compile Include="Components/WorkspaceSymbols.fs" />
     <Compile Include="Components/Environment.fs" />
@@ -80,5 +80,5 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
   </ItemGroup>
-<Import Project="$(FSharpTargetsPath)" />
+  <Import Project="$(FSharpTargetsPath)" />
 </Project>

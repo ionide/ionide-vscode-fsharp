@@ -13,13 +13,6 @@ NUGET
     Octokit (0.21.1)
       Microsoft.Net.Http  - framework: net10, net11, net20, net30, net35, net40, net40-full
 GIT
-  remote: https://github.com/ionide/ionide-vscode-helpers.git
-     (b81a80ede2179222a5639cf866423d9bc6c2f0b4)
-      build: build.cmd
-      os: windows
-     (b81a80ede2179222a5639cf866423d9bc6c2f0b4)
-      build: build.sh
-      os: mono
   remote: https://github.com/ionide/FsAutoComplete.git
      (caf889845342a2264254c5e0269c38e4622dcd74)
       build: build.cmd LocalRelease
@@ -28,10 +21,10 @@ GIT
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsprojects/Forge.git
-     (35aeb39e5fa15ea367541781a491df25ca8ea566)
+     (791fe6b468640423d0075bdc624db0f08a03a4c9)
       build: build.cmd PaketBuild
       os: windows
-     (35aeb39e5fa15ea367541781a491df25ca8ea566)
+     (791fe6b468640423d0075bdc624db0f08a03a4c9)
       build: build.sh PaketBuild
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
@@ -41,6 +34,6 @@ GITHUB
     modules/Octokit/Octokit.fsx (8fd20ae42c996060bc8bedb821edfb50517cdd8b)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
-    Fable.Import.Axios.fs (777815f9c3f9b3925e42c6394c7f1f5fac124d6a)
-    Fable.Import.VSCode.fs (777815f9c3f9b3925e42c6394c7f1f5fac124d6a)
-    Helpers.fs (777815f9c3f9b3925e42c6394c7f1f5fac124d6a)
+    Fable.Import.Axios.fs (31fa44e27b67f0d718ff765f2754dc910f0c2548)
+    Fable.Import.VSCode.fs (31fa44e27b67f0d718ff765f2754dc910f0c2548)
+    Helpers.fs (31fa44e27b67f0d718ff765f2754dc910f0c2548)

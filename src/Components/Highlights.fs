@@ -2,9 +2,12 @@ namespace Ionide.VSCode.FSharp
 
 open System
 open Fable.Core
+open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
+
+
 
 open DTO
 open Ionide.VSCode.Helpers

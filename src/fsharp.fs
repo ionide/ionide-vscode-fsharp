@@ -4,6 +4,7 @@ module Ionide.VSCode.FSharp
 open System
 open System.Text.RegularExpressions
 open Fable.Core
+open Fable.Core.JsInterop
 open Fable.Import.vscode
 open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
