@@ -1,5 +1,7 @@
 #Ionide-VSCode: FSharp
 
+[![](https://ci.appveyor.com/api/projects/status/5wqf80vub6hqywj8?svg=true)](https://ci.appveyor.com/project/Ionide/ionide-vscode-fsharp)
+
 Part of the [Ionide](http://ionide.io) plugin suite.
 F# IDE-like possibilities in Atom editor and Visual Studio Code
 
