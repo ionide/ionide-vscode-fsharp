@@ -1,3 +1,6 @@
+### 2.2.12 - 05.08.2016
+* Don't create new FSI output panel for every `FSI: Start`
+
 ### 2.2.11 - 04.08.2016
 * Update Forge version
 
