@@ -11,7 +11,9 @@ open Ionide.VSCode.Helpers
 
 module Fsi =
     let mutable fsiProcess : child_process_types.ChildProcess option = None
-    let mutable fsiOutput : OutputChannel option = None
+    let mutable fsiOutput : OutputChannel option =
+        window.createOutputChannel("F# Interactive")
+        |> Some
 
     let private handle (data : obj) =
         if data <> null then
@@ -27,9 +29,6 @@ module Fsi =
                 |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun outChannel -> outChannel.clear () ))
                 |> Process.onOutput handle
                 |> Process.onError handle
-                |> Some
-            fsiOutput <-
-                window.createOutputChannel("F# Interactive")
                 |> Some
             fsiOutput |> Option.iter (fun outChannel -> outChannel.show (2 |> unbox) )
         with
