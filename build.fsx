@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------------------
 
 #I "packages/FAKE/tools"
-#r "packages/FAKE/tools/FakeLib.dll"
+#r "FakeLib.dll"
 open System
 open System.Diagnostics
 open System.IO
@@ -48,24 +48,19 @@ let run cmd args dir =
     ) System.TimeSpan.MaxValue = false then
         traceError <| sprintf "Error while running '%s' with args: %s" cmd args
 
+
+let platformTool tool path =
+    isUnix |> function | true -> tool | _ -> path
+
 let npmTool =
-    match isUnix with
-    | true -> "npm" // Use the npm that is in PATH
-    | _ -> __SOURCE_DIRECTORY__ </> "packages/Npm.js/tools/npm.cmd"
+    platformTool "npm" ("packages" </> "Npm.js" </> "tools"  </> "npm.cmd" |> FullName)
 
 let vsceTool =
-    #if MONO
-        "vsce"
-    #else
-        "packages" </> "Node.js" </> "vsce.cmd" |> FullName
-    #endif
-
+    platformTool "vsce" ("packages" </> "Node.js" </> "vsce.cmd" |> FullName)
+    
 let codeTool =
-    #if MONO
-        "code"
-    #else
-        ProgramFilesX86  </> "Microsoft VS Code" </> "bin/code.cmd"
-    #endif
+    platformTool "code" (ProgramFilesX86  </> "Microsoft VS Code" </> "bin/code.cmd")
+
 
 // --------------------------------------------------------------------------------------
 // Build the Generator project and run it
