@@ -196,7 +196,7 @@
     "vscode.fsharp"
   ],
   "scripts": {
-    "build": "fable ../src/Ionide.FSharp.fsproj -s -o ../release -m commonjs"
+    "build": "fable ../src/Ionide.FSharp.fsproj -s -o ../release -m commonjs --verbose"
   },
   "dependencies": {
     "axios": "^0.12.0",
