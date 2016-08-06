@@ -26,15 +26,13 @@
     "languages": [
       {
         "id": "fsharp",
-        "aliases": [
-          "F#"
-        ],
+        "aliases": [ "F#", "FSharp", "fsharp" ],
         "extensions": [
           ".fs",
           ".fsx",
           ".fsi"
         ],
-        "configuration": "./fsharp.configuration.json"
+        "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
