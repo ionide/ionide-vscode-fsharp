@@ -226,4 +226,4 @@ Target "Release" DoNothing
 "BuildPackage"
 ==> "TryPackage"
 
-RunTargetOrDefault "Default"
+RunTargetOrDefault "Build"

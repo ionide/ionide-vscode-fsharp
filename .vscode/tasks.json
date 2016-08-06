@@ -16,7 +16,7 @@
     "windows": {
         "command": "${workspaceRoot}/build.cmd"
     },
-    "args": [],
+    "args": [ "Build" ],
     "tasks": [
         {
             "taskName": "Default",
