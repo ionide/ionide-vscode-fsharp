@@ -1,4 +1,4 @@
-#Ionide-VSCode: FSharp
+#[Ionide-VSCode: FSharp](https://marketplace.visualstudio.com/items/Ionide.Ionide-fsharp)
 **Enhanced F# Language Features for Visual Studio Code**  
 _Part of the [Ionide](http://ionide.io) plugin suite._
 
@@ -35,10 +35,7 @@ If you use [chocolatey](https://chocolatey.org/), you can install all the pre-re
 choco install windows-sdk-8.0 -y
 choco install visualfsharptools -y
 choco install microsoft-build-tools -y
-:: for vscode
 choco install visualstudiocode -y
-:: for atom
-choco install atom -y
 ```
 
 ### Mono
