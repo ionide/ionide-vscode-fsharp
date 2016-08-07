@@ -21,19 +21,19 @@ GIT
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsprojects/Forge.git
-     (791fe6b468640423d0075bdc624db0f08a03a4c9)
-      build: build.cmd PaketBuild
+     (f6314d4c194fe8ebc471f46ec8d404ead5e80a5b)
+      build: build.cmd Build
       os: windows
-     (791fe6b468640423d0075bdc624db0f08a03a4c9)
-      build: build.sh PaketBuild
+     (f6314d4c194fe8ebc471f46ec8d404ead5e80a5b)
+      build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (c8fea8dc0a224a2ceb2371bc5e941157aca3de9e)
+     (10665661a065021612732e8bf89b8dfa5b48505c)
 GITHUB
   remote: fsharp/FAKE
     modules/Octokit/Octokit.fsx (8fd20ae42c996060bc8bedb821edfb50517cdd8b)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
-    Fable.Import.Axios.fs (31fa44e27b67f0d718ff765f2754dc910f0c2548)
-    Fable.Import.VSCode.fs (31fa44e27b67f0d718ff765f2754dc910f0c2548)
-    Helpers.fs (31fa44e27b67f0d718ff765f2754dc910f0c2548)
+    Fable.Import.Axios.fs (5121640deaed96546e45c7bb0ad0571b2c697709)
+    Fable.Import.VSCode.fs (5121640deaed96546e45c7bb0ad0571b2c697709)
+    Helpers.fs (5121640deaed96546e45c7bb0ad0571b2c697709)

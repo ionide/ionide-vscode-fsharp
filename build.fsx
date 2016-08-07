@@ -101,7 +101,7 @@ Target "CopyForge" (fun _ ->
     |> CopyFiles releaseBinForge
 )
 
-let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar"
+let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammar"
 let fsgrammarRelease = "release/syntaxes"
 
 
