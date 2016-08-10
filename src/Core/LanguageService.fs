@@ -30,6 +30,10 @@ module LanguageService =
     let request<'a, 'b> ep id  (obj : 'a) =
         if logRequests then Browser.console.log ("[IONIDE-FSAC-REQ]", id, ep, obj)
         ax.post (ep, obj)
+        |> Promise.fail (fun r ->
+            Browser.console.error ("[IONIDE-FSAC-ERR]", id, ep, r)
+            null |> unbox
+        )
         |> Promise.success(fun r ->
             try
                 let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
@@ -41,6 +45,7 @@ module LanguageService =
                 else res
             with
             | ex ->
+                Browser.console.error ("[IONIDE-FSAC-ERR]", id, ep, r, ex)
                 null |> unbox
         )
 
