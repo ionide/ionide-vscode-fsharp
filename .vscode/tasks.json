@@ -16,6 +16,9 @@
     "windows": {
         "command": "${workspaceRoot}/build.cmd"
     },
+    "linux": {
+        "command": "${workspaceRoot}/build.sh"
+    },
     "args": [ "Build" ],
     "tasks": [
         {

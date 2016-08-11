@@ -91,13 +91,16 @@ Target "CopyFSAC" (fun _ ->
 
 let releaseBinForge = "release/bin_forge"
 let forgeBin = "paket-files/github.com/fsprojects/Forge/temp/bin"
+let forgeExe = forgeBin </> "Forge.exe"
+let posixDll = forgeBin </> "Mono.Posix.dll"
 
 Target "CopyForge" (fun _ ->
     ensureDirectory releaseBinForge
     CleanDir releaseBinForge
-
-    !! (forgeBin </> "Forge.exe" )
-    ++ (forgeBin </> "Mono.Posix.dll")
+    checkFileExists forgeExe
+    checkFileExists posixDll
+    !! forgeExe
+    ++ posixDll
     |> CopyFiles releaseBinForge
 )
 
