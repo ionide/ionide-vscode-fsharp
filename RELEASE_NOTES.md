@@ -1,3 +1,7 @@
+### 2.2.13 - 12.08.2016
+* Fix startup behaviour
+* Improve brace matching and completion
+
 ### 2.2.12 - 05.08.2016
 * Don't create new FSI output panel for every `FSI: Start`
 
