@@ -197,13 +197,13 @@
     "build": "fable ../src/Ionide.FSharp.fsproj -s -o ../release -m commonjs --verbose"
   },
   "dependencies": {
-    "axios": "^0.12.0",
-    "fable-core": "*",
+    "axios": "^0.13.1",
+    "fable-core": "^0.5.3",
     "toml": "*",
     "xhr2": "*"
   },
   "devDependencies": {
-    "vscode": "*",
-    "fable-compiler": "*"
+    "vscode": "^0.11.15",
+    "fable-compiler": "^0.5.3"
   }
 }
