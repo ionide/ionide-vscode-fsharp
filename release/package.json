@@ -170,6 +170,11 @@
           "type": "string",
           "default": "",
           "description": "The directory containing the F# tools"
+        },
+        "FSharp.fsiFileName": {
+          "type": "string",
+          "default": "",
+          "description": "The directory containing the F# tools"
         }
       }
     }
