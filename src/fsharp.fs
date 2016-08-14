@@ -31,6 +31,7 @@ let activate(disposables: Disposable[]) =
         WorkspaceSymbols.activate df' disposables
         QuickInfo.activate disposables
     )
+    |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
     |> ignore
 
     Forge.activate disposables
