@@ -36,7 +36,7 @@ module Linter =
 
     let private parse path text =
         LanguageService.parse path text
-        |> Promise.success (fun (ev : ParseResult) ->  (Uri.file path, mapResult ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set  )
+        |> Promise.map (fun (ev : ParseResult) ->  (Uri.file path, mapResult ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set  )
 
 
     let parseFile (file : TextDocument) =

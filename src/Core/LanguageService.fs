@@ -30,11 +30,11 @@ module LanguageService =
     let request<'a, 'b> ep id  (obj : 'a) =
         if logRequests then Browser.console.log ("[IONIDE-FSAC-REQ]", id, ep, obj)
         ax.post (ep, obj)
-        |> Promise.fail (fun r ->
+        |> Promise.onFail (fun r ->
             Browser.console.error ("[IONIDE-FSAC-ERR]", id, ep, r)
             null |> unbox
         )
-        |> Promise.success(fun r ->
+        |> Promise.map(fun r ->
             try
                 let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
                 if logRequests then
@@ -121,19 +121,19 @@ module LanguageService =
                 let isStartedMessage = (n.ToString().Contains(": listener started in"))
                 if isStartedMessage then 
                     service <- Some child 
-                    resolve.Invoke (U2.Case1 ()) 
+                    resolve.Invoke (U2.Case1 child) 
                     Browser.console.log ("[IONIDE-FSAC-SIG] started message?", isStartedMessage)
             ) |> ignore
 
             child?on $ ("error", fun e -> 
                 Browser.console.error (e.ToString())
-                reject.Invoke (null |> unbox)
+                reject.Invoke None
             ) |> ignore
 
             child.stderr?on $ ("data", fun n -> Browser.console.error (n.ToString())) |> ignore
             child.stdout?on $ ("data", fun n -> Browser.console.log (n.ToString())) |> ignore
         ))
-        |> Promise.fail (fun _ -> 
+        |> Promise.onFail (fun _ -> 
             if Process.isMono () then
                 "Failed to start language services. Please check if mono is in PATH, or correct path is used in FSharp.monoPath setting"
             else

@@ -15,7 +15,7 @@ let activate(disposables: Disposable[]) =
     let df' : DocumentSelector = df |> U3.Case2
 
     LanguageService.start ()
-    |> Promise.success (fun _ -> 
+    |> Promise.onSuccess (fun _ -> 
         Linter.activate disposables
         |> Promise.bind(fun _ -> Project.activate ())
         |> ignore
