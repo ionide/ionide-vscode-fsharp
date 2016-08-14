@@ -59,15 +59,15 @@ module Environment =
         |> List.map (fun v -> v </> exeName)
         |> List.tryFind fileExists    
 
-    let private getFsiFileName () =
+    let private getFsiFilePath () =
         if isWin then
             let cfg = workspace.getConfiguration ()
-            let fsiName = cfg.get("FSharp.fsiFileName", "")
-            if fsiName = ""  then "FsiAnyCpu.exe" else fsiName  
+            let fsiPath = cfg.get("FSharp.fsiFilePath", "")
+            if fsiPath = ""  then "FsiAnyCpu.exe" else fsiPath  
         else "fsharpi"
 
     let fsi =
-        let fileName = getFsiFileName () 
+        let fileName = getFsiFilePath () 
         let dirs = getListDirectoriesToSearchForTools ()
         match findFirstValidFilePath fileName dirs with
         | None -> fileName

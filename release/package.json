@@ -171,10 +171,10 @@
           "default": "",
           "description": "The directory containing the F# tools"
         },
-        "FSharp.fsiFileName": {
+        "FSharp.fsiFilePath": {
           "type": "string",
           "default": "",
-          "description": "The directory containing the F# tools"
+          "description": "The path to the F# Interactive tool used by Ionide-FSharp"
         }
       }
     }
