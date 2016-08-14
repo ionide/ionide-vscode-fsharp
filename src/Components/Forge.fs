@@ -19,7 +19,6 @@ module Forge =
 
     let private location = (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "bin_forge" </> "Forge.exe"
     let outputChannel = window.createOutputChannel "Forge"
-    let monoPath = workspace.getConfiguration().get("FSharp.monoPath", "mono")
 
     let private spawnForge (cmd : string) =
         let cmd = cmd.Replace("\r", "").Replace("\n", "")
@@ -27,11 +26,11 @@ module Forge =
         outputChannel.clear ()
         outputChannel.append ("forge " + cmd + "\n")
 
-        Process.spawnWithNotification location monoPath cmd outputChannel
+        Process.spawnWithNotification location "mono" cmd outputChannel
 
 
     let private execForge cmd =
-        Process.exec location monoPath (cmd + " --no-prompt")
+        Process.exec location "mono" (cmd + " --no-prompt")
 
     let private handleForgeList (error : Node.Error, stdout : Buffer, stderr : Buffer) =
         if(stdout.toString() = "") then
