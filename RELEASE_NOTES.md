@@ -1,10 +1,10 @@
-### 2.2.14 - 14.08.2016
+### 2.2.15 - 14.08.2016
 * Updated FSAC internal dependencies
     - Upgrade to F# 4.0
     - FSharp.Compiler.Service 6.0.2
-    - FSharp.Compiler.Service.ProjectCracker 6.0.2   
+    - FSharp.Compiler.Service.ProjectCracker 6.0.2
     - Newtonsoft.Json 9.0.1
-    - Suave 1.1.3    
+    - Suave 1.1.3
 * Update Fable to 0.5.4
 
 ### 2.2.13 - 12.08.2016
