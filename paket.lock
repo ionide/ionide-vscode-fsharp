@@ -14,10 +14,10 @@ NUGET
       Microsoft.Net.Http  - framework: net10, net11, net20, net30, net35, net40, net40-full
 GIT
   remote: https://github.com/ionide/FsAutoComplete.git
-     (caf889845342a2264254c5e0269c38e4622dcd74)
+     (b4d61070e2de61e10418a21db2da2f10a9598e2e)
       build: build.cmd LocalRelease
       os: windows
-     (caf889845342a2264254c5e0269c38e4622dcd74)
+     (b4d61070e2de61e10418a21db2da2f10a9598e2e)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsprojects/Forge.git
@@ -34,6 +34,6 @@ GITHUB
     modules/Octokit/Octokit.fsx (7faaaf53e4a8fbe04a4d2b4c1bfc5d09bd82eed6)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
-    Fable.Import.Axios.fs (5121640deaed96546e45c7bb0ad0571b2c697709)
-    Fable.Import.VSCode.fs (5121640deaed96546e45c7bb0ad0571b2c697709)
-    Helpers.fs (5121640deaed96546e45c7bb0ad0571b2c697709)
+    Fable.Import.Axios.fs (0156aa1e9c7c65bd6c7dcb6644104a93d919cc0c)
+    Fable.Import.VSCode.fs (0156aa1e9c7c65bd6c7dcb6644104a93d919cc0c)
+    Helpers.fs (0156aa1e9c7c65bd6c7dcb6644104a93d919cc0c)

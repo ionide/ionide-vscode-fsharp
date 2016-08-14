@@ -207,12 +207,12 @@
   },
   "dependencies": {
     "axios": "^0.13.1",
-    "fable-core": "^0.5.3",
+    "fable-core": "^0.5.4",
     "toml": "*",
     "xhr2": "*"
   },
   "devDependencies": {
     "vscode": "^0.11.15",
-    "fable-compiler": "^0.5.3"
+    "fable-compiler": "^0.5.4"
   }
 }
