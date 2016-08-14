@@ -1,4 +1,4 @@
-### 2.2.15 - 14.08.2016
+### 2.2.16 - 14.08.2016
 * Updated FSAC internal dependencies
     - Upgrade to F# 4.0
     - FSharp.Compiler.Service 6.0.2
