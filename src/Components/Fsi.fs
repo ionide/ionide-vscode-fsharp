@@ -29,7 +29,7 @@ module Fsi =
                 (Process.spawn Environment.fsi "" "--fsi-server-input-codepage:65001")
                 |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun outChannel -> outChannel.clear () ))
                 |> Process.onOutput handle
-                |> Process.onError handle
+                |> Process.onErrorOutput handle
                 |> Some
             fsiOutput |> Option.iter (fun outChannel -> outChannel.show (2 |> unbox) )
         with

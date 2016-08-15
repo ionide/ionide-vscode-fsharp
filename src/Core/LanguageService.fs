@@ -106,7 +106,7 @@ module LanguageService =
         "" |> request (url "compilerlocation")  0
 
     let start () =
-        Promise.create (Func<_,_,_>(fun resolve reject -> 
+        Promise.create (fun resolve reject -> 
             let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
             let child = 
                 if Process.isMono () then 
@@ -115,27 +115,31 @@ module LanguageService =
                 else
                     child_process.spawn(path, [| string port|] |> ResizeArray)
 
-            // Wait until FsAC sends the 'listener started' magic string until
-            // we inform the caller that it's ready to accept requests.
-            child.stdout?on $ ("data", fun n ->
+            child
+            |> Process.onOutput (fun n -> 
+                // Wait until FsAC sends the 'listener started' magic string until
+                // we inform the caller that it's ready to accept requests.
                 let isStartedMessage = (n.ToString().Contains(": listener started in"))
                 if isStartedMessage then 
-                    service <- Some child 
-                    resolve.Invoke (U2.Case1 child) 
                     Browser.console.log ("[IONIDE-FSAC-SIG] started message?", isStartedMessage)
-            ) |> ignore
-
-            child?on $ ("error", fun e -> 
+                    service <- Some child 
+                    resolve child
+                else
+                   Browser.console.log (n.ToString())
+            )
+            |> Process.onErrorOutput (fun n -> 
+                Browser.console.error (n.ToString()) 
+                reject ()
+            )
+            |> Process.onError (fun e ->
                 Browser.console.error (e.ToString())
-                reject.Invoke None
-            ) |> ignore
-
-            child.stderr?on $ ("data", fun n -> Browser.console.error (n.ToString())) |> ignore
-            child.stdout?on $ ("data", fun n -> Browser.console.log (n.ToString())) |> ignore
-        ))
+                reject ()
+            )
+            |> ignore
+        )
         |> Promise.onFail (fun _ -> 
             if Process.isMono () then
-                "Failed to start language services. Please check if mono is in PATH, or correct path is used in FSharp.monoPath setting"
+                "Failed to start language services. Please check if mono is in PATH"
             else
                 "Failed to start language services. Please check if Microsoft Build Tools 2013 are installed"
             |> vscode.window.showErrorMessage
