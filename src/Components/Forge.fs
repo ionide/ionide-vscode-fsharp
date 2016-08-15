@@ -94,7 +94,7 @@ module Forge =
                 let! n =
                     sprintf "list references -p %s" edit
                     |> execForge
-                    |> Promise.success handleForgeList
+                    |> Promise.map handleForgeList
 
                 if n.Count <> 0 then
                     let opts = createEmpty<QuickPickOptions>
@@ -130,7 +130,7 @@ module Forge =
                 let! n =
                     sprintf "list projectReferences -p %s" edit
                     |> execForge
-                    |> Promise.success handleForgeList
+                    |> Promise.map handleForgeList
 
                 if n.Count <> 0 then
                     let opts = createEmpty<QuickPickOptions>

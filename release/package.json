@@ -179,6 +179,11 @@
           "type": "string",
           "default": "",
           "description": "The directory containing the F# tools"
+        },
+        "FSharp.monoPath" : {
+          "type": "string",
+          "default": "mono",
+          "description": "The path to Mono executable"
         }
       }
     }
