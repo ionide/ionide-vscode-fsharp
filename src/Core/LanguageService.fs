@@ -15,7 +15,10 @@ module LanguageService =
     let ax =  Node.require.Invoke "axios" |>  unbox<Axios.AxiosStatic>
 
     let logRequests =
-        workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsToConsole", false)
+        try
+            workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsToConsole", false)
+        with
+        | _ -> false
 
     let genPort () =
         let r = JS.Math.random ()
@@ -105,9 +108,9 @@ module LanguageService =
     let compilerLocation () =
         "" |> request (url "compilerlocation")  0
 
-    let start (onListeningCallback: unit->unit) =
+    let start' path (onListeningCallback: unit->unit) =
         promise {
-            let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
+
             let child = if Process.isMono () then child_process.spawn("mono", [| path; string port|] |> ResizeArray) else child_process.spawn(path, [| string port|] |> ResizeArray)
             service <- Some child
             child.stderr?on $ ("data", fun n -> Browser.console.error (n.ToString())) |> ignore
@@ -130,6 +133,10 @@ module LanguageService =
             |> vscode.window.showErrorMessage
             |> ignore
         )
+
+    let start =
+         let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
+         start' path
 
     let stop () =
         service |> Option.iter (fun n -> n.kill "SIGKILL")

@@ -1,0 +1,7 @@
+{
+    "projFile": "Ionide.FSharp.Test.fsproj",
+    "outDir": "../release_test",
+    "module": "commonjs",
+    "symbols": ["MOCHA"],
+    "plugins": ["../plugins/Fable.Plugins.NUnit.dll"]
+}
