@@ -2,9 +2,9 @@
   "name": "Ionide-fsharp",
   "version": "2.2.16",
   "publisher": "Ionide",
-  "contributors": 
-  [   { "name": "Krzysztof Cieślak"    
-      , "url": "https://twitter.com/k_cieslak" 
+  "contributors":
+  [   { "name": "Krzysztof Cieślak"
+      , "url": "https://twitter.com/k_cieslak"
       }
   ,   { "name": "Jared Hester"
       , "email": "jared.hester@gmail.com"
@@ -184,6 +184,11 @@
           "type": "string",
           "default": "mono",
           "description": "The path to Mono executable"
+        },
+        "FSharp.fsiFilePath": {
+          "type": "string",
+          "default": "",
+          "description": "The path to the F# Interactive tool used by Ionide-FSharp"
         }
       }
     }
