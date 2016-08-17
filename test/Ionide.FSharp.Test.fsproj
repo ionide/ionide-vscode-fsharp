@@ -30,10 +30,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Helpers.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Helpers.fs</Link>
-    </Compile>
     <Reference Include="Fable.Core">
       <HintPath>../release/node_modules/fable-core/Fable.Core.dll</HintPath>
     </Reference>
