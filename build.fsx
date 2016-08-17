@@ -46,7 +46,7 @@ let run cmd args dir =
             info.WorkingDirectory <- dir
         info.Arguments <- args
     ) System.TimeSpan.MaxValue = false then
-        traceError <| sprintf "Error while running '%s' with args: %s" cmd args
+        failwithf "Error while running '%s' with args: %s" cmd args
 
 
 let platformTool tool path =
