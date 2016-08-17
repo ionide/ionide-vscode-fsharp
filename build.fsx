@@ -90,12 +90,12 @@ Target "CopyFSACToTests" (fun _ ->
 )
 
 Target "BuildTest" (fun () ->
-    // run npmTool "install" "test"
+    run npmTool "install" "test"
     run npmTool "run build" "test"
 )
 
 Target "RunTest" (fun () ->
-    // run npmTool "install" "release_test"
+    run npmTool "install" "release_test"
     run npmTool "run test" "release_test"
 )
 
