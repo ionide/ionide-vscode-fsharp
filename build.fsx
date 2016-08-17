@@ -235,6 +235,7 @@ Target "Test" DoNothing
 ==> "BuildTest"
 ==> "RunTest"
 ==> "Test"
+==> "BuildPackage"
 
 "Clean"
 ==> "RunScript"
