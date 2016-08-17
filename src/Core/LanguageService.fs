@@ -15,7 +15,10 @@ module LanguageService =
     let ax =  Node.require.Invoke "axios" |>  unbox<Axios.AxiosStatic>
 
     let logRequests =
-        workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsToConsole", false)
+        try
+            workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsToConsole", false)
+        with
+        | _ -> false
 
     let genPort () =
         let r = JS.Math.random ()
@@ -105,30 +108,29 @@ module LanguageService =
     let compilerLocation () =
         "" |> request (url "compilerlocation")  0
 
-    let start () =
-        Promise.create (fun resolve reject -> 
-            let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
-            let child = 
-                if Process.isMono () then 
+    let start' path =
+        Promise.create (fun resolve reject ->
+            let child =
+                if Process.isMono () then
                     let mono = workspace.getConfiguration().get("FSharp.monoPath", "mono")
                     child_process.spawn(mono, [| path; string port|] |> ResizeArray)
                 else
                     child_process.spawn(path, [| string port|] |> ResizeArray)
 
             child
-            |> Process.onOutput (fun n -> 
+            |> Process.onOutput (fun n ->
                 // Wait until FsAC sends the 'listener started' magic string until
                 // we inform the caller that it's ready to accept requests.
                 let isStartedMessage = (n.ToString().Contains(": listener started in"))
-                if isStartedMessage then 
+                if isStartedMessage then
                     Browser.console.log ("[IONIDE-FSAC-SIG] started message?", isStartedMessage)
-                    service <- Some child 
+                    service <- Some child
                     resolve child
                 else
                    Browser.console.log (n.ToString())
             )
-            |> Process.onErrorOutput (fun n -> 
-                Browser.console.error (n.ToString()) 
+            |> Process.onErrorOutput (fun n ->
+                Browser.console.error (n.ToString())
                 reject ()
             )
             |> Process.onError (fun e ->
@@ -137,13 +139,17 @@ module LanguageService =
             )
             |> ignore
         )
-        |> Promise.onFail (fun _ -> 
+        |> Promise.onFail (fun _ ->
             if Process.isMono () then
                 "Failed to start language services. Please check if mono is in PATH"
             else
                 "Failed to start language services. Please check if Microsoft Build Tools 2013 are installed"
             |> vscode.window.showErrorMessage
-            |> ignore) 
+            |> ignore)
+
+    let start () =
+         let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
+         start' path
 
     let stop () =
         service |> Option.iter (fun n -> n.kill "SIGKILL")

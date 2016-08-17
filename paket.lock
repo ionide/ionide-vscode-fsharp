@@ -1,17 +1,16 @@
+FRAMEWORK: NET45
 NUGET
   remote: https://www.nuget.org/api/v2
     FAKE (4.37.2)
-    Microsoft.Bcl (1.1.10) - framework: net10, net11, net20, net30, net35, net40, net40-full
-      Microsoft.Bcl.Build (>= 1.0.14)
-    Microsoft.Bcl.Build (1.0.21) - import_targets: false, framework: net10, net11, net20, net30, net35, net40, net40-full
-    Microsoft.Net.Http (2.2.29) - framework: net10, net11, net20, net30, net35, net40, net40-full
-      Microsoft.Bcl (>= 1.1.10)
-      Microsoft.Bcl.Build (>= 1.0.14)
+    FSharp.Core (4.0.0.1)
+    FsUnit (2.3.1)
+      FSharp.Core (>= 3.1.2.5)
+      NUnit (3.4.1)
     Node.js (5.3)
     Npm.js (2.13.1)
       Node.js (>= 0.12.7)
+    NUnit (3.4.1)
     Octokit (0.21.1)
-      Microsoft.Net.Http  - framework: net10, net11, net20, net30, net35, net40, net40-full
 GIT
   remote: https://github.com/ionide/FsAutoComplete.git
      (b4d61070e2de61e10418a21db2da2f10a9598e2e)
@@ -31,7 +30,7 @@ GIT
      (58ab704e354566063876c81e118453960afd5442)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (7faaaf53e4a8fbe04a4d2b4c1bfc5d09bd82eed6)
+    modules/Octokit/Octokit.fsx (cd7849e12cf4a6619863671828ed1b0418e90d7f)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
     Fable.Import.Axios.fs (318127fa718355e06b4b1c34d15d1bcaf61279bf)

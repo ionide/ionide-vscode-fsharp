@@ -1,3 +1,4 @@
+framework: net45
 source https://nuget.org/api/v2
 
 git https://github.com/ionide/FsAutoComplete.git keywords build:"build.cmd LocalRelease", OS: windows
@@ -10,6 +11,8 @@ git https://github.com/ionide/ionide-fsgrammar.git
 
 nuget FAKE
 nuget Npm.js
+nuget NUnit
+nuget FsUnit
 
 github fsharp/FAKE modules/Octokit/Octokit.fsx
 github Ionide/ionide-vscode-helpers Fable.Import.VSCode.fs

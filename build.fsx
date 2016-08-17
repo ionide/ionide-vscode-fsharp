@@ -46,7 +46,7 @@ let run cmd args dir =
             info.WorkingDirectory <- dir
         info.Arguments <- args
     ) System.TimeSpan.MaxValue = false then
-        traceError <| sprintf "Error while running '%s' with args: %s" cmd args
+        failwithf "Error while running '%s' with args: %s" cmd args
 
 
 let platformTool tool path =
@@ -57,9 +57,14 @@ let npmTool =
 
 let vsceTool =
     platformTool "vsce" ("packages" </> "Node.js" </> "vsce.cmd" |> FullName)
-    
+
 let codeTool =
     platformTool "code" (ProgramFilesX86  </> "Microsoft VS Code" </> "bin/code.cmd")
+
+
+let releaseTestsBin = "release_test/bin"
+let releaseBin      = "release/bin"
+let fsacBin         = "paket-files/github.com/ionide/FsAutoComplete/bin/release"
 
 
 // --------------------------------------------------------------------------------------
@@ -76,9 +81,24 @@ Target "RunScript" (fun () ->
     run npmTool "run build" "release"
 )
 
+Target "CopyFSACToTests" (fun _ ->
+    ensureDirectory releaseTestsBin
+    CleanDir releaseTestsBin
 
-let releaseBin  = "release/bin"
-let fsacBin     = "paket-files/github.com/ionide/FsAutoComplete/bin/release"
+    !! (fsacBin + "/*")
+    |> CopyFiles releaseTestsBin
+)
+
+Target "BuildTest" (fun () ->
+    run npmTool "install" "test"
+    run npmTool "run build" "test"
+)
+
+Target "RunTest" (fun () ->
+    run npmTool "install" "release_test"
+    run npmTool "run test" "release_test"
+)
+
 
 
 Target "CopyFSAC" (fun _ ->
@@ -86,7 +106,7 @@ Target "CopyFSAC" (fun _ ->
     CleanDir releaseBin
 
     !! (fsacBin + "/*")
-    |> CopyFiles  releaseBin
+    |> CopyFiles releaseBin
 )
 
 let releaseBinForge = "release/bin_forge"
@@ -205,10 +225,17 @@ Target "ReleaseGitHub" (fun _ ->
 Target "Default" DoNothing
 Target "Build" DoNothing
 Target "Release" DoNothing
+Target "Test" DoNothing
 
 "Clean"
 ==> "RunScript"
 ==> "Default"
+
+"CopyFSACToTests"
+==> "BuildTest"
+==> "RunTest"
+==> "Test"
+==> "BuildPackage"
 
 "Clean"
 ==> "RunScript"
