@@ -1,3 +1,4 @@
+framework: net45
 source https://nuget.org/api/v2
 
 git https://github.com/ionide/FsAutoComplete.git keywords build:"build.cmd LocalRelease", OS: windows

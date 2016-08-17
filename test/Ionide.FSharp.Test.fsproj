@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Name>Ionide.FSharp.Test</Name>
@@ -29,8 +29,11 @@
     <OutputPath>bin\Release</OutputPath>
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets')" />
   <ItemGroup>
+    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Helpers.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/Helpers.fs</Link>
+    </Compile>
     <Reference Include="Fable.Core">
       <HintPath>../release/node_modules/fable-core/Fable.Core.dll</HintPath>
     </Reference>
@@ -50,10 +53,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="paket.references" />
-    <Compile Include="../paket-files/Ionide/ionide-vscode-helpers/Helpers.fs">
-      <Link>paket-files/Helpers.fs</Link>
-      <Paket>true</Paket>
-    </Compile>
     <Compile Include="Test.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
