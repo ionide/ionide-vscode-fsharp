@@ -17,9 +17,17 @@ module Environment =
         if isWin then a + @"\" + b
         else a + "/" + b
 
-    let private dirExists dir = fs.statSync(dir).isDirectory()
+    let private dirExists dir =
+        try
+            fs.statSync(dir).isDirectory()
+        with
+        | _ -> false
 
-    let private fileExists file = fs.statSync(file).isFile()
+    let private fileExists file =
+        try
+            fs.statSync(file).isFile()
+        with
+        | _ -> false
 
     let private getOrElse defaultValue option =
         match option with
@@ -49,25 +57,25 @@ module Environment =
 
     let private getListDirectoriesToSearchForTools () =
         if isWin then
-            [ getToolsPathFromConfiguration (); getToolsPathWindows () ] 
+            [ getToolsPathFromConfiguration (); getToolsPathWindows () ]
         else
             [ getToolsPathFromConfiguration () ]
         |> List.choose id
-       
+
     let private findFirstValidFilePath exeName directoryList =
         directoryList
         |> List.map (fun v -> v </> exeName)
-        |> List.tryFind fileExists    
+        |> List.tryFind fileExists
 
     let private getFsiFilePath () =
         if isWin then
             let cfg = workspace.getConfiguration ()
             let fsiPath = cfg.get("FSharp.fsiFilePath", "")
-            if fsiPath = ""  then "FsiAnyCpu.exe" else fsiPath  
+            if fsiPath = ""  then "FsiAnyCpu.exe" else fsiPath
         else "fsharpi"
 
     let fsi =
-        let fileName = getFsiFilePath () 
+        let fileName = getFsiFilePath ()
         let dirs = getListDirectoriesToSearchForTools ()
         match findFirstValidFilePath fileName dirs with
         | None -> fileName
