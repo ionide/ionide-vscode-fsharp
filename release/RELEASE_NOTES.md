@@ -1,3 +1,6 @@
+### 2.2.18 - 18.08.2016
+* Fix path checking bug which resulted in supporting only F# 4.0
+
 ### 2.2.17 - 14.08.2016
 * Updated FSAC internal dependencies
     - Upgrade to F# 4.0
