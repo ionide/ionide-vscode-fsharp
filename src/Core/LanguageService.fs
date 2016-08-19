@@ -141,26 +141,15 @@ module LanguageService =
                 // Wait until FsAC sends the 'listener started' magic string until
                 // we inform the caller that it's ready to accept requests.
                 let isStartedMessage = (n.ToString().Contains(": listener started in"))
-<<<<<<< 1898be6147b8ca75c1b5fbc4515c1937f7b3325b
-                if isStartedMessage then
-                    Browser.console.log ("[IONIDE-FSAC-SIG] started message?", isStartedMessage)
-                    service <- Some child
-=======
                 if isStartedMessage then 
                     log.Debug ("got FSAC line, is it the started message? %s", isStartedMessage)
                     service <- Some child 
->>>>>>> Use logging API in LanguageService
                     resolve child
                 else
                    log.Debug ("got FSAC line: %j", n)
             )
-<<<<<<< 1898be6147b8ca75c1b5fbc4515c1937f7b3325b
-            |> Process.onErrorOutput (fun n ->
-                Browser.console.error (n.ToString())
-=======
             |> Process.onErrorOutput (fun n -> 
                 log.Error ("got FSAC error output: %j", n)
->>>>>>> Use logging API in LanguageService
                 reject ()
             )
             |> Process.onError (fun e ->
