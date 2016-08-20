@@ -141,6 +141,7 @@
       }
     ],
     "outputChannels": [
+      "F# Language Service",
       "F# Interactive",
       "Forge"
     ],
@@ -169,10 +170,13 @@
       "type": "object",
       "title": "FSharp configuration",
       "properties": {
-        "FSharp.logLanguageServiceRequestsToConsole": {
-          "type": "boolean",
-          "default": false,
-          "description": "Log language service (FSAC) requests to the developer tools console"
+        "FSharp.logLanguageServiceRequests": {
+            "type": "string",
+            "default": "none",
+            "description": "Enable logging language service requests (FSAC)  to an output channel, the developer tools console, or both",
+            "enum": [
+                "none", "output", "devconsole", "both"
+            ]
         },
         "FSharp.automaticProjectModification": {
           "type": "boolean",
