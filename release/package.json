@@ -178,6 +178,11 @@
                 "none", "output", "devconsole", "both"
             ]
         },
+        "FSharp.automaticProjectModification": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically modifies fsproj on file add/remove"
+        },
         "FSharp.toolsDirPath": {
           "type": "string",
           "default": "",
