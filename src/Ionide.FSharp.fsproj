@@ -44,6 +44,7 @@
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.Axios.fs</Link>
     </Compile>
+    <Compile Include="Core/Logging.fs" />
     <Compile Include="Core/DTO.fs" />
     <Compile Include="Core/LanguageService.fs" />
     <Compile Include="Core/Project.fs" />

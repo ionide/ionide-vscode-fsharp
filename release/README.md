@@ -2,7 +2,9 @@
 **Enhanced F# Language Features for Visual Studio Code**  
 _Part of the [Ionide](http://ionide.io) plugin suite._
 
-[Need Help? You can find us on Gitter](https://gitter.im/ionide/ionide-project) - [![Join the chat at https://gitter.im/ionide/ionide-project](https://img.shields.io/badge/gitter-join%20chat%20%E2%86%92-brightgreen.svg?style=flat-square)](https://gitter.im/ionide/ionide-project?utm_source=share-link&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[Need Help? You can find us on Gitter](https://gitter.im/ionide/ionide-project):
+
+[![Join the chat at https://gitter.im/ionide/ionide-project](https://img.shields.io/badge/gitter-join%20chat%20%E2%86%92-brightgreen.svg?style=flat-square)](https://gitter.im/ionide/ionide-project?utm_source=share-link&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # Getting Started
 
@@ -54,8 +56,6 @@ choco install visualstudiocode -y
 - Highlighting usages
 
 
-
-
 ## WebPreview
 `WebView` allows the user to override the default conventions used to run and preview web applications. To do so You need to create an `.ionide` file in the root folder of Your project opened by VSCode. The configuration file uses the [TOML](https://github.com/toml-lang/toml) language.
 
@@ -93,13 +93,21 @@ startingPage = ""
 * startingPage - webpage displayed in WebPreview - usually ` ` or `index.html`
 
 ## How to contribute
+
 [![](https://ci.appveyor.com/api/projects/status/5wqf80vub6hqywj8?svg=true)](https://ci.appveyor.com/project/Ionide/ionide-vscode-fsharp)
+
 1. Clone repo
 2. Run `build.cmd Build` (or `build.sh Build`)
 3. Open folder in VSCode `code .`
 4. Make changes
 5. Press `F5` to build plugin and start experimental instance of VSCode
 6. Make PR ;)
+
+## How to get logs for debugging / issue reporting
+
+1. Set `"FSharp.logLanguageServiceRequestsToConsole": true` in settings
+2. Toggle Developer Tools (`Help |> Toggle Developer Tools`)
+3. Go to console tab
 
 
 ## Contributing and copyright
