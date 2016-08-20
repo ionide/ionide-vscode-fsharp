@@ -256,4 +256,4 @@ Target "Test" DoNothing
 "BuildPackage"
 ==> "TryPackage"
 
-RunTargetOrDefault "Build"
+RunTargetOrDefault "Default"
