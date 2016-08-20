@@ -14,11 +14,22 @@ open Ionide.VSCode.Helpers
 module LanguageService =
     let ax =  Node.require.Invoke "axios" |>  unbox<Axios.AxiosStatic>
 
-    let logRequests =
+    let logRequestsToConsole =
         try
             workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsToConsole", false)
         with
         | _ -> false
+
+    let logRequestsToOutputWindow =
+        try
+            workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsToOutputWindow", false)
+        with
+        | _ -> false
+
+    // Always log to the logger, and let it decide where/if to write the message
+    let log =
+        let channel = if logRequestsToOutputWindow then Some (window.createOutputChannel "F# Language Service") else None
+        ConsoleAndOutputChannelLogger(Some "IONIDE-FSAC", INF, channel, logRequestsToConsole)
 
     let genPort () =
         let r = JS.Math.random ()
@@ -30,25 +41,33 @@ module LanguageService =
 
     let mutable private service : child_process_types.ChildProcess option =  None
 
-    let request<'a, 'b> ep id  (obj : 'a) =
-        if logRequests then Browser.console.log ("[IONIDE-FSAC-REQ]", id, ep, obj)
+    let request<'a, 'b> (ep: string) id  (obj : 'a) =       
+        log.Debug ("REQUEST  : %s, Request=%j", ep, obj)
+
+        // At the INFO level, it's nice to see only the key data to get an overview of
+        // what's happening, without being bombarded with too much detail
+        if JS.isDefined (obj?FileName) then
+            log.Info ("REQUEST  : %s, FileName=%j", ep, obj?FileName)
+        else if JS.isDefined (obj?Symbol) then
+            log.Info ("REQUEST  : %s, Symbol=%j", ep, obj?Symbol)
+        else
+            log.Info ("REQUEST  : %s", ep)
+
         ax.post (ep, obj)
         |> Promise.onFail (fun r ->
-            Browser.console.error ("[IONIDE-FSAC-ERR]", id, ep, r)
+            log.Error ("FAILED   : %s, Failure=%j Data=%j", ep, r.ToString(), obj)
             null |> unbox
         )
         |> Promise.map(fun r ->
             try
                 let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
-                if logRequests then
-                    match res?Kind |> unbox with
-                    | "error" -> Browser.console.error ("[IONIDE-FSAC-RES]", id, ep, res?Kind, res?Data)
-                    | _ -> Browser.console.info ("[IONIDE-FSAC-RES]", id, ep, res?Kind, res?Data)
+                log.Info ("RESPONSE : %s, Kind=%s", ep, res?Kind)
+                log.Debug ("RESPONSE : %s, Kind=%s, Data=%j", ep, res?Kind, res?Data)
                 if res?Kind |> unbox = "error" || res?Kind |> unbox = "info" then null |> unbox
                 else res
             with
             | ex ->
-                Browser.console.error ("[IONIDE-FSAC-ERR]", id, ep, r, ex)
+                log.Error ("RESPONSE : %s, Failure=%j, Data=%j", ep, ex.ToString(), obj)
                 null |> unbox
         )
 
@@ -122,19 +141,30 @@ module LanguageService =
                 // Wait until FsAC sends the 'listener started' magic string until
                 // we inform the caller that it's ready to accept requests.
                 let isStartedMessage = (n.ToString().Contains(": listener started in"))
+<<<<<<< 1898be6147b8ca75c1b5fbc4515c1937f7b3325b
                 if isStartedMessage then
                     Browser.console.log ("[IONIDE-FSAC-SIG] started message?", isStartedMessage)
                     service <- Some child
+=======
+                if isStartedMessage then 
+                    log.Debug ("got FSAC line, is it the started message? %s", isStartedMessage)
+                    service <- Some child 
+>>>>>>> Use logging API in LanguageService
                     resolve child
                 else
-                   Browser.console.log (n.ToString())
+                   log.Debug ("got FSAC line: %j", n)
             )
+<<<<<<< 1898be6147b8ca75c1b5fbc4515c1937f7b3325b
             |> Process.onErrorOutput (fun n ->
                 Browser.console.error (n.ToString())
+=======
+            |> Process.onErrorOutput (fun n -> 
+                log.Error ("got FSAC error output: %j", n)
+>>>>>>> Use logging API in LanguageService
                 reject ()
             )
             |> Process.onError (fun e ->
-                Browser.console.error (e.ToString())
+                log.Error ("got FSAC error: %j", e)
                 reject ()
             )
             |> ignore
