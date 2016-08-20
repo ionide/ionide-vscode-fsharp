@@ -19,11 +19,10 @@
     "linux": {
         "command": "${workspaceRoot}/build.sh"
     },
-    "args": [ "Build" ],
     "tasks": [
         {
             "taskName": "Default",
-            "args": [],
+            "args": ["Default"],
             "isBuildCommand": true
         }
     ]

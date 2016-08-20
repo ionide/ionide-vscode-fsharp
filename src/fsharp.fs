@@ -30,6 +30,7 @@ let activate(disposables: Disposable[]) =
         Rename.activate df' disposables
         WorkspaceSymbols.activate df' disposables
         QuickInfo.activate disposables
+        Linter.activate disposables
     )
     |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
     |> ignore

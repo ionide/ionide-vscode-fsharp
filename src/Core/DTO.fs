@@ -118,6 +118,12 @@ module DTO =
         Nested : Symbol []
     }
 
+    type Lint = {
+        Info : string
+        Input : string
+        Range : Range
+    }
+
 
     type Result<'T> = {Kind : string; Data : 'T}
     type CompilerLocationResult = Result<CompilerLocation>
@@ -129,3 +135,4 @@ module DTO =
     type FindDeclarationResult = Result<Declaration>
     type MethodResult = Result<Method>
     type DeclarationResult = Result<Symbols[]>
+    type LintResult = Result<Lint[]>
