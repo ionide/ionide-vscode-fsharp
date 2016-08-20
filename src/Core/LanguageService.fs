@@ -14,21 +14,28 @@ open Ionide.VSCode.Helpers
 module LanguageService =
     let ax =  Node.require.Invoke "axios" |>  unbox<Axios.AxiosStatic>
 
-    let logRequestsToConsole =
+    [<RequireQualifiedAccess>]
+    type LogConfigSetting = None | Output | DevConsole | Both
+    let logLanguageServiceRequestsConfigSetting =
         try
-            workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsToConsole", false)
+            let setting = workspace.getConfiguration().get("FSharp.logLanguageServiceRequests", "")
+            match setting with
+            | "devconsole" -> LogConfigSetting.DevConsole
+            | "output" -> LogConfigSetting.Output
+            | "both" -> LogConfigSetting.Both
+            | _ -> LogConfigSetting.None
         with
-        | _ -> false
-
-    let logRequestsToOutputWindow =
-        try
-            workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsToOutputWindow", false)
-        with
-        | _ -> false
+        | _ -> LogConfigSetting.None
 
     // Always log to the logger, and let it decide where/if to write the message
     let log =
-        let channel = if logRequestsToOutputWindow then Some (window.createOutputChannel "F# Language Service") else None
+        let channel, logRequestsToConsole =
+            match logLanguageServiceRequestsConfigSetting with
+            | LogConfigSetting.None -> None, false
+            | LogConfigSetting.Both -> Some (window.createOutputChannel "F# Language Service"), true
+            | LogConfigSetting.DevConsole -> None, true
+            | LogConfigSetting.Output -> Some (window.createOutputChannel "F# Language Service"), false
+
         ConsoleAndOutputChannelLogger(Some "IONIDE-FSAC", INF, channel, logRequestsToConsole)
 
     let genPort () =
@@ -41,7 +48,7 @@ module LanguageService =
 
     let mutable private service : child_process_types.ChildProcess option =  None
 
-    let request<'a, 'b> (ep: string) id  (obj : 'a) =       
+    let request<'a, 'b> (ep: string) id  (obj : 'a) =
         log.Debug ("REQUEST  : %s, Request=%j", ep, obj)
 
         // At the INFO level, it's nice to see only the key data to get an overview of
@@ -141,14 +148,14 @@ module LanguageService =
                 // Wait until FsAC sends the 'listener started' magic string until
                 // we inform the caller that it's ready to accept requests.
                 let isStartedMessage = (n.ToString().Contains(": listener started in"))
-                if isStartedMessage then 
+                if isStartedMessage then
                     log.Debug ("got FSAC line, is it the started message? %s", isStartedMessage)
-                    service <- Some child 
+                    service <- Some child
                     resolve child
                 else
                    log.Debug ("got FSAC line: %j", n)
             )
-            |> Process.onErrorOutput (fun n -> 
+            |> Process.onErrorOutput (fun n ->
                 log.Error ("got FSAC error output: %j", n)
                 reject ()
             )
