@@ -134,6 +134,10 @@ module LanguageService =
     let compilerLocation () =
         "" |> request (url "compilerlocation")  0
 
+    let lint s =
+        {ProjectRequest.FileName = s}
+        |> request (url "lint") 0
+
     let start' path =
         Promise.create (fun resolve reject ->
             let child =
