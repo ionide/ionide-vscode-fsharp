@@ -202,6 +202,11 @@
           "type": "boolean",
           "default": true,
           "description": "Includes keywords in autocomplete"
+        },
+        "FSharp.linter": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables integration with FSharpLinter (additional warnigns)"
         }
       }
     }

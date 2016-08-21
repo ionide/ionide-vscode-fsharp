@@ -22,8 +22,9 @@ module Linter =
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
     let private mapResult file (ev : LintResult) =
+        let setting = workspace.getConfiguration().get("FSharp.linter", true)
         let res =
-            if ev |> unbox <> null then
+            if ev |> unbox <> null && setting  then
                 ev.Data
                 |> Seq.map (fun d ->
                     let range = Range(float d.Range.StartLine - 1., float d.Range.StartColumn - 1., float d.Range.EndLine - 1., float d.Range.EndColumn - 1.)
