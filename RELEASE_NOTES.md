@@ -1,3 +1,6 @@
+### 2.4.0 - 21.08.2016
+* Add FSharpLinter integration
+
 ### 2.3.0 - 21.08.2016
 * Add new logging system
 * Fix keywords autocomplete edge case
