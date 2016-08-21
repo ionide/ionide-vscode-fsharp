@@ -13,27 +13,6 @@ open Ionide.VSCode.Helpers
 
 module Autocomplete =
 
-    [<Literal>]
-    let getWordAtPositionJS =
-        """
-    function getWordAt(str, pos) {
-    str = String(str);
-    pos = Number(pos) >>> 0;
-
-    var left = str.slice(0, pos + 1).search(/\S+$/),
-        right = str.slice(pos).search(/\s/);
-
-    if (right < 0) {
-        return str.slice(left);
-    }
-    return str.slice(left, right + pos);
-}
-getWordAt($0, $1)
-        """
-
-    [<Emit(getWordAtPositionJS)>]
-    let getWordAtPosition(str, post) : string = failwith "JS"
-
     let private createProvider () =
         let provider = createEmpty<CompletionItemProvider>
 
@@ -52,25 +31,23 @@ getWordAt($0, $1)
             | _   -> 0 |> unbox
 
         let mapCompletion (doc : TextDocument) (pos : Position) (o : CompletionResult) =
+            let lineStr = doc.getText(Range(pos.line, 0., pos.line, 1000. ))
+            let chars = lineStr.ToCharArray ()
+            let noSpaces = chars |> Array.filter ((<>) ' ')
+            let spacesCount = chars |> Array.take (int pos.character) |> Array.filter ((=) ' ') |> Array.length
+            let index =int pos.character - spacesCount - 1
+            let prevChar = noSpaces.[index]
+            let setting = workspace.getConfiguration().get("FSharp.keywordsAutocomplete", true)
+
             if o |> unbox <> null then
                 o.Data |> Array.choose (fun c ->
-                    let lineStr = doc.getText(Range(pos.line, 0., pos.line, 1000. ))
-                    let word = getWordAtPosition(lineStr, pos.character)
-                    Browser.console.log word
-                    if word <> "" then
-
-                        if word.Contains "." && c.GlyphChar = "K" then
-                            None
-                        else
-                            let range = doc.getWordRangeAtPosition pos
-                            let length = if JS.isDefined range then range.``end``.character - range.start.character else 0.
-                            let result = createEmpty<CompletionItem>
-                            result.kind <- c.GlyphChar |> convertToKind |> unbox
-                            result.label <- c.Name
-                            result.insertText <- c.ReplacementText
-                            Some result
+                    if c.GlyphChar = "K" && (setting = false) then
+                        None
+                    elif prevChar = '.' && c.GlyphChar = "K" then
+                        None
                     else
-                        let length = 0.
+                        let range = doc.getWordRangeAtPosition pos
+                        let length = if JS.isDefined range then range.``end``.character - range.start.character else 0.
                         let result = createEmpty<CompletionItem>
                         result.kind <- c.GlyphChar |> convertToKind |> unbox
                         result.label <- c.Name
