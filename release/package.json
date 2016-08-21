@@ -197,6 +197,11 @@
           "type": "string",
           "default": "",
           "description": "The path to the F# Interactive tool used by Ionide-FSharp"
+        },
+        "FSharp.keywordsAutocomplete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Includes keywords in autocomplete"
         }
       }
     }

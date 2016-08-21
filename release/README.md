@@ -105,10 +105,9 @@ startingPage = ""
 
 ## How to get logs for debugging / issue reporting
 
-1. Set `"FSharp.logLanguageServiceRequestsToConsole": true` in settings
+1. Set `"FSharp.logLanguageServiceRequests": "devconsole"` in settings
 2. Toggle Developer Tools (`Help |> Toggle Developer Tools`)
 3. Go to console tab
-
 
 ## Contributing and copyright
 
