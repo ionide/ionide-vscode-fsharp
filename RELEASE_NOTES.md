@@ -1,3 +1,8 @@
+### 2.3.0 - 21.08.2016
+* Add new logging system
+* Fix keywords autocomplete edge case
+* Add option to turn off keywords autocomplete
+
 ### 2.2.18 - 18.08.2016
 * Fix path checking bug which resulted in supporting only F# 4.0
 
