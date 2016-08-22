@@ -190,7 +190,7 @@ module LanguageService =
 
     let lint s =
         {ProjectRequest.FileName = s}
-        |> request (url "lint") 0
+        |> request ("lint") 0 (makeRequestId())
 
     let start' path =
         Promise.create (fun resolve reject ->
