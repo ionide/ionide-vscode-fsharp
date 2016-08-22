@@ -29,11 +29,11 @@ module LanguageService =
 
     let logLanguageServiceRequestsOutputWindowLevel =
         try
-            match workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsOutputWindowLevel", "INF") with
-            | "DBG" -> Level.DBG
-            | "INF" -> Level.INF
-            | "WRN" -> Level.WRN
-            | "ERR" -> Level.ERR
+            match workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsOutputWindowLevel", "INFO") with
+            | "DEBUG" -> Level.DBG
+            | "INFO" -> Level.INF
+            | "WARN" -> Level.WRN
+            | "ERROR" -> Level.ERR
             | _ -> Level.INF
         with
         | _ -> Level.INF

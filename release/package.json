@@ -180,9 +180,9 @@
         },
         "FSharp.logLanguageServiceRequestsOutputWindowLevel": {
             "type": "string",
-            "default": "INF",
+            "default": "INFO",
             "enum": [
-                "DBG", "INF", "WRN", "ERR"
+                "DEBUG", "INFO", "WARN", "ERROR"
             ]
         },
         "FSharp.automaticProjectModification": {
