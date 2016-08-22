@@ -8,7 +8,7 @@ module Logging =
 
     type Level = DBG|INF|WRN|ERR
         with
-            static member GetLevelNum level = match level with DBG->10|INF->20|WRN->30|ERR->40
+            static member GetLevelNum = function DBG->10|INF->20|WRN->30|ERR->40
             override this.ToString() = match this with ERR->"ERROR"|INF->"INFO"|WRN->"WARN"|DBG->"DEBUG"
             member this.isGreaterOrEqualTo level = Level.GetLevelNum(this) >= Level.GetLevelNum(level)
             member this.isLessOrEqualTo level = Level.GetLevelNum(this) <= Level.GetLevelNum(level)
