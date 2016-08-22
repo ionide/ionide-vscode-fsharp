@@ -54,9 +54,9 @@ module Logging =
                         (infoTemplateAndArgs: string * obj[]) =
             // OutputChannel: when at DBG level, use the DBG template and args, otherwise INF
             if out.IsSome then
-                if Level.DBG.isGreaterOrEqualTo(chanMinLevel) then
+                if chanMinLevel.isGreaterOrEqualTo(Level.DBG) then
                     writeOutputChannel out.Value DBG source (fst debugTemplateAndArgs) (snd debugTemplateAndArgs)
-                elif Level.INF.isGreaterOrEqualTo(chanMinLevel) then
+                elif chanMinLevel.isGreaterOrEqualTo(Level.INF) then
                     writeOutputChannel out.Value INF source (fst infoTemplateAndArgs) (snd infoTemplateAndArgs)
 
             // Console: when at DBG level, use the DBG template and args, otherwise INF
