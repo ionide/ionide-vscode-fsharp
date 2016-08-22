@@ -57,7 +57,7 @@ module LanguageService =
     let private makeRequestId =
         let mutable requestId = 0
         fun () -> (requestId <- requestId + 1); requestId
-    let private makePathWorkspaceRelative (path: string) =
+    let private relativePathForDisplay (path: string) =
         path.Replace(vscode.workspace.rootPath + platformPathSeparator, "~" + platformPathSeparator)
     let private makeOutgoingLogPrefix =
         let outgoingLogFormat = "REQ ({0:000}) ->"
@@ -71,14 +71,14 @@ module LanguageService =
         // At the INFO level, it's nice to see only the key data to get an overview of
         // what's happening, without being bombarded with too much detail
         let extraPropInfo =
-            if (JS.isDefined (obj?FileName)) then Some ", File = \"%s\"", Some (makePathWorkspaceRelative (obj?FileName |> unbox))
-            elif (JS.isDefined (obj?Project)) then Some ", Project = \"%s\"", Some (makePathWorkspaceRelative (obj?Project |> unbox))
+            if (JS.isDefined (obj?FileName)) then Some ", File = \"%s\"", Some (relativePathForDisplay (obj?FileName |> unbox))
+            elif (JS.isDefined (obj?Project)) then Some ", Project = \"%s\"", Some (relativePathForDisplay (obj?Project |> unbox))
             elif (JS.isDefined (obj?Symbol)) then Some ", Symbol = \"%s\"", Some (obj?Symbol |> unbox)
             else None, None
 
         match extraPropInfo with
         | None, None -> log.Info (makeOutgoingLogPrefix(id) + " {%s}", fsacAction)
-        | Some extraTmpl, extraArg -> log.Info (makeOutgoingLogPrefix(id) + " {%s}" + extraTmpl, fsacAction, extraArg)
+        | Some extraTmpl, Some extraArg -> log.Info (makeOutgoingLogPrefix(id) + " {%s}" + extraTmpl, fsacAction, extraArg)
         | _, _ -> failwithf "cannot happen %A" extraPropInfo
 
     let private logIncomingResponse id fsacAction (started: DateTime) (r: Axios.AxiosXHR<_>) (res: _ option) (ex: exn option) =
