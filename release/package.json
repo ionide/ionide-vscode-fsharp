@@ -178,6 +178,13 @@
                 "none", "output", "devconsole", "both"
             ]
         },
+        "FSharp.logLanguageServiceRequestsOutputWindowLevel": {
+            "type": "string",
+            "default": "INF",
+            "enum": [
+                "DBG", "INF", "WRN", "ERR"
+            ]
+        },
         "FSharp.automaticProjectModification": {
           "type": "boolean",
           "default": false,

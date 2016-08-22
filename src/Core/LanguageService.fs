@@ -27,6 +27,12 @@ module LanguageService =
         with
         | _ -> LogConfigSetting.None
 
+    let logLanguageServiceRequestsOutputWindowLevel =
+        try
+            workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsOutputWindowLevel", Level.INF)
+        with
+        | _ -> Level.INF
+
     // Always log to the logger, and let it decide where/if to write the message
     let log =
         let channel, logRequestsToConsole =
@@ -36,7 +42,8 @@ module LanguageService =
             | LogConfigSetting.DevConsole -> None, true
             | LogConfigSetting.Output -> Some (window.createOutputChannel "F# Language Service"), false
 
-        ConsoleAndOutputChannelLogger(Some "IONIDE-FSAC", INF, channel, logRequestsToConsole)
+        let consoleMinLevel = if logRequestsToConsole then DBG else WRN
+        ConsoleAndOutputChannelLogger(Some "IONIDE-FSAC", logLanguageServiceRequestsOutputWindowLevel, channel, Some consoleMinLevel)
 
     let genPort () =
         let r = JS.Math.random ()
@@ -50,7 +57,8 @@ module LanguageService =
     let private makeRequestId =
         let mutable requestId = 0
         fun () -> (requestId <- requestId + 1); requestId
-    let private makePathWorkspaceRelative (path: string) = path.Replace(vscode.workspace.rootPath, "~" + platformPathSeparator)
+    let private makePathWorkspaceRelative (path: string) =
+        path.Replace(vscode.workspace.rootPath + platformPathSeparator, "~" + platformPathSeparator)
     let private makeOutgoingLogPrefix =
         let outgoingLogFormat = "REQ ({0:000}) ->"
         fun (id:int) -> String.Format(outgoingLogFormat, id)
@@ -63,113 +71,113 @@ module LanguageService =
         // At the INFO level, it's nice to see only the key data to get an overview of
         // what's happening, without being bombarded with too much detail
         let extraPropInfo =
-            if (JS.isDefined (obj?FileName)) then Some ", File=%j", Some (makePathWorkspaceRelative (obj?FileName |> unbox))
-            elif (JS.isDefined (obj?Symbol)) then Some ", Symbol=%j", Some (obj?Symbol |> unbox)
-            elif (JS.isDefined (obj?Project)) then Some ", Project=%j", Some (obj?Project |> unbox)
+            if (JS.isDefined (obj?FileName)) then Some ", File = \"%s\"", Some (makePathWorkspaceRelative (obj?FileName |> unbox))
+            elif (JS.isDefined (obj?Project)) then Some ", Project = \"%s\"", Some (makePathWorkspaceRelative (obj?Project |> unbox))
+            elif (JS.isDefined (obj?Symbol)) then Some ", Symbol = \"%s\"", Some (obj?Symbol |> unbox)
             else None, None
 
         match extraPropInfo with
-        | None, None ->
-            log.Info (makeOutgoingLogPrefix(id) + " %s", fsacAction)
-        | Some extraTmpl, extraArg ->
-            log.Info (makeOutgoingLogPrefix(id) + " %s" + extraTmpl, fsacAction, extraArg)
+        | None, None -> log.Info (makeOutgoingLogPrefix(id) + " {%s}", fsacAction)
+        | Some extraTmpl, extraArg -> log.Info (makeOutgoingLogPrefix(id) + " {%s}" + extraTmpl, fsacAction, extraArg)
         | _, _ -> failwithf "cannot happen %A" extraPropInfo
 
     let private logIncomingResponse id fsacAction (started: DateTime) (r: Axios.AxiosXHR<_>) (res: _ option) (ex: exn option) =
         let elapsed = DateTime.Now - started
-        log.Debug (makeIncomingLogPrefix(id) + " HTTP %s response %s in %s ms: %j", r.config.method, r.statusText, elapsed.TotalMilliseconds, r.data)
         match res, ex with
         | Some res, None ->
-            log.Info (makeIncomingLogPrefix(id) + " %s in %s ms: Kind=%s ", fsacAction, elapsed.TotalMilliseconds, res?Kind)
-            log.Debug (makeIncomingLogPrefix(id) + " %s in %s ms: Kind=%s, Data=%j", fsacAction, elapsed.TotalMilliseconds, res?Kind, res?Data)
+            let debugLog : string*obj[] = makeIncomingLogPrefix(id) + " {%s} in %s ms: Kind={\"%s\"}\nData=%j",
+                                          [| fsacAction; elapsed.TotalMilliseconds; res?Kind; res?Data |]
+            let infoLog : string*obj[] = makeIncomingLogPrefix(id) + " {%s} in %s ms: Kind={\"%s\"} ",
+                                          [| fsacAction; elapsed.TotalMilliseconds; res?Kind |]
+            log.DebugOrInfo debugLog infoLog
         | None, Some ex ->
-            log.Error (makeIncomingLogPrefix(id) + " %s ERROR in %s ms: %j, Data=%j", fsacAction, elapsed.TotalMilliseconds, ex.ToString(), obj)
-        | _, _ -> log.Error(makeIncomingLogPrefix(id) + " %s ERROR in %s ms: %j, %j, %j", fsacAction, elapsed.TotalMilliseconds, res, ex.ToString(), obj)
+            log.Error (makeIncomingLogPrefix(id) + " {%s} ERROR in %s ms: {%j}, Data=%j", fsacAction, elapsed.TotalMilliseconds, ex.ToString(), obj)
+        | _, _ -> log.Error(makeIncomingLogPrefix(id) + " {%s} ERROR in %s ms: %j, %j, %j", fsacAction, elapsed.TotalMilliseconds, res, ex.ToString(), obj)
 
     let private logIncomingResponseError id fsacAction (started: DateTime) (r: obj) =
         let elapsed = DateTime.Now - started
-        log.Error (makeIncomingLogPrefix(id) + " %s ERROR in %s ms: %s Data=%j",
+        log.Error (makeIncomingLogPrefix(id) + " {%s} ERROR in %s ms: %s Data=%j",
                     fsacAction, elapsed.TotalMilliseconds, r.ToString(), obj)
 
-    let private request<'a, 'b> (fsacAction: string) id (obj : 'a) =
+    let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
         let started = DateTime.Now
         let fullRequestUrl = url fsacAction
-        logOutgoingRequest id fsacAction obj
+        logOutgoingRequest requestId fsacAction obj
 
         ax.post (fullRequestUrl, obj)
         |> Promise.onFail (fun r ->
             // The outgoing request was not made
-            logIncomingResponseError id fsacAction started r
+            logIncomingResponseError requestId fsacAction started r
             null |> unbox
         )
         |> Promise.map(fun r ->
             // the outgoing request was made
             try
-                let res = (r.data |> unbox<string[]>).[0] |> JS.JSON.parse |> unbox<'b>
-                logIncomingResponse id fsacAction started r (Some res) None
+                let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
+                logIncomingResponse requestId fsacAction started r (Some res) None
                 if res?Kind |> unbox = "error" || res?Kind |> unbox = "info" then null |> unbox
                 else res
             with
             | ex ->
-                logIncomingResponse id fsacAction started r None (Some ex)
+                logIncomingResponse requestId fsacAction started r None (Some ex)
                 null |> unbox
         )
 
     let project s =
         {ProjectRequest.FileName = s}
-        |> request ("project") (makeRequestId())
+        |> request ("project") 0 (makeRequestId())
 
     let parseProject () =
         ""
-        |> request ("parseProjects") (makeRequestId())
+        |> request ("parseProjects") 0 (makeRequestId())
 
     let parse path (text : string) =
         let lines = text.Replace("\uFEFF", "").Split('\n')
         {ParseRequest.FileName = path; ParseRequest.Lines = lines; ParseRequest.IsAsync = true }
-        |> request ("parse") (makeRequestId())
+        |> request ("parse") 0 (makeRequestId())
 
     let helptext s =
         {HelptextRequest.Symbol = s}
-        |> request ("helptext") (makeRequestId())
+        |> request ("helptext") 0 (makeRequestId())
 
     let completion fn sl line col =
         {CompletionRequest.Line = line; FileName = fn; Column = col; Filter = "Contains"; SourceLine = sl}
-        |> request ("completion") (makeRequestId())
+        |> request ("completion") 0 (makeRequestId())
 
     let symbolUse fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("symboluse") (makeRequestId())
+        |> request ("symboluse") 0 (makeRequestId())
 
     let symbolUseProject fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("symboluseproject") (makeRequestId())
+        |> request ("symboluseproject") 0 (makeRequestId())
 
     let methods fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("methods") (makeRequestId())
+        |> request ("methods") 0 (makeRequestId())
 
     let tooltip fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("tooltip") (makeRequestId())
+        |> request ("tooltip") 0 (makeRequestId())
 
     let toolbar fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("tooltip") (makeRequestId())
+        |> request ("tooltip") 0 (makeRequestId())
 
     let findDeclaration fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("finddeclaration") (makeRequestId())
+        |> request ("finddeclaration") 0 (makeRequestId())
 
     let declarations fn =
         {DeclarationsRequest.FileName = fn}
-        |> request ("declarations") (makeRequestId())
+        |> request ("declarations") 0 (makeRequestId())
 
 
     let declarationsProjects () =
-        "" |> request ("declarationsProjects") (makeRequestId())
+        "" |> request ("declarationsProjects") 0 (makeRequestId())
 
     let compilerLocation () =
-        "" |> request ("compilerlocation") (makeRequestId())
+        "" |> request ("compilerlocation") 0 (makeRequestId())
 
     let lint s =
         {ProjectRequest.FileName = s}
