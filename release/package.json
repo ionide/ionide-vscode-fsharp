@@ -173,7 +173,7 @@
         "FSharp.logLanguageServiceRequests": {
             "type": "string",
             "default": "none",
-            "description": "Enable logging language service requests (FSAC)  to an output channel, the developer tools console, or both",
+            "description": "Enable logging for F# Language Service requests (FSAC) to either an output channel, the developer tools console, or both",
             "enum": [
                 "none", "output", "devconsole", "both"
             ]
@@ -181,7 +181,7 @@
         "FSharp.logLanguageServiceRequestsOutputWindowLevel": {
             "type": "string",
             "default": "INFO",
-            "description": "Determines how verbose the output window logging is.",
+            "description": "Set the verbosity for F# Language Service Output Channel",
             "enum": [
                 "DEBUG", "INFO", "WARN", "ERROR"
             ]
@@ -237,7 +237,7 @@
   ],
   "extensionDependencies": [
     "vscode.fsharp"
-  ],
+  ],  
   "scripts": {
     "build": "fable ../src/Ionide.FSharp.fsproj -s -o ../release -m commonjs --verbose"
   },
@@ -248,8 +248,8 @@
     "xhr2": "*"
   },
   "devDependencies": {
-    "fable-compiler": "^0.5.4",
+    "fable-compiler": "^0.5.6",
     "mocha": "^3.0.2",
-    "vscode": "^0.11.15"
+    "vscode": "^0.11.17"
   }
 }

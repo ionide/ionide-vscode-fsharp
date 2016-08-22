@@ -76,7 +76,7 @@ Target "Clean" (fun _ ->
     CopyFiles "release" ["README.md"; "LICENSE.md"; "RELEASE_NOTES.md"]
 )
 
-Target "RunScript" (fun () ->
+Target "RunScript" (fun _ ->
     run npmTool "install" "release"
     run npmTool "run build" "release"
 )
@@ -89,12 +89,12 @@ Target "CopyFSACToTests" (fun _ ->
     |> CopyFiles releaseTestsBin
 )
 
-Target "BuildTest" (fun () ->
+Target "BuildTest" (fun _ ->
     run npmTool "install" "test"
     run npmTool "run build" "test"
 )
 
-Target "RunTest" (fun () ->
+Target "RunTest" (fun _ ->
     run npmTool "install" "release_test"
     run npmTool "run test" "release_test"
 )
@@ -235,7 +235,7 @@ Target "Test" DoNothing
 ==> "BuildTest"
 ==> "RunTest"
 ==> "Test"
-==> "BuildPackage"
+//==> "BuildPackage"
 
 "Clean"
 ==> "RunScript"
