@@ -76,7 +76,6 @@ module LanguageService =
         fun (id:int) -> String.Format(incomingLogFormat, id)
 
     let private logOutgoingRequest id (fsacAction:string) obj =
-        // log.Debug (makeOutgoingLogPrefix(id) + " %s: Request=%j", fsacAction, obj)
         // At the INFO level, it's nice to see only the key data to get an overview of
         // what's happening, without being bombarded with too much detail
         let extraPropInfo =
