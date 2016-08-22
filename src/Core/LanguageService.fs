@@ -68,12 +68,8 @@ module LanguageService =
         fun () -> (requestId <- requestId + 1); requestId
     let private relativePathForDisplay (path: string) =
         path.Replace(vscode.workspace.rootPath + platformPathSeparator, "~" + platformPathSeparator)
-    let private makeOutgoingLogPrefix =
-        let outgoingLogFormat = "REQ ({0:000}) ->"
-        fun (id:int) -> String.Format(outgoingLogFormat, id)
-    let private makeIncomingLogPrefix =
-        let incomingLogFormat = "RES ({0:000}) <-"
-        fun (id:int) -> String.Format(incomingLogFormat, id)
+    let private makeOutgoingLogPrefix (id:int) = String.Format("REQ ({0:000}) ->", id)
+    let private makeIncomingLogPrefix (id:int) = String.Format("RES ({0:000}) <-", id)
 
     let private logOutgoingRequest id (fsacAction:string) obj =
         // At the INFO level, it's nice to see only the key data to get an overview of
