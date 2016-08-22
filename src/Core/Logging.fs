@@ -8,8 +8,8 @@ module Logging =
 
     type Level = DBG|INF|WRN|ERR
         with
-            static member GetLevelNum level = match level with DBG->10|INF->20|WRN->30|ERR->40        
-            override this.ToString() = match this with ERR->"ERR"|INF->"INF"|WRN->"WRN"|DBG->"DBG" 
+            static member GetLevelNum level = match level with DBG->10|INF->20|WRN->30|ERR->40
+            override this.ToString() = match this with ERR->"ERROR"|INF->"INFO " |WRN->"WARN "|DBG->"DEBUG"
             member this.isGreaterOrEqualTo level = Level.GetLevelNum(this) >= Level.GetLevelNum(level)
 
     let internal write (out: OutputChannel option)
@@ -22,7 +22,7 @@ module Logging =
         if consoleMinLevel.IsSome && level.isGreaterOrEqualTo(consoleMinLevel.Value) then
             // just replace %j (Util.format->JSON specifier --> console->OBJECT %O specifier)
             // the other % specifiers are basically the same
-            let browserLogTemplate = "[" + source.ToString() + "] " + template.Replace("%j", "%O")
+            let browserLogTemplate = String.Format("[{0,5}] {1}", source.ToString().PadRight(5), template.Replace("%j", "%O"))
             match args.Length with
             | 0 -> Fable.Import.Browser.console.log (browserLogTemplate)
             | 1 -> Fable.Import.Browser.console.log (browserLogTemplate, args.[0])
@@ -33,7 +33,7 @@ module Logging =
 
         if level.isGreaterOrEqualTo(chanMinLevel) then
             match out with
-            | Some chan -> 
+            | Some chan ->
                 let formattedMessage = util.format(template, args).Replace("\n", " ")
                 let formattedLogLine = String.Format("[{0:HH:mm:ss} {1}] {2}", DateTime.Now, string level, formattedMessage)
                 chan.appendLine (formattedLogLine)
