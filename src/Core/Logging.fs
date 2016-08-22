@@ -9,14 +9,14 @@ module Logging =
     type Level = DBG|INF|WRN|ERR
         with
             static member GetLevelNum level = match level with DBG->10|INF->20|WRN->30|ERR->40
-            override this.ToString() = match this with ERR->"ERROR"|INF->"INFO " |WRN->"WARN "|DBG->"DEBUG"
+            override this.ToString() = match this with ERR->"ERROR"|INF->"INFO"|WRN->"WARN"|DBG->"DEBUG"
             member this.isGreaterOrEqualTo level = Level.GetLevelNum(this) >= Level.GetLevelNum(level)
             member this.isLessOrEqualTo level = Level.GetLevelNum(this) <= Level.GetLevelNum(level)
 
     let private writeDevToolsConsole (level: Level) (source: string option) (template: string) (args: obj[]) =
         // just replace %j (Util.format->JSON specifier --> console->OBJECT %O specifier)
         // the other % specifiers are basically the same
-        let browserLogTemplate = String.Format("[{0,5}] {1}", source.ToString().PadRight(5), template.Replace("%j", "%O"))
+        let browserLogTemplate = String.Format("[{0}] {1}", source.ToString(), template.Replace("%j", "%O"))
         match args.Length with
         | 0 -> Fable.Import.Browser.console.log (browserLogTemplate)
         | 1 -> Fable.Import.Browser.console.log (browserLogTemplate, args.[0])
@@ -27,7 +27,7 @@ module Logging =
 
     let private writeOutputChannel (out: OutputChannel) level source template args =
         let formattedMessage = util.format(template, args)
-        let formattedLogLine = String.Format("[{0:HH:mm:ss} {1}] {2}", DateTime.Now, string level, formattedMessage)
+        let formattedLogLine = String.Format("[{0:HH:mm:ss} {1,-5}] {2}", DateTime.Now, string level, formattedMessage)
         out.appendLine (formattedLogLine)
 
     let private writeBothIfConfigured (out: OutputChannel option)
