@@ -181,6 +181,7 @@
         "FSharp.logLanguageServiceRequestsOutputWindowLevel": {
             "type": "string",
             "default": "INFO",
+            "description": "Determines how verbose the output window logging is.",
             "enum": [
                 "DEBUG", "INFO", "WARN", "ERROR"
             ]
