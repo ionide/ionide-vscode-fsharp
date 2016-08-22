@@ -1,3 +1,6 @@
+### 2.4.2 - 23.08.2016
+* Fix autocomplete bug
+
 ### 2.4.1 - 21.08.2016
 * Add detailed logging to F# Language Service Output Channel
 
