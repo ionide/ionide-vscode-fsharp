@@ -11,6 +11,7 @@ module Logging =
             static member GetLevelNum level = match level with DBG->10|INF->20|WRN->30|ERR->40
             override this.ToString() = match this with ERR->"ERROR"|INF->"INFO " |WRN->"WARN "|DBG->"DEBUG"
             member this.isGreaterOrEqualTo level = Level.GetLevelNum(this) >= Level.GetLevelNum(level)
+            member this.isLessOrEqualTo level = Level.GetLevelNum(this) <= Level.GetLevelNum(level)
 
     let private writeDevToolsConsole (level: Level) (source: string option) (template: string) (args: obj[]) =
         // just replace %j (Util.format->JSON specifier --> console->OBJECT %O specifier)
@@ -54,9 +55,9 @@ module Logging =
                         (infoTemplateAndArgs: string * obj[]) =
             // OutputChannel: when at DBG level, use the DBG template and args, otherwise INF
             if out.IsSome then
-                if chanMinLevel.isGreaterOrEqualTo(Level.DBG) then
+                if chanMinLevel.isLessOrEqualTo(Level.DBG) then
                     writeOutputChannel out.Value DBG source (fst debugTemplateAndArgs) (snd debugTemplateAndArgs)
-                elif chanMinLevel.isGreaterOrEqualTo(Level.INF) then
+                elif chanMinLevel.isLessOrEqualTo(Level.INF) then
                     writeOutputChannel out.Value INF source (fst infoTemplateAndArgs) (snd infoTemplateAndArgs)
 
             // Console: when at DBG level, use the DBG template and args, otherwise INF
