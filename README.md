@@ -105,9 +105,18 @@ startingPage = ""
 
 ## How to get logs for debugging / issue reporting
 
-1. Set `"FSharp.logLanguageServiceRequests": "devconsole"` in settings
-2. Toggle Developer Tools (`Help |> Toggle Developer Tools`)
-3. Go to console tab
+1. Enable Logging in User settings with
+  ```json
+// FSharp configuration
+    // Set the verbosity for F# Language Service Output Channel
+    "FSharp.logLanguageServiceRequestsOutputWindowLevel": "DEBUG",
+
+    // Enable logging language service requests (FSAC)  to an output channel, the developer tools console, or both
+    "FSharp.logLanguageServiceRequests": "both"
+  ```
+2. Open the Output Panel and switch to the `F# Language Service` Channel
+3. Or Toggle Developer Tools (`Help |> Toggle Developer Tools`) and open the console tab
+
 
 ## Contributing and copyright
 
