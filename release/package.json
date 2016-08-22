@@ -178,6 +178,14 @@
                 "none", "output", "devconsole", "both"
             ]
         },
+        "FSharp.logLanguageServiceRequestsOutputWindowLevel": {
+            "type": "string",
+            "default": "INFO",
+            "description": "Determines how verbose the output window logging is.",
+            "enum": [
+                "DEBUG", "INFO", "WARN", "ERROR"
+            ]
+        },
         "FSharp.automaticProjectModification": {
           "type": "boolean",
           "default": false,
