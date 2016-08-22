@@ -146,7 +146,7 @@ module LanguageService =
 
     let completion fn sl line col =
         {CompletionRequest.Line = line; FileName = fn; Column = col; Filter = "Contains"; SourceLine = sl}
-        |> request "completion" 0 (makeRequestId())
+        |> request "completion" 1 (makeRequestId())
 
     let symbolUse fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
