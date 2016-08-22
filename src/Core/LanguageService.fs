@@ -68,10 +68,10 @@ module LanguageService =
         fun () -> (requestId <- requestId + 1); requestId
     let private relativePathForDisplay (path: string) =
         path.Replace(vscode.workspace.rootPath + platformPathSeparator, "~" + platformPathSeparator)
-    let private makeOutgoingLogPrefix (id:int) = String.Format("REQ ({0:000}) ->", id)
-    let private makeIncomingLogPrefix (id:int) = String.Format("RES ({0:000}) <-", id)
+    let private makeOutgoingLogPrefix (requestId:int) = String.Format("REQ ({0:000}) ->", requestId)
+    let private makeIncomingLogPrefix (requestId:int) = String.Format("RES ({0:000}) <-", requestId)
 
-    let private logOutgoingRequest id (fsacAction:string) obj =
+    let private logOutgoingRequest requestId (fsacAction:string) obj =
         // At the INFO level, it's nice to see only the key data to get an overview of
         // what's happening, without being bombarded with too much detail
         let extraPropInfo =
@@ -81,26 +81,26 @@ module LanguageService =
             else None, None
 
         match extraPropInfo with
-        | None, None -> log.Info (makeOutgoingLogPrefix(id) + " {%s}", fsacAction)
-        | Some extraTmpl, Some extraArg -> log.Info (makeOutgoingLogPrefix(id) + " {%s}" + extraTmpl, fsacAction, extraArg)
+        | None, None -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}", fsacAction)
+        | Some extraTmpl, Some extraArg -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}" + extraTmpl, fsacAction, extraArg)
         | _, _ -> failwithf "cannot happen %A" extraPropInfo
 
-    let private logIncomingResponse id fsacAction (started: DateTime) (r: Axios.AxiosXHR<_>) (res: _ option) (ex: exn option) =
+    let private logIncomingResponse requestId fsacAction (started: DateTime) (r: Axios.AxiosXHR<_>) (res: _ option) (ex: exn option) =
         let elapsed = DateTime.Now - started
         match res, ex with
         | Some res, None ->
-            let debugLog : string*obj[] = makeIncomingLogPrefix(id) + " {%s} in %s ms: Kind={\"%s\"}\nData=%j",
+            let debugLog : string*obj[] = makeIncomingLogPrefix(requestId) + " {%s} in %s ms: Kind={\"%s\"}\nData=%j",
                                           [| fsacAction; elapsed.TotalMilliseconds; res?Kind; res?Data |]
-            let infoLog : string*obj[] = makeIncomingLogPrefix(id) + " {%s} in %s ms: Kind={\"%s\"} ",
+            let infoLog : string*obj[] = makeIncomingLogPrefix(requestId) + " {%s} in %s ms: Kind={\"%s\"} ",
                                           [| fsacAction; elapsed.TotalMilliseconds; res?Kind |]
             log.DebugOrInfo debugLog infoLog
         | None, Some ex ->
-            log.Error (makeIncomingLogPrefix(id) + " {%s} ERROR in %s ms: {%j}, Data=%j", fsacAction, elapsed.TotalMilliseconds, ex.ToString(), obj)
-        | _, _ -> log.Error(makeIncomingLogPrefix(id) + " {%s} ERROR in %s ms: %j, %j, %j", fsacAction, elapsed.TotalMilliseconds, res, ex.ToString(), obj)
+            log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: {%j}, Data=%j", fsacAction, elapsed.TotalMilliseconds, ex.ToString(), obj)
+        | _, _ -> log.Error(makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %j, %j, %j", fsacAction, elapsed.TotalMilliseconds, res, ex.ToString(), obj)
 
-    let private logIncomingResponseError id fsacAction (started: DateTime) (r: obj) =
+    let private logIncomingResponseError requestId fsacAction (started: DateTime) (r: obj) =
         let elapsed = DateTime.Now - started
-        log.Error (makeIncomingLogPrefix(id) + " {%s} ERROR in %s ms: %s Data=%j",
+        log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %s Data=%j",
                     fsacAction, elapsed.TotalMilliseconds, r.ToString(), obj)
 
     let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
