@@ -30,13 +30,13 @@ module LanguageService =
     let logLanguageServiceRequestsOutputWindowLevel =
         try
             match workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsOutputWindowLevel", "INFO") with
-            | "DEBUG" -> Level.DBG
-            | "INFO" -> Level.INF
-            | "WARN" -> Level.WRN
-            | "ERROR" -> Level.ERR
-            | _ -> Level.INF
+            | "DEBUG" -> Level.DEBUG
+            | "INFO" -> Level.INFO
+            | "WARN" -> Level.WARN
+            | "ERROR" -> Level.ERROR
+            | _ -> Level.INFO
         with
-        | _ -> Level.INF
+        | _ -> Level.INFO
 
     // Always log to the logger, and let it decide where/if to write the message
     let log =
@@ -47,11 +47,11 @@ module LanguageService =
             | LogConfigSetting.DevConsole -> None, true
             | LogConfigSetting.Output -> Some (window.createOutputChannel "F# Language Service"), false
 
-        let consoleMinLevel = if logRequestsToConsole then DBG else WRN
+        let consoleMinLevel = if logRequestsToConsole then DEBUG else WARN
         let inst = ConsoleAndOutputChannelLogger(Some "IONIDE-FSAC", logLanguageServiceRequestsOutputWindowLevel, channel, Some consoleMinLevel)
-        if logLanguageServiceRequestsOutputWindowLevel <> Level.DBG then
-            let levelString = logLanguageServiceRequestsOutputWindowLevel.ToString().Trim()
-            inst.Info ("Logging to output at level %s. If you want detailed messages, try level DBG.", levelString)
+        if logLanguageServiceRequestsOutputWindowLevel <> Level.DEBUG then
+            let levelString = logLanguageServiceRequestsOutputWindowLevel.ToString()
+            inst.Info ("Logging to output at level %s. If you want detailed messages, try level DEBUG.", levelString)
         inst
 
     let genPort () =
