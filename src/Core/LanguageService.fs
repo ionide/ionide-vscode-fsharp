@@ -48,7 +48,11 @@ module LanguageService =
             | LogConfigSetting.Output -> Some (window.createOutputChannel "F# Language Service"), false
 
         let consoleMinLevel = if logRequestsToConsole then DBG else WRN
-        ConsoleAndOutputChannelLogger(Some "IONIDE-FSAC", logLanguageServiceRequestsOutputWindowLevel, channel, Some consoleMinLevel)
+        let inst = ConsoleAndOutputChannelLogger(Some "IONIDE-FSAC", logLanguageServiceRequestsOutputWindowLevel, channel, Some consoleMinLevel)
+        if logLanguageServiceRequestsOutputWindowLevel <> Level.DBG then
+            let levelString = logLanguageServiceRequestsOutputWindowLevel.ToString().Trim()
+            inst.Info ("Logging to output at level %s. If you want detailed messages, try level DBG.", levelString)
+        inst
 
     let genPort () =
         let r = JS.Math.random ()
