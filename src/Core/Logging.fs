@@ -47,20 +47,20 @@ module Logging =
     /// https://nodejs.org/api/util.html#util_util_format_format
     type ConsoleAndOutputChannelLogger(source: string option, chanMinLevel: Level, out:OutputChannel option, consoleMinLevel: Level option) =
 
-        /// Logs a different message in either DBG (if enabled) or INF (otherwise).
+        /// Logs a different message in either DEBUG (if enabled) or INFO (otherwise).
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.DebugOrInfo
                         (debugTemplateAndArgs: string * obj[])
                         (infoTemplateAndArgs: string * obj[]) =
-            // OutputChannel: when at DBG level, use the DBG template and args, otherwise INF
+            // OutputChannel: when at DEBUG level, use the DEBUG template and args, otherwise INFO
             if out.IsSome then
                 if chanMinLevel.isLessOrEqualTo(Level.DEBUG) then
                     writeOutputChannel out.Value DEBUG source (fst debugTemplateAndArgs) (snd debugTemplateAndArgs)
                 elif chanMinLevel.isLessOrEqualTo(Level.INFO) then
                     writeOutputChannel out.Value INFO source (fst infoTemplateAndArgs) (snd infoTemplateAndArgs)
 
-            // Console: when at DBG level, use the DBG template and args, otherwise INF
+            // Console: when at DEBUG level, use the DEBUG template and args, otherwise INFO
             if consoleMinLevel.IsSome then
                 if Level.DEBUG.isGreaterOrEqualTo(consoleMinLevel.Value) then
                     writeDevToolsConsole DEBUG source (fst debugTemplateAndArgs) (snd debugTemplateAndArgs)
