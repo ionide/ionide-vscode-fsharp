@@ -29,14 +29,14 @@ module LanguageService =
 
     let logLanguageServiceRequestsOutputWindowLevel =
         try
-            match workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsOutputWindowLevel", "INF") with
-            | "DBG" -> Level.DBG
-            | "INF" -> Level.INF
-            | "WRN" -> Level.WRN
-            | "ERR" -> Level.ERR
-            | _ -> Level.INF
+            match workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsOutputWindowLevel", "INFO") with
+            | "DEBUG" -> Level.DEBUG
+            | "INFO" -> Level.INFO
+            | "WARN" -> Level.WARN
+            | "ERROR" -> Level.ERROR
+            | _ -> Level.INFO
         with
-        | _ -> Level.INF
+        | _ -> Level.INFO
 
     // Always log to the logger, and let it decide where/if to write the message
     let log =
@@ -47,11 +47,11 @@ module LanguageService =
             | LogConfigSetting.DevConsole -> None, true
             | LogConfigSetting.Output -> Some (window.createOutputChannel "F# Language Service"), false
 
-        let consoleMinLevel = if logRequestsToConsole then DBG else WRN
+        let consoleMinLevel = if logRequestsToConsole then DEBUG else WARN
         let inst = ConsoleAndOutputChannelLogger(Some "IONIDE-FSAC", logLanguageServiceRequestsOutputWindowLevel, channel, Some consoleMinLevel)
-        if logLanguageServiceRequestsOutputWindowLevel <> Level.DBG then
-            let levelString = logLanguageServiceRequestsOutputWindowLevel.ToString().Trim()
-            inst.Info ("Logging to output at level %s. If you want detailed messages, try level DBG.", levelString)
+        if logLanguageServiceRequestsOutputWindowLevel <> Level.DEBUG then
+            let levelString = logLanguageServiceRequestsOutputWindowLevel.ToString()
+            inst.Info ("Logging to output at level %s. If you want detailed messages, try level DEBUG.", levelString)
         inst
 
     let genPort () =
@@ -68,44 +68,39 @@ module LanguageService =
         fun () -> (requestId <- requestId + 1); requestId
     let private relativePathForDisplay (path: string) =
         path.Replace(vscode.workspace.rootPath + platformPathSeparator, "~" + platformPathSeparator)
-    let private makeOutgoingLogPrefix =
-        let outgoingLogFormat = "REQ ({0:000}) ->"
-        fun (id:int) -> String.Format(outgoingLogFormat, id)
-    let private makeIncomingLogPrefix =
-        let incomingLogFormat = "RES ({0:000}) <-"
-        fun (id:int) -> String.Format(incomingLogFormat, id)
+    let private makeOutgoingLogPrefix (requestId:int) = String.Format("REQ ({0:000}) ->", requestId)
+    let private makeIncomingLogPrefix (requestId:int) = String.Format("RES ({0:000}) <-", requestId)
 
-    let private logOutgoingRequest id (fsacAction:string) obj =
-        // log.Debug (makeOutgoingLogPrefix(id) + " %s: Request=%j", fsacAction, obj)
+    let private logOutgoingRequest requestId (fsacAction:string) obj =
         // At the INFO level, it's nice to see only the key data to get an overview of
         // what's happening, without being bombarded with too much detail
         let extraPropInfo =
-            if (JS.isDefined (obj?FileName)) then Some ", File = \"%s\"", Some (relativePathForDisplay (obj?FileName |> unbox))
-            elif (JS.isDefined (obj?Project)) then Some ", Project = \"%s\"", Some (relativePathForDisplay (obj?Project |> unbox))
-            elif (JS.isDefined (obj?Symbol)) then Some ", Symbol = \"%s\"", Some (obj?Symbol |> unbox)
+            if JS.isDefined (obj?FileName) then Some ", File = \"%s\"", Some (relativePathForDisplay (obj?FileName |> unbox))
+            elif JS.isDefined (obj?Project) then Some ", Project = \"%s\"", Some (relativePathForDisplay (obj?Project |> unbox))
+            elif JS.isDefined (obj?Symbol) then Some ", Symbol = \"%s\"", Some (obj?Symbol |> unbox)
             else None, None
 
         match extraPropInfo with
-        | None, None -> log.Info (makeOutgoingLogPrefix(id) + " {%s}", fsacAction)
-        | Some extraTmpl, Some extraArg -> log.Info (makeOutgoingLogPrefix(id) + " {%s}" + extraTmpl, fsacAction, extraArg)
+        | None, None -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}", fsacAction)
+        | Some extraTmpl, Some extraArg -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}" + extraTmpl, fsacAction, extraArg)
         | _, _ -> failwithf "cannot happen %A" extraPropInfo
 
-    let private logIncomingResponse id fsacAction (started: DateTime) (r: Axios.AxiosXHR<_>) (res: _ option) (ex: exn option) =
+    let private logIncomingResponse requestId fsacAction (started: DateTime) (r: Axios.AxiosXHR<_>) (res: _ option) (ex: exn option) =
         let elapsed = DateTime.Now - started
         match res, ex with
         | Some res, None ->
-            let debugLog : string*obj[] = makeIncomingLogPrefix(id) + " {%s} in %s ms: Kind={\"%s\"}\nData=%j",
+            let debugLog : string*obj[] = makeIncomingLogPrefix(requestId) + " {%s} in %s ms: Kind={\"%s\"}\nData=%j",
                                           [| fsacAction; elapsed.TotalMilliseconds; res?Kind; res?Data |]
-            let infoLog : string*obj[] = makeIncomingLogPrefix(id) + " {%s} in %s ms: Kind={\"%s\"} ",
+            let infoLog : string*obj[] = makeIncomingLogPrefix(requestId) + " {%s} in %s ms: Kind={\"%s\"} ",
                                           [| fsacAction; elapsed.TotalMilliseconds; res?Kind |]
             log.DebugOrInfo debugLog infoLog
         | None, Some ex ->
-            log.Error (makeIncomingLogPrefix(id) + " {%s} ERROR in %s ms: {%j}, Data=%j", fsacAction, elapsed.TotalMilliseconds, ex.ToString(), obj)
-        | _, _ -> log.Error(makeIncomingLogPrefix(id) + " {%s} ERROR in %s ms: %j, %j, %j", fsacAction, elapsed.TotalMilliseconds, res, ex.ToString(), obj)
+            log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: {%j}, Data=%j", fsacAction, elapsed.TotalMilliseconds, ex.ToString(), obj)
+        | _, _ -> log.Error(makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %j, %j, %j", fsacAction, elapsed.TotalMilliseconds, res, ex.ToString(), obj)
 
-    let private logIncomingResponseError id fsacAction (started: DateTime) (r: obj) =
+    let private logIncomingResponseError requestId fsacAction (started: DateTime) (r: obj) =
         let elapsed = DateTime.Now - started
-        log.Error (makeIncomingLogPrefix(id) + " {%s} ERROR in %s ms: %s Data=%j",
+        log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %s Data=%j",
                     fsacAction, elapsed.TotalMilliseconds, r.ToString(), obj)
 
     let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
@@ -134,63 +129,63 @@ module LanguageService =
 
     let project s =
         {ProjectRequest.FileName = s}
-        |> request ("project") 0 (makeRequestId())
+        |> request "project" 0 (makeRequestId())
 
     let parseProject () =
         ""
-        |> request ("parseProjects") 0 (makeRequestId())
+        |> request "parseProjects" 0 (makeRequestId())
 
     let parse path (text : string) =
         let lines = text.Replace("\uFEFF", "").Split('\n')
         {ParseRequest.FileName = path; ParseRequest.Lines = lines; ParseRequest.IsAsync = true }
-        |> request ("parse") 0 (makeRequestId())
+        |> request "parse" 0 (makeRequestId())
 
     let helptext s =
         {HelptextRequest.Symbol = s}
-        |> request ("helptext") 0 (makeRequestId())
+        |> request "helptext" 0 (makeRequestId())
 
     let completion fn sl line col =
         {CompletionRequest.Line = line; FileName = fn; Column = col; Filter = "Contains"; SourceLine = sl}
-        |> request ("completion") 0 (makeRequestId())
+        |> request "completion" 0 (makeRequestId())
 
     let symbolUse fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("symboluse") 0 (makeRequestId())
+        |> request "symboluse" 0 (makeRequestId())
 
     let symbolUseProject fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("symboluseproject") 0 (makeRequestId())
+        |> request "symboluseproject" 0 (makeRequestId())
 
     let methods fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("methods") 0 (makeRequestId())
+        |> request "methods" 0 (makeRequestId())
 
     let tooltip fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("tooltip") 0 (makeRequestId())
+        |> request "tooltip" 0 (makeRequestId())
 
     let toolbar fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("tooltip") 0 (makeRequestId())
+        |> request "tooltip" 0 (makeRequestId())
 
     let findDeclaration fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
-        |> request ("finddeclaration") 0 (makeRequestId())
+        |> request "finddeclaration" 0 (makeRequestId())
 
     let declarations fn =
         {DeclarationsRequest.FileName = fn}
-        |> request ("declarations") 0 (makeRequestId())
+        |> request "declarations" 0 (makeRequestId())
 
 
     let declarationsProjects () =
-        "" |> request ("declarationsProjects") 0 (makeRequestId())
+        "" |> request "declarationsProjects" 0 (makeRequestId())
 
     let compilerLocation () =
-        "" |> request ("compilerlocation") 0 (makeRequestId())
+        "" |> request "compilerlocation" 0 (makeRequestId())
 
     let lint s =
         {ProjectRequest.FileName = s}
-        |> request ("lint") 0 (makeRequestId())
+        |> request "lint" 0 (makeRequestId())
 
     let start' path =
         Promise.create (fun resolve reject ->
@@ -209,7 +204,7 @@ module LanguageService =
                 let outputString = n.ToString()
                 // Wait until FsAC sends the 'listener started' magic string until
                 // we inform the caller that it's ready to accept requests.
-                let isStartedMessage = outputString.Contains(": listener started in")
+                let isStartedMessage = outputString.Contains ": listener started in"
                 if isStartedMessage then
                     log.Debug ("got FSAC line, is it the started message? %s", isStartedMessage)
                     service <- Some child

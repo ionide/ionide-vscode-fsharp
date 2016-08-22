@@ -180,9 +180,10 @@
         },
         "FSharp.logLanguageServiceRequestsOutputWindowLevel": {
             "type": "string",
-            "default": "INF",
+            "default": "INFO",
+            "description": "Determines how verbose the output window logging is.",
             "enum": [
-                "DBG", "INF", "WRN", "ERR"
+                "DEBUG", "INFO", "WARN", "ERROR"
             ]
         },
         "FSharp.automaticProjectModification": {

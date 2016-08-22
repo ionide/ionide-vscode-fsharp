@@ -6,10 +6,10 @@ module Logging =
     open Fable.Import.vscode
     open System
 
-    type Level = DBG|INF|WRN|ERR
+    type Level = DEBUG|INFO|WARN|ERROR
         with
-            static member GetLevelNum level = match level with DBG->10|INF->20|WRN->30|ERR->40
-            override this.ToString() = match this with ERR->"ERROR"|INF->"INFO"|WRN->"WARN"|DBG->"DEBUG"
+            static member GetLevelNum = function DEBUG->10|INFO->20|WARN->30|ERROR->40
+            override this.ToString() = match this with ERROR->"ERROR"|INFO->"INFO"|WARN->"WARN"|DEBUG->"DEBUG"
             member this.isGreaterOrEqualTo level = Level.GetLevelNum(this) >= Level.GetLevelNum(level)
             member this.isLessOrEqualTo level = Level.GetLevelNum(this) <= Level.GetLevelNum(level)
 
@@ -47,43 +47,43 @@ module Logging =
     /// https://nodejs.org/api/util.html#util_util_format_format
     type ConsoleAndOutputChannelLogger(source: string option, chanMinLevel: Level, out:OutputChannel option, consoleMinLevel: Level option) =
 
-        /// Logs a different message in either DBG (if enabled) or INF (otherwise).
+        /// Logs a different message in either DEBUG (if enabled) or INFO (otherwise).
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.DebugOrInfo
                         (debugTemplateAndArgs: string * obj[])
                         (infoTemplateAndArgs: string * obj[]) =
-            // OutputChannel: when at DBG level, use the DBG template and args, otherwise INF
+            // OutputChannel: when at DEBUG level, use the DEBUG template and args, otherwise INFO
             if out.IsSome then
-                if chanMinLevel.isLessOrEqualTo(Level.DBG) then
-                    writeOutputChannel out.Value DBG source (fst debugTemplateAndArgs) (snd debugTemplateAndArgs)
-                elif chanMinLevel.isLessOrEqualTo(Level.INF) then
-                    writeOutputChannel out.Value INF source (fst infoTemplateAndArgs) (snd infoTemplateAndArgs)
+                if chanMinLevel.isLessOrEqualTo(Level.DEBUG) then
+                    writeOutputChannel out.Value DEBUG source (fst debugTemplateAndArgs) (snd debugTemplateAndArgs)
+                elif chanMinLevel.isLessOrEqualTo(Level.INFO) then
+                    writeOutputChannel out.Value INFO source (fst infoTemplateAndArgs) (snd infoTemplateAndArgs)
 
-            // Console: when at DBG level, use the DBG template and args, otherwise INF
+            // Console: when at DEBUG level, use the DEBUG template and args, otherwise INFO
             if consoleMinLevel.IsSome then
-                if Level.DBG.isGreaterOrEqualTo(consoleMinLevel.Value) then
-                    writeDevToolsConsole DBG source (fst debugTemplateAndArgs) (snd debugTemplateAndArgs)
-                elif Level.INF.isGreaterOrEqualTo(consoleMinLevel.Value) then
-                    writeDevToolsConsole INF source (fst infoTemplateAndArgs) (snd infoTemplateAndArgs)
+                if Level.DEBUG.isGreaterOrEqualTo(consoleMinLevel.Value) then
+                    writeDevToolsConsole DEBUG source (fst debugTemplateAndArgs) (snd debugTemplateAndArgs)
+                elif Level.INFO.isGreaterOrEqualTo(consoleMinLevel.Value) then
+                    writeDevToolsConsole INFO source (fst infoTemplateAndArgs) (snd infoTemplateAndArgs)
 
         /// Logs a message that should/could be seen by developers when diagnosing problems.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Debug (template, [<ParamArray>]args:obj[]) =
-            writeBothIfConfigured out chanMinLevel consoleMinLevel DBG source template args
+            writeBothIfConfigured out chanMinLevel consoleMinLevel DEBUG source template args
         /// Logs a message that should/could be seen by the user in the output channel.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Info (template, [<ParamArray>]args:obj[]) =
-            writeBothIfConfigured out chanMinLevel consoleMinLevel INF source template args
+            writeBothIfConfigured out chanMinLevel consoleMinLevel INFO source template args
         /// Logs a message that should/could be seen by the user in the output channel when a problem happens.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Error (template, [<ParamArray>]args:obj[]) =
-            writeBothIfConfigured out chanMinLevel consoleMinLevel ERR source template args
+            writeBothIfConfigured out chanMinLevel consoleMinLevel ERROR source template args
         /// Logs a message that should/could be seen by the user in the output channel when a problem happens.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Warn (template, [<ParamArray>]args:obj[]) =
-            writeBothIfConfigured out chanMinLevel consoleMinLevel WRN source template args
+            writeBothIfConfigured out chanMinLevel consoleMinLevel WARN source template args
