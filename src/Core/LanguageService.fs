@@ -75,9 +75,9 @@ module LanguageService =
         // At the INFO level, it's nice to see only the key data to get an overview of
         // what's happening, without being bombarded with too much detail
         let extraPropInfo =
-            if (JS.isDefined (obj?FileName)) then Some ", File = \"%s\"", Some (relativePathForDisplay (obj?FileName |> unbox))
-            elif (JS.isDefined (obj?Project)) then Some ", Project = \"%s\"", Some (relativePathForDisplay (obj?Project |> unbox))
-            elif (JS.isDefined (obj?Symbol)) then Some ", Symbol = \"%s\"", Some (obj?Symbol |> unbox)
+            if JS.isDefined (obj?FileName) then Some ", File = \"%s\"", Some (relativePathForDisplay (obj?FileName |> unbox))
+            elif JS.isDefined (obj?Project) then Some ", Project = \"%s\"", Some (relativePathForDisplay (obj?Project |> unbox))
+            elif JS.isDefined (obj?Symbol) then Some ", Symbol = \"%s\"", Some (obj?Symbol |> unbox)
             else None, None
 
         match extraPropInfo with
