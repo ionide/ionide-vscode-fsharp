@@ -29,7 +29,7 @@ module Linter =
                 |> Seq.map (fun d ->
                     let range = Range(float d.Range.StartLine - 1., float d.Range.StartColumn - 1., float d.Range.EndLine - 1., float d.Range.EndColumn - 1.)
                     let loc = Location (Uri.file file, range |> Case1)
-                    Diagnostic(range, d.Info, DiagnosticSeverity.Information), file)
+                    Diagnostic(range, "Lint: " + d.Info, DiagnosticSeverity.Information), file)
                 |> ResizeArray
             else
                 ResizeArray ()
