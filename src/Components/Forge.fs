@@ -160,6 +160,7 @@ module Forge =
                     "websharpersuave"
                     "servicefabrichost"
                     "servicefabricsuavestateless"
+                    "nancyselfhosted"
                 ] |> ResizeArray
 
 
@@ -203,6 +204,7 @@ module Forge =
                     "websharpersuave"
                     "servicefabrichost"
                     "servicefabricsuavestateless"
+                    "nancyselfhosted"
                 ] |> ResizeArray
 
 
