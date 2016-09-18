@@ -1,3 +1,6 @@
+### 2.4.3 - 18.09.2016
+* Add Nancy tempalte to list
+
 ### 2.4.2 - 23.08.2016
 * Fix autocomplete bug
 
