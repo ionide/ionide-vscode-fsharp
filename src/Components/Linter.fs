@@ -10,7 +10,6 @@ open Fable.Import.Node
 open DTO
 open Ionide.VSCode.Helpers
 
-
 module Linter =
 
     [<Emit("setTimeout($0,$1)")>]
@@ -21,15 +20,21 @@ module Linter =
 
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
+    let private isLinterEnabled () = workspace.getConfiguration().get("FSharp.linter", true)
+
+    let private diagnosticFromLintWarning file (warning : Lint) = 
+        let range = Range(float warning.Range.StartLine - 1., 
+                          float warning.Range.StartColumn - 1., 
+                          float warning.Range.EndLine - 1., 
+                          float warning.Range.EndColumn - 1.)
+        let loc = Location (Uri.file file, range |> Case1)
+        Diagnostic(range, "Lint: " + warning.Info, DiagnosticSeverity.Information), file
+
     let private mapResult file (ev : LintResult) =
-        let setting = workspace.getConfiguration().get("FSharp.linter", true)
         let res =
-            if ev |> unbox <> null && setting  then
+            if (unbox >> isNull >> not) ev then
                 ev.Data
-                |> Seq.map (fun d ->
-                    let range = Range(float d.Range.StartLine - 1., float d.Range.StartColumn - 1., float d.Range.EndLine - 1., float d.Range.EndColumn - 1.)
-                    let loc = Location (Uri.file file, range |> Case1)
-                    Diagnostic(range, "Lint: " + d.Info, DiagnosticSeverity.Information), file)
+                |> Seq.map (diagnosticFromLintWarning file)
                 |> ResizeArray
             else
                 ResizeArray ()
@@ -38,21 +43,18 @@ module Linter =
 
     let private parse path =
         LanguageService.lint path
-        |> Promise.map (fun (ev : LintResult) ->  (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set  )
+        |> Promise.onSuccess (fun (ev : LintResult) ->  (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
 
     let mutable private timer = None
 
     let private handler (event : TextDocumentChangeEvent) =
         timer |> Option.iter(clearTimeout)
-        timer <- Some (setTimeout((fun _ ->
-            if event.document.languageId = "fsharp" then
-                parse event.document.fileName |> ignore), 500.) )
-
+        if event.document.languageId = "fsharp" && isLinterEnabled () then
+            timer <- Some (setTimeout((fun _ -> parse event.document.fileName |> ignore), 500.))
 
     let private handlerOpen (event : TextEditor) =
-        if JS.isDefined event then
-            if event.document.languageId = "fsharp" then
-                parse event.document.fileName |> ignore
+        if JS.isDefined event && event.document.languageId = "fsharp" && isLinterEnabled () then
+            parse event.document.fileName |> ignore
 
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
