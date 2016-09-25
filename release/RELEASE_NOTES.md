@@ -1,3 +1,6 @@
+### 2.5.0 - 25.09.2016
+* Move FSI to Terminal API
+
 ### 2.4.3 - 18.09.2016
 * Add Nancy tempalte to list
 
