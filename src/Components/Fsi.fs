@@ -11,27 +11,28 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Fsi =
-    let mutable fsiProcess : child_process_types.ChildProcess option = None
-    let mutable fsiOutput : OutputChannel option =
-        window.createOutputChannel("F# Interactive")
-        |> Some
+    let mutable fsiOutput : Terminal option = None
 
-    let private handle (data : obj) =
-        if data <> null then
-            let response = data.ToString().Replace("\\","\\\\")
-            fsiOutput |> Option.iter (fun outChannel -> outChannel.append response |> ignore)
+    let isPowershell () =
+        let t = workspace.getConfiguration().get("terminal.integrated.shell.windows", "")
+        t.ToLower().Contains "powershell"
 
     let private start () =
         try
-            // window.showInformationMessage ("FSI path: " + Environment.fsi) |> ignore
-            fsiProcess |> Option.iter(fun fp -> fp.kill ())
-            fsiProcess <-
-                (Process.spawn Environment.fsi "" "--fsi-server-input-codepage:65001")
-                |> Process.onExit (fun _ -> fsiOutput |> Option.iter (fun outChannel -> outChannel.clear () ))
-                |> Process.onOutput handle
-                |> Process.onErrorOutput handle
-                |> Some
-            fsiOutput |> Option.iter (fun outChannel -> outChannel.show (2 |> unbox) )
+            fsiOutput |> Option.iter (fun n -> n.dispose())
+            let terminal = window.createTerminal("F# Interactive")
+            fsiOutput <- Some terminal
+            let fsi, clear =
+                if Environment.isWin then
+                    if isPowershell () then
+                        sprintf "cmd /c \"%s\" --fsi-server-input-codepage:65001" Environment.fsi, "clear"
+                    else
+                        sprintf "\"%s\" --fsi-server-input-codepage:65001" Environment.fsi, "cls"
+                else
+                    Environment.fsi, "clear"
+            terminal.sendText(clear, true)
+            terminal.sendText(fsi, true)
+            terminal.show(true)
         with
         | _ ->
             window.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore
@@ -39,9 +40,8 @@ module Fsi =
 
     let private send (msg : string) file =
 
-        if fsiProcess.IsNone then start ()
-        let msg = msg + "\n;;\n"
-        fsiOutput |> Option.iter (fun outChannel -> outChannel.append msg)
+        if fsiOutput.IsNone then start ()
+        let msg = msg + ";;\n"
         let msg' =
             try
                 let dir = path.dirname file
@@ -52,7 +52,7 @@ module Fsi =
             with
             | _ -> msg
 
-        fsiProcess |> Option.iter (fun fp -> fp.stdin.write(msg', "utf-8" |> unbox) |> ignore)
+        fsiOutput |> Option.iter (fun fp -> fp.sendText(msg,false) )
 
 
     let private sendLine () =

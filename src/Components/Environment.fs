@@ -11,7 +11,7 @@ module Environment =
     open Fable.Import.Node
     open Fable.Import.Node.fs_types
 
-    let private isWin = ``process``.platform = "win32"
+    let isWin = ``process``.platform = "win32"
 
     let private (</>) a b =
         if isWin then a + @"\" + b
