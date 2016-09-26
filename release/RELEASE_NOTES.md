@@ -1,3 +1,6 @@
+### 2.5.2 - 26.09.2016
+* Fix FSI startup
+
 ### 2.5.1 - 26.09.2016
 * Fix FSI (Set `__SOURCE_DIRECTORY__`  and `__SOURCE_FILE__` correctly)
 
