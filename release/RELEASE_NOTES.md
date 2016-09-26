@@ -1,3 +1,6 @@
+### 2.5.1 - 26.09.2016
+* Fix FSI (Set `__SOURCE_DIRECTORY__`  and `__SOURCE_FILE__` correctly)
+
 ### 2.5.0 - 25.09.2016
 * Move FSI to Terminal API
 
