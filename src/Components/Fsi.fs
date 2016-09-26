@@ -57,7 +57,7 @@ module Fsi =
 
             terminal.sendText(clear, true)
             terminal.sendText(fsi, true)
-            setTimeout (sendCd, 1000) |> ignore
+            setTimeout (sendCd, 1500) |> ignore
             terminal.show(true)
         with
         | _ ->
@@ -65,10 +65,14 @@ module Fsi =
 
 
     let private send (msg : string) =
-
-        if fsiOutput.IsNone then start ()
-        let msg = msg + ";;\n"
-        fsiOutput |> Option.iter (fun fp -> fp.sendText(msg,false) )
+        if fsiOutput.IsNone then
+            start ()
+            setTimeout((fun _ ->
+                let msg = msg + ";;\n"
+                fsiOutput |> Option.iter (fun fp -> fp.sendText(msg,false) )), 2000) |>ignore
+        else
+            let msg = msg + ";;\n"
+            fsiOutput |> Option.iter (fun fp -> fp.sendText(msg,false) )
 
 
     let private sendLine () =
