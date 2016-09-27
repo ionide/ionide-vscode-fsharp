@@ -1,3 +1,7 @@
+### 2.5.3 - 27.09.2016
+* Don't make lint request if Linter us turned off
+* Add information that warnign comes from linter
+
 ### 2.5.2 - 26.09.2016
 * Fix FSI startup
 
