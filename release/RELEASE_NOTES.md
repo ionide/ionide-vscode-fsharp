@@ -1,3 +1,6 @@
+### 2.5.4 - 28.09.2016
+* Add new line before ;; in FSI
+
 ### 2.5.3 - 27.09.2016
 * Don't make lint request if Linter us turned off
 * Add information that warnign comes from linter
