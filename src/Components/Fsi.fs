@@ -68,10 +68,10 @@ module Fsi =
         if fsiOutput.IsNone then
             start ()
             setTimeout((fun _ ->
-                let msg = msg + ";;\n"
+                let msg = msg + "\n;;\n"
                 fsiOutput |> Option.iter (fun fp -> fp.sendText(msg,false) )), 2000) |>ignore
         else
-            let msg = msg + ";;\n"
+            let msg = msg + "\n;;\n"
             fsiOutput |> Option.iter (fun fp -> fp.sendText(msg,false) )
 
 
