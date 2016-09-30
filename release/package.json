@@ -215,6 +215,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enables integration with FSharpLinter (additional warnigns)"
+        },
+        "FSharp.fsiExtraParameters": {
+          "type": "array",
+          "default": [],
+          "description": "Allows to pass extra parameters to FSI process"
         }
       }
     }
