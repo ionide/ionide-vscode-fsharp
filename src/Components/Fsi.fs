@@ -46,14 +46,19 @@ module Fsi =
             let terminal = window.createTerminal("F# Interactive")
             fsiOutput <- Some terminal
             let fsi, clear =
+                let fsiParams = 
+                    workspace.getConfiguration().get("FSharp.fsiExtraParameters", Array.empty<string>) |> List.ofArray
+                            
                 if Environment.isWin then
+                    let winParams = [ "--fsi-server-input-codepage:65001" ] @ fsiParams |> String.concat " "
+ 
                     if isPowershell () then
-                        sprintf "cmd /c \"%s\" --fsi-server-input-codepage:65001" Environment.fsi, "clear"
+                        sprintf "cmd /c \"%s\" %s" Environment.fsi winParams, "clear"
                     else
-                        sprintf "\"%s\" --fsi-server-input-codepage:65001" Environment.fsi, "cls"
+                        sprintf "\"%s\" %s" Environment.fsi winParams, "cls"
                 else
-                    Environment.fsi, "clear"
-
+                    let nonWinParams = fsiParams |> String.concat " "
+                    sprintf "%s %s" Environment.fsi nonWinParams, "clear"
 
             terminal.sendText(clear, true)
             terminal.sendText(fsi, true)
