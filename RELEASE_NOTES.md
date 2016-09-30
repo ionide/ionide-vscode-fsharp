@@ -1,3 +1,6 @@
+### 2.5.5 - 30.09.2016
+* Define additional FSI flags in settings
+
 ### 2.5.4 - 28.09.2016
 * Add new line before ;; in FSI
 
