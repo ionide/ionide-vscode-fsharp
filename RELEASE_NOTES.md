@@ -1,3 +1,6 @@
+### 2.6.0 - 04.10.2016
+* Add CodeLens showing type signature
+
 ### 2.5.5 - 30.09.2016
 * Define additional FSI flags in settings
 
