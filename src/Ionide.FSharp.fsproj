@@ -64,6 +64,7 @@
     <Compile Include="Components/WebPreview.fs" />
     <Compile Include="Components/Forge.fs" />
     <Compile Include="Components/Linter.fs" />
+    <Compile Include="Components/CodeLens.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>
   <ItemGroup>

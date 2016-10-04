@@ -26,6 +26,7 @@ module Symbols =
             | "P" -> SymbolKind.Property      (*  CompletionItemKind.Property   *)
             | "F" -> SymbolKind.Variable     (*  CompletionItemKind.Field      *)
             | "T" -> SymbolKind.Class      (*  CompletionItemKind.Class      *)
+            | "Fc" -> SymbolKind.Function
             | _   -> 0 |> unbox
 
         let mapRes (doc : TextDocument) o =
