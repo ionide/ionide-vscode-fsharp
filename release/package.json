@@ -220,6 +220,11 @@
           "type": "array",
           "default": [],
           "description": "Allows to pass extra parameters to FSI process"
+        },
+        "FSharp.legacyFSI": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allows to use legacy (read-only) version of FSI. Requires restart"
         }
       }
     }
@@ -242,7 +247,7 @@
   ],
   "extensionDependencies": [
     "vscode.fsharp"
-  ],  
+  ],
   "scripts": {
     "build": "fable ../src/Ionide.FSharp.fsproj -s -o ../release -m commonjs --verbose"
   },

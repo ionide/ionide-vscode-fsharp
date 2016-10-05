@@ -60,6 +60,7 @@
     <Compile Include="Components/WorkspaceSymbols.fs" />
     <Compile Include="Components/Environment.fs" />
     <Compile Include="Components/Fsi.fs" />
+    <Compile Include="Components/LegacyFsi.fs" />
     <Compile Include="Components/QuickInfo.fs" />
     <Compile Include="Components/WebPreview.fs" />
     <Compile Include="Components/Forge.fs" />

@@ -14,6 +14,8 @@ let activate(disposables: Disposable[]) =
     df.language <- Some "fsharp"
     let df' : DocumentSelector = df |> U3.Case2
 
+    let legacyFsi = workspace.getConfiguration().get("FSharp.legacyFSI", false)
+
     LanguageService.start ()
     |> Promise.onSuccess (fun _ ->
         Errors.activate disposables
@@ -37,7 +39,7 @@ let activate(disposables: Disposable[]) =
     |> ignore
 
     Forge.activate disposables
-    Fsi.activate disposables
+    if legacyFsi then LegacyFsi.activate disposables else Fsi.activate disposables
     WebPreview.activate disposables
 
     ()
