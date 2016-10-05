@@ -214,7 +214,7 @@
         "FSharp.linter": {
           "type": "boolean",
           "default": true,
-          "description": "Enables integration with FSharpLinter (additional warnigns)"
+          "description": "Enables integration with FSharpLinter (additional warnings)"
         },
         "FSharp.fsiExtraParameters": {
           "type": "array",
