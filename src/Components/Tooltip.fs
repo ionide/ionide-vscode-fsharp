@@ -37,10 +37,12 @@ module Tooltip =
                                 if i = 0 && not(String.IsNullOrWhiteSpace n)
                                 then "\n" + n.Trim()
                                 else n.Trim()
-                            markStr "markdown" v)
+                            v)
+                        |> String.concat "\n\n"
+                        |> markStr "markdown"
                     let result = createEmpty<Hover>
                     result.range <- range
-                    result.contents <- Array.append sigContent commentContent |> ResizeArray
+                    result.contents <- Array.append sigContent [|commentContent|] |> ResizeArray
                     result
                 else
                     createEmpty<Hover>
