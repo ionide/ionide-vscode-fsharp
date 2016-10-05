@@ -1,3 +1,7 @@
+### 2.6.2 - 05.10.2016
+* Small fixes to tooltips
+* Legacy FSI can be enabled in options.
+
 ### 2.6.1 - 04.10.2016
 * Add CodeLens showing type signature
 
