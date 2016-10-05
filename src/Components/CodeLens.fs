@@ -34,6 +34,31 @@ module CodeLens =
                 else
                     cls |> Array.append (Array.create 1 cl))
 
+        let toSingature (t : string) =
+            let t =
+                if t.StartsWith "val" || t.StartsWith "member" then
+                    t
+                else
+                    let i = t.IndexOf("(")
+                    if i > 0 then
+                        t.Substring(0, i) + ":" + t.Substring(i+1)
+                    else
+                        t
+
+            let sign = if t.Contains(":") then t.Split(':').[1 ..] |> String.concat ":" else t
+            let parms = sign.Split( [|"->"|], StringSplitOptions.RemoveEmptyEntries)
+            let nSing =
+                parms |> Seq.map (fun p ->
+                    if p.Contains "*" then
+                        p.Split('*') |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
+                    elif p.Contains "," then
+                        p.Split(',') |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
+                    elif p.Contains ":" then
+                        p.Split(':').[1]
+                    else p
+                ) |> String.concat "->"
+            nSing.Replace("<", "&lt;").Replace(">", "&gt;")
+
 
         { new CodeLensProvider
           with
@@ -50,8 +75,7 @@ module CodeLens =
                 promise {
                     let! o = LanguageService.toolbar (window.activeTextEditor.document.fileName) (int cl.range.start.line + 1) (int cl.range.start.character + 1)
                     let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
-                    let t = res.Split('\n').[0]
-                    let sign = if t.Contains(":") then t.Split(':').[1 ..] |> String.concat ":" else t
+                    let sign = res.Split('\n').[0].Trim() |> toSingature
                     let cmd = createEmpty<Command>
                     cmd.title <- sprintf "%s" sign
                     cl.command <- cmd
@@ -64,3 +88,4 @@ module CodeLens =
         languages.registerCodeLensProvider(selector, createProvider())
         |> ignore
         ()
+
