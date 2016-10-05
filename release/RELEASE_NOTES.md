@@ -1,3 +1,6 @@
+### 2.6.3 - 05.10.2016
+* CodeLens signatures showing only types
+
 ### 2.6.2 - 05.10.2016
 * Small fixes to tooltips
 * Legacy FSI can be enabled in options.
