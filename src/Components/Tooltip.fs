@@ -38,11 +38,13 @@ module Tooltip =
                                 then "\n" + n.Trim()
                                 else n.Trim()
                             v)
-                        |> String.concat "\n\n"
-                        |> markStr "markdown"
+                        |> fun n ->
+                            if n.Length <> 0 then
+                                n |> String.concat "\n\n" |> markStr "markdown" |> Array.singleton
+                            else [||]
                     let result = createEmpty<Hover>
                     result.range <- range
-                    result.contents <- Array.append sigContent [|commentContent|] |> ResizeArray
+                    result.contents <- Array.append sigContent commentContent |> ResizeArray
                     result
                 else
                     createEmpty<Hover>
