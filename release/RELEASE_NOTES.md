@@ -1,3 +1,6 @@
+### 2.6.4 - 06.10.2016
+* Fix requires in CodeLens
+
 ### 2.6.3 - 05.10.2016
 * CodeLens signatures showing only types
 
