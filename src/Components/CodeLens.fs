@@ -49,7 +49,9 @@ module CodeLens =
             let parms = sign.Split( [|"->"|], StringSplitOptions.RemoveEmptyEntries)
             let nSing =
                 parms |> Seq.map (fun p ->
-                    if p.Contains "*" then
+                    if p.Contains "(requires" then
+                        p
+                    elif p.Contains "*" then
                         p.Split('*') |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
                     elif p.Contains "," then
                         p.Split(',') |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
