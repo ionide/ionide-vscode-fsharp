@@ -1,3 +1,7 @@
+### 2.6.5 - 07.10.2016
+* Add description to F# New project
+* Load list of templates from templates.json
+
 ### 2.6.4 - 06.10.2016
 * Fix requires in CodeLens
 
