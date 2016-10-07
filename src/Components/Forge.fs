@@ -12,12 +12,17 @@ open Ionide.VSCode.Helpers
 
 module Forge =
 
+    type Template = {name : string; value : string}
+
+    type TemplateFile = { Templates : Template[] }
+
     let (</>) a b =
         if  Process.isWin ()
         then a + @"\" + b
         else a + "/" + b
 
     let private location = (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "bin_forge" </> "Forge.exe"
+    let private templateLocation = (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "templates" </> "templates.json"
     let outputChannel = window.createOutputChannel "Forge"
 
     let private spawnForge (cmd : string) =
@@ -142,26 +147,19 @@ module Forge =
 
     let newProject () =
         promise {
+            let f = (fs.readFileSync templateLocation).ToString()
+            let file : TemplateFile = f |> JS.JSON.parse |> unbox
+
             //let! lst = "list templates" |> execForge
             // let n =  handleForgeList lst
             let n =
-                [
-                    "classlib"
-                    "console"
-                    "fslabbasic"
-                    "fslabjournal"
-                    "pcl259"
-                    "suave"
-                    "windows"
-                    "fsunit"
-                    "aspwebapi2"
-                    "websharperspa"
-                    "websharperserverclient"
-                    "websharpersuave"
-                    "servicefabrichost"
-                    "servicefabricsuavestateless"
-                    "nancyselfhosted"
-                ] |> ResizeArray
+                file.Templates
+                |> Array.map (fun t ->
+                    let res = createEmpty<QuickPickItem>
+                    res.label <- t.value
+                    res.description <- t.name
+                    res
+                ) |> ResizeArray
 
 
             if n.Count <> 0 then
@@ -175,7 +173,7 @@ module Forge =
                     opts.prompt <- Some "Project name"
                     let! name =  window.showInputBox(opts)
                     if JS.isDefined dir && JS.isDefined name then
-                        sprintf "new project -n %s -t %s --folder %s" name template dir |> spawnForge |> ignore
+                        sprintf "new project -n %s -t %s --folder %s" name template.label dir |> spawnForge |> ignore
 
                         window.showInformationMessage "Project created"
                         |> ignore
@@ -186,26 +184,19 @@ module Forge =
 
     let newProjectNoFake () =
         promise {
+            let f = (fs.readFileSync templateLocation).ToString()
+            let file : TemplateFile = f |> JS.JSON.parse |> unbox
+
             //let! lst = "list templates" |> execForge
             // let n =  handleForgeList lst
             let n =
-                [
-                    "classlib"
-                    "console"
-                    "fslabbasic"
-                    "fslabjournal"
-                    "pcl259"
-                    "suave"
-                    "windows"
-                    "fsunit"
-                    "aspwebapi2"
-                    "websharperspa"
-                    "websharperserverclient"
-                    "websharpersuave"
-                    "servicefabrichost"
-                    "servicefabricsuavestateless"
-                    "nancyselfhosted"
-                ] |> ResizeArray
+                file.Templates
+                |> Array.map (fun t ->
+                    let res = createEmpty<QuickPickItem>
+                    res.label <- t.value
+                    res.description <- t.name
+                    res
+                ) |> ResizeArray
 
 
             if n.Count <> 0 then
@@ -219,7 +210,7 @@ module Forge =
                     opts.prompt <- Some "Project name"
                     let! name =  window.showInputBox(opts)
                     if JS.isDefined dir && JS.isDefined name then
-                        sprintf "new project -n %s -t %s --folder %s --no-fake" name template dir |> spawnForge |> ignore
+                        sprintf "new project -n %s -t %s --folder %s --no-fake" name template.label dir |> spawnForge |> ignore
 
                         window.showInformationMessage "Project created"
                         |> ignore
@@ -246,6 +237,6 @@ module Forge =
         commands.registerCommand("fsharp.RemoveProjectReference", removeProjectReference |> unbox) |> ignore
         commands.registerCommand("fsharp.AddReference", addReference |> unbox) |> ignore
         commands.registerCommand("fsharp.RemoveReference", removeReference |> unbox) |> ignore
-        refreshTemplates () |> ignore
+        if fs.existsSync templateLocation |> not then refreshTemplates () |> ignore
 
         ()
