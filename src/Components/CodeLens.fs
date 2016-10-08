@@ -90,4 +90,3 @@ module CodeLens =
         languages.registerCodeLensProvider(selector, createProvider())
         |> ignore
         ()
-

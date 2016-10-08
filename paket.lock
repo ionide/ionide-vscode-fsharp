@@ -1,7 +1,7 @@
 FRAMEWORK: NET45
 NUGET
   remote: https://www.nuget.org/api/v2
-    FAKE (4.40.1)
+    FAKE (4.41.1)
     FSharp.Core (4.0.0.1)
     FsUnit (2.3.2)
       FSharp.Core (>= 3.1.2.5)
@@ -10,27 +10,27 @@ NUGET
     Npm.js (2.13.1)
       Node.js (>= 0.12.7)
     NUnit (3.5)
-    Octokit (0.22)
+    Octokit (0.23)
 GIT
   remote: https://github.com/ionide/FsAutoComplete.git
-     (a629bc740467aca73a779167888e55ca1b0c2b4e)
+     (0a83dd91707e096217df1e0213c8436a955abd47)
       build: build.cmd LocalRelease
       os: windows
-     (a629bc740467aca73a779167888e55ca1b0c2b4e)
+     (0a83dd91707e096217df1e0213c8436a955abd47)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsprojects/Forge.git
-     (6a9466102b2fbc0ad606617bfa371aec92e595ad)
+     (d921492142d47a82ed8258ab4e25dcad6e69f467)
       build: build.cmd Build
       os: windows
-     (6a9466102b2fbc0ad606617bfa371aec92e595ad)
+     (d921492142d47a82ed8258ab4e25dcad6e69f467)
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
      (dd4f7025fc7a60f841ee30909873444147f766d4)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (d071e770b2edfe6c9c7242003b2939ad9d0e33a5)
+    modules/Octokit/Octokit.fsx (37a3454a242976c83d7f1169a2fcd106271c95b9)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
     Fable.Import.Axios.fs (df7bcb2e23c59b24b18eb77459f3d97c1b336b3c)
