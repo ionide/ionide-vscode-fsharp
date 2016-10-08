@@ -1,3 +1,7 @@
+### 2.6.6 - 08.10.2016
+* Update FSAC
+* Fix tooltips, quickinfo and CodeLens for doubleticked names
+
 ### 2.6.5 - 07.10.2016
 * Add description to F# New project
 * Load list of templates from templates.json
