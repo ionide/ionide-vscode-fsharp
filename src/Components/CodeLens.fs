@@ -58,7 +58,7 @@ module CodeLens =
                     elif p.Contains ":" then
                         p.Split(':').[1]
                     else p
-                ) |> String.concat "->"
+                ) |> Seq.map (fun p -> p.Trim()) |> String.concat " -> "
             nSing.Replace("<", "&lt;").Replace(">", "&gt;")
 
 
@@ -72,6 +72,7 @@ module CodeLens =
                     Browser.console.log("Provide", data)
                     return data |> ResizeArray
                 } |> Case2
+
 
             member this.resolveCodeLens(cl, ct) =
                 promise {
