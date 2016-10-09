@@ -1,3 +1,7 @@
+### 2.6.7 - 09.10.2016
+* Fix inconsistent whitespaces in CodeLens
+* Fix interface members in CodeLens
+
 ### 2.6.6 - 08.10.2016
 * Update FSAC
 * Fix tooltips, quickinfo and CodeLens for doubleticked names
