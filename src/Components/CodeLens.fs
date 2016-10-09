@@ -23,20 +23,27 @@ module CodeLens =
 
                 let cls =  syms.Nested |> Array.choose (fun sym ->
                     if sym.GlyphChar <> "Fc" && sym.GlyphChar <> "M" then None
+                    elif sym.Glyph = "Extension Method" then
+                        Range
+                            ( float sym.BodyRange.StartLine - 1.,
+                                float sym.BodyRange.StartColumn - (float sym.Name.Length),
+                                float sym.BodyRange.EndLine - 1.,
+                                float sym.BodyRange.EndColumn - 1.)
+                        |> CodeLens |> Some
                     else
-                    Range
-                        ( float sym.BodyRange.StartLine - 1.,
-                            float sym.BodyRange.StartColumn - 1.,
-                            float sym.BodyRange.EndLine - 1.,
-                            float sym.BodyRange.EndColumn - 1.)
-                    |> CodeLens |> Some )
+                        Range
+                            ( float sym.BodyRange.StartLine - 1.,
+                                float sym.BodyRange.StartColumn - 1.,
+                                float sym.BodyRange.EndLine - 1.,
+                                float sym.BodyRange.EndColumn - 1.)
+                        |> CodeLens |> Some )
                 if syms.Declaration.GlyphChar <> "Fc" then cls
                 else
                     cls |> Array.append (Array.create 1 cl))
 
         let toSingature (t : string) =
             let t =
-                if t.StartsWith "val" || t.StartsWith "member" then
+                if t.StartsWith "val" || t.StartsWith "member" || t.StartsWith "abstract" then
                     t
                 else
                     let i = t.IndexOf("(")
