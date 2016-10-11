@@ -43,26 +43,18 @@ module Fsi =
     let private start () =
         try
             fsiOutput |> Option.iter (fun n -> n.dispose())
-            let terminal = window.createTerminal("F# Interactive")
-            fsiOutput <- Some terminal
-            let fsi, clear =
-                let fsiParams = 
+            let parms =
+                let fsiParams =
                     workspace.getConfiguration().get("FSharp.fsiExtraParameters", Array.empty<string>) |> List.ofArray
-                            
-                if Environment.isWin then
-                    let winParams = [ "--fsi-server-input-codepage:65001" ] @ fsiParams |> String.concat " "
- 
-                    if isPowershell () then
-                        sprintf "cmd /c \"%s\" %s" Environment.fsi winParams, "clear"
-                    else
-                        sprintf "\"%s\" %s" Environment.fsi winParams, "cls"
-                else
-                    let nonWinParams = fsiParams |> String.concat " "
-                    sprintf "%s %s" Environment.fsi nonWinParams, "clear"
 
-            terminal.sendText(clear, true)
-            terminal.sendText(fsi, true)
-            setTimeout (sendCd, 1500) |> ignore
+                if Environment.isWin then
+                    [ "--fsi-server-input-codepage:65001" ] @ fsiParams |> String.concat " "
+                else
+                    fsiParams |> String.concat " "
+
+            let terminal = window.createTerminal("F# Interactive", Environment.fsi)
+            fsiOutput <- Some terminal
+            sendCd ()
             terminal.show(true)
         with
         | _ ->
@@ -70,14 +62,9 @@ module Fsi =
 
 
     let private send (msg : string) =
-        if fsiOutput.IsNone then
-            start ()
-            setTimeout((fun _ ->
-                let msg = msg + "\n;;\n"
-                fsiOutput |> Option.iter (fun fp -> fp.sendText(msg,false) )), 2000) |>ignore
-        else
-            let msg = msg + "\n;;\n"
-            fsiOutput |> Option.iter (fun fp -> fp.sendText(msg,false) )
+        let msg = msg + "\n;;\n"
+        if fsiOutput.IsNone then start ()
+        fsiOutput |> Option.iter (fun fp -> fp.sendText(msg,false) )
 
 
     let private sendLine () =
