@@ -1,3 +1,7 @@
+### 2.6.9 - 11.10.2016
+* Fix FSI start parameters regression
+* Small fix to tooltips format
+
 ### 2.6.8 - 11.10.2016
 * Fix FSI Startup behaviour
 
