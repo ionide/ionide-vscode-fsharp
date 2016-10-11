@@ -1,3 +1,6 @@
+### 2.6.8 - 11.10.2016
+* Fix FSI Startup behaviour
+
 ### 2.6.7 - 09.10.2016
 * Fix inconsistent whitespaces in CodeLens
 * Fix interface members in CodeLens
