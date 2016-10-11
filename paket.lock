@@ -1,7 +1,7 @@
 FRAMEWORK: NET45
 NUGET
   remote: https://www.nuget.org/api/v2
-    FAKE (4.41.1)
+    FAKE (4.41.5)
     FSharp.Core (4.0.0.1)
     FsUnit (2.3.2)
       FSharp.Core (>= 3.1.2.5)
@@ -30,9 +30,9 @@ GIT
      (dd4f7025fc7a60f841ee30909873444147f766d4)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (37a3454a242976c83d7f1169a2fcd106271c95b9)
+    modules/Octokit/Octokit.fsx (a7c04ed4fe1c6b8d840b964447e24c7159f97d36)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
-    Fable.Import.Axios.fs (df7bcb2e23c59b24b18eb77459f3d97c1b336b3c)
-    Fable.Import.VSCode.fs (df7bcb2e23c59b24b18eb77459f3d97c1b336b3c)
-    Helpers.fs (df7bcb2e23c59b24b18eb77459f3d97c1b336b3c)
+    Fable.Import.Axios.fs (97d5a1895341cf43fa6a1a8ce32cf186614582df)
+    Fable.Import.VSCode.fs (97d5a1895341cf43fa6a1a8ce32cf186614582df)
+    Helpers.fs (97d5a1895341cf43fa6a1a8ce32cf186614582df)

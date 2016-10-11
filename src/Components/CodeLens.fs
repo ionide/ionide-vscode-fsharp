@@ -66,7 +66,7 @@ module CodeLens =
                         p.Split(':').[1]
                     else p
                 ) |> Seq.map (fun p -> p.Trim()) |> String.concat " -> "
-            nSing.Replace("<", "&lt;").Replace(">", "&gt;")
+            nSing
 
 
         { new CodeLensProvider
