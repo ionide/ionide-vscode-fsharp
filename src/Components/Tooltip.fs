@@ -28,7 +28,9 @@ module Tooltip =
                     let sigContent =
                         res.Signature.Split('\n')
                         |> Array.filter(String.IsNullOrWhiteSpace>>not)
-                        |> Array.map (markStr "fsharp")
+                        |> String.concat "\n"
+                        |> markStr "fsharp"
+                        |> Array.singleton
                     let commentContent =
                         res.Comment.Split('\n')
                         |> Array.filter(String.IsNullOrWhiteSpace>>not)
