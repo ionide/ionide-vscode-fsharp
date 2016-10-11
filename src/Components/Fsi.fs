@@ -15,6 +15,7 @@ module Fsi =
     let setTimeout(cb, delay) : obj = failwith "JS Only"
 
     let mutable fsiOutput : Terminal option = None
+    let mutable fsiOutputPID : int option = None
 
     let isPowershell () =
         let t = workspace.getConfiguration().get("terminal.integrated.shell.windows", "")
@@ -54,9 +55,13 @@ module Fsi =
                 |> Array.ofList
 
             let terminal = window.createTerminal("F# Interactive", Environment.fsi, parms)
-            fsiOutput <- Some terminal
-            sendCd ()
-            terminal.show(true)
+            
+            terminal.processId
+            |> Promise.onSuccess (fun pId ->
+                fsiOutput <- Some terminal
+                sendCd ()
+                terminal.show(true))
+            |> ignore
         with
         | _ ->
             window.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore
@@ -93,10 +98,15 @@ module Fsi =
         let text = editor.document.getText ()
         send text
 
+    let private handleCloseTerminal (terminal:Terminal) =
+        fsiOutput
+        |> Option.iter (fun fsi -> printfn "TERMINAL: %A" fsi)
+        ()
 
 
     let activate (disposables: Disposable[]) =
         window.onDidChangeActiveTextEditor $ ((fun n -> if JS.isDefined n then sendCd()), (), disposables) |> ignore
+        window.onDidCloseTerminal $ (handleCloseTerminal, (), disposables) |> ignore
 
         commands.registerCommand("fsi.Start", start |> unbox) |> ignore
         commands.registerCommand("fsi.SendLine", sendLine |> unbox) |> ignore
