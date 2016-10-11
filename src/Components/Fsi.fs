@@ -48,11 +48,12 @@ module Fsi =
                     workspace.getConfiguration().get("FSharp.fsiExtraParameters", Array.empty<string>) |> List.ofArray
 
                 if Environment.isWin then
-                    [ "--fsi-server-input-codepage:65001" ] @ fsiParams |> String.concat " "
+                    [ "--fsi-server-input-codepage:65001" ] @ fsiParams
                 else
-                    fsiParams |> String.concat " "
+                    fsiParams
+                |> Array.ofList
 
-            let terminal = window.createTerminal("F# Interactive", Environment.fsi)
+            let terminal = window.createTerminal("F# Interactive", Environment.fsi, parms)
             fsiOutput <- Some terminal
             sendCd ()
             terminal.show(true)
