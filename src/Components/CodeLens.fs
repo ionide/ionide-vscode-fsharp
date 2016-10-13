@@ -22,7 +22,16 @@ module CodeLens =
                 let cl = CodeLens(range)
 
                 let cls =  syms.Nested |> Array.choose (fun sym ->
-                    if sym.GlyphChar <> "Fc" && sym.GlyphChar <> "M" then None
+                    if sym.GlyphChar <> "Fc"
+                       && sym.GlyphChar <> "M" 
+                       && sym.GlyphChar <> "F"
+                       || sym.IsAbstract 
+                       || sym.EnclosingEntity = "I"  // interface
+                       || sym.EnclosingEntity = "R"  // record
+                       || sym.EnclosingEntity = "D"  // DU
+                       || sym.EnclosingEntity = "En" // enum
+                       || sym.EnclosingEntity = "E"  // exception
+                    then None
                     elif sym.Glyph = "Extension Method" then
                         Range
                             ( float sym.BodyRange.StartLine - 1.,
