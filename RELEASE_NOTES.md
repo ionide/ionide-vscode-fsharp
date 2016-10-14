@@ -1,3 +1,7 @@
+### 2.6.10 - 14.10.2016
+* Should CodeLens on let value bindings
+* Don't show CodeLens on abstract members
+
 ### 2.6.9 - 11.10.2016
 * Fix FSI start parameters regression
 * Small fix to tooltips format
