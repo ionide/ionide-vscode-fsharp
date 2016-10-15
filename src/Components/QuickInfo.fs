@@ -12,12 +12,6 @@ open Ionide.VSCode.Helpers
 
 
 module QuickInfo =
-    [<Emit("setTimeout($0,$1)")>]
-    let setTimeout(cb, delay) : obj = failwith "JS Only"
-
-    [<Emit("clearTimeout($0)")>]
-    let clearTimeout(timer) : unit = failwith "JS Only"
-
     let mutable private item : StatusBarItem option = None
 
     let private handle' (event : TextEditorSelectionChangeEvent) =

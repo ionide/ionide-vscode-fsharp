@@ -19,9 +19,9 @@ module CodeLens =
 
                 let codeLenses =  syms.Nested |> Array.choose (fun sym ->
                     if sym.GlyphChar <> "Fc"
-                       && sym.GlyphChar <> "M" 
+                       && sym.GlyphChar <> "M"
                        && sym.GlyphChar <> "F"
-                       || sym.IsAbstract 
+                       || sym.IsAbstract
                        || sym.EnclosingEntity = "I"  // interface
                        || sym.EnclosingEntity = "R"  // record
                        || sym.EnclosingEntity = "D"  // DU
@@ -29,7 +29,7 @@ module CodeLens =
                        || sym.EnclosingEntity = "E"  // exception
                     then None
                     else Some (CodeLens (CodeRange.fromDTO sym.BodyRange)))
-                
+
                 if syms.Declaration.GlyphChar <> "Fc" then codeLenses
                 else
                     codeLenses |> Array.append [|codeLens|])
@@ -47,18 +47,18 @@ module CodeLens =
 
             let sign = if sign.Contains(":") then sign.Split(':').[1 ..] |> String.concat ":" else sign
             let parms = sign.Split( [|"->"|], StringSplitOptions.RemoveEmptyEntries)
-            parms 
+            parms
             |> Seq.map (fun p ->
-                 if p.Contains "(requires" then
-                     p
-                 elif p.Contains "*" then
-                     p.Split '*' |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
-                 elif p.Contains "," then
-                     p.Split ',' |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
-                 elif p.Contains ":" then
-                     p.Split(':').[1]
-                 else p)
-            |> Seq.map String.trim 
+                if p.Contains "(requires" then
+                    p
+                elif p.Contains "*" then
+                    p.Split '*' |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
+                elif p.Contains "," then
+                    p.Split ',' |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
+                elif p.Contains ":" then
+                    p.Split(':').[1]
+                else p)
+            |> Seq.map String.trim
             |> String.concat " -> "
             |> String.replace "<" "&lt;"
             |> String.replace ">" "&gt;"
@@ -69,32 +69,30 @@ module CodeLens =
                     let! _ = LanguageService.parse doc.fileName (doc.getText())
                     let! result = LanguageService.declarations doc.fileName
                     let data = symbolsToCodeLens doc result.Data
-                    Browser.console.log("Provide", data)
                     return ResizeArray data
                 } |> Case2
 
 
             member __.resolveCodeLens(codeLens, _) =
                 promise {
-                    let! signaturesResult = 
-                        LanguageService.toolbar 
-                            window.activeTextEditor.document.fileName 
-                            (int codeLens.range.start.line + 1) 
+                    let! signaturesResult =
+                        LanguageService.toolbar
+                            window.activeTextEditor.document.fileName
+                            (int codeLens.range.start.line + 1)
                             (int codeLens.range.start.character + 1)
 
                     let res =
-                        signaturesResult.Data 
-                        |> Array.rev 
+                        signaturesResult.Data
+                        |> Array.rev
                         |> Array.tryHead
                         |> Option.bind Array.tryHead
                         |> Option.map (fun x -> x.Signature)
-                        |> Option.fill "" 
-                    
+                        |> Option.fill ""
+
                     let sign = res.Split('\n').[0] |> String.trim |> formatSingature
                     let cmd = createEmpty<Command>
                     cmd.title <- sprintf "%s" sign
                     codeLens.command <- cmd
-                    Browser.console.log("Resolve", codeLens, res)
                     return codeLens
                 } |> Case2
         }

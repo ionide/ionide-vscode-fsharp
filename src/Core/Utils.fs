@@ -61,3 +61,13 @@ module Configuration =
 [<AutoOpen>]
 module Utils =
     let isNotNull o = o |> unbox <> null
+
+[<AutoOpen>]
+module JS =
+    open Fable.Core
+
+    [<Emit("setTimeout($0,$1)")>]
+    let setTimeout(cb, delay) : obj = failwith "JS Only"
+
+    [<Emit("clearTimeout($0)")>]
+    let clearTimeout(timer) : unit = failwith "JS Only"

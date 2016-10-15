@@ -12,13 +12,6 @@ open Ionide.VSCode.Helpers
 
 
 module Errors =
-
-    [<Emit("setTimeout($0,$1)")>]
-    let setTimeout(cb, delay) : obj = failwith "JS Only"
-
-    [<Emit("clearTimeout($0)")>]
-    let clearTimeout(timer) : unit = failwith "JS Only"
-
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
     let private mapResult (ev : ParseResult) =

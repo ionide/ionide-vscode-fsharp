@@ -11,9 +11,6 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Fsi =
-    [<Emit("setTimeout($0,$1)")>]
-    let setTimeout(cb, delay) : obj = failwith "JS Only"
-
     let mutable fsiOutput : Terminal option = None
 
     let isPowershell () =

@@ -12,11 +12,6 @@ open Ionide.VSCode.Helpers
 
 module Linter =
 
-    [<Emit("setTimeout($0,$1)")>]
-    let setTimeout(cb, delay) : obj = failwith "JS Only"
-
-    [<Emit("clearTimeout($0)")>]
-    let clearTimeout(timer) : unit = failwith "JS Only"
 
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
@@ -28,15 +23,12 @@ module Linter =
         Diagnostic(range, "Lint: " + warning.Info, DiagnosticSeverity.Information), file
 
     let private mapResult file (ev : LintResult) =
-        let res =
-            if isNotNull ev then
-                ev.Data
-                |> Seq.map (diagnosticFromLintWarning file)
-                |> ResizeArray
-            else
-                ResizeArray ()
-        Browser.console.log res
-        res
+        if isNotNull ev then
+            ev.Data
+            |> Seq.map (diagnosticFromLintWarning file)
+            |> ResizeArray
+        else
+            ResizeArray ()
 
     let private parse path =
         LanguageService.lint path

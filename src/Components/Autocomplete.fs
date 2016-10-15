@@ -41,7 +41,7 @@ module Autocomplete =
 
             if isNotNull o then
                 o.Data |> Array.choose (fun c ->
-                    if c.GlyphChar = "K" && (setting = false) then
+                    if c.GlyphChar = "K" && setting = false then
                         None
                     elif prevChar = '.' && c.GlyphChar = "K" then
                         None
