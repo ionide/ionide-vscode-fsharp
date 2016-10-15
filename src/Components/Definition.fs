@@ -18,7 +18,7 @@ module Definition =
                 let range = doc.getWordRangeAtPosition pos
                 let length = range.``end``.character - range.start.character
                 loc.uri <- Uri.file o.Data.File
-                loc.range <- Range(float o.Data.Line - 1., float o.Data.Column - 1., float o.Data.Line - 1., float o.Data.Column + length  - 1.)
+                loc.range <- CodeRange.fromDeclaration o.Data length
                 loc |> Case1
             else
                 createEmpty<Location> |> Case1
