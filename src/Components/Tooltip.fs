@@ -17,7 +17,7 @@ module Tooltip =
 
         let mapResult (doc : TextDocument) (pos : Position) o =
             let range = doc.getWordRangeAtPosition pos
-            if o |> unbox <> null then
+            if isNotNull o then
                 let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head
                 if JS.isDefined res.Signature then
                     let markStr lang (value:string) : MarkedString =

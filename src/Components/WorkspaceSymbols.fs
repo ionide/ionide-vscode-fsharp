@@ -30,7 +30,7 @@ module WorkspaceSymbols =
             path.relative (workspace.rootPath, f)
 
         let mapRes o =
-             if o |> unbox <> null then
+             if isNotNull o then
                 o.Data |> Array.map (fun syms ->
                     let oc = createEmpty<SymbolInformation>
                     oc.name <- syms.Declaration.Name

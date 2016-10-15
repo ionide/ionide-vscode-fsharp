@@ -16,7 +16,7 @@ module Highlights =
     let private createProvider () =
 
         let mapResult (o : SymbolUseResult) =
-            if o |> unbox <> null then
+            if isNotNull o then
                 o.Data.Uses |> Array.map (fun d ->
                     let res = createEmpty<DocumentHighlight>
                     res.range <- CodeRange.fromSymbolUse d

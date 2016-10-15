@@ -14,7 +14,7 @@ module Reference =
     let private createProvider () =
 
         let mapResult (doc : TextDocument) (o : SymbolUseResult) =
-            if o |> unbox <> null then
+            if isNotNull o then
                 o.Data.Uses |> Array.map (fun s ->
                     let loc = createEmpty<Location>
                     loc.range <- CodeRange.fromSymbolUse s

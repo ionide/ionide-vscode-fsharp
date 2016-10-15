@@ -28,7 +28,7 @@ module QuickInfo =
                 | Document.FSharp ->
                     let pos = event.selections.[0].active
                     let! o = LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-                    if o |> unbox <> null then
+                    if isNotNull o then
                         let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
                         if JS.isDefined res then
                             let t = res.Split('\n').[0]

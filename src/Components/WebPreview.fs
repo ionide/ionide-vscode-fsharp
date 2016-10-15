@@ -59,7 +59,7 @@ module WebPreview =
 
 
     let parseResponse o =
-        if JS.isDefined o && o <> null then
+        if JS.isDefined o && isNotNull o then
             let str = o.ToString ()
             if str.Contains startString then
                 vscode.commands.executeCommand("vscode.previewHtml", previewUri, 2)
@@ -83,7 +83,7 @@ module WebPreview =
             Process.spawn command linuxPrefix args'
 
         cp.stdout?on $ ("readable", (fun n -> cp.stdout?read $ () |> parseResponse )) |> ignore
-        cp.stderr?on $ ("readable", (cp.stdout?read $ () |> (fun o -> if JS.isDefined o && o <> null then Browser.console.error(o.ToString())) )) |> ignore
+        cp.stderr?on $ ("readable", (cp.stdout?read $ () |> (fun o -> if JS.isDefined o && isNotNull o then Browser.console.error(o.ToString())) )) |> ignore
         fakeProcess <- Some cp
 
 

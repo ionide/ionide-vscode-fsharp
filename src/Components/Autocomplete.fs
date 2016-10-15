@@ -39,7 +39,7 @@ module Autocomplete =
             let prevChar = noSpaces.[index]
             let setting = "FSharp.keywordsAutocomplete" |> Configuration.get true
 
-            if o |> unbox <> null then
+            if isNotNull o then
                 o.Data |> Array.choose (fun c ->
                     if c.GlyphChar = "K" && (setting = false) then
                         None

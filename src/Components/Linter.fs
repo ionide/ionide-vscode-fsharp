@@ -29,7 +29,7 @@ module Linter =
 
     let private mapResult file (ev : LintResult) =
         let res =
-            if unbox ev <> null then
+            if isNotNull ev then
                 ev.Data
                 |> Seq.map (diagnosticFromLintWarning file)
                 |> ResizeArray

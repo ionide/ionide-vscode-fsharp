@@ -57,3 +57,7 @@ module Document =
 module Configuration =
     let get defaultValue key =
         workspace.getConfiguration().get(key, defaultValue)
+
+[<AutoOpen>]
+module Utils =
+    let isNotNull o = o |> unbox <> null
