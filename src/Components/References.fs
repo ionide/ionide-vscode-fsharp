@@ -17,7 +17,7 @@ module Reference =
             if o |> unbox <> null then
                 o.Data.Uses |> Array.map (fun s ->
                     let loc = createEmpty<Location>
-                    loc.range <-  Range(float s.StartLine - 1., float s.StartColumn - 1., float s.EndLine - 1., float s.EndColumn - 1.)
+                    loc.range <- CodeRange.fromSymbolUse s
                     loc.uri <- Uri.file s.FileName
                     loc  )
                 |> ResizeArray

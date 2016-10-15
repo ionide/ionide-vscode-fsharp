@@ -23,10 +23,7 @@ module Linter =
     let private isLinterEnabled () = workspace.getConfiguration().get("FSharp.linter", true)
 
     let private diagnosticFromLintWarning file (warning : Lint) = 
-        let range = Range(float warning.Range.StartLine - 1., 
-                          float warning.Range.StartColumn - 1., 
-                          float warning.Range.EndLine - 1., 
-                          float warning.Range.EndColumn - 1.)
+        let range = CodeRange.fromDTO warning.Range
         let loc = Location (Uri.file file, range |> Case1)
         Diagnostic(range, "Lint: " + warning.Info, DiagnosticSeverity.Information), file
 
@@ -58,7 +55,5 @@ module Linter =
 
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
-
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
-
         window.visibleTextEditors |> Seq.iter (handlerOpen)

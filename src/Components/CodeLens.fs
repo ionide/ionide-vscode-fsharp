@@ -14,12 +14,8 @@ module CodeLens =
     let private createProvider () =
         let mapRes (doc : TextDocument) o =
              o.Data |> Array.collect (fun syms ->
-                let range = Range
-                                (float syms.Declaration.BodyRange.StartLine - 1.,
-                                 float syms.Declaration.BodyRange.StartColumn - 1.,
-                                 float syms.Declaration.BodyRange.EndLine - 1.,
-                                 float syms.Declaration.BodyRange.EndColumn - 1.)
-                let cl = CodeLens(range)
+                let range = CodeRange.fromDTO syms.Declaration.BodyRange
+                let cl = CodeLens range
 
                 let cls =  syms.Nested |> Array.choose (fun sym ->
                     if sym.GlyphChar <> "Fc"
@@ -32,13 +28,8 @@ module CodeLens =
                        || sym.EnclosingEntity = "En" // enum
                        || sym.EnclosingEntity = "E"  // exception
                     then None
-                    else
-                        Range
-                            (float sym.BodyRange.StartLine - 1.,
-                             float sym.BodyRange.StartColumn - 1.,
-                             float sym.BodyRange.EndLine - 1.,
-                             float sym.BodyRange.EndColumn - 1.)
-                        |> CodeLens |> Some )
+                    else Some (CodeLens (CodeRange.fromDTO sym.BodyRange)))
+                
                 if syms.Declaration.GlyphChar <> "Fc" then cls
                 else
                     cls |> Array.append (Array.create 1 cl))
