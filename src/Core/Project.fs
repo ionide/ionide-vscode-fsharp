@@ -25,9 +25,7 @@ module Project =
                 | Some p -> dir + path.sep + p |> Some
             else None
 
-        p
-        |> path.dirname
-        |> findFsProj
+        p |> path.dirname |> findFsProj
 
     let findAll () =
         let rec findProjs dir =
@@ -48,8 +46,8 @@ module Project =
             )
 
         match workspace.rootPath with
-            | null -> []
-            | rootPath -> rootPath |> findProjs
+        | null -> []
+        | rootPath -> findProjs rootPath
 
     let getAll () =
         let rec findProjs dir =
@@ -59,19 +57,17 @@ module Project =
             |> List.collect(fun s' ->
                 try
                     let s = dir + path.sep + s'
-                    if s' = ".git" || s' = "paket-files" then
-                        []
-                    elif fs.statSync(s).isDirectory () then
-                        findProjs (s)
-                    else
-                       if s.EndsWith ".fsproj" || s.EndsWith ".csproj" || s.EndsWith ".vbproj" then [ s ] else []
+                    if s' = ".git" || s' = "paket-files" then []
+                    elif fs.statSync(s).isDirectory () then findProjs (s)
+                    elif s.EndsWith ".fsproj" || s.EndsWith ".csproj" || s.EndsWith ".vbproj" then [ s ]
+                    else []
                 with
                 | _ -> []
             )
 
         match workspace.rootPath with
-            | null -> []
-            | rootPath -> rootPath |> findProjs
+        | null -> []
+        | rootPath -> rootPath |> findProjs
 
 
     let activate () =
@@ -79,6 +75,4 @@ module Project =
         | [] -> Promise.lift (null |> unbox)
         | [x] -> LanguageService.project x
         | x::tail ->
-            tail
-            |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> LanguageService.project e) )
-               (LanguageService.project x)
+            tail |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> LanguageService.project e) ) (LanguageService.project x)

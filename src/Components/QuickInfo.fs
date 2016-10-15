@@ -24,9 +24,9 @@ module QuickInfo =
         promise {
             if JS.isDefined event.textEditor?document then
                 let doc = event.textEditor.document
-                let pos = event.selections.[0].active
-                
-                if doc.languageId = "fsharp" then
+                match doc with
+                | Document.FSharp ->
+                    let pos = event.selections.[0].active
                     let! o = LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
                     if o |> unbox <> null then
                         let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
@@ -38,6 +38,7 @@ module QuickInfo =
                             i.tooltip <- res
                             i.show ()
                             item <- Some i
+                | _ -> ()
         }
 
     let mutable private timer = None

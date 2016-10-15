@@ -22,7 +22,7 @@ module Linter =
 
     let private isLinterEnabled () = workspace.getConfiguration().get("FSharp.linter", true)
 
-    let private diagnosticFromLintWarning file (warning : Lint) = 
+    let private diagnosticFromLintWarning file (warning : Lint) =
         let range = CodeRange.fromDTO warning.Range
         let loc = Location (Uri.file file, range |> Case1)
         Diagnostic(range, "Lint: " + warning.Info, DiagnosticSeverity.Information), file
@@ -46,12 +46,16 @@ module Linter =
 
     let private handler (event : TextDocumentChangeEvent) =
         timer |> Option.iter(clearTimeout)
-        if event.document.languageId = "fsharp" && isLinterEnabled () then
+        match event.document with
+        | Document.FSharp when  isLinterEnabled () ->
             timer <- Some (setTimeout((fun _ -> parse event.document.fileName |> ignore), 500.))
+        | _ -> ()
 
     let private handlerOpen (event : TextEditor) =
-        if JS.isDefined event && event.document.languageId = "fsharp" && isLinterEnabled () then
+        match event.document with
+        | Document.FSharp when  isLinterEnabled () && JS.isDefined event ->
             parse event.document.fileName |> ignore
+        | _ -> ()
 
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore

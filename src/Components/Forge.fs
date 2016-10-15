@@ -53,26 +53,30 @@ module Forge =
 
     let moveFileUp () =
         let editor = vscode.window.activeTextEditor
-        if editor.document.languageId = "fsharp" then
-            sprintf "move file -n %s -u" editor.document.fileName |> spawnForge |> ignore
+        match editor.document with
+        | Document.FSharp -> sprintf "move file -n %s -u" editor.document.fileName |> spawnForge |> ignore
+        | _ -> ()
 
     let moveFileDown () =
         let editor = vscode.window.activeTextEditor
-        if editor.document.languageId = "fsharp" then
-            sprintf "move file -n %s -d" editor.document.fileName |> spawnForge |> ignore
+        match editor.document with
+        | Document.FSharp -> sprintf "move file -n %s -d" editor.document.fileName |> spawnForge |> ignore
+        | _ -> ()
 
     let refreshTemplates () =
         "refresh" |> spawnForge |> ignore
 
     let addCurrentFileToProject () =
         let editor = vscode.window.activeTextEditor
-        if editor.document.languageId = "fsharp" then
-            sprintf "add file -n %s" editor.document.fileName |> spawnForge |> ignore
+        match editor.document with
+        | Document.FSharp -> sprintf "add file -n %s" editor.document.fileName |> spawnForge |> ignore
+        | _ -> ()
 
     let removeCurrentFileFromProject () =
         let editor = vscode.window.activeTextEditor
-        if editor.document.languageId = "fsharp" then
-            sprintf "remove file -n %s" editor.document.fileName |> spawnForge |> ignore
+        match editor.document with
+        | Document.FSharp -> sprintf "remove file -n %s" editor.document.fileName |> spawnForge |> ignore
+        | _ -> ()
 
     let addReference () =
         promise {

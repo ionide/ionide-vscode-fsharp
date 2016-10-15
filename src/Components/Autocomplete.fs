@@ -35,7 +35,7 @@ module Autocomplete =
             let chars = lineStr.ToCharArray ()
             let noSpaces = chars |> Array.filter ((<>) ' ')
             let spacesCount = chars |> Array.take (int pos.character) |> Array.filter ((=) ' ') |> Array.length
-            let index =int pos.character - spacesCount - 1
+            let index = int pos.character - spacesCount - 1
             let prevChar = noSpaces.[index]
             let setting = workspace.getConfiguration().get("FSharp.keywordsAutocomplete", true)
 
