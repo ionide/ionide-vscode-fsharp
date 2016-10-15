@@ -13,7 +13,7 @@ module Definition =
     let private createProvider () =
 
         let mapResult (doc : TextDocument) (pos : Position) (o : FindDeclarationResult) : Definition =
-            if o |> unbox <> null then
+            if isNotNull o then
                 let loc = createEmpty<Location>
                 let range = doc.getWordRangeAtPosition pos
                 let length = range.``end``.character - range.start.character

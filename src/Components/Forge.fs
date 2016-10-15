@@ -53,26 +53,30 @@ module Forge =
 
     let moveFileUp () =
         let editor = vscode.window.activeTextEditor
-        if editor.document.languageId = "fsharp" then
-            sprintf "move file -n %s -u" editor.document.fileName |> spawnForge |> ignore
+        match editor.document with
+        | Document.FSharp -> sprintf "move file -n %s -u" editor.document.fileName |> spawnForge |> ignore
+        | _ -> ()
 
     let moveFileDown () =
         let editor = vscode.window.activeTextEditor
-        if editor.document.languageId = "fsharp" then
-            sprintf "move file -n %s -d" editor.document.fileName |> spawnForge |> ignore
+        match editor.document with
+        | Document.FSharp -> sprintf "move file -n %s -d" editor.document.fileName |> spawnForge |> ignore
+        | _ -> ()
 
     let refreshTemplates () =
         "refresh" |> spawnForge |> ignore
 
     let addCurrentFileToProject () =
         let editor = vscode.window.activeTextEditor
-        if editor.document.languageId = "fsharp" then
-            sprintf "add file -n %s" editor.document.fileName |> spawnForge |> ignore
+        match editor.document with
+        | Document.FSharp -> sprintf "add file -n %s" editor.document.fileName |> spawnForge |> ignore
+        | _ -> ()
 
     let removeCurrentFileFromProject () =
         let editor = vscode.window.activeTextEditor
-        if editor.document.languageId = "fsharp" then
-            sprintf "remove file -n %s" editor.document.fileName |> spawnForge |> ignore
+        match editor.document with
+        | Document.FSharp -> sprintf "remove file -n %s" editor.document.fileName |> spawnForge |> ignore
+        | _ -> ()
 
     let addReference () =
         promise {
@@ -150,8 +154,6 @@ module Forge =
             let f = (fs.readFileSync templateLocation).ToString()
             let file : TemplateFile = f |> JS.JSON.parse |> unbox
 
-            //let! lst = "list templates" |> execForge
-            // let n =  handleForgeList lst
             let n =
                 file.Templates
                 |> Array.map (fun t ->
@@ -187,8 +189,6 @@ module Forge =
             let f = (fs.readFileSync templateLocation).ToString()
             let file : TemplateFile = f |> JS.JSON.parse |> unbox
 
-            //let! lst = "list templates" |> execForge
-            // let n =  handleForgeList lst
             let n =
                 file.Templates
                 |> Array.map (fun t ->

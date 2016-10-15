@@ -30,7 +30,7 @@ module Symbols =
             | _   -> 0 |> unbox
 
         let mapRes (doc : TextDocument) o =
-             if o |> unbox <> null then
+             if isNotNull o then
                 o.Data |> Array.map (fun syms ->
                     let oc = createEmpty<SymbolInformation>
                     oc.name <- syms.Declaration.Name

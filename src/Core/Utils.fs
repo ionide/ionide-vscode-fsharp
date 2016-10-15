@@ -1,11 +1,11 @@
 namespace Ionide.VSCode.FSharp
 
 open Fable.Import.vscode
-    
-[<RequireQualifiedAccess>]    
+
+[<RequireQualifiedAccess>]
 module CodeRange =
     type CodeRange = Fable.Import.vscode.Range
-    
+
     /// Converts Range DTO to VS Code Range.
     let fromDTO (range: DTO.Range) : CodeRange =
         CodeRange (float range.StartLine - 1.,
@@ -27,6 +27,12 @@ module CodeRange =
                    float su.EndLine - 1.,
                    float su.EndColumn - 1.)
 
+    let fromError (error : DTO.Error) : CodeRange =
+        CodeRange (float error.StartLine - 1.,
+                   float error.StartColumn - 1.,
+                   float error.EndLine - 1.,
+                   float error.EndColumn - 1.)
+
 [<RequireQualifiedAccess>]
 module String =
     let trim (s: string) = s.Trim()
@@ -37,7 +43,31 @@ module String =
 
 [<RequireQualifiedAccess>]
 module Option =
-    let fill (def: 'a) (x: 'a option) : 'a = 
+    let fill (def: 'a) (x: 'a option) : 'a =
         match x with
         | Some x -> x
-        | None -> def 
+        | None -> def
+
+[<RequireQualifiedAccess>]
+module Document =
+    let (|FSharp|_|) (document : TextDocument) =
+        if document.languageId = "fsharp" then Some FSharp else None
+
+[<RequireQualifiedAccess>]
+module Configuration =
+    let get defaultValue key =
+        workspace.getConfiguration().get(key, defaultValue)
+
+[<AutoOpen>]
+module Utils =
+    let isNotNull o = o |> unbox <> null
+
+[<AutoOpen>]
+module JS =
+    open Fable.Core
+
+    [<Emit("setTimeout($0,$1)")>]
+    let setTimeout(cb, delay) : obj = failwith "JS Only"
+
+    [<Emit("clearTimeout($0)")>]
+    let clearTimeout(timer) : unit = failwith "JS Only"

@@ -12,24 +12,17 @@ open Ionide.VSCode.Helpers
 
 
 module Errors =
-
-    [<Emit("setTimeout($0,$1)")>]
-    let setTimeout(cb, delay) : obj = failwith "JS Only"
-
-    [<Emit("clearTimeout($0)")>]
-    let clearTimeout(timer) : unit = failwith "JS Only"
-
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
     let private mapResult (ev : ParseResult) =
         ev.Data
-        |> Seq.distinctBy (fun d -> d.Severity, d.StartLine, d.StartColumn)
-        |> Seq.choose (fun d ->
+        |> Seq.distinctBy (fun error -> error.Severity, error.StartLine, error.StartColumn)
+        |> Seq.choose (fun error ->
             try
-                let range = Range(float d.StartLine - 1., float d.StartColumn - 1., float d.EndLine - 1., float d.EndColumn - 1.)
-                let loc = Location (Uri.file d.FileName, range |> Case1)
-                let severity = if d.Severity = "Error" then 0 else 1
-                (Diagnostic(range, d.Message, unbox severity), d.FileName) |> Some
+                let range = CodeRange.fromError error
+                let loc = Location (Uri.file error.FileName, range |> Case1)
+                let severity = if error.Severity = "Error" then 0 else 1
+                (Diagnostic(range, error.Message, unbox severity), error.FileName) |> Some
             with
             | _ -> None )
         |> ResizeArray
@@ -40,7 +33,8 @@ module Errors =
 
 
     let parseFile (file : TextDocument) =
-        if file.languageId = "fsharp" then
+        match file with
+        | Document.FSharp ->
             let path = file.fileName
             let prom = Project.find path
             match prom with
@@ -48,12 +42,10 @@ module Errors =
                         |> LanguageService.project
                         |> Promise.bind (fun _ -> parse path (file.getText ()))
             | None -> parse path (file.getText ())
-        else
-            Promise.lift (null |> unbox)
+        | _ -> Promise.lift (null |> unbox)
 
     let parseProject () =
         promise {
-
             let! res = LanguageService.parseProject ()
             res
             |> mapResult
@@ -61,7 +53,7 @@ module Errors =
                 currentDiagnostic.clear ()
                 n
             |> Seq.groupBy(fun (x,p) -> p)
-            |> Seq.iter (fun (path, ev) ->  (Uri.file path, ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set   )
+            |> Seq.iter (fun (path, ev) ->  (Uri.file path, ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
 
         }
 
@@ -70,8 +62,9 @@ module Errors =
     let private handler (event : TextDocumentChangeEvent) =
         timer |> Option.iter(clearTimeout)
         timer <- Some (setTimeout((fun _ ->
-            if event.document.languageId = "fsharp" then
-                parse (event.document.fileName) (event.document.getText ()) |> ignore), 500.) )
+            match event.document with
+            | Document.FSharp ->  parse (event.document.fileName) (event.document.getText ()) |> ignore
+            | _ -> () ), 500.))
 
 
     let private handlerOpen (event : TextEditor) =
@@ -83,7 +76,6 @@ module Errors =
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
         workspace.onDidSaveTextDocument $ (parseProject, (), disposables) |> ignore
-
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
 
 

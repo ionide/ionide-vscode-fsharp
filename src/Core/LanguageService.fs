@@ -18,8 +18,7 @@ module LanguageService =
     type LogConfigSetting = None | Output | DevConsole | Both
     let logLanguageServiceRequestsConfigSetting =
         try
-            let setting = workspace.getConfiguration().get("FSharp.logLanguageServiceRequests", "")
-            match setting with
+            match "FSharp.logLanguageServiceRequests" |> Configuration.get "" with
             | "devconsole" -> LogConfigSetting.DevConsole
             | "output" -> LogConfigSetting.Output
             | "both" -> LogConfigSetting.Both
@@ -29,7 +28,7 @@ module LanguageService =
 
     let logLanguageServiceRequestsOutputWindowLevel =
         try
-            match workspace.getConfiguration().get("FSharp.logLanguageServiceRequestsOutputWindowLevel", "INFO") with
+            match "FSharp.logLanguageServiceRequestsOutputWindowLevel" |> Configuration.get "INFO" with
             | "DEBUG" -> Level.DEBUG
             | "INFO" -> Level.INFO
             | "WARN" -> Level.WARN
@@ -191,7 +190,7 @@ module LanguageService =
         Promise.create (fun resolve reject ->
             let child =
                 if Process.isMono () then
-                    let mono = workspace.getConfiguration().get("FSharp.monoPath", "mono")
+                    let mono = "FSharp.monoPath" |> Configuration.get "mono"
                     child_process.spawn(mono, [| path; string port|] |> ResizeArray)
                 else
                     child_process.spawn(path, [| string port|] |> ResizeArray)

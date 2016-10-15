@@ -12,31 +12,23 @@ open Ionide.VSCode.Helpers
 
 module Linter =
 
-    [<Emit("setTimeout($0,$1)")>]
-    let setTimeout(cb, delay) : obj = failwith "JS Only"
-
-    [<Emit("clearTimeout($0)")>]
-    let clearTimeout(timer) : unit = failwith "JS Only"
 
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
-    let private isLinterEnabled () = workspace.getConfiguration().get("FSharp.linter", true)
+    let private isLinterEnabled () = "FSharp.linter" |> Configuration.get true
 
-    let private diagnosticFromLintWarning file (warning : Lint) = 
+    let private diagnosticFromLintWarning file (warning : Lint) =
         let range = CodeRange.fromDTO warning.Range
         let loc = Location (Uri.file file, range |> Case1)
         Diagnostic(range, "Lint: " + warning.Info, DiagnosticSeverity.Information), file
 
     let private mapResult file (ev : LintResult) =
-        let res =
-            if (unbox >> isNull >> not) ev then
-                ev.Data
-                |> Seq.map (diagnosticFromLintWarning file)
-                |> ResizeArray
-            else
-                ResizeArray ()
-        Browser.console.log res
-        res
+        if isNotNull ev then
+            ev.Data
+            |> Seq.map (diagnosticFromLintWarning file)
+            |> ResizeArray
+        else
+            ResizeArray ()
 
     let private parse path =
         LanguageService.lint path
@@ -46,12 +38,16 @@ module Linter =
 
     let private handler (event : TextDocumentChangeEvent) =
         timer |> Option.iter(clearTimeout)
-        if event.document.languageId = "fsharp" && isLinterEnabled () then
+        match event.document with
+        | Document.FSharp when  isLinterEnabled () ->
             timer <- Some (setTimeout((fun _ -> parse event.document.fileName |> ignore), 500.))
+        | _ -> ()
 
     let private handlerOpen (event : TextEditor) =
-        if JS.isDefined event && event.document.languageId = "fsharp" && isLinterEnabled () then
+        match event.document with
+        | Document.FSharp when  isLinterEnabled () && JS.isDefined event ->
             parse event.document.fileName |> ignore
+        | _ -> ()
 
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
