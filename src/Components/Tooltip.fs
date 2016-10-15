@@ -57,7 +57,7 @@ module Tooltip =
           with
             member this.provideHover(doc, pos, _ ) =
                 promise {
-                    let! res = LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+                    let! res = LanguageService.tooltip doc.fileName (int pos.line + 1) (int pos.character + 1)
                     return mapResult doc pos res
                 } |> Case2
 
