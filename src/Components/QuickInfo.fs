@@ -29,7 +29,7 @@ module QuickInfo =
                     let pos = event.selections.[0].active
                     let! o = LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
                     if isNotNull o then
-                        let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
+                        let res = (o.Data |> Array.collect id).[0].Signature
                         if JS.isDefined res then
                             let t = res.Split('\n').[0]
                             item |> Option.iter (fun n -> n.hide ())

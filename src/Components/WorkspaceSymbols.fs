@@ -54,7 +54,6 @@ module WorkspaceSymbols =
                 else
                     [||]
 
-
         { new WorkspaceSymbolProvider
           with
             member this.provideWorkspaceSymbols(q, ct) =

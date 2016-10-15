@@ -59,7 +59,7 @@ module Autocomplete =
                 ResizeArray ()
 
         let mapHelptext (sug : CompletionItem) (o : HelptextResult) =
-            let res = (o.Data.Overloads |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head
+            let res = (o.Data.Overloads |> Array.collect id).[0]
             sug.documentation <- res.Comment
             sug.detail <- res.Signature
             sug
