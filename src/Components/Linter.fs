@@ -20,7 +20,7 @@ module Linter =
 
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
-    let private isLinterEnabled () = workspace.getConfiguration().get("FSharp.linter", true)
+    let private isLinterEnabled () = "FSharp.linter" |> Configuration.get true
 
     let private diagnosticFromLintWarning file (warning : Lint) =
         let range = CodeRange.fromDTO warning.Range
@@ -29,7 +29,7 @@ module Linter =
 
     let private mapResult file (ev : LintResult) =
         let res =
-            if (unbox >> isNull >> not) ev then
+            if unbox ev <> null then
                 ev.Data
                 |> Seq.map (diagnosticFromLintWarning file)
                 |> ResizeArray

@@ -37,7 +37,7 @@ module Autocomplete =
             let spacesCount = chars |> Array.take (int pos.character) |> Array.filter ((=) ' ') |> Array.length
             let index = int pos.character - spacesCount - 1
             let prevChar = noSpaces.[index]
-            let setting = workspace.getConfiguration().get("FSharp.keywordsAutocomplete", true)
+            let setting = "FSharp.keywordsAutocomplete" |> Configuration.get true
 
             if o |> unbox <> null then
                 o.Data |> Array.choose (fun c ->

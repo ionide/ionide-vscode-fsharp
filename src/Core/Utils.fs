@@ -52,3 +52,8 @@ module Option =
 module Document =
     let (|FSharp|_|) (document : TextDocument) =
         if document.languageId = "fsharp" then Some FSharp else None
+
+[<RequireQualifiedAccess>]
+module Configuration =
+    let get defaultValue key =
+        workspace.getConfiguration().get(key, defaultValue)

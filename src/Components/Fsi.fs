@@ -17,7 +17,7 @@ module Fsi =
     let mutable fsiOutput : Terminal option = None
 
     let isPowershell () =
-        let t = workspace.getConfiguration().get("terminal.integrated.shell.windows", "")
+        let t = "terminal.integrated.shell.windows" |> Configuration.get ""
         t.ToLower().Contains "powershell"
 
     let sendCd () =
@@ -45,7 +45,9 @@ module Fsi =
             fsiOutput |> Option.iter (fun n -> n.dispose())
             let parms =
                 let fsiParams =
-                    workspace.getConfiguration().get("FSharp.fsiExtraParameters", Array.empty<string>) |> List.ofArray
+                    "FSharp.fsiExtraParameters"
+                    |> Configuration.get Array.empty<string>
+                    |> List.ofArray
 
                 if Environment.isWin then
                     [ "--fsi-server-input-codepage:65001" ] @ fsiParams

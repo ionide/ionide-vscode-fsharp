@@ -18,7 +18,6 @@ module WebPreview =
     let private eventEmitter = vscode.EventEmitter<Uri>()
     let private update = eventEmitter.event
 
-
     let mutable linuxPrefix = ""
     let mutable command = "packages/FAKE/tools/FAKE.exe"
     let mutable host = ""
@@ -29,9 +28,6 @@ module WebPreview =
     let mutable parameters = [||]
     let mutable startingPage = ""
     let mutable fakeProcess : child_process_types.ChildProcess Option = None
-
-
-
 
     let loadSettings () =
         linuxPrefix <- Settings.loadOrDefault (fun s -> s.WebPreview.linuxPrefix) "mono"
@@ -64,7 +60,7 @@ module WebPreview =
 
     let parseResponse o =
         if JS.isDefined o && o <> null then
-            let str =  o.ToString ()
+            let str = o.ToString ()
             if str.Contains startString then
                 vscode.commands.executeCommand("vscode.previewHtml", previewUri, 2)
                 |> ignore

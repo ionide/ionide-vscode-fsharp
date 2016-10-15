@@ -154,8 +154,6 @@ module Forge =
             let f = (fs.readFileSync templateLocation).ToString()
             let file : TemplateFile = f |> JS.JSON.parse |> unbox
 
-            //let! lst = "list templates" |> execForge
-            // let n =  handleForgeList lst
             let n =
                 file.Templates
                 |> Array.map (fun t ->
@@ -191,8 +189,6 @@ module Forge =
             let f = (fs.readFileSync templateLocation).ToString()
             let file : TemplateFile = f |> JS.JSON.parse |> unbox
 
-            //let! lst = "list templates" |> execForge
-            // let n =  handleForgeList lst
             let n =
                 file.Templates
                 |> Array.map (fun t ->

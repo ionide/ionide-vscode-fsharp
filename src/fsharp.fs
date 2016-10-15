@@ -14,7 +14,7 @@ let activate(disposables: Disposable[]) =
     df.language <- Some "fsharp"
     let df' : DocumentSelector = df |> U3.Case2
 
-    let legacyFsi = workspace.getConfiguration().get("FSharp.legacyFSI", false)
+    let legacyFsi = "FSharp.legacyFSI" |> Configuration.get false
 
     LanguageService.start ()
     |> Promise.onSuccess (fun _ ->
