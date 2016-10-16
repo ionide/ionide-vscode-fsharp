@@ -151,72 +151,76 @@ module Forge =
 
     let newProject () =
         promise {
-            let f = (fs.readFileSync templateLocation).ToString()
-            let file : TemplateFile = f |> JS.JSON.parse |> unbox
+            if fs.existsSync templateLocation then
+                let f = (fs.readFileSync templateLocation).ToString()
+                let file : TemplateFile = f |> JS.JSON.parse |> unbox
 
-            let n =
-                file.Templates
-                |> Array.map (fun t ->
-                    let res = createEmpty<QuickPickItem>
-                    res.label <- t.value
-                    res.description <- t.name
-                    res
-                ) |> ResizeArray
+                let n =
+                    file.Templates
+                    |> Array.map (fun t ->
+                        let res = createEmpty<QuickPickItem>
+                        res.label <- t.value
+                        res.description <- t.name
+                        res
+                    ) |> ResizeArray
 
 
-            if n.Count <> 0 then
-                let! template = window.showQuickPick ( n |> Case1)
-                if JS.isDefined template then
-                    let opts = createEmpty<InputBoxOptions>
-                    opts.prompt <- Some "Project directory"
-                    let! dir = window.showInputBox (opts)
+                if n.Count <> 0 then
+                    let! template = window.showQuickPick ( n |> Case1)
+                    if JS.isDefined template then
+                        let opts = createEmpty<InputBoxOptions>
+                        opts.prompt <- Some "Project directory"
+                        let! dir = window.showInputBox (opts)
 
-                    let opts = createEmpty<InputBoxOptions>
-                    opts.prompt <- Some "Project name"
-                    let! name =  window.showInputBox(opts)
-                    if JS.isDefined dir && JS.isDefined name then
-                        sprintf "new project -n %s -t %s --folder %s" name template.label dir |> spawnForge |> ignore
+                        let opts = createEmpty<InputBoxOptions>
+                        opts.prompt <- Some "Project name"
+                        let! name =  window.showInputBox(opts)
+                        if JS.isDefined dir && JS.isDefined name then
+                            sprintf "new project -n %s -t %s --folder %s" name template.label dir |> spawnForge |> ignore
 
-                        window.showInformationMessage "Project created"
-                        |> ignore
+                            window.showInformationMessage "Project created"
+                            |> ignore
+                else
+                    window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command" |> ignore
             else
-                window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command"
-                |> ignore
+                window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command" |> ignore
         }
 
     let newProjectNoFake () =
         promise {
-            let f = (fs.readFileSync templateLocation).ToString()
-            let file : TemplateFile = f |> JS.JSON.parse |> unbox
+            if fs.existsSync templateLocation then
+                let f = (fs.readFileSync templateLocation).ToString()
+                let file : TemplateFile = f |> JS.JSON.parse |> unbox
 
-            let n =
-                file.Templates
-                |> Array.map (fun t ->
-                    let res = createEmpty<QuickPickItem>
-                    res.label <- t.value
-                    res.description <- t.name
-                    res
-                ) |> ResizeArray
+                let n =
+                    file.Templates
+                    |> Array.map (fun t ->
+                        let res = createEmpty<QuickPickItem>
+                        res.label <- t.value
+                        res.description <- t.name
+                        res
+                    ) |> ResizeArray
 
 
-            if n.Count <> 0 then
-                let! template = window.showQuickPick ( n |> Case1)
-                if JS.isDefined template then
-                    let opts = createEmpty<InputBoxOptions>
-                    opts.prompt <- Some "Project directory"
-                    let! dir = window.showInputBox (opts)
+                if n.Count <> 0 then
+                    let! template = window.showQuickPick ( n |> Case1)
+                    if JS.isDefined template then
+                        let opts = createEmpty<InputBoxOptions>
+                        opts.prompt <- Some "Project directory"
+                        let! dir = window.showInputBox (opts)
 
-                    let opts = createEmpty<InputBoxOptions>
-                    opts.prompt <- Some "Project name"
-                    let! name =  window.showInputBox(opts)
-                    if JS.isDefined dir && JS.isDefined name then
-                        sprintf "new project -n %s -t %s --folder %s --no-fake" name template.label dir |> spawnForge |> ignore
+                        let opts = createEmpty<InputBoxOptions>
+                        opts.prompt <- Some "Project name"
+                        let! name =  window.showInputBox(opts)
+                        if JS.isDefined dir && JS.isDefined name then
+                            sprintf "new project -n %s -t %s --folder %s --no-fake" name template.label dir |> spawnForge |> ignore
 
-                        window.showInformationMessage "Project created"
-                        |> ignore
+                            window.showInformationMessage "Project created"
+                            |> ignore
+                else
+                    window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command" |> ignore
             else
-                window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command"
-                |> ignore
+                window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command" |> ignore
         }
 
 
