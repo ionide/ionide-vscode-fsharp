@@ -35,13 +35,13 @@ module Autocomplete =
             let chars = lineStr.ToCharArray ()
             let noSpaces = chars |> Array.filter ((<>) ' ')
             let spacesCount = chars |> Array.take (int pos.character) |> Array.filter ((=) ' ') |> Array.length
-            let index =int pos.character - spacesCount - 1
+            let index = int pos.character - spacesCount - 1
             let prevChar = noSpaces.[index]
-            let setting = workspace.getConfiguration().get("FSharp.keywordsAutocomplete", true)
+            let setting = "FSharp.keywordsAutocomplete" |> Configuration.get true
 
-            if o |> unbox <> null then
+            if isNotNull o then
                 o.Data |> Array.choose (fun c ->
-                    if c.GlyphChar = "K" && (setting = false) then
+                    if c.GlyphChar = "K" && setting = false then
                         None
                     elif prevChar = '.' && c.GlyphChar = "K" then
                         None
@@ -59,7 +59,7 @@ module Autocomplete =
                 ResizeArray ()
 
         let mapHelptext (sug : CompletionItem) (o : HelptextResult) =
-            let res = (o.Data.Overloads |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head
+            let res = (o.Data.Overloads |> Array.collect id).[0]
             sug.documentation <- res.Comment
             sug.detail <- res.Signature
             sug

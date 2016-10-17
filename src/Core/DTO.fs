@@ -102,7 +102,7 @@ module DTO =
         EndLine: int
     }
 
-    type Symbol ={
+    type Symbol = {
         UniqueName: string
         Name: string
         Glyph: string
@@ -111,6 +111,8 @@ module DTO =
         Range: Range
         BodyRange : Range
         File : string
+        EnclosingEntity : string
+        IsAbstract : bool
     }
 
     type Symbols = {

@@ -12,24 +12,18 @@ open Ionide.VSCode.Helpers
 
 
 module QuickInfo =
-    [<Emit("setTimeout($0,$1)")>]
-    let setTimeout(cb, delay) : obj = failwith "JS Only"
-
-    [<Emit("clearTimeout($0)")>]
-    let clearTimeout(timer) : unit = failwith "JS Only"
-
     let mutable private item : StatusBarItem option = None
 
     let private handle' (event : TextEditorSelectionChangeEvent) =
         promise {
             if JS.isDefined event.textEditor?document then
                 let doc = event.textEditor.document
-                let pos = event.selections.[0].active
-                
-                if doc.languageId = "fsharp" then
+                match doc with
+                | Document.FSharp ->
+                    let pos = event.selections.[0].active
                     let! o = LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-                    if o |> unbox <> null then
-                        let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head.Signature
+                    if isNotNull o then
+                        let res = (o.Data |> Array.collect id).[0].Signature
                         if JS.isDefined res then
                             let t = res.Split('\n').[0]
                             item |> Option.iter (fun n -> n.hide ())
@@ -38,6 +32,7 @@ module QuickInfo =
                             i.tooltip <- res
                             i.show ()
                             item <- Some i
+                | _ -> ()
         }
 
     let mutable private timer = None

@@ -1,3 +1,10 @@
+### 2.6.12 - 16.10.2016
+* Add additional error handling for New Project commands
+
+### 2.6.11 - 14.10.2016
+* Should CodeLens on let value bindings
+* Don't show CodeLens on abstract members
+
 ### 2.6.9 - 11.10.2016
 * Fix FSI start parameters regression
 * Small fix to tooltips format

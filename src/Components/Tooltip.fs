@@ -17,8 +17,8 @@ module Tooltip =
 
         let mapResult (doc : TextDocument) (pos : Position) o =
             let range = doc.getWordRangeAtPosition pos
-            if o |> unbox <> null then
-                let res = (o.Data |> Array.fold (fun acc n -> (n |> Array.toList) @ acc ) []).Head
+            if isNotNull o then
+                let res = (o.Data |> Array.collect id).[0]
                 if JS.isDefined res.Signature then
                     let markStr lang (value:string) : MarkedString =
                         createObj [
@@ -57,7 +57,7 @@ module Tooltip =
           with
             member this.provideHover(doc, pos, _ ) =
                 promise {
-                    let! res = LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+                    let! res = LanguageService.tooltip doc.fileName (int pos.line + 1) (int pos.character + 1)
                     return mapResult doc pos res
                 } |> Case2
 

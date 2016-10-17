@@ -17,7 +17,7 @@ module LegacyFsi =
         |> Some
 
     let private handle (data : obj) =
-        if data <> null then
+        if isNotNull data then
             let response = data.ToString().Replace("\\","\\\\")
             fsiOutput |> Option.iter (fun outChannel -> outChannel.append response |> ignore)
 

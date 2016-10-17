@@ -16,12 +16,12 @@ module Highlights =
     let private createProvider () =
 
         let mapResult (o : SymbolUseResult) =
-            if o |> unbox <> null then
+            if isNotNull o then
                 o.Data.Uses |> Array.map (fun d ->
                     let res = createEmpty<DocumentHighlight>
-                    res.range <- Range(float d.StartLine - 1., float d.StartColumn - 1., float d.EndLine - 1., float d.EndColumn - 1.)
-                    res.kind <- (0 |> unbox)
-                    res )
+                    res.range <- CodeRange.fromSymbolUse d
+                    res.kind <- unbox 0
+                    res)
                 |> ResizeArray
             else
                 ResizeArray ()

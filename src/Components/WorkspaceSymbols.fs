@@ -30,18 +30,14 @@ module WorkspaceSymbols =
             path.relative (workspace.rootPath, f)
 
         let mapRes o =
-             if o |> unbox <> null then
+             if isNotNull o then
                 o.Data |> Array.map (fun syms ->
                     let oc = createEmpty<SymbolInformation>
                     oc.name <- syms.Declaration.Name
                     oc.kind <- syms.Declaration.GlyphChar |> convertToKind
                     oc.containerName <- relative syms.Declaration.File
                     let loc = createEmpty<Location>
-                    loc.range <-  Range
-                                ( float syms.Declaration.BodyRange.StartLine   - 1.,
-                                    float syms.Declaration.BodyRange.StartColumn - 1.,
-                                    float syms.Declaration.BodyRange.EndLine     - 1.,
-                                    float syms.Declaration.BodyRange.EndColumn   - 1.)
+                    loc.range <- CodeRange.fromDTO syms.Declaration.BodyRange
                     loc.uri <- Uri.file syms.Declaration.File
                     oc.location <- loc
                     let ocs =  syms.Nested |> Array.map (fun sym ->
@@ -50,18 +46,13 @@ module WorkspaceSymbols =
                         oc.kind <- sym.GlyphChar |> convertToKind
                         oc.containerName <- relative sym.File
                         let loc = createEmpty<Location>
-                        loc.range <-  Range
-                                    ( float sym.BodyRange.StartLine   - 1.,
-                                        float sym.BodyRange.StartColumn - 1.,
-                                        float sym.BodyRange.EndLine     - 1.,
-                                        float sym.BodyRange.EndColumn   - 1.)
+                        loc.range <- CodeRange.fromDTO sym.BodyRange
                         loc.uri <- Uri.file sym.File
                         oc.location <- loc
                         oc )
                     ocs |> Array.append (Array.create 1 oc)) |> Array.concat
                 else
                     [||]
-
 
         { new WorkspaceSymbolProvider
           with
