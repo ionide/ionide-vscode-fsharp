@@ -1,3 +1,6 @@
+### 2.6.13 - 17.10.2016
+* FSI - Handle terminal close event
+
 ### 2.6.12 - 16.10.2016
 * Add additional error handling for New Project commands
 
