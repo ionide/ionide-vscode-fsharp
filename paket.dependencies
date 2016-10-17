@@ -15,7 +15,6 @@ nuget NUnit
 nuget FsUnit
 
 github fsharp/FAKE modules/Octokit/Octokit.fsx
-//github Ionide/ionide-vscode-helpers Fable.Import.VSCode.fs
-github kirill-gerasimenko/ionide-vscode-helpers:terminal_process Fable.Import.VSCode.fs
+github Ionide/ionide-vscode-helpers Fable.Import.VSCode.fs
 github Ionide/ionide-vscode-helpers Helpers.fs
 github Ionide/ionide-vscode-helpers Fable.Import.Axios.fs
