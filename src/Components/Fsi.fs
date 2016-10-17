@@ -12,6 +12,7 @@ open Ionide.VSCode.Helpers
 
 module Fsi =
     let mutable fsiOutput : Terminal option = None
+    let mutable fsiOutputPID : int option = None
 
     let isPowershell () =
         let t = "terminal.integrated.shell.windows" |> Configuration.get ""
@@ -38,7 +39,7 @@ module Fsi =
         )
 
     let private start () =
-        try
+        Promise.create (fun resolve reject -> 
             fsiOutput |> Option.iter (fun n -> n.dispose())
             let parms =
                 let fsiParams =
@@ -53,27 +54,38 @@ module Fsi =
                 |> Array.ofList
 
             let terminal = window.createTerminal("F# Interactive", Environment.fsi, parms)
-            fsiOutput <- Some terminal
-            sendCd ()
-            terminal.show(true)
-        with
-        | _ ->
-            window.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore
+            
+            terminal.processId 
+            |> Promise.onSuccess (fun pId ->
+                fsiOutput <- Some terminal
+                fsiOutputPID <- Some pId
+                sendCd ()
+                terminal.show(true)
+                resolve terminal)
+            |> Promise.onFail reject
+            |> ignore)
+        |> Promise.onFail (fun _ -> 
+            window.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore)
 
 
     let private send (msg : string) =
         let msg = msg + "\n;;\n"
-        if fsiOutput.IsNone then start ()
-        fsiOutput |> Option.iter (fun fp -> fp.sendText(msg,false) )
-
+        match fsiOutput with
+        | None -> start () 
+        | Some fo -> Promise.lift fo
+        |> Promise.onSuccess (fun fp -> fp.sendText(msg,false)) 
+        |> Promise.onFail (fun error ->
+            window.showErrorMessage "Failed to send text to FSI" |> ignore)
 
     let private sendLine () =
         let editor = window.activeTextEditor
         let file = editor.document.fileName
         let pos = editor.selection.start
         let line = editor.document.lineAt pos
-        send line.text
-        commands.executeCommand "cursorDown" |> ignore
+        send line.text 
+        |> Promise.onSuccess (fun _ -> commands.executeCommand "cursorDown" |> ignore)
+        |> Promise.catch (fun _ -> promise { () }) // prevent unhandled promise exception
+        |> ignore
 
     let private sendSelection () =
         let editor = window.activeTextEditor
@@ -85,17 +97,32 @@ module Fsi =
             let range = Range(editor.selection.anchor.line, editor.selection.anchor.character, editor.selection.active.line, editor.selection.active.character)
             let text = editor.document.getText range
             send text
-
+            |> Promise.catch (fun _ -> promise { () }) // prevent unhandled promise exception
+            |> ignore
+            
     let private sendFile () =
         let editor = window.activeTextEditor
-        let file = editor.document.fileName
         let text = editor.document.getText ()
         send text
+        |> Promise.catch (fun _ -> promise { () }) // prevent unhandled promise exception
+        |> ignore
 
+    let private handleCloseTerminal (terminal:Terminal) =
+        fsiOutputPID 
+        |> Option.iter (fun currentTerminalPID -> 
+            terminal.processId 
+            |> Promise.onSuccess (fun closedTerminalPID -> 
+                if closedTerminalPID = currentTerminalPID then
+                    fsiOutput <- None
+                    fsiOutputPID <- None)
+            |> Promise.catch (fun _ -> promise { () }) // prevent unhandled promise exception
+            |> ignore)
+        |> ignore
 
 
     let activate (disposables: Disposable[]) =
         window.onDidChangeActiveTextEditor $ ((fun n -> if JS.isDefined n then sendCd()), (), disposables) |> ignore
+        window.onDidCloseTerminal $ (handleCloseTerminal, (), disposables) |> ignore
 
         commands.registerCommand("fsi.Start", start |> unbox) |> ignore
         commands.registerCommand("fsi.SendLine", sendLine |> unbox) |> ignore
