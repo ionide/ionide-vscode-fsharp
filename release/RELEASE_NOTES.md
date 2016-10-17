@@ -1,3 +1,6 @@
+### 2.6.14 - 17.10.2016
+* Fix regressions caused by refactoring in `2.6.12`
+
 ### 2.6.13 - 17.10.2016
 * FSI - Handle terminal close event
 
