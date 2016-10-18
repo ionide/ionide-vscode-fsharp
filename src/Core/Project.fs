@@ -75,7 +75,7 @@ module Project =
     let private clearLoadedProjects () =
         loadedProjects <- emptyProjectsMap
 
-    let private loadProject (path:string) =
+    let load (path:string) =
         LanguageService.project path
         |> Promise.onSuccess (fun (pr:ProjectResult) -> 
             loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add)
@@ -93,4 +93,4 @@ module Project =
             if len > 0 then Some kvp.Value else None )
         |> Seq.tryHead
 
-    let activate = clearLoadedProjects >> findAll >> (Promise.executeForAll loadProject) 
+    let activate = clearLoadedProjects >> findAll >> (Promise.executeForAll load) 

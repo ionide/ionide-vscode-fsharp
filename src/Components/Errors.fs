@@ -39,7 +39,7 @@ module Errors =
             let prom = Project.find path
             match prom with
             | Some p -> p
-                        |> LanguageService.project
+                        |> Project.load
                         |> Promise.bind (fun _ -> parse path (file.getText ()))
             | None -> parse path (file.getText ())
         | _ -> Promise.lift (null |> unbox)
