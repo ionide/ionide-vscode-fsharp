@@ -78,18 +78,17 @@ module Project =
     let private loadProject (path:string) =
         LanguageService.project path
         |> Promise.onSuccess (fun (pr:ProjectResult) -> 
-            let (ProjectFilePath path) = pr.Data.Project
-            loadedProjects <- (path.ToUpperInvariant () |> ProjectFilePath, pr.Data) |> loadedProjects.Add)
+            loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add)
 
     let tryFindLoadedProject (path:string) =
-         loadedProjects.TryFind (path.ToUpperInvariant () |> ProjectFilePath)
+         loadedProjects.TryFind (path.ToUpperInvariant ())
 
     let tryFindLoadedProjectByFile (filePath:string) =
         loadedProjects
         |> Seq.choose (fun kvp ->
             let len = 
                 kvp.Value.Files 
-                |> List.filter (fun (SourceFilePath f) -> (f.ToUpperInvariant ()) = (filePath.ToUpperInvariant ())) 
+                |> List.filter (fun f -> (f.ToUpperInvariant ()) = (filePath.ToUpperInvariant ())) 
                 |> List.length
             if len > 0 then Some kvp.Value else None )
         |> Seq.tryHead

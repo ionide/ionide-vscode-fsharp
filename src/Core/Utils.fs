@@ -74,3 +74,11 @@ module JS =
 
     [<Emit("debugger")>]
     let debugger () : unit = failwith "JS Only"
+
+
+module Promise =
+    open Fable.Import.JS
+    open Ionide.VSCode.Helpers
+
+    let suppress (pr:Promise<'T>) =
+        pr |> Ionide.VSCode.Helpers.Promise.catch (fun _ -> promise { () }) |> ignore

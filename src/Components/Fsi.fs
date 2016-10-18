@@ -107,12 +107,12 @@ module Fsi =
         |> Promise.catch (fun _ -> promise { () }) // prevent unhandled promise exception
         |> ignore
 
+    
     let private sendReferences () =
         window.activeTextEditor.document.fileName
         |> Project.tryFindLoadedProjectByFile
         |> Option.map (fun p -> p.References)
-        |> Option.iter (List.iter (fun (ProjectReferencePath ref) -> 
-            send ref |> Promise.catch (fun _ -> promise { () }) |> ignore))
+        |> Option.iter (List.iter (send >> Promise.suppress))
 
     let private handleCloseTerminal (terminal:Terminal) =
         fsiOutputPID 
