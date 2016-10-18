@@ -80,6 +80,13 @@ module LegacyFsi =
         let text = editor.document.getText ()
         send text file
 
+    let private referenceAssembly (path:ProjectReferencePath) = path |> sprintf "#r @\"%s\"" |> fun m -> send m null
+
+    let private sendReferences () =
+        window.activeTextEditor.document.fileName
+        |> Project.tryFindLoadedProjectByFile
+        |> Option.iter (fun p -> p.References |> List.iter referenceAssembly )
+
 
 
     let activate (disposables: Disposable[]) =
@@ -87,3 +94,4 @@ module LegacyFsi =
         commands.registerCommand("fsi.SendLine", sendLine |> unbox) |> ignore
         commands.registerCommand("fsi.SendSelection", sendSelection |> unbox) |> ignore
         commands.registerCommand("fsi.SendFile", sendFile |> unbox) |> ignore
+        commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox) |> ignore

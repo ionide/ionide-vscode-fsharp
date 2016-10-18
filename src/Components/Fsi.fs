@@ -39,7 +39,7 @@ module Fsi =
         )
 
     let private start () =
-        Promise.create (fun resolve reject -> 
+        Promise.create (fun resolve reject ->
             fsiOutput |> Option.iter (fun n -> n.dispose())
             let parms =
                 let fsiParams =
@@ -54,8 +54,8 @@ module Fsi =
                 |> Array.ofList
 
             let terminal = window.createTerminal("F# Interactive", Environment.fsi, parms)
-            
-            terminal.processId 
+
+            terminal.processId
             |> Promise.onSuccess (fun pId ->
                 fsiOutput <- Some terminal
                 fsiOutputPID <- Some pId
@@ -64,16 +64,16 @@ module Fsi =
                 resolve terminal)
             |> Promise.onFail reject
             |> ignore)
-        |> Promise.onFail (fun _ -> 
+        |> Promise.onFail (fun _ ->
             window.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore)
 
 
     let private send (msg : string) =
         let msg = msg + "\n;;\n"
         match fsiOutput with
-        | None -> start () 
+        | None -> start ()
         | Some fo -> Promise.lift fo
-        |> Promise.onSuccess (fun fp -> fp.sendText(msg,false)) 
+        |> Promise.onSuccess (fun fp -> fp.sendText(msg,false))
         |> Promise.onFail (fun error ->
             window.showErrorMessage "Failed to send text to FSI" |> ignore)
 
@@ -82,7 +82,7 @@ module Fsi =
         let file = editor.document.fileName
         let pos = editor.selection.start
         let line = editor.document.lineAt pos
-        send line.text 
+        send line.text
         |> Promise.onSuccess (fun _ -> commands.executeCommand "cursorDown" |> ignore)
         |> Promise.suppress // prevent unhandled promise exception
         |> ignore
@@ -99,7 +99,7 @@ module Fsi =
             send text
             |> Promise.suppress // prevent unhandled promise exception
             |> ignore
-            
+
     let private sendFile () =
         let editor = window.activeTextEditor
         let text = editor.document.getText ()
@@ -116,10 +116,10 @@ module Fsi =
         |> Option.iter (fun p -> p.References |> List.ofSeq |> referenceAssemblies |> Promise.suppress |> ignore)
 
     let private handleCloseTerminal (terminal:Terminal) =
-        fsiOutputPID 
-        |> Option.iter (fun currentTerminalPID -> 
-            terminal.processId 
-            |> Promise.onSuccess (fun closedTerminalPID -> 
+        fsiOutputPID
+        |> Option.iter (fun currentTerminalPID ->
+            terminal.processId
+            |> Promise.onSuccess (fun closedTerminalPID ->
                 if closedTerminalPID = currentTerminalPID then
                     fsiOutput <- None
                     fsiOutputPID <- None)
