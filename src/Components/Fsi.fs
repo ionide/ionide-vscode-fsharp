@@ -107,6 +107,10 @@ module Fsi =
         |> Promise.catch (fun _ -> promise { () }) // prevent unhandled promise exception
         |> ignore
 
+    let private sendReferences () =
+        printfn "SEND REFERENCES"
+        ()
+
     let private handleCloseTerminal (terminal:Terminal) =
         fsiOutputPID 
         |> Option.iter (fun currentTerminalPID -> 
@@ -128,4 +132,5 @@ module Fsi =
         commands.registerCommand("fsi.SendLine", sendLine |> unbox) |> ignore
         commands.registerCommand("fsi.SendSelection", sendSelection |> unbox) |> ignore
         commands.registerCommand("fsi.SendFile", sendFile |> unbox) |> ignore
+        commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox) |> ignore
 
