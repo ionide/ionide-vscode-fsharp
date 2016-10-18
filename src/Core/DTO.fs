@@ -128,12 +128,13 @@ module DTO =
 
     type ProjectFilePath = ProjectFilePath of string
     type SourceFilePath = SourceFilePath of string
+    type ProjectReferencePath = ProjectReferencePath of string 
 
     type Project = { 
         Project: ProjectFilePath
         Files: List<SourceFilePath>
         Output: string
-        References: List<ProjectFilePath>
+        References: List<ProjectReferencePath>
         Logs: Map<string, string> 
     }
 

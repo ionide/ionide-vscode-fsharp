@@ -108,8 +108,11 @@ module Fsi =
         |> ignore
 
     let private sendReferences () =
-        printfn "SEND REFERENCES"
-        ()
+        window.activeTextEditor.document.fileName
+        |> Project.tryFindLoadedProjectByFile
+        |> Option.map (fun p -> p.References)
+        |> Option.iter (List.iter (fun (ProjectReferencePath ref) -> 
+            send ref |> Promise.catch (fun _ -> promise { () }) |> ignore))
 
     let private handleCloseTerminal (terminal:Terminal) =
         fsiOutputPID 

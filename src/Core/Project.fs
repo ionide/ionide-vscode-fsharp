@@ -81,6 +81,19 @@ module Project =
             let (ProjectFilePath path) = pr.Data.Project
             loadedProjects <- (path.ToUpperInvariant () |> ProjectFilePath, pr.Data) |> loadedProjects.Add)
 
+    let tryFindLoadedProject (path:string) =
+         loadedProjects.TryFind (path.ToUpperInvariant () |> ProjectFilePath)
+
+    let tryFindLoadedProjectByFile (filePath:string) =
+        loadedProjects
+        |> Seq.choose (fun kvp ->
+            let len = 
+                kvp.Value.Files 
+                |> List.filter (fun (SourceFilePath f) -> (f.ToUpperInvariant ()) = (filePath.ToUpperInvariant ())) 
+                |> List.length
+            if len > 0 then Some kvp.Value else None )
+        |> Seq.tryHead
+
     let activate () =
         clearLoadedProjects ()
         match findAll () with
