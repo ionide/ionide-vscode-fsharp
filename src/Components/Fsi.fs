@@ -107,12 +107,14 @@ module Fsi =
         |> Promise.catch (fun _ -> promise { () }) // prevent unhandled promise exception
         |> ignore
 
-    
+    let private referenceAssembly = sprintf "#r @\"%s\"" >> send
+    let private referenceAssemblies = chainExecution referenceAssembly (fun acc ref -> acc |> Promise.bind (fun _ -> referenceAssembly ref))
+
     let private sendReferences () =
         window.activeTextEditor.document.fileName
         |> Project.tryFindLoadedProjectByFile
         |> Option.map (fun p -> p.References)
-        |> Option.iter (List.iter (send >> Promise.suppress))
+        |> Option.iter referenceAssemblies
 
     let private handleCloseTerminal (terminal:Terminal) =
         fsiOutputPID 
