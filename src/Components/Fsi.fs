@@ -113,7 +113,7 @@ module Fsi =
     let private sendReferences () =
         window.activeTextEditor.document.fileName
         |> Project.tryFindLoadedProjectByFile
-        |> Option.iter (fun p -> p.References |> List.ofSeq |> referenceAssemblies |> Promise.suppress |> ignore)
+        |> Option.iter (fun p -> p.References  |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not )  |> referenceAssemblies |> Promise.suppress |> ignore)
 
     let private handleCloseTerminal (terminal:Terminal) =
         fsiOutputPID

@@ -85,7 +85,7 @@ module LegacyFsi =
     let private sendReferences () =
         window.activeTextEditor.document.fileName
         |> Project.tryFindLoadedProjectByFile
-        |> Option.iter (fun p -> p.References |> List.iter referenceAssembly )
+        |> Option.iter (fun p -> p.References |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not ) |>  List.iter referenceAssembly )
 
 
 
