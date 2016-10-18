@@ -126,8 +126,8 @@ module DTO =
         Range : Range
     }
 
-    type ProjectFilePath = string
-    type SourceFilePath = string
+    type ProjectFilePath = ProjectFilePath of string
+    type SourceFilePath = SourceFilePath of string
 
     type Project = { 
         Project: ProjectFilePath
