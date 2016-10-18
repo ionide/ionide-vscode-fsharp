@@ -1,3 +1,6 @@
+### 2.7.0 - 19.10.2016
+* Add `FSI:  Send References from project` command
+
 ### 2.6.14 - 17.10.2016
 * Fix regressions caused by refactoring in `2.6.12`
 
