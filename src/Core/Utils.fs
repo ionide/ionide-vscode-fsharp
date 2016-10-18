@@ -61,6 +61,7 @@ module Configuration =
 [<AutoOpen>]
 module Utils =
     let isNotNull o = o |> unbox <> null
+    
 
 [<AutoOpen>]
 module JS =
@@ -71,3 +72,21 @@ module JS =
 
     [<Emit("clearTimeout($0)")>]
     let clearTimeout(timer) : unit = failwith "JS Only"
+
+    [<Emit("debugger")>]
+    let debugger () : unit = failwith "JS Only"
+
+
+module Promise =
+    open Fable.Import.JS
+    open Ionide.VSCode.Helpers
+
+    let suppress (pr:Promise<'T>) =
+        pr |> Ionide.VSCode.Helpers.Promise.catch (fun _ -> promise { () })
+    
+    let executeForAll f items =
+        match items with
+        | [] -> Ionide.VSCode.Helpers.Promise.lift (null |> unbox)
+        | [x] -> f x
+        | x::tail -> 
+            tail |> List.fold (fun acc next -> acc |> Ionide.VSCode.Helpers.Promise.bind (fun _ -> f next)) (f x)

@@ -13,6 +13,9 @@ open Ionide.VSCode.Helpers
 
 [<ReflectedDefinition>]
 module Project =
+    let private emptyProjectsMap = Map<ProjectFilePath,Project> []
+    let mutable private loadedProjects = emptyProjectsMap
+
     let find p =
         let rec findFsProj dir =
             if fs.lstatSync(dir).isDirectory() then
@@ -69,10 +72,25 @@ module Project =
         | null -> []
         | rootPath -> rootPath |> findProjs
 
+    let private clearLoadedProjects () =
+        loadedProjects <- emptyProjectsMap
 
-    let activate () =
-        match findAll () with
-        | [] -> Promise.lift (null |> unbox)
-        | [x] -> LanguageService.project x
-        | x::tail ->
-            tail |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> LanguageService.project e) ) (LanguageService.project x)
+    let load (path:string) =
+        LanguageService.project path
+        |> Promise.onSuccess (fun (pr:ProjectResult) -> 
+            loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add)
+
+    let tryFindLoadedProject (path:string) =
+         loadedProjects.TryFind (path.ToUpperInvariant ())
+
+    let tryFindLoadedProjectByFile (filePath:string) =
+        loadedProjects
+        |> Seq.choose (fun kvp ->
+            let len = 
+                kvp.Value.Files 
+                |> List.filter (fun f -> (f.ToUpperInvariant ()) = (filePath.ToUpperInvariant ())) 
+                |> List.length
+            if len > 0 then Some kvp.Value else None )
+        |> Seq.tryHead
+
+    let activate = clearLoadedProjects >> findAll >> (Promise.executeForAll load) 

@@ -84,7 +84,7 @@ module Fsi =
         let line = editor.document.lineAt pos
         send line.text 
         |> Promise.onSuccess (fun _ -> commands.executeCommand "cursorDown" |> ignore)
-        |> Promise.catch (fun _ -> promise { () }) // prevent unhandled promise exception
+        |> Promise.suppress // prevent unhandled promise exception
         |> ignore
 
     let private sendSelection () =
@@ -97,15 +97,23 @@ module Fsi =
             let range = Range(editor.selection.anchor.line, editor.selection.anchor.character, editor.selection.active.line, editor.selection.active.character)
             let text = editor.document.getText range
             send text
-            |> Promise.catch (fun _ -> promise { () }) // prevent unhandled promise exception
+            |> Promise.suppress // prevent unhandled promise exception
             |> ignore
             
     let private sendFile () =
         let editor = window.activeTextEditor
         let text = editor.document.getText ()
         send text
-        |> Promise.catch (fun _ -> promise { () }) // prevent unhandled promise exception
+        |> Promise.suppress // prevent unhandled promise exception
         |> ignore
+
+    let private referenceAssembly (path:ProjectReferencePath) = path |> sprintf "#r @\"%s\"" |> send
+    let private referenceAssemblies = Promise.executeForAll referenceAssembly
+
+    let private sendReferences () =
+        window.activeTextEditor.document.fileName
+        |> Project.tryFindLoadedProjectByFile
+        |> Option.iter (fun p -> p.References |> List.ofSeq |> referenceAssemblies |> Promise.suppress |> ignore)
 
     let private handleCloseTerminal (terminal:Terminal) =
         fsiOutputPID 
@@ -115,7 +123,7 @@ module Fsi =
                 if closedTerminalPID = currentTerminalPID then
                     fsiOutput <- None
                     fsiOutputPID <- None)
-            |> Promise.catch (fun _ -> promise { () }) // prevent unhandled promise exception
+            |> Promise.suppress // prevent unhandled promise exception
             |> ignore)
         |> ignore
 
@@ -128,4 +136,5 @@ module Fsi =
         commands.registerCommand("fsi.SendLine", sendLine |> unbox) |> ignore
         commands.registerCommand("fsi.SendSelection", sendSelection |> unbox) |> ignore
         commands.registerCommand("fsi.SendFile", sendFile |> unbox) |> ignore
+        commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox) |> ignore
 

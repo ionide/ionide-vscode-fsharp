@@ -88,6 +88,10 @@
         "title": "FSI: Send File"
       },
       {
+        "command": "fsi.SendProjectReferences",
+        "title": "FSI: Send References from project"
+      },
+      {
         "command": "webpreview.Show",
         "title": "Ionide: Show Web View"
       },
