@@ -62,13 +62,6 @@ module Configuration =
 module Utils =
     let isNotNull o = o |> unbox <> null
     
-    let chainExecution first next items =
-        match items with
-        | [] -> ()
-        | [x] -> first x |> ignore
-        | x::tail -> tail |> List.fold (fun acc y -> next acc y) (first x) |> ignore
-    
-
 
 [<AutoOpen>]
 module JS =
@@ -90,3 +83,10 @@ module Promise =
 
     let suppress (pr:Promise<'T>) =
         pr |> Ionide.VSCode.Helpers.Promise.catch (fun _ -> promise { () })
+    
+    let executeForAll f items =
+        match items with
+        | [] -> Ionide.VSCode.Helpers.Promise.lift (null |> unbox)
+        | [x] -> f x
+        | x::tail -> 
+            tail |> List.fold (fun acc next -> acc |> Ionide.VSCode.Helpers.Promise.bind (fun _ -> f next)) (f x)

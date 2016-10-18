@@ -93,10 +93,4 @@ module Project =
             if len > 0 then Some kvp.Value else None )
         |> Seq.tryHead
 
-    let activate () =
-        clearLoadedProjects ()
-        match findAll () with
-        | [] -> Promise.lift (null |> unbox)
-        | [x] -> loadProject x 
-        | x::tail ->
-            tail |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> loadProject e)) (loadProject x)
+    let activate = clearLoadedProjects >> findAll >> (Promise.executeForAll loadProject) 
