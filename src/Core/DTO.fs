@@ -126,6 +126,17 @@ module DTO =
         Range : Range
     }
 
+    type ProjectFilePath = string
+    type SourceFilePath = string
+
+    type Project = { 
+        Project: ProjectFilePath
+        Files: List<SourceFilePath>
+        Output: string
+        References: List<ProjectFilePath>
+        Logs: Map<string, string> 
+    }
+
 
     type Result<'T> = {Kind : string; Data : 'T}
     type CompilerLocationResult = Result<CompilerLocation>
@@ -138,3 +149,4 @@ module DTO =
     type MethodResult = Result<Method>
     type DeclarationResult = Result<Symbols[]>
     type LintResult = Result<Lint[]>
+    type ProjectResult = Result<Project>
