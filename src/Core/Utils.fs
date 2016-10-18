@@ -71,3 +71,6 @@ module JS =
 
     [<Emit("clearTimeout($0)")>]
     let clearTimeout(timer) : unit = failwith "JS Only"
+
+    [<Emit("debugger")>]
+    let debugger () : unit = failwith "JS Only"
