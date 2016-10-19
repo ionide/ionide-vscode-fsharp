@@ -1,3 +1,6 @@
+### 2.7.1 - 19.10.2016
+* Use plain text for tooltips body
+
 ### 2.7.0 - 19.10.2016
 * Add `FSI:  Send References from project` command
 
