@@ -6,7 +6,7 @@ open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
-
+open System.Text.RegularExpressions
 open DTO
 open Ionide.VSCode.Helpers
 
@@ -34,16 +34,16 @@ module Tooltip =
                     let commentContent =
                         res.Comment.Split('\n')
                         |> Array.filter(String.IsNullOrWhiteSpace>>not)
-                        |> Array.mapi (fun i n ->
+                        |> Array.mapi (fun i line ->
                             let v =
-                                if i = 0 && not(String.IsNullOrWhiteSpace n)
-                                then "\n" + n.Trim()
-                                else n.Trim()
+                                if i = 0 && not(String.IsNullOrWhiteSpace line)
+                                then "\n" + line.Trim()
+                                else line.Trim()
                             v)
-                        |> fun n ->
-                            if n.Length <> 0 then
-                                n |> String.concat "\n\n" |> markStr "markdown" |> Array.singleton
-                            else [||]
+                        |> String.concat "\n\n"
+                        |> String.trim
+                        |> Case1
+                        |> Array.singleton
                     let result = createEmpty<Hover>
                     result.range <- range
                     result.contents <- Array.append sigContent commentContent |> ResizeArray
