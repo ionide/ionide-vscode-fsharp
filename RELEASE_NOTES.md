@@ -1,3 +1,6 @@
+### 2.7.3 - 20.10.2016
+* Fix automatic project modification bug
+
 ### 2.7.2 - 20.10.2016
 * Nice tooltips formatting
 * Small changes to autocomplete message format
