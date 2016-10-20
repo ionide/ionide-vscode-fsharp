@@ -11,22 +11,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Tooltip =
-    open System.Text.RegularExpressions
     let private createProvider () =
-        let replacePatterns =
-            [ Regex "<c>([^<c>]*)<\/c>", fun x -> sprintf "`%s`" x ]
-
-        let replaceXmlWithMarkdown (str: string) : string =
-            replacePatterns 
-            |> List.fold (fun res (regex: Regex, formatter: string -> string) ->
-                // repeat replacing with same pattern to handle nested tags, like `<c>..<c>..</c>..</c>`
-                let rec loop res : string =
-                    match regex.Match res with
-                    | m when m.Success -> loop <| regex.Replace(res, formatter (m.Groups.[1].Value))
-                    | _ -> res
-                loop res
-            ) str 
-
         let createCommentBlock (comment: string) : MarkedString[] =
             comment.Split '\n'
             |> Array.filter(String.IsNullOrWhiteSpace>>not)
@@ -35,7 +20,7 @@ module Tooltip =
                     if i = 0 && not (String.IsNullOrWhiteSpace line)
                     then "\n" + line.Trim()
                     else line.Trim()
-                replaceXmlWithMarkdown v
+                Markdown.replaceXml v
                )
             |> String.concat "\n\n"
             |> String.trim
