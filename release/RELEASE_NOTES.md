@@ -1,3 +1,8 @@
+### 2.8.0 - 20.10.2016
+* Add `FSI: Generate script file with references from project` command
+* Performance updates - cancelling requests
+* Small tooltips improvements
+
 ### 2.7.3 - 20.10.2016
 * Fix automatic project modification bug
 
