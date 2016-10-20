@@ -46,10 +46,10 @@ module Forge =
         |> ResizeArray
 
     let onFsFileCreateHandler (uri : Uri) =
-        sprintf "add file -n %s" uri.fsPath |> spawnForge
+        if "FSharp.automaticProjectModification" |> Configuration.get false then sprintf "add file -n %s" uri.fsPath |> spawnForge |> ignore
 
     let onFsFileRemovedHandler (uri : Uri) =
-        sprintf "remove file -n %s" uri.fsPath |> spawnForge
+        if "FSharp.automaticProjectModification" |> Configuration.get false then sprintf "remove file -n %s" uri.fsPath |> spawnForge |> ignore
 
     let moveFileUp () =
         let editor = vscode.window.activeTextEditor
@@ -227,9 +227,9 @@ module Forge =
 
     let activate disposables =
         let watcher = workspace.createFileSystemWatcher ("**/*.fs")
-        let cfg = workspace.getConfiguration ()
-        if cfg.get("FSharp.automaticProjectModification", false) then watcher.onDidCreate $ (onFsFileCreateHandler, null, disposables) |> ignore
-        if cfg.get("FSharp.automaticProjectModification", false) then watcher.onDidDelete $ (onFsFileRemovedHandler, null, disposables) |> ignore
+
+        watcher.onDidCreate $ (onFsFileCreateHandler, null, disposables) |> ignore
+        watcher.onDidDelete $ (onFsFileRemovedHandler, null, disposables) |> ignore
         commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox) |> ignore
         commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox) |> ignore
         commands.registerCommand("fsharp.NewProject", newProject |> unbox) |> ignore
