@@ -1,3 +1,7 @@
+### 2.7.2 - 20.10.2016
+* Nice tooltips formatting
+* Small changes to autocomplete message format
+
 ### 2.7.1 - 19.10.2016
 * Use plain text for tooltips body
 
