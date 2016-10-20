@@ -37,22 +37,27 @@ module Tooltip =
                             "language" ==> lang
                             "value" ==> value.Trim()
                         ] |> Case2
-                    
+
                     let fsharpBlock (lines: string[]) : MarkedString =
                         lines |> String.concat "\n" |> markStr "fsharp"
 
                     let sigContent =
-                        let lines = 
-                            res.Signature.Split '\n'
+                        let lines =
+                            res.Signature
+                            |> String.split [|'\n'|]
                             |> Array.filter (not << String.IsNullOrWhiteSpace)
 
                         match lines |> Array.splitAt (lines.Length - 1) with
                         | (h, [| StartsWith "Full name:" fullName |]) ->
-                            [| yield fsharpBlock h 
+                            [| yield fsharpBlock h
                                yield Case1 ("_" + fullName + "_") |]
                         | _ -> [| fsharpBlock lines |]
-                
-                    let commentContent = createCommentBlock res.Comment
+
+                    let commentContent =
+                        res.Comment
+                        |> String.replace "&lt;" "<"
+                        |> String.replace "&gt;" ">"
+                        |> createCommentBlock
                     let result = createEmpty<Hover>
                     result.range <- range
                     result.contents <- Array.append sigContent commentContent |> ResizeArray

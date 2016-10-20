@@ -40,6 +40,7 @@ module String =
         match str with
         | null -> null
         | _ -> str.Replace (oldVal, newVal)
+    let split seperator (s : string) = s.Split seperator
 
 [<RequireQualifiedAccess>]
 module Option =
@@ -88,8 +89,8 @@ module Array =
     let splitAt (n: int) (xs: 'a[]) : 'a[] * 'a[] =
         match xs with
         | [||] | [|_|] -> xs, [||]
-        | _ when n >= xs.Length || n < 0 -> xs, [||] 
-        | _ -> xs.[0..n-1], xs.[n..]  
+        | _ when n >= xs.Length || n < 0 -> xs, [||]
+        | _ -> xs.[0..n-1], xs.[n..]
 
 module Markdown =
     open System.Text.RegularExpressions
@@ -98,7 +99,7 @@ module Markdown =
 
     /// Replaces XML tags with Markdown equivalents.
     let replaceXml (str: string) : string =
-        replacePatterns 
+        replacePatterns
         |> List.fold (fun res (regex: Regex, formatter: string -> string) ->
             // repeat replacing with same pattern to handle nested tags, like `<c>..<c>..</c>..</c>`
             let rec loop res : string =
@@ -106,7 +107,7 @@ module Markdown =
                 | m when m.Success -> loop <| res.Replace(m.Groups.[0].Value, formatter (m.Groups.[1].Value))
                 | _ -> res
             loop res
-        ) str        
+        ) str
 
 module Promise =
     open Fable.Import.JS
@@ -114,10 +115,10 @@ module Promise =
 
     let suppress (pr:Promise<'T>) =
         pr |> Ionide.VSCode.Helpers.Promise.catch (fun _ -> promise { () })
-    
+
     let executeForAll f items =
         match items with
         | [] -> Ionide.VSCode.Helpers.Promise.lift (null |> unbox)
         | [x] -> f x
-        | x::tail -> 
+        | x::tail ->
             tail |> List.fold (fun acc next -> acc |> Ionide.VSCode.Helpers.Promise.bind (fun _ -> f next)) (f x)
