@@ -25,18 +25,27 @@ module Tooltip =
                             "language" ==> lang
                             "value" ==> value.Trim()
                         ] |> Case2
+                    
+                    let fsharpBlock (lines: string[]) : MarkedString =
+                        lines |> String.concat "\n" |> markStr "fsharp"
+
                     let sigContent =
-                        res.Signature.Split('\n')
-                        |> Array.filter(String.IsNullOrWhiteSpace>>not)
-                        |> String.concat "\n"
-                        |> markStr "fsharp"
-                        |> Array.singleton
+                        let lines = 
+                            res.Signature.Split '\n'
+                            |> Array.filter (not << String.IsNullOrWhiteSpace)
+
+                        match lines |> Array.splitAt (lines.Length - 1) with
+                        | (h, [| StartsWith "Full name:" fullName |]) ->
+                            [| yield fsharpBlock h 
+                               yield Case1 ("_" + fullName + "_") |]
+                        | _ -> [| fsharpBlock lines |]
+                
                     let commentContent =
                         res.Comment.Split('\n')
                         |> Array.filter(String.IsNullOrWhiteSpace>>not)
                         |> Array.mapi (fun i line ->
                             let v =
-                                if i = 0 && not(String.IsNullOrWhiteSpace line)
+                                if i = 0 && not (String.IsNullOrWhiteSpace line)
                                 then "\n" + line.Trim()
                                 else line.Trim()
                             v)
