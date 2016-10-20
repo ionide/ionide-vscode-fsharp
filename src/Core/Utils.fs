@@ -99,7 +99,7 @@ module Markdown =
         [ r"<c>(((?!<c>)(?!<\/c>).)*)<\/c>", sprintf "`%s`" ]
 
     let private removePatterns =
-        [ "<summary>"; "</summary>" ]
+        [ "<summary>"; "</summary>"; "<para>"; "</para>" ]
 
     /// Replaces XML tags with Markdown equivalents.
     let replaceXml (str: string) : string =
