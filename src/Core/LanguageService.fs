@@ -134,9 +134,12 @@ module LanguageService =
         ""
         |> request "parseProjects" 0 (makeRequestId())
 
-    let parse path (text : string) =
+    let parse path (text : string) (version : float) =
         let lines = text.Replace("\uFEFF", "").Split('\n')
-        {ParseRequest.FileName = path; ParseRequest.Lines = lines; ParseRequest.IsAsync = true }
+        { ParseRequest.FileName = path
+          ParseRequest.Lines = lines
+          ParseRequest.IsAsync = true
+          ParseRequest.Version = int version }
         |> request "parse" 0 (makeRequestId())
 
     let helptext s =

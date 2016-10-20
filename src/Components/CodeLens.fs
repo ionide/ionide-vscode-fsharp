@@ -66,7 +66,7 @@ module CodeLens =
         { new CodeLensProvider with
             member __.provideCodeLenses(doc, _) =
                 promise {
-                    let! _ = LanguageService.parse doc.fileName (doc.getText())
+                    let! _ = LanguageService.parse doc.fileName (doc.getText()) doc.version
                     let! result = LanguageService.declarations doc.fileName
                     let data = symbolsToCodeLens doc result.Data
                     return ResizeArray data

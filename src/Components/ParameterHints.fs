@@ -42,7 +42,7 @@ module ParameterHints =
           with
             member this.provideSignatureHelp(doc,pos, ct) = 
                 promise {
-                   let! _ = LanguageService.parse doc.fileName (doc.getText ())
+                   let! _ = LanguageService.parse doc.fileName (doc.getText ()) doc.version
                    let! res = LanguageService.methods (doc.fileName) (int pos.line + 1) (int pos.character + 1)
                    return mapResult res
 
