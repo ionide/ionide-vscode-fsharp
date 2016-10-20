@@ -61,7 +61,6 @@ module Configuration =
 [<AutoOpen>]
 module Utils =
     let isNotNull o = o |> unbox <> null
-    
 
 [<AutoOpen>]
 module JS =
@@ -76,6 +75,21 @@ module JS =
     [<Emit("debugger")>]
     let debugger () : unit = failwith "JS Only"
 
+[<AutoOpen>]
+module Patterns =
+    let (|StartsWith|_|) (pat: string) (str: string)  =
+        match str with
+        | null -> None
+        | _ when str.StartsWith pat -> Some str
+        | _ -> None
+
+[<RequireQualifiedAccess>]
+module Array =
+    let splitAt (n: int) (xs: 'a[]) : 'a[] * 'a[] =
+        match xs with
+        | [||] | [|_|] -> xs, [||]
+        | _ when n >= xs.Length || n < 0 -> xs, [||] 
+        | _ -> xs.[0..n-1], xs.[n..]  
 
 module Promise =
     open Fable.Import.JS

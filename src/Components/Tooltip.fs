@@ -11,9 +11,36 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Tooltip =
-
+    open System.Text.RegularExpressions
     let private createProvider () =
+        let replacePatterns =
+            [ Regex "<c>([^<c>]*)<\/c>", fun x -> sprintf "`%s`" x ]
 
+        let replaceXmlWithMarkdown (str: string) : string =
+            replacePatterns 
+            |> List.fold (fun res (regex: Regex, formatter: string -> string) ->
+                // repeat replacing with same pattern to handle nested tags, like `<c>..<c>..</c>..</c>`
+                let rec loop res : string =
+                    match regex.Match res with
+                    | m when m.Success -> loop <| regex.Replace(res, formatter (m.Groups.[1].Value))
+                    | _ -> res
+                loop res
+            ) str 
+
+        let createCommentBlock (comment: string) : MarkedString[] =
+            comment.Split '\n'
+            |> Array.filter(String.IsNullOrWhiteSpace>>not)
+            |> Array.mapi (fun i line ->
+                let v =
+                    if i = 0 && not (String.IsNullOrWhiteSpace line)
+                    then "\n" + line.Trim()
+                    else line.Trim()
+                replaceXmlWithMarkdown v
+               )
+            |> String.concat "\n\n"
+            |> String.trim
+            |> Case1
+            |> Array.singleton
 
         let mapResult (doc : TextDocument) (pos : Position) o =
             let range = doc.getWordRangeAtPosition pos
@@ -25,25 +52,22 @@ module Tooltip =
                             "language" ==> lang
                             "value" ==> value.Trim()
                         ] |> Case2
+                    
+                    let fsharpBlock (lines: string[]) : MarkedString =
+                        lines |> String.concat "\n" |> markStr "fsharp"
+
                     let sigContent =
-                        res.Signature.Split('\n')
-                        |> Array.filter(String.IsNullOrWhiteSpace>>not)
-                        |> String.concat "\n"
-                        |> markStr "fsharp"
-                        |> Array.singleton
-                    let commentContent =
-                        res.Comment.Split('\n')
-                        |> Array.filter(String.IsNullOrWhiteSpace>>not)
-                        |> Array.mapi (fun i line ->
-                            let v =
-                                if i = 0 && not(String.IsNullOrWhiteSpace line)
-                                then "\n" + line.Trim()
-                                else line.Trim()
-                            v)
-                        |> String.concat "\n\n"
-                        |> String.trim
-                        |> Case1
-                        |> Array.singleton
+                        let lines = 
+                            res.Signature.Split '\n'
+                            |> Array.filter (not << String.IsNullOrWhiteSpace)
+
+                        match lines |> Array.splitAt (lines.Length - 1) with
+                        | (h, [| StartsWith "Full name:" fullName |]) ->
+                            [| yield fsharpBlock h 
+                               yield Case1 ("_" + fullName + "_") |]
+                        | _ -> [| fsharpBlock lines |]
+                
+                    let commentContent = createCommentBlock res.Comment
                     let result = createEmpty<Hover>
                     result.range <- range
                     result.contents <- Array.append sigContent commentContent |> ResizeArray
