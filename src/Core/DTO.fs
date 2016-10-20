@@ -2,7 +2,7 @@
 
 [<ReflectedDefinition>]
 module DTO =
-    type ParseRequest = { FileName : string; IsAsync : bool; Lines : string[]}
+    type ParseRequest = { FileName : string; IsAsync : bool; Lines : string[]; Version : int }
     type ProjectRequest = { FileName : string}
     type DeclarationsRequest = {FileName : string}
     type HelptextRequest = {Symbol : string}

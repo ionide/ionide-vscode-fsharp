@@ -27,8 +27,8 @@ module Errors =
             | _ -> None )
         |> ResizeArray
 
-    let private parse path text =
-        LanguageService.parse path text
+    let private parse path text version =
+        LanguageService.parse path text version
         |> Promise.map (fun (ev : ParseResult) ->  (Uri.file path, mapResult ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set  )
 
 
@@ -40,8 +40,8 @@ module Errors =
             match prom with
             | Some p -> p
                         |> Project.load
-                        |> Promise.bind (fun _ -> parse path (file.getText ()))
-            | None -> parse path (file.getText ())
+                        |> Promise.bind (fun _ -> parse path (file.getText ()) file.version)
+            | None -> parse path (file.getText ()) file.version
         | _ -> Promise.lift (null |> unbox)
 
     let parseProject () =
