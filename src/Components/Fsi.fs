@@ -127,6 +127,34 @@ module Fsi =
             |> ignore)
         |> ignore
 
+    let private generateProjectReferences () =
+        let ctn =
+            window.activeTextEditor.document.fileName
+            |> Project.tryFindLoadedProjectByFile
+            |> Option.map (fun p ->
+                [|
+                    yield! p.References |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not ) |> List.map (sprintf "#r @\"%s\"")
+                    yield! p.Files |> List.map (sprintf "#load @\"%s\"")
+                |])
+        promise {
+            match ctn with
+            | Some c ->
+                let path = path.join(workspace.rootPath, "references.fsx")
+                let! td = vscode.Uri.parse ("untitled:" + path) |> workspace.openTextDocument
+                let! te = window.showTextDocument(td, ViewColumn.Three)
+                let! res = te.edit (fun e ->
+                    let p = Position(0.,0.)
+                    let ctn = c |> String.concat "\n"
+                    e.insert(p,ctn))
+
+
+                return ()
+            | None ->
+                return ()
+        }
+
+
+
 
     let activate (disposables: Disposable[]) =
         window.onDidChangeActiveTextEditor $ ((fun n -> if JS.isDefined n then sendCd()), (), disposables) |> ignore
@@ -137,4 +165,5 @@ module Fsi =
         commands.registerCommand("fsi.SendSelection", sendSelection |> unbox) |> ignore
         commands.registerCommand("fsi.SendFile", sendFile |> unbox) |> ignore
         commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox) |> ignore
+        commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> unbox) |> ignore
 

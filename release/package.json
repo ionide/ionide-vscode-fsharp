@@ -92,6 +92,10 @@
         "title": "FSI: Send References from project"
       },
       {
+        "command": "fsi.GenerateProjectReferences",
+        "title": "FSI: Generate script file with references from project"
+      },
+      {
         "command": "webpreview.Show",
         "title": "Ionide: Show Web View"
       },
