@@ -170,6 +170,10 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
         |> request "tooltip" 0 (makeRequestId())
 
+    let signature fn line col =
+        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
+        |> request "signature" 0 (makeRequestId())
+
     let findDeclaration fn line col =
         {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
         |> request "finddeclaration" 0 (makeRequestId())

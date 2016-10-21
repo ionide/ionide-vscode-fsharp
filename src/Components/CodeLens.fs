@@ -76,22 +76,13 @@ module CodeLens =
             member __.resolveCodeLens(codeLens, _) =
                 promise {
                     let! signaturesResult =
-                        LanguageService.toolbar
+                        LanguageService.signature
                             window.activeTextEditor.document.fileName
                             (int codeLens.range.start.line + 1)
                             (int codeLens.range.start.character + 1)
 
-                    let res =
-                        signaturesResult.Data
-                        |> Array.rev
-                        |> Array.tryHead
-                        |> Option.bind Array.tryHead
-                        |> Option.map (fun x -> x.Signature)
-                        |> Option.fill ""
-
-                    let sign = res.Split('\n').[0] |> String.trim |> formatSingature
                     let cmd = createEmpty<Command>
-                    cmd.title <- sprintf "%s" sign
+                    cmd.title <- formatSingature signaturesResult.Data
                     codeLens.command <- cmd
                     return codeLens
                 } |> Case2
