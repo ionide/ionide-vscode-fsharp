@@ -235,7 +235,13 @@
           "description": "Allows to use legacy (read-only) version of FSI. Requires restart"
         }
       }
-    }
+    },
+    "jsonValidation": [
+      {
+        "fileMatch": "fableconfig.json",
+        "url": "./schemas/fableconfig.json"
+      }
+    ]
   },
   "activationEvents": [
     "onLanguage:fsharp",
