@@ -140,6 +140,15 @@ Target "CopyGrammar" (fun _ ->
 )
 
 
+let fsschemaDir = "schemas"
+
+let fsschemaRelease = "release/schemas"
+Target "CopySchemas" (fun _ ->
+    ensureDirectory fsschemaRelease
+    CleanDir fsschemaRelease
+    CopyFile fsschemaRelease (fsschemaDir </> "fableconfig.json")
+)
+
 
 Target "InstallVSCE" ( fun _ ->
     killProcess "npm"
@@ -242,6 +251,7 @@ Target "Test" DoNothing
 ==> "CopyFSAC"
 ==> "CopyForge"
 ==> "CopyGrammar"
+==> "CopySchemas"
 ==> "Build"
 
 "Build"
