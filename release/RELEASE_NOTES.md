@@ -1,3 +1,6 @@
+### 2.8.1 -21.10.2016
+* Fix error highlighting on current buffer
+
 ### 2.8.0 - 20.10.2016
 * Add `FSI: Generate script file with references from project` command
 * Performance updates - cancelling requests
