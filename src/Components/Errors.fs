@@ -63,8 +63,9 @@ module Errors =
         timer |> Option.iter(clearTimeout)
         timer <- Some (setTimeout((fun _ ->
             match event.document with
-            | Document.FSharp ->  parse (event.document.fileName) (event.document.getText ()) |> ignore
-            | _ -> () ), 500.))
+            | Document.FSharp ->  parse (event.document.fileName) (event.document.getText ()) event.document.version
+            | _ -> promise { () } ), 500.))
+
 
 
     let private handlerOpen (event : TextEditor) =
