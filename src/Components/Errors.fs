@@ -44,19 +44,6 @@ module Errors =
             | None -> parse path (file.getText ()) file.version
         | _ -> Promise.lift (null |> unbox)
 
-    let parseProject () =
-        promise {
-            let! res = LanguageService.parseProject ()
-            res
-            |> mapResult
-            |> fun n ->
-                currentDiagnostic.clear ()
-                n
-            |> Seq.groupBy(fun (x,p) -> p)
-            |> Seq.iter (fun (path, ev) ->  (Uri.file path, ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
-
-        }
-
     let mutable private timer = None
 
     let private handler (event : TextDocumentChangeEvent) =
@@ -76,7 +63,7 @@ module Errors =
 
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
-        workspace.onDidSaveTextDocument $ (parseProject, (), disposables) |> ignore
+        workspace.onDidSaveTextDocument $ ( LanguageService.parseProject (), (), disposables) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
 
 
@@ -87,4 +74,4 @@ module Errors =
             tail
             |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document ) )
                (parseFile x.document )
-        |> Promise.bind (parseProject)
+        |> Promise.bind ( LanguageService.parseProject )
