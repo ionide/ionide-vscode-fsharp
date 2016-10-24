@@ -7,6 +7,7 @@ open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
 open Ionide.VSCode.Helpers
+open Fable.Import.ws
 
 open DTO
 open Ionide.VSCode.Helpers
@@ -193,6 +194,17 @@ module LanguageService =
         {ProjectRequest.FileName = s}
         |> request "lint" 0 (makeRequestId())
 
+    let registerNotify () =
+        try
+            let address = sprintf "ws://localhost:%s/notify" port
+            let ws = WebSocket address
+            ws.addListener_message ((fun res -> log.Info("Notify: %o", res) ) |> unbox) |> ignore
+
+            ()
+        with
+        | e ->
+            log.Error("Initializing notify error: %s", e.Message)
+
     let start' path =
         Promise.create (fun resolve reject ->
             let child =
@@ -232,6 +244,7 @@ module LanguageService =
             )
             |> ignore
         )
+        |> Promise.map (fun _ -> registerNotify())
         |> Promise.onFail (fun _ ->
             if Process.isMono () then
                 "Failed to start language services. Please check if mono is in PATH"
@@ -239,6 +252,8 @@ module LanguageService =
                 "Failed to start language services. Please check if Microsoft Build Tools 2013 are installed"
             |> vscode.window.showErrorMessage
             |> ignore)
+
+
 
     let start () =
          let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"

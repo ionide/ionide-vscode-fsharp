@@ -63,7 +63,7 @@ module Errors =
 
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
-        workspace.onDidSaveTextDocument $ ( LanguageService.parseProject (), (), disposables) |> ignore
+        workspace.onDidSaveTextDocument $ ( LanguageService.parseProject, (), disposables) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
 
 
