@@ -1,4 +1,8 @@
-### 2.8.1 -21.10.2016
+### 2.8.2 - 24.10.2016
+* use "signature" FSAC endpoint for Code Lens signatures
+* fix finding all usages
+
+### 2.8.1 - 21.10.2016
 * Fix error highlighting on current buffer
 
 ### 2.8.0 - 20.10.2016
