@@ -30,7 +30,7 @@ module Linter =
         else
             ResizeArray ()
 
-    let private parse path =
+    let private lintDocument path =
         LanguageService.lint path
         |> Promise.onSuccess (fun (ev : LintResult) ->  (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
 
@@ -40,14 +40,15 @@ module Linter =
         timer |> Option.iter(clearTimeout)
         match event.document with
         | Document.FSharp when  isLinterEnabled () ->
-            timer <- Some (setTimeout((fun _ -> parse event.document.fileName |> ignore), 500.))
+            timer <- Some (setTimeout((fun _ -> lintDocument event.document.fileName |> ignore), 500.))
         | _ -> ()
 
     let private handlerOpen (event : TextEditor) =
-        match event.document with
-        | Document.FSharp when  isLinterEnabled () && JS.isDefined event ->
-            parse event.document.fileName |> ignore
-        | _ -> ()
+        if JS.isDefined event then
+            match event.document with
+            | Document.FSharp when isLinterEnabled () ->
+                lintDocument event.document.fileName |> ignore
+            | _ -> ()
 
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
