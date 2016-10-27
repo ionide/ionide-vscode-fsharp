@@ -21,6 +21,7 @@ module CodeLens =
                     if sym.GlyphChar <> "Fc"
                        && sym.GlyphChar <> "M"
                        && sym.GlyphChar <> "F"
+                       && sym.GlyphChar <> "P"
                        || sym.IsAbstract
                        || sym.EnclosingEntity = "I"  // interface
                        || sym.EnclosingEntity = "R"  // record
