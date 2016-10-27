@@ -73,7 +73,8 @@ let fsacBin         = "paket-files/github.com/ionide/FsAutoComplete/bin/release"
 
 Target "Clean" (fun _ ->
     CleanDir "./temp"
-    CopyFiles "release" ["README.md"; "LICENSE.md"; "RELEASE_NOTES.md"]
+    CopyFiles "release" ["README.md"; "LICENSE.md"]
+    CopyFile "release/CHANGELOG.md" "RELEASE_NOTES.md"
 )
 
 Target "RunScript" (fun _ ->
