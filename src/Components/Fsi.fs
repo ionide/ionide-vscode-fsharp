@@ -73,7 +73,9 @@ module Fsi =
         match fsiOutput with
         | None -> start ()
         | Some fo -> Promise.lift fo
-        |> Promise.onSuccess (fun fp -> fp.sendText(msg,false))
+        |> Promise.onSuccess (fun fp ->
+            fp.show ()
+            fp.sendText(msg,false))
         |> Promise.onFail (fun error ->
             window.showErrorMessage "Failed to send text to FSI" |> ignore)
 
