@@ -1,4 +1,4 @@
-### 2.8.3 - 27.10.2016
+### 2.8.4 - 27.10.2016
 * Small fix to linter integration
 * Show terminal when sending text
 * Show code lens for properties
