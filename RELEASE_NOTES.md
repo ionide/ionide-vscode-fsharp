@@ -1,3 +1,6 @@
+### 2.8.5 - 27.10.2016
+* Preserve focus in current window, so it doesn't jump to terminal
+
 ### 2.8.4 - 27.10.2016
 * Small fix to linter integration
 * Show terminal when sending text
