@@ -11,6 +11,8 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module CodeLens =
+    let mutable cache = None
+
     let private createProvider () =
         let symbolsToCodeLens (doc : TextDocument) (symbols: Symbols[]) : CodeLens[] =
              symbols |> Array.collect (fun syms ->
@@ -70,7 +72,15 @@ module CodeLens =
                     let! _ = LanguageService.parse doc.fileName (doc.getText()) doc.version
                     let! result = LanguageService.declarations doc.fileName
                     let data = symbolsToCodeLens doc result.Data
-                    return ResizeArray data
+                    let d =
+                        if data.Length > 0 then
+                            cache <- Some data
+                            data
+                        else
+                            defaultArg cache [||]
+
+
+                    return ResizeArray d
                 } |> Case2
 
 
