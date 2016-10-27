@@ -1,3 +1,6 @@
+### 2.8.6 - 27.10.2016
+* Add CodeLens cache
+
 ### 2.8.5 - 27.10.2016
 * Preserve focus in current window, so it doesn't jump to terminal
 
