@@ -1,3 +1,8 @@
+### 2.8.3 - 27.10.2016
+* Small fix to linter integration
+* Show terminal when sending text
+* Show code lens for properties
+
 ### 2.8.2 - 24.10.2016
 * use "signature" FSAC endpoint for Code Lens signatures
 * fix finding all usages
