@@ -198,7 +198,7 @@ module LanguageService =
         try
             let address = sprintf "ws://localhost:%s/notify" port
             let ws = WebSocket address
-            ws.addListener_message ((fun res -> log.Info("Notify: %o", res) ) |> unbox) |> ignore
+            ws.on_message((fun res -> log.Info("Notify: %o", res) ) |> unbox) |> ignore
 
             ()
         with
@@ -244,7 +244,6 @@ module LanguageService =
             )
             |> ignore
         )
-        |> Promise.map (fun _ -> registerNotify())
         |> Promise.onFail (fun _ ->
             if Process.isMono () then
                 "Failed to start language services. Please check if mono is in PATH"
