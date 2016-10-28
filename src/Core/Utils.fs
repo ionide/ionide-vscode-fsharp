@@ -84,6 +84,12 @@ module Patterns =
         | _ when str.StartsWith pat -> Some str
         | _ -> None
 
+    let (|Contains|_|) (pat: string) (str: string)  =
+        match str with
+        | null -> None
+        | _ when str.Contains pat -> Some str
+        | _ -> None
+
 [<RequireQualifiedAccess>]
 module Array =
     let splitAt (n: int) (xs: 'a[]) : 'a[] * 'a[] =
