@@ -1,4 +1,4 @@
-### 2.8.7 - 28.10.2016
+### 2.8.8 - 28.10.2016
 * Add tooltips for keywords, add code lens for constructors
 * Add parse errors
 * Fix CodeLens for static members
