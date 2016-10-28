@@ -39,28 +39,30 @@ module CodeLens =
 
         let formatSingature (sign : string) : string =
             let sign =
-                if sign.StartsWith "val" || sign.StartsWith "member" || sign.StartsWith "abstract" then
-                    sign
-                else
-                    let i = sign.IndexOf("(")
-                    if i > 0 then
+                match sign with
+                | StartsWith "val" _
+                | StartsWith "member" _  
+                | StartsWith "abstract" _
+                | StartsWith "static" _
+                | StartsWith "override" _ -> sign
+                | _ ->
+                    match sign.IndexOf "(" with
+                    | i when i > 0 ->
                         sign.Substring(0, i) + ":" + sign.Substring(i+1)
-                    else
-                        sign
+                    | _ -> sign
 
-            let sign = if sign.Contains(":") then sign.Split(':').[1 ..] |> String.concat ":" else sign
-            let parms = sign.Split( [|"->"|], StringSplitOptions.RemoveEmptyEntries)
+            let sign = if sign.Contains ":" then sign.Split(':').[1 ..] |> String.concat ":" else sign
+            let parms = sign.Split([|"->"|], StringSplitOptions.RemoveEmptyEntries)
             parms
-            |> Seq.map (fun p ->
-                if p.Contains "(requires" then
-                    p
-                elif p.Contains "*" then
+            |> Seq.map (function
+                | Contains "(requires" p -> p
+                | Contains "*" p ->
                     p.Split '*' |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
-                elif p.Contains "," then
+                | Contains "," p ->
                     p.Split ',' |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
-                elif p.Contains ":" then
+                | Contains ":" p ->
                     p.Split(':').[1]
-                else p)
+                | p -> p)
             |> Seq.map String.trim
             |> String.concat " -> "
             |> String.replace "<" "&lt;"
