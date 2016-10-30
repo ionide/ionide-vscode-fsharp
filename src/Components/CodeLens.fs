@@ -41,7 +41,7 @@ module CodeLens =
             let sign =
                 match sign with
                 | StartsWith "val" _
-                | StartsWith "member" _  
+                | StartsWith "member" _
                 | StartsWith "abstract" _
                 | StartsWith "static" _
                 | StartsWith "override" _ -> sign
@@ -102,6 +102,8 @@ module CodeLens =
         }
 
     let activate selector (disposables: Disposable[]) =
+        window.onDidChangeActiveTextEditor $ ( (fun _ -> cache <- None), (), disposables) |> ignore
+
         languages.registerCodeLensProvider(selector, createProvider())
         |> ignore
         ()
