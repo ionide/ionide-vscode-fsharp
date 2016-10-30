@@ -1,3 +1,6 @@
+### 2.8.9 - 30.10.2016
+* Fix CodeLens cache
+
 ### 2.8.8 - 28.10.2016
 * Add tooltips for keywords, add code lens for constructors
 * Add parse errors
