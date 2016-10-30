@@ -6,12 +6,11 @@ open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
 open Fable.Core.JsInterop
-
 open DTO
 open Ionide.VSCode.Helpers
 
 module CodeLens =
-    let mutable cache = None
+    let mutable cache: Map<string, CodeLens[]> = Map.empty
 
     let private createProvider () =
         let symbolsToCodeLens (doc : TextDocument) (symbols: Symbols[]) : CodeLens[] =
@@ -76,11 +75,10 @@ module CodeLens =
                     let data = symbolsToCodeLens doc result.Data
                     let d =
                         if data.Length > 0 then
-                            cache <- Some data
+                            cache <- cache |> Map.add doc.fileName data
                             data
                         else
-                            defaultArg cache [||]
-
+                            defaultArg (cache |> Map.tryFind doc.fileName) [||]
 
                     return ResizeArray d
                 } |> Case2
@@ -102,8 +100,5 @@ module CodeLens =
         }
 
     let activate selector (disposables: Disposable[]) =
-        window.onDidChangeActiveTextEditor $ ( (fun _ -> cache <- None), (), disposables) |> ignore
-
-        languages.registerCodeLensProvider(selector, createProvider())
-        |> ignore
+        languages.registerCodeLensProvider(selector, createProvider()) |> ignore
         ()
