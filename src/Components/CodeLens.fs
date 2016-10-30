@@ -6,7 +6,6 @@ open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
 open Fable.Core.JsInterop
-
 open DTO
 open Ionide.VSCode.Helpers
 
@@ -102,6 +101,4 @@ module CodeLens =
 
     let activate selector (disposables: Disposable[]) =
         languages.registerCodeLensProvider(selector, createProvider()) |> ignore
-        workspace.onDidCloseTextDocument $ 
-            ((fun (e: TextDocument) -> cache <- cache |> Map.remove e.fileName), (), disposables) |> ignore
         ()
