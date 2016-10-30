@@ -11,8 +11,6 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module CodeLens =
-    let mutable cache = None
-
     let private createProvider () =
         let symbolsToCodeLens (doc : TextDocument) (symbols: Symbols[]) : CodeLens[] =
              symbols |> Array.collect (fun syms ->
@@ -67,6 +65,8 @@ module CodeLens =
             |> String.concat " -> "
             |> String.replace "<" "&lt;"
             |> String.replace ">" "&gt;"
+
+        let mutable cache = None
 
         { new CodeLensProvider with
             member __.provideCodeLenses(doc, _) =
