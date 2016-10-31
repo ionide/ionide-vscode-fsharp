@@ -36,7 +36,7 @@ module CodeLens =
                 else
                     codeLenses |> Array.append [|codeLens|])
 
-        let formatSingature (sign : string) : string =
+        let formatSignature (sign : string) : string =
             let sign =
                 match sign with
                 | StartsWith "val" _
@@ -57,8 +57,6 @@ module CodeLens =
                 | Contains "(requires" p -> p
                 | Contains "*" p ->
                     p.Split '*' |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
-                | Contains "," p ->
-                    p.Split ',' |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
                 | Contains ":" p ->
                     p.Split(':').[1]
                 | p -> p)
@@ -93,7 +91,7 @@ module CodeLens =
                             (int codeLens.range.start.character + 1)
 
                     let cmd = createEmpty<Command>
-                    cmd.title <- formatSingature signaturesResult.Data
+                    cmd.title <- formatSignature signaturesResult.Data
                     codeLens.command <- cmd
                     return codeLens
                 } |> Case2
