@@ -64,8 +64,6 @@ module CodeLens =
                 | p -> p)
             |> Seq.map String.trim
             |> String.concat " -> "
-            |> String.replace "<" "&lt;"
-            |> String.replace ">" "&gt;"
 
         { new CodeLensProvider with
             member __.provideCodeLenses(doc, _) =
