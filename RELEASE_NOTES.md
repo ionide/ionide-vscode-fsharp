@@ -1,3 +1,6 @@
+### 2.8.10 - 02.11.2016
+* Remove CodeLens escaping
+
 ### 2.8.9 - 30.10.2016
 * Fix CodeLens cache
 
