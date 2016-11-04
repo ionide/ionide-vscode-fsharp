@@ -33,6 +33,11 @@ module DTO =
         FileName : string
         }
 
+    type ErrorResp = {
+        File : string
+        Errors : Error []
+    }
+
     type Declaration = {
         File : string
         Line : int
@@ -128,14 +133,14 @@ module DTO =
 
     type ProjectFilePath = string
     type SourceFilePath = string
-    type ProjectReferencePath = string 
+    type ProjectReferencePath = string
 
-    type Project = { 
+    type Project = {
         Project: ProjectFilePath
         Files: SourceFilePath list
         Output: string
         References: ProjectReferencePath list
-        Logs: Map<string, string> 
+        Logs: Map<string, string>
     }
 
 
@@ -145,7 +150,7 @@ module DTO =
     type CompletionResult = Result<Completion[]>
     type SymbolUseResult = Result<SymbolUses>
     type TooltipResult = Result<OverloadSignature[][]>
-    type ParseResult = Result<Error[]>
+    type ParseResult = Result<ErrorResp>
     type FindDeclarationResult = Result<Declaration>
     type MethodResult = Result<Method>
     type DeclarationResult = Result<Symbols[]>

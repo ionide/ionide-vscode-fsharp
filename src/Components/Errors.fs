@@ -15,21 +15,24 @@ module Errors =
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
     let private mapResult (ev : ParseResult) =
-        ev.Data
-        |> Seq.distinctBy (fun error -> error.Severity, error.StartLine, error.StartColumn)
-        |> Seq.choose (fun error ->
-            try
-                let range = CodeRange.fromError error
-                let loc = Location (Uri.file error.FileName, range |> Case1)
-                let severity = if error.Severity = "Error" then 0 else 1
-                (Diagnostic(range, error.Message, unbox severity), error.FileName) |> Some
-            with
-            | _ -> None )
-        |> ResizeArray
+
+        let errors =
+            ev.Data.Errors
+            |> Seq.distinctBy (fun error -> error.Severity, error.StartLine, error.StartColumn)
+            |> Seq.choose (fun error ->
+                try
+                    let range = CodeRange.fromError error
+                    let loc = Location (Uri.file error.FileName, range |> Case1)
+                    let severity = if error.Severity = "Error" then 0 else 1
+                    Diagnostic(range, error.Message, unbox severity) |> Some
+                with
+                | _ -> None )
+            |> ResizeArray
+        ev.Data.File, errors
 
     let private parse path text version =
         LanguageService.parse path text version
-        |> Promise.map (fun (ev : ParseResult) ->  (Uri.file path, mapResult ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set  )
+        |> Promise.map (fun (ev : ParseResult) ->  (Uri.file path, mapResult ev |> snd |> ResizeArray) |> currentDiagnostic.set  )
 
 
     let parseFile (file : TextDocument) =
@@ -61,11 +64,18 @@ module Errors =
         else
             Promise.lift ()
 
+    let handleNotification res =
+        res
+        |> Array.map mapResult
+        |> Array.iter (fun (file, errors) ->
+            if window.activeTextEditor.document.fileName <> file then
+                currentDiagnostic.set(Uri.file file, errors))
+
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
         workspace.onDidSaveTextDocument $ ( LanguageService.parseProject, (), disposables) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
-
+        LanguageService.registerNotify handleNotification
 
         match window.visibleTextEditors |> Seq.toList with
         | [] -> Promise.lift (null |> unbox)
@@ -75,3 +85,5 @@ module Errors =
             |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document ) )
                (parseFile x.document )
         |> Promise.bind ( LanguageService.parseProject )
+
+

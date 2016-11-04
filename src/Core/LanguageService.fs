@@ -62,6 +62,7 @@ module LanguageService =
     let port = genPort ()
     let private url fsacAction = (sprintf "http://localhost:%s/%s" port fsacAction)
     let mutable private service : child_process_types.ChildProcess option =  None
+    let mutable private socket : WebSocket option = None
     let private platformPathSeparator = if Process.isMono () then "/" else "\\"
     let private makeRequestId =
         let mutable requestId = 0
@@ -194,16 +195,23 @@ module LanguageService =
         {ProjectRequest.FileName = s}
         |> request "lint" 0 (makeRequestId())
 
-    let registerNotify () =
-        try
-            let address = sprintf "ws://localhost:%s/notify" port
-            let ws = WebSocket address
-            ws.on_message((fun res -> log.Info("Notify: %o", res) ) |> unbox) |> ignore
+    let registerNotify (cb : 'a [] -> unit) =
+        socket |> Option.iter (fun ws ->
+            ws.on_message((fun (res : string) ->
+                res |> ofJson |> Seq.map ofJson |> Seq.toArray |> cb
+                ) |> unbox) |> ignore
+            ())
 
-            ()
+    let startSocker () =
+        let address = sprintf "ws://localhost:%s/notify" port
+        try
+            let sck = WebSocket address
+            socket <- Some sck
         with
         | e ->
+            socket <- None
             log.Error("Initializing notify error: %s", e.Message)
+
 
     let start' path =
         Promise.create (fun resolve reject ->
@@ -243,6 +251,9 @@ module LanguageService =
                     reject ()
             )
             |> ignore
+        )
+        |> Promise.onSuccess (fun _ ->
+            startSocker ()
         )
         |> Promise.onFail (fun _ ->
             if Process.isMono () then
