@@ -7,6 +7,7 @@ open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
 open Ionide.VSCode.Helpers
+open Fable.Import.ws
 
 open DTO
 open Ionide.VSCode.Helpers
@@ -61,6 +62,7 @@ module LanguageService =
     let port = genPort ()
     let private url fsacAction = (sprintf "http://localhost:%s/%s" port fsacAction)
     let mutable private service : child_process_types.ChildProcess option =  None
+    let mutable private socket : WebSocket option = None
     let private platformPathSeparator = if Process.isMono () then "/" else "\\"
     let private makeRequestId =
         let mutable requestId = 0
@@ -193,6 +195,24 @@ module LanguageService =
         {ProjectRequest.FileName = s}
         |> request "lint" 0 (makeRequestId())
 
+    let registerNotify (cb : 'a [] -> unit) =
+        socket |> Option.iter (fun ws ->
+            ws.on_message((fun (res : string) ->
+                res |> ofJson |> Seq.map ofJson |> Seq.toArray |> cb
+                ) |> unbox) |> ignore
+            ())
+
+    let startSocker () =
+        let address = sprintf "ws://localhost:%s/notify" port
+        try
+            let sck = WebSocket address
+            socket <- Some sck
+        with
+        | e ->
+            socket <- None
+            log.Error("Initializing notify error: %s", e.Message)
+
+
     let start' path =
         Promise.create (fun resolve reject ->
             let child =
@@ -232,6 +252,9 @@ module LanguageService =
             )
             |> ignore
         )
+        |> Promise.onSuccess (fun _ ->
+            startSocker ()
+        )
         |> Promise.onFail (fun _ ->
             if Process.isMono () then
                 "Failed to start language services. Please check if mono is in PATH"
@@ -239,6 +262,8 @@ module LanguageService =
                 "Failed to start language services. Please check if Microsoft Build Tools 2013 are installed"
             |> vscode.window.showErrorMessage
             |> ignore)
+
+
 
     let start () =
          let path = (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
