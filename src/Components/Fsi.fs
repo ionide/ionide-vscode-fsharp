@@ -39,7 +39,7 @@ module Fsi =
         )
 
     let private start () =
-        Promise.create (fun resolve reject ->
+        promise {
             fsiOutput |> Option.iter (fun n -> n.dispose())
             let parms =
                 let fsiParams =
@@ -54,16 +54,14 @@ module Fsi =
                 |> Array.ofList
 
             let terminal = window.createTerminal("F# Interactive", Environment.fsi, parms)
+            terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
 
-            terminal.processId
-            |> Promise.onSuccess (fun pId ->
-                fsiOutput <- Some terminal
-                fsiOutputPID <- Some pId
-                sendCd ()
-                terminal.show(true)
-                resolve terminal)
-            |> Promise.onFail reject
-            |> ignore)
+            fsiOutput <- Some terminal
+            sendCd ()
+            terminal.show(true)
+            return terminal
+
+            }
         |> Promise.onFail (fun _ ->
             window.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore)
 
