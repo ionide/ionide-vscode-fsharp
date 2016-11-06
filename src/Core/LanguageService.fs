@@ -202,7 +202,7 @@ module LanguageService =
                 ) |> unbox) |> ignore
             ())
 
-    let startSocker () =
+    let startSocket () =
         let address = sprintf "ws://localhost:%s/notify" port
         try
             let sck = WebSocket address
@@ -253,7 +253,7 @@ module LanguageService =
             |> ignore
         )
         |> Promise.onSuccess (fun _ ->
-            startSocker ()
+            startSocket ()
         )
         |> Promise.onFail (fun _ ->
             if Process.isMono () then
