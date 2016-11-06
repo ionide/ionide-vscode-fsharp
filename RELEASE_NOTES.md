@@ -1,3 +1,7 @@
+### 2.9.0 - 06.11.2016
+* Move to background checking of project files (faster startup)
+* Fix FSI start
+
 ### 2.8.10 - 02.11.2016
 * Remove CodeLens escaping
 
