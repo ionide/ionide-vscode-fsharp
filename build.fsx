@@ -111,7 +111,7 @@ Target "CopyFSAC" (fun _ ->
 )
 
 let releaseBinForge = "release/bin_forge"
-let forgeBin = "paket-files/github.com/fsprojects/Forge/temp/bin"
+let forgeBin = "paket-files/github.com/fsharp-editing/Forge/temp/bin"
 let forgeExe = forgeBin </> "Forge.exe"
 let posixDll = forgeBin </> "Mono.Posix.dll"
 
