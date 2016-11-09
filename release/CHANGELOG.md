@@ -1,3 +1,6 @@
+### 2.9.1 - 09.11.2016
+* Update Forge
+
 ### 2.9.0 - 06.11.2016
 * Move to background checking of project files (faster startup)
 * Fix FSI start
