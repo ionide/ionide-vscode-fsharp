@@ -20,10 +20,10 @@ GIT
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
-     (642d7e84010e68cb39e3bd63a6ab262631f7fdad)
+     (ad9e4bf6cf23fcca2cde4df3208df4804d104697)
       build: build.cmd Build
       os: windows
-     (642d7e84010e68cb39e3bd63a6ab262631f7fdad)
+     (ad9e4bf6cf23fcca2cde4df3208df4804d104697)
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
