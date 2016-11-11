@@ -60,7 +60,7 @@ module LanguageService =
         r'.ToString().Substring(0,4)
 
     let port = genPort ()
-    let private url fsacAction = (sprintf "http://localhost:%s/%s" port fsacAction)
+    let private url fsacAction = (sprintf "http://127.0.0.1:%s/%s" port fsacAction)
     let mutable private service : child_process_types.ChildProcess option =  None
     let mutable private socket : WebSocket option = None
     let private platformPathSeparator = if Process.isMono () then "/" else "\\"
