@@ -13,17 +13,17 @@ NUGET
     Octokit (0.23)
 GIT
   remote: https://github.com/ionide/FsAutoComplete.git
-     (1ccdf24aebf1f1d06be66ce534fbe9f24cd4c8e9)
+     (61d91644b0d0c668b96d73a80d7ef7f84f4109b2)
       build: build.cmd LocalRelease
       os: windows
-     (1ccdf24aebf1f1d06be66ce534fbe9f24cd4c8e9)
+     (61d91644b0d0c668b96d73a80d7ef7f84f4109b2)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
-     (ad9e4bf6cf23fcca2cde4df3208df4804d104697)
+     (6720661975dbaa0164ec39d3141dab9e6a52808e)
       build: build.cmd Build
       os: windows
-     (ad9e4bf6cf23fcca2cde4df3208df4804d104697)
+     (6720661975dbaa0164ec39d3141dab9e6a52808e)
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git

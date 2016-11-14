@@ -24,7 +24,7 @@ module Errors =
                     let range = CodeRange.fromError error
                     let loc = Location (Uri.file error.FileName, range |> Case1)
                     let severity = if error.Severity = "Error" then 0 else 1
-                    Diagnostic(range, error.Message, unbox severity) |> Some
+                    (Diagnostic(range, error.Message, unbox severity), error.FileName) |> Some
                 with
                 | _ -> None )
             |> ResizeArray
@@ -32,7 +32,7 @@ module Errors =
 
     let private parse path text version =
         LanguageService.parse path text version
-        |> Promise.map (fun (ev : ParseResult) ->  (Uri.file path, mapResult ev |> snd |> ResizeArray) |> currentDiagnostic.set  )
+        |> Promise.map (fun (ev : ParseResult) ->  (Uri.file path, (mapResult ev |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
 
 
     let parseFile (file : TextDocument) =
@@ -56,6 +56,18 @@ module Errors =
             | Document.FSharp ->  parse (event.document.fileName) (event.document.getText ()) event.document.version
             | _ -> promise { () } ), 500.))
 
+    let private handlerSave (doc : TextDocument) = promise {
+        let! (res : ParseResult) = LanguageService.parseProjects doc.fileName
+        let (_,mapped) = res |> mapResult
+        mapped
+        |> Seq.groupBy snd
+        |> Seq.iter (fun (fn, errors) ->
+            let errs = errors |> Seq.map fst |> ResizeArray
+            currentDiagnostic.set(Uri.file fn, errs)
+            ()
+        )
+    }
+
 
 
     let private handlerOpen (event : TextEditor) =
@@ -69,21 +81,22 @@ module Errors =
         |> Array.map mapResult
         |> Array.iter (fun (file, errors) ->
             if window.activeTextEditor.document.fileName <> file then
-                currentDiagnostic.set(Uri.file file, errors))
+                currentDiagnostic.set(Uri.file file, errors |> Seq.map fst |> ResizeArray))
 
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
-        workspace.onDidSaveTextDocument $ ( LanguageService.parseProject, (), disposables) |> ignore
+        workspace.onDidSaveTextDocument $ (handlerSave , (), disposables) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
         LanguageService.registerNotify handleNotification
 
         match window.visibleTextEditors |> Seq.toList with
         | [] -> Promise.lift (null |> unbox)
         | [x] -> parseFile x.document
+                 |> Promise.bind (fun _ -> handlerSave x.document)
         | x::tail ->
             tail
             |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document ) )
                (parseFile x.document )
-        |> Promise.bind ( LanguageService.parseProject )
+            |> Promise.bind (fun _ -> handlerSave x.document )
 
 

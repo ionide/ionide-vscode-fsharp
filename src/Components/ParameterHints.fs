@@ -26,21 +26,21 @@ module ParameterHints =
                         |> ignore
                     )
                     Some signature
-                with 
+                with
                 | e -> None) |> ResizeArray
             res.activeParameter <- float (o.Data.CurrentParameter)
-            res.activeSignature <- 
-                sigs 
-                |> Seq.sortBy (fun n -> n.parameters.Count) 
-                |> Seq.findIndex (fun s -> s.parameters.Count >= o.Data.CurrentParameter ) 
+            res.activeSignature <-
+                sigs
+                |> Seq.sortBy (fun n -> n.parameters.Count)
+                |> Seq.findIndex (fun s -> s.parameters.Count >= o.Data.CurrentParameter )
                 |> (+) 1
                 |> float
             res.signatures <- sigs
             res
 
-        { new SignatureHelpProvider 
+        { new SignatureHelpProvider
           with
-            member this.provideSignatureHelp(doc,pos, ct) = 
+            member this.provideSignatureHelp(doc,pos, ct) =
                 promise {
                    let! _ = LanguageService.parse doc.fileName (doc.getText ()) doc.version
                    let! res = LanguageService.methods (doc.fileName) (int pos.line + 1) (int pos.character + 1)
