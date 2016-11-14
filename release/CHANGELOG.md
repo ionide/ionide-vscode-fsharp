@@ -1,3 +1,6 @@
+### 2.9.4 - 14.11.2016
+* Parse only depending projects on file save
+
 ### 2.9.3 - 11.11.2016
 * Use 127.0.0.1 instead of localhost (trying to fix offline-windows bug)
 
