@@ -13,6 +13,7 @@ open Ionide.VSCode.Helpers
 module Fsi =
     let mutable fsiOutput : Terminal option = None
     let mutable fsiOutputPID : int option = None
+    let mutable lastSelectionSent : string option = None
 
     let isPowershell () =
         let t = "terminal.integrated.shell.windows" |> Configuration.get ""
@@ -67,13 +68,14 @@ module Fsi =
 
 
     let private send (msg : string) =
-        let msg = msg + "\n;;\n"
+        let msgWithNewline = msg + "\n;;\n"
         match fsiOutput with
         | None -> start ()
         | Some fo -> Promise.lift fo
         |> Promise.onSuccess (fun fp ->
             fp.show true
-            fp.sendText(msg,false))
+            fp.sendText(msgWithNewline,false)
+            lastSelectionSent <- Some msg)
         |> Promise.onFail (fun error ->
             window.showErrorMessage "Failed to send text to FSI" |> ignore)
 
@@ -99,6 +101,14 @@ module Fsi =
             send text
             |> Promise.suppress // prevent unhandled promise exception
             |> ignore
+
+    let private sendLastSelection () =
+        match lastSelectionSent with
+        | Some x ->
+            send x
+            |> Promise.suppress // prevent unhandled promise exception
+            |> ignore
+        | None -> ()
 
     let private sendFile () =
         let editor = window.activeTextEditor
@@ -163,6 +173,7 @@ module Fsi =
         commands.registerCommand("fsi.Start", start |> unbox) |> ignore
         commands.registerCommand("fsi.SendLine", sendLine |> unbox) |> ignore
         commands.registerCommand("fsi.SendSelection", sendSelection |> unbox) |> ignore
+        commands.registerCommand("fsi.SendLastSelection", sendLastSelection |> unbox) |> ignore
         commands.registerCommand("fsi.SendFile", sendFile |> unbox) |> ignore
         commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox) |> ignore
         commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> unbox) |> ignore

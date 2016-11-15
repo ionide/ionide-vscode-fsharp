@@ -86,6 +86,10 @@
         "title": "FSI: Send Selection"
       },
       {
+        "command": "fsi.SendLastSelection",
+        "title": "FSI: Send Last Selection"
+      },
+      {
         "command": "fsi.SendFile",
         "title": "FSI: Send File"
       },
@@ -256,6 +260,7 @@
     "onCommand:fsi.Start",
     "onCommand:fsi.SendLine",
     "onCommand:fsi.SendSelection",
+    "onCommand:fsi.SendLastSelection",
     "onCommand:fsi.SendFile",
     "onCommand:fsi.SendProjectReferences",
     "onCommand:fsharp.Methods",
