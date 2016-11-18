@@ -1,3 +1,8 @@
+### 2.10.0 - 18.11.2016
+* Add `FSI: Send Last Selection` command
+* Fix keywords completion
+
+
 ### 2.9.4 - 14.11.2016
 * Parse only depending projects on file save
 
