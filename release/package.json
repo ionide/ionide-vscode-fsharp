@@ -245,6 +245,11 @@
           "type": "boolean",
           "default": false,
           "description": "Allows to use legacy (read-only) version of FSI. Requires restart"
+        },
+        "FSharp.saveOnSendLastSelection": {
+          "type": "boolean",
+          "default": false,
+          "description": "Save Current file before send LastSelection to FSI"
         }
       }
     },
