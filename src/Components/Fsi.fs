@@ -105,8 +105,13 @@ module Fsi =
     let private sendLastSelection () =
         match lastSelectionSent with
         | Some x ->
-            send x
-            |> Promise.suppress // prevent unhandled promise exception
+            if "FSharp.saveOnSendLastSelection" |> Configuration.get false then
+                window.activeTextEditor.document.save ()
+            else 
+                Promise.lift true
+            |> Promise.bind(fun _ -> 
+                send x) 
+            |> Promise.suppress // prevent unhandled promise exception            
             |> ignore
         | None -> ()
 
