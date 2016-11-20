@@ -1,3 +1,6 @@
+### 2.10.1 - 20.11.2016
+* Optional save current file on `FSI: Send Last Selection`
+
 ### 2.10.0 - 18.11.2016
 * Add `FSI: Send Last Selection` command
 * Fix keywords completion
