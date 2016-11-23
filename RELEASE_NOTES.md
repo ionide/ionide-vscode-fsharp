@@ -1,3 +1,6 @@
+### 2.11.0 - 23.11.2016
+* Add support for .Net Core preview3
+
 ### 2.10.1 - 20.11.2016
 * Optional save current file on `FSI: Send Last Selection`
 
