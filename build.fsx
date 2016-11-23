@@ -3,7 +3,7 @@
 // --------------------------------------------------------------------------------------
 
 #I "packages/FAKE/tools"
-#r "packages/FAKE/tools/FakeLib.dll" 
+#r "FakeLib.dll"
 open System
 open System.Diagnostics
 open System.IO
@@ -13,27 +13,6 @@ open Fake.ProcessHelper
 open Fake.ReleaseNotesHelper
 open Fake.ZipHelper
 
-#load "src/vscode-bindings.fsx"
-#load "src/Core/Bindings.fs"
-#load "src/Core/DTO.fs"
-#load "src/Core/LanguageService.fs"
-#load "src/Core/Project.fs"
-#load "src/Components/Linter.fs"
-#load "src/Components/Tooltip.fs"
-#load "src/Components/Autocomplete.fs"
-#load "src/Components/ParameterHints.fs"
-#load "src/Components/Definition.fs"
-#load "src/Components/References.fs"
-#load "src/Components/Symbols.fs"
-#load "src/Components/Highlights.fs"
-#load "src/Components/Rename.fs"
-#load "src/Components/Fsi.fs"
-#load "src/Components/QuickInfo.fs"
-#load "src/Components/FSharpFormatting.fs"
-#load "src/Components/Webpreview.fs"
-#load "src/Components/Forge.fs"
-#load "src/fsharp.fs"
-#load "src/main.fs"
 
 
 // Git configuration (used for publishing documentation in gh-pages branch)
@@ -67,26 +46,26 @@ let run cmd args dir =
             info.WorkingDirectory <- dir
         info.Arguments <- args
     ) System.TimeSpan.MaxValue = false then
-        traceError <| sprintf "Error while running '%s' with args: %s" cmd args
+        failwithf "Error while running '%s' with args: %s" cmd args
+
+
+let platformTool tool path =
+    isUnix |> function | true -> tool | _ -> path
 
 let npmTool =
-    match isUnix with
-    | true -> "npm" // Use the npm that is in PATH
-    | _ -> __SOURCE_DIRECTORY__ </> "packages/Npm.js/tools/npm.cmd"
+    platformTool "npm" ("packages" </> "Npm.js" </> "tools"  </> "npm.cmd" |> FullName)
 
 let vsceTool =
-    #if MONO
-        "vsce"
-    #else
-        "packages" </> "Node.js" </> "vsce.cmd" |> FullName
-    #endif
+    platformTool "vsce" ("packages" </> "Node.js" </> "vsce.cmd" |> FullName)
 
 let codeTool =
-    #if MONO
-        "code"
-    #else
-        ProgramFilesX86  </> "Microsoft VS Code" </> "bin/code.cmd"
-    #endif
+    platformTool "code" (ProgramFilesX86  </> "Microsoft VS Code" </> "bin/code.cmd")
+
+
+let releaseTestsBin = "release_test/bin"
+let releaseBin      = "release/bin"
+let fsacBin         = "paket-files/github.com/ionide/FsAutoComplete/bin/release"
+
 
 // --------------------------------------------------------------------------------------
 // Build the Generator project and run it
@@ -94,16 +73,33 @@ let codeTool =
 
 Target "Clean" (fun _ ->
     CleanDir "./temp"
-    CopyFiles "release" ["README.md"; "LICENSE.md"; "RELEASE_NOTES.md"]
+    CopyFiles "release" ["README.md"; "LICENSE.md"]
+    CopyFile "release/CHANGELOG.md" "RELEASE_NOTES.md"
 )
 
-Target "RunScript" (fun () ->
-    Ionide.VSCode.Generator.translateModules typeof<Ionide.VSCode.FSharp> (".." </> "release" </> "fsharp.js")
+Target "RunScript" (fun _ ->
+    run npmTool "install" "release"
+    run npmTool "run build" "release"
 )
 
+Target "CopyFSACToTests" (fun _ ->
+    ensureDirectory releaseTestsBin
+    CleanDir releaseTestsBin
 
-let releaseBin  = "release/bin"
-let fsacBin     = "paket-files/github.com/ionide/FsAutoComplete/bin/release"
+    !! (fsacBin + "/*")
+    |> CopyFiles releaseTestsBin
+)
+
+Target "BuildTest" (fun _ ->
+    run npmTool "install" "test"
+    run npmTool "run build" "test"
+)
+
+Target "RunTest" (fun _ ->
+    run npmTool "install" "release_test"
+    run npmTool "run test" "release_test"
+)
+
 
 
 Target "CopyFSAC" (fun _ ->
@@ -111,33 +107,25 @@ Target "CopyFSAC" (fun _ ->
     CleanDir releaseBin
 
     !! (fsacBin + "/*")
-    |> CopyFiles  releaseBin
+    |> CopyFiles releaseBin
 )
 
 let releaseBinForge = "release/bin_forge"
-let forgeBin = "paket-files/github.com/fsprojects/Forge/temp/bin"
-    
+let forgeBin = "paket-files/github.com/fsharp-editing/Forge/temp/bin"
+let forgeExe = forgeBin </> "Forge.exe"
+let posixDll = forgeBin </> "Mono.Posix.dll"
+
 Target "CopyForge" (fun _ ->
     ensureDirectory releaseBinForge
     CleanDir releaseBinForge
-    
-    !! (forgeBin </> "Forge.exe" )
-    ++ (forgeBin </> "Mono.Posix.dll")
+    checkFileExists forgeExe
+    checkFileExists posixDll
+    !! forgeExe
+    ++ posixDll
     |> CopyFiles releaseBinForge
 )
 
-let releaseBinFF = "release/bin_ff"
-let ffbin = "paket-files/github.com/ionide/FSharpFormatting.CLI/build"
-
-Target "CopyFSharpFormatting" (fun _ ->
-    ensureDirectory releaseBinFF
-    CleanDir releaseBinFF
-
-    !! (ffbin + "/*")
-    |> CopyFiles  releaseBinFF
-)
-
-let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar"
+let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammar"
 let fsgrammarRelease = "release/syntaxes"
 
 
@@ -152,6 +140,15 @@ Target "CopyGrammar" (fun _ ->
     ]
 )
 
+
+let fsschemaDir = "schemas"
+
+let fsschemaRelease = "release/schemas"
+Target "CopySchemas" (fun _ ->
+    ensureDirectory fsschemaRelease
+    CleanDir fsschemaRelease
+    CopyFile fsschemaRelease (fsschemaDir </> "fableconfig.json")
+)
 
 
 Target "InstallVSCE" ( fun _ ->
@@ -238,17 +235,24 @@ Target "ReleaseGitHub" (fun _ ->
 Target "Default" DoNothing
 Target "Build" DoNothing
 Target "Release" DoNothing
+Target "Test" DoNothing
 
 "Clean"
 ==> "RunScript"
 ==> "Default"
 
+"CopyFSACToTests"
+==> "BuildTest"
+==> "RunTest"
+==> "Test"
+//==> "BuildPackage"
+
 "Clean"
 ==> "RunScript"
 ==> "CopyFSAC"
-==> "CopyFSharpFormatting"
 ==> "CopyForge"
 ==> "CopyGrammar"
+==> "CopySchemas"
 ==> "Build"
 
 "Build"

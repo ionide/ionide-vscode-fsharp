@@ -6,13 +6,11 @@ open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
-open Fable.Core.JsInterop
+
 open DTO
 open Ionide.VSCode.Helpers
 
-module Symbols =
-
-
+module WorkspaceSymbols =
     let private createProvider () =
 
         let convertToKind code =
@@ -26,45 +24,46 @@ module Symbols =
             | "P" -> SymbolKind.Property      (*  CompletionItemKind.Property   *)
             | "F" -> SymbolKind.Variable     (*  CompletionItemKind.Field      *)
             | "T" -> SymbolKind.Class      (*  CompletionItemKind.Class      *)
-            | "Fc" -> SymbolKind.Function
             | _   -> 0 |> unbox
 
-        let mapRes (doc : TextDocument) o =
+        let relative f =
+            path.relative (workspace.rootPath, f)
+
+        let mapRes o =
              if isNotNull o then
                 o.Data |> Array.map (fun syms ->
                     let oc = createEmpty<SymbolInformation>
                     oc.name <- syms.Declaration.Name
                     oc.kind <- syms.Declaration.GlyphChar |> convertToKind
-                    oc.containerName <- syms.Declaration.Glyph
+                    oc.containerName <- relative syms.Declaration.File
                     let loc = createEmpty<Location>
                     loc.range <- CodeRange.fromDTO syms.Declaration.BodyRange
-                    loc.uri <- Uri.file doc.fileName
+                    loc.uri <- Uri.file syms.Declaration.File
                     oc.location <- loc
                     let ocs =  syms.Nested |> Array.map (fun sym ->
                         let oc = createEmpty<SymbolInformation>
                         oc.name <- sym.Name
                         oc.kind <- sym.GlyphChar |> convertToKind
-                        oc.containerName <- sym.Glyph
+                        oc.containerName <- relative sym.File
                         let loc = createEmpty<Location>
                         loc.range <- CodeRange.fromDTO sym.BodyRange
-                        loc.uri <- Uri.file doc.fileName
+                        loc.uri <- Uri.file sym.File
                         oc.location <- loc
                         oc )
                     ocs |> Array.append (Array.create 1 oc)) |> Array.concat
                 else
                     [||]
 
-        { new DocumentSymbolProvider
+        { new WorkspaceSymbolProvider
           with
-            member this.provideDocumentSymbols(doc, ct) =
+            member this.provideWorkspaceSymbols(q, ct) =
                 promise {
-                    let! o = LanguageService.declarations doc.fileName
-                    let data = mapRes doc o
-                    return data |> ResizeArray
+                    let! o = LanguageService.declarationsProjects ()
+                    return mapRes o |> ResizeArray
                 } |> Case2
         }
 
     let activate selector (disposables: Disposable[]) =
-        languages.registerDocumentSymbolProvider(selector, createProvider())
+        languages.registerWorkspaceSymbolProvider(createProvider())
         |> ignore
         ()

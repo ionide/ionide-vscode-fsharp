@@ -1,34 +1,39 @@
+FRAMEWORK: NET45
 NUGET
   remote: https://www.nuget.org/api/v2
-    FAKE (4.26)
-    FunScript (1.1.94)
-    Microsoft.Bcl (1.1.10) - framework: net10, net11, net20, net30, net35, net40, net40-full
-      Microsoft.Bcl.Build (>= 1.0.14)
-    Microsoft.Bcl.Build (1.0.21) - import_targets: false, framework: net10, net11, net20, net30, net35, net40, net40-full
-    Microsoft.Net.Http (2.2.29) - framework: net10, net11, net20, net30, net35, net40, net40-full
-      Microsoft.Bcl (>= 1.1.10)
-      Microsoft.Bcl.Build (>= 1.0.14)
+    FAKE (4.45.1)
+    FSharp.Core (4.0.0.1)
+    FsUnit (2.3.2)
+      FSharp.Core (>= 3.1.2.5)
+      NUnit (3.5)
     Node.js (5.3)
     Npm.js (2.13.1)
       Node.js (>= 0.12.7)
-    Octokit (0.19)
-      Microsoft.Net.Http  - framework: net10, net11, net20, net30, net35, net40, net40-full
+    NUnit (3.5)
+    Octokit (0.23)
 GIT
-  remote: https://github.com/ionide/ionide-vscode-helpers.git
-     (b81a80ede2179222a5639cf866423d9bc6c2f0b4)
-      build: build.cmd
-  remote: https://github.com/ionide/FSharpFormatting.CLI.git
-     (8b996684032cebe1ba052696fb30081fab023b1f)
-      build: build.cmd
   remote: https://github.com/ionide/FsAutoComplete.git
-     (e291884b2b52da09f24924a899e8ac84be42c9bc)
+     (61d91644b0d0c668b96d73a80d7ef7f84f4109b2)
       build: build.cmd LocalRelease
-  remote: https://github.com/fsprojects/Forge.git
-     (0ce0281d45e8f7368f447fc33bf22406b4992801)
-      build: build.cmd
-  remote: git@github.com:ionide/ionide-fsgrammar.git
-     (8061b5296321522633b16d7df66af8cf5fcd3784)
+      os: windows
+     (61d91644b0d0c668b96d73a80d7ef7f84f4109b2)
+      build: build.sh LocalRelease
+      os: mono
+  remote: https://github.com/fsharp-editing/Forge.git
+     (6720661975dbaa0164ec39d3141dab9e6a52808e)
+      build: build.cmd Build
+      os: windows
+     (6720661975dbaa0164ec39d3141dab9e6a52808e)
+      build: build.sh Build
+      os: mono
+  remote: https://github.com/ionide/ionide-fsgrammar.git
+     (d627014204dbf241fb80d80895f8fcaa0f95941d)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (32e262c11174b196dc8af16a577c8c3aa0ab0b2b)
-      Octokit
+    modules/Octokit/Octokit.fsx (f367c3d28b1fc9a2a89636c2b870dea4b4559dca)
+      Octokit (>= 0.20)
+  remote: Ionide/ionide-vscode-helpers
+    Fable.Import.Axios.fs (fa929e434505f301dba56107ffbd15192216fc35)
+    Fable.Import.VSCode.fs (fa929e434505f301dba56107ffbd15192216fc35)
+    Fable.Import.ws.fs (fa929e434505f301dba56107ffbd15192216fc35)
+    Helpers.fs (fa929e434505f301dba56107ffbd15192216fc35)

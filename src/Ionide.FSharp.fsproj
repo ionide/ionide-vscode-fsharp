@@ -1,94 +1,92 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <ProjectGuid>{D1081029-2369-4DAA-9F33-2353C5C9ED02}</ProjectGuid>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>Ionide.FSharp</RootNamespace>
+    <Name>Ionide.FSharp</Name>
     <AssemblyName>Ionide.FSharp</AssemblyName>
+    <RootNamespace>Ionide.FSharp</RootNamespace>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>d1081029-2369-4daa-9f33-2353c5c9ed02</ProjectGuid>
+    <OutputType>Library</OutputType>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile />
+    <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
+    <DebugType>Full</DebugType>
     <Optimize>false</Optimize>
+    <Tailcalls>false</Tailcalls>
     <OutputPath>bin\Debug</OutputPath>
     <DefineConstants>DEBUG</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <Externalconsole>true</Externalconsole>
-    <Tailcalls>false</Tailcalls>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugSymbols>false</DebugSymbols>
-    <DebugType>none</DebugType>
+    <DebugType>None</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <PlatformTarget>x86</PlatformTarget>
-    <Externalconsole>true</Externalconsole>
     <Tailcalls>true</Tailcalls>
+    <OutputPath>bin\Release</OutputPath>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
-  <Import Project="$(MSBuildExtensionsPath32)\..\Microsoft SDKs\F#\3.1\Framework\v4.0\Microsoft.FSharp.Targets" />
+  <PropertyGroup Condition="Exists('$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets')">
+    <FSharpTargetsPath>$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.FSharp.Targets</FSharpTargetsPath>
+  </PropertyGroup>
   <ItemGroup>
-    <None Include="paket.references" />
-    <Compile Include="Core\Bindings.fs" />
-    <Compile Include="Core\DTO.fs" />
-    <Compile Include="Core\LanguageService.fs" />
-    <Compile Include="Core\Project.fs" />
-    <Compile Include="Components\Linter.fs" />
-    <Compile Include="Components\Tooltip.fs" />
-    <Compile Include="Components\Autocomplete.fs" />
-    <Compile Include="Components\ParameterHints.fs" />
-    <Compile Include="Components\Definition.fs" />
-    <Compile Include="Components\References.fs" />
-    <Compile Include="Components\Symbols.fs" />
-    <Compile Include="Components\Highlights.fs" />
-    <Compile Include="Components\Rename.fs" />
-    <Compile Include="Components\Fsi.fs" />
-    <Compile Include="Components\QuickInfo.fs" />
-    <Compile Include="Components\FSharpFormatting.fs" />
-    <Compile Include="Components\WebPreview.fs" />
-    <Compile Include="Components\Forge.fs" />
-    <Compile Include="fsharp.fs" />
-    <Compile Include="main.fs" />
-    <None Include="vscode-bindings.fsx" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="FunScript.TypeScript.Binding.lib">
-      <HintPath>..\paket-files\github.com\ionide\ionide-vscode-helpers\release\FunScript.TypeScript.Binding.lib.dll</HintPath>
-    </Reference>
-    <Reference Include="FunScript.TypeScript.Binding.node">
-      <HintPath>..\paket-files\github.com\ionide\ionide-vscode-helpers\release\FunScript.TypeScript.Binding.node.dll</HintPath>
-    </Reference>
-    <Reference Include="FunScript.TypeScript.Binding.vscode">
-      <HintPath>..\paket-files\github.com\ionide\ionide-vscode-helpers\release\FunScript.TypeScript.Binding.vscode.dll</HintPath>
-    </Reference>
-    <Reference Include="Ionide.Helpers">
-      <HintPath>..\paket-files\github.com\ionide\ionide-vscode-helpers\release\Ionide.Helpers.dll</HintPath>
+    <Reference Include="Fable.Core">
+      <HintPath>../release/node_modules/fable-core/Fable.Core.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core" />
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
   </ItemGroup>
-  <Choose>
-    <When Condition="($(TargetFrameworkIdentifier) == '.NETStandard' And ($(TargetFrameworkVersion) == 'v1.0' Or $(TargetFrameworkVersion) == 'v1.1' Or $(TargetFrameworkVersion) == 'v1.2' Or $(TargetFrameworkVersion) == 'v1.3' Or $(TargetFrameworkVersion) == 'v1.4' Or $(TargetFrameworkVersion) == 'v1.5')) Or ($(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.0' Or $(TargetFrameworkVersion) == 'v4.5' Or $(TargetFrameworkVersion) == 'v4.5.1' Or $(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2'))">
-      <ItemGroup>
-        <Reference Include="FunScript.Interop">
-          <HintPath>..\packages\FunScript\lib\net40\FunScript.Interop.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-        <Reference Include="FunScript">
-          <HintPath>..\packages\FunScript\lib\net40\FunScript.dll</HintPath>
-          <Private>True</Private>
-          <Paket>True</Paket>
-        </Reference>
-      </ItemGroup>
-    </When>
-  </Choose>
+  <ItemGroup>
+    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.VSCode.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/Fable.Import.VSCode.fs</Link>
+    </Compile>
+    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Helpers.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/Helpers.fs</Link>
+    </Compile>
+    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.Axios.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/Fable.Import.Axios.fs</Link>
+    </Compile>
+    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.ws.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/Fable.Import.ws.fs</Link>
+    </Compile>
+    <None Include="paket.references" />
+    <Compile Include="Core/Logging.fs" />
+    <Compile Include="Core/DTO.fs" />
+    <Compile Include="Core/Utils.fs" />
+    <Compile Include="Core/LanguageService.fs" />
+    <Compile Include="Core/Project.fs" />
+    <Compile Include="Components/Errors.fs" />
+    <Compile Include="Components/Tooltip.fs" />
+    <Compile Include="Components/Autocomplete.fs" />
+    <Compile Include="Components/ParameterHints.fs" />
+    <Compile Include="Components/Definition.fs" />
+    <Compile Include="Components/References.fs" />
+    <Compile Include="Components/Highlights.fs" />
+    <Compile Include="Components/Symbols.fs" />
+    <Compile Include="Components/Rename.fs" />
+    <Compile Include="Components/WorkspaceSymbols.fs" />
+    <Compile Include="Components/Environment.fs" />
+    <Compile Include="Components/Fsi.fs" />
+    <Compile Include="Components/LegacyFsi.fs" />
+    <Compile Include="Components/QuickInfo.fs" />
+    <Compile Include="Components/WebPreview.fs" />
+    <Compile Include="Components/Forge.fs" />
+    <Compile Include="Components/Linter.fs" />
+    <Compile Include="Components/CodeLens.fs" />
+    <Compile Include="fsharp.fs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="$(FSharpTargetsPath)" />
 </Project>

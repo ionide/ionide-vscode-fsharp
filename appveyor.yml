@@ -1,0 +1,10 @@
+os: Visual Studio 2015
+
+build_script:
+  - cmd: .\build.cmd BuildPackage
+
+test: off
+
+artifacts:
+  - path: temp\*.vsix
+    name: Ionide FSharp VSCode Extension

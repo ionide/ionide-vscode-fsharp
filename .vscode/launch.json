@@ -1,6 +1,6 @@
 // A launch configuration that compiles the extension and then opens it inside a new window
 {
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"configurations": [
 		{
             "preLaunchTask": "Default",
@@ -8,7 +8,8 @@
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
-			"stopOnEntry": false
+			"stopOnEntry": false,
+			"request": "launch"
 		}
 	]
 }

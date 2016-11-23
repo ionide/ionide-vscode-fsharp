@@ -1,43 +1,49 @@
-[<ReflectedDefinition>]
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-module Ionide.VSCode
+module Ionide.VSCode.FSharp
 
 open System
 open System.Text.RegularExpressions
-open FunScript
-open FunScript.TypeScript
-open FunScript.TypeScript.fs
-open FunScript.TypeScript.child_process
-open FunScript.TypeScript.vscode
-
-open Ionide.VSCode.FSharp
+open Fable.Core
+open Fable.Core.JsInterop
+open Fable.Import.vscode
 open Ionide.VSCode.Helpers
+open Ionide.VSCode.FSharp
 
-type FSharp() =
-    member x.activate(disposables: Disposable[]) =
-        let df = createEmpty<DocumentFilter> ()
-        df.language <- "fsharp"
-        let df' = [|df|]
-        
-        LanguageService.start ()
-        Project.activate () |> ignore
-        Linter.activate disposables 
+let activate(disposables: Disposable[]) =
+    let df = createEmpty<DocumentFilter>
+    df.language <- Some "fsharp"
+    let df' : DocumentSelector = df |> U3.Case2
+
+    let legacyFsi = "FSharp.legacyFSI" |> Configuration.get false
+
+    LanguageService.start ()
+    |> Promise.onSuccess (fun _ ->
+        Errors.activate disposables
+        |> Promise.bind(fun _ -> Project.activate ())
+        |> ignore
+
         Tooltip.activate df' disposables
         Autocomplete.activate df' disposables
         ParameterHints.activate df' disposables
         Definition.activate df' disposables
-        Reference.activate df' disposables 
+        Reference.activate df' disposables
         Symbols.activate df' disposables
         Highlights.activate df' disposables
         Rename.activate df' disposables
-        Fsi.activate disposables
+        WorkspaceSymbols.activate df' disposables
         QuickInfo.activate disposables
-        FSharpFormatting.activate disposables
-        WebPreview.activate disposables
-        Forge.activate disposables
-        
-        ()
+        Linter.activate disposables
+        CodeLens.activate df' disposables
+    )
+    |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
+    |> ignore
 
-    member x.deactivate(disposables: Disposable[]) =
-        LanguageService.stop ()
+    Forge.activate disposables
+    if legacyFsi then LegacyFsi.activate disposables else Fsi.activate disposables
+    WebPreview.activate disposables
+
+    ()
+
+let deactivate(disposables: Disposable[]) =
+    LanguageService.stop ()
 

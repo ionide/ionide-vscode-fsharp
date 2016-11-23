@@ -8,14 +8,21 @@
 
 {
 	"version": "0.1.0",
-    "command": "build.cmd",
     "isShellCommand": true,
 	"showOutput": "silent",
-    "args": [],
+    "osx": {
+        "command": "${workspaceRoot}/build.sh"
+    },
+    "windows": {
+        "command": "${workspaceRoot}/build.cmd"
+    },
+    "linux": {
+        "command": "${workspaceRoot}/build.sh"
+    },
     "tasks": [
         {
             "taskName": "Default",
-            "args": [],
+            "args": ["Default"],
             "isBuildCommand": true
         }
     ]

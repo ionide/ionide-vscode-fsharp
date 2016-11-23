@@ -2,12 +2,12 @@
 
 [<ReflectedDefinition>]
 module DTO =
-    type ParseRequest = { FileName : string; IsAsync : bool; Lines : string[]}
+    type ParseRequest = { FileName : string; IsAsync : bool; Lines : string[]; Version : int }
     type ProjectRequest = { FileName : string}
     type DeclarationsRequest = {FileName : string}
     type HelptextRequest = {Symbol : string}
     type PositionRequest = {FileName : string; Line : int; Column : int; Filter : string}
-    type CompletionRequest = {FileName : string; SourceLine : string; Line : int; Column : int; Filter : string}
+    type CompletionRequest = {FileName : string; SourceLine : string; Line : int; Column : int; Filter : string; IncludeKeywords : bool}
 
     type OverloadSignature = {
         Signature: string
@@ -32,6 +32,11 @@ module DTO =
         ///File Name
         FileName : string
         }
+
+    type ErrorResp = {
+        File : string
+        Errors : Error []
+    }
 
     type Declaration = {
         File : string
@@ -102,7 +107,7 @@ module DTO =
         EndLine: int
     }
 
-    type Symbol ={
+    type Symbol = {
         UniqueName: string
         Name: string
         Glyph: string
@@ -110,11 +115,32 @@ module DTO =
         IsTopLevel: bool
         Range: Range
         BodyRange : Range
+        File : string
+        EnclosingEntity : string
+        IsAbstract : bool
     }
 
     type Symbols = {
         Declaration : Symbol;
         Nested : Symbol []
+    }
+
+    type Lint = {
+        Info : string
+        Input : string
+        Range : Range
+    }
+
+    type ProjectFilePath = string
+    type SourceFilePath = string
+    type ProjectReferencePath = string
+
+    type Project = {
+        Project: ProjectFilePath
+        Files: SourceFilePath list
+        Output: string
+        References: ProjectReferencePath list
+        Logs: Map<string, string>
     }
 
 
@@ -124,7 +150,9 @@ module DTO =
     type CompletionResult = Result<Completion[]>
     type SymbolUseResult = Result<SymbolUses>
     type TooltipResult = Result<OverloadSignature[][]>
-    type ParseResult = Result<Error[]>
+    type ParseResult = Result<ErrorResp>
     type FindDeclarationResult = Result<Declaration>
     type MethodResult = Result<Method>
     type DeclarationResult = Result<Symbols[]>
+    type LintResult = Result<Lint[]>
+    type ProjectResult = Result<Project>

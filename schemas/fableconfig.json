@@ -1,0 +1,306 @@
+{
+	"id": "http://json-schema.org/fableconfig#",
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"description": "Fable configuration file schema",
+	"type": "object",
+	"properties": {
+		"targets": {
+			"$ref": "#/definitions/targets"
+		},
+		"extra": {
+			"$ref": "#/definitions/extra"
+		},
+		"msbuild": {
+			"$ref": "#/definitions/msbuild"
+		},
+		"outDir": {
+			"$ref": "#/definitions/outdir"
+		},
+		"watch": {
+			"$ref": "#/definitions/watch"
+		},
+		"copyExt": {
+			"$ref": "#/definitions/copyext"
+		},
+		"verbose": {
+			"$ref": "#/definitions/verbose"
+		},
+		"coreLib": {
+			"$ref": "#/definitions/corelib"
+		},
+		"projFile": {
+			"$ref": "#/definitions/projfile"
+		},
+		"sourceMaps": {
+			"$ref": "#/definitions/sourcemap"
+		},
+		"symbols": {
+			"$ref": "#/definitions/symbols"
+		},
+		"module": {
+			"$ref": "#/definitions/module"
+		},
+		"ecma": {
+			"$ref": "#/definitions/ecma"
+		},
+		"declaration": {
+			"$ref": "#/definitions/declaration"
+		},
+		"plugins": {
+			"$ref": "#/definitions/plugins"
+		},
+		"refs": {
+			"$ref": "#/definitions/refs"
+		},
+		"scripts": {
+			"$ref": "#/definitions/scripts"
+		},
+		"babelPlugins": {
+			"$ref": "#/definitions/babelPlugins"
+		},
+        "rollup": {
+            "$ref": "#/definitions/rollup"
+        },
+		"loose": {
+			"$ref": "#/definitions/loose"
+		},
+		"babelrc": {
+			"$ref": "#/definitions/babelrc"
+		},
+		"clamp": {
+			"$ref": "#/definitions/clamp"
+		}
+	},
+	"additionalProperties": false,
+	"definitions": {
+		"projfile": {
+			"type": "string",
+			"description": "Path to fsproj. Relative to fableconfig.json"
+		},
+		"corelib": {
+			"type": "string",
+			"description": "In some cases, you may need to pass a different route to the core library, like --coreLib fable-core/es2015",
+			"default": "fable-core/es5"
+		},
+		"sourcemap": {
+			"description": "Generate sourcemaps: false | true | inline",
+			"oneOf": [{
+				"type": "boolean"
+			}, {
+				"enum": [
+					"inline"
+				]
+			}],
+			"default": false
+		},
+		"module": {
+			"enum": [
+				"commonjs",
+				"amd",
+				"umd",
+				"es2015"
+			],
+			"description": "JavaScript module output format: commonjs | amd | umd | es2015",
+			"default": "commonjs"
+		},
+		"ecma": {
+			"enum": [
+				"es5",
+				"es2015"
+			],
+			"description": "Specify ECMAScript target version: es5 | es2015",
+			"default": "es5"
+		},
+		"symbols": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			},
+			"description": "F# symbols for conditional compilation, like DEBUG. FABLE__COMPILER is predefined."
+		},
+		"plugins": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			},
+			"description": "Paths to Fable plugins"
+		},
+		"refs": {
+			"type": "object",
+			"description": "DLL or project references \"AssemblyName\" : \"../../ImportPath\"",
+			"patternProperties": {
+				"^((\\w|-)+)$": {
+					"type": "string"
+				}
+			},
+			"additionalProperties": false
+		},
+		"declaration": {
+			"type": "boolean",
+			"description": "[Experimental] Generates corresponding ‘.d.ts’ file",
+			"default": false
+		},
+		"verbose": {
+			"type": "boolean",
+			"description": "Print more information about the compilation process",
+			"default": false
+		},
+		"copyext": {
+			"type": "boolean",
+			"description": "Copy external files into fable__external folder",
+			"default": true
+		},
+		"watch": {
+			"type": "boolean",
+			"description": "Recompile project much faster on file modifications",
+			"default": false
+		},
+		"outdir": {
+			"type": "string",
+			"description": "Where to put compiled JS files. Defaults to project directory.",
+			"default": ""
+		},
+		"msbuild": {
+			"type": "object",
+			"patternProperties": {
+				"^((\\w|-)+)$": {
+					"type": "string"
+				}
+			},
+			"description": "Pass MSBuild arguments like Configuration : Release"
+		},
+		"extra": {
+			"type": "object",
+			"patternProperties": {
+				"^((\\w|-)+)$": {
+					"type": "string"
+				}
+			},
+			"description": "Custom options for plugins in Key : Value format"
+		},
+		"scripts": {
+			"type": "object",
+			"description": "Commands that should be executed during specific phases of compilation. Currently prebuild, postbuild and postbuild-once are accepted.",
+			"properties": {
+				"postbuild": {
+					"type": "string",
+					"description": "postbuild will run for every compilation in watch mode. If you only want to run the script after the first full compilation, use postbuild-once."
+				},
+				"postbuild-once": {
+					"type": "string",
+					"description": "postbuild-once only runs after the first full compiliation"
+				},
+				"prebuild": {
+					"type": "string",
+					"description": "prebuild will before the first full compilation only"
+				}
+			},
+			"additionalProperties": false
+		},
+		"target": {
+			"type": "object",
+			"properties": {
+				"extra": {
+					"$ref": "#/definitions/extra"
+				},
+				"msbuild": {
+					"$ref": "#/definitions/msbuild"
+				},
+				"outDir": {
+					"$ref": "#/definitions/outdir"
+				},
+				"watch": {
+					"$ref": "#/definitions/watch"
+				},
+				"copyExt": {
+					"$ref": "#/definitions/copyext"
+				},
+				"verbose": {
+					"$ref": "#/definitions/verbose"
+				},
+				"coreLib": {
+					"$ref": "#/definitions/corelib"
+				},
+				"projFile": {
+					"$ref": "#/definitions/projfile"
+				},
+				"sourceMaps": {
+					"$ref": "#/definitions/sourcemap"
+				},
+				"symbols": {
+					"$ref": "#/definitions/symbols"
+				},
+				"module": {
+					"$ref": "#/definitions/module"
+				},
+				"ecma": {
+					"$ref": "#/definitions/ecma"
+				},
+				"declaration": {
+					"$ref": "#/definitions/declaration"
+				},
+				"plugins": {
+					"$ref": "#/definitions/plugins"
+				},
+				"refs": {
+					"$ref": "#/definitions/refs"
+				},
+				"scripts": {
+					"$ref": "#/definitions/scripts"
+				},
+				"babelPlugins": {
+					"$ref": "#/definitions/babelPlugins"
+				},
+				"babelrc": {
+					"$ref": "#/definitions/babelrc"
+				},
+				"loose": {
+					"$ref": "#/definitions/loose"
+				},
+				"clamp": {
+					"$ref": "#/definitions/clamp"
+				},
+				"rollup": {
+					"$ref": "#/definitions/rollup"
+				}
+			},
+			"additionalProperties": false
+		},
+		"targets": {
+			"type": "object",
+			"patternProperties": {
+				"^((\\w|-)+)$": {
+					"$ref": "#/definitions/target"
+				}
+			},
+			"description": "Configuration by target. Use --target to select a configuration",
+			"additionalProperties": false
+		},
+		"babelPlugins": {
+			"description": "Additional Babel plugins (without babel-plugin- prefix). Must be installed in the current directory",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+		},
+        "rollup": {
+			"description": "Rollup object or string use to configure bundler",
+            "type": ["string", "object"]
+        },
+		"loose": {
+			"type": "boolean",
+			"description": "Enable “loose” transformations for babel-preset-es2015 plugins: true | false",
+			"default": "true"
+		},
+		"babelrc": {
+			"type": "boolean",
+			"description": "Use a .babelrc file for Babel configuration (invalidates other Babel related options).",
+			"default": false
+		},
+		"clamp": {
+			"type": "boolean",
+			"description": "Compile unsigned byte arrays as Uint8ClampedArray.",
+			"default": false
+		}
+	}
+}

@@ -1,32 +1,55 @@
 {
-	"name": "Ionide-fsharp",
-	"version": "1.7.0",
-	"publisher": "Ionide",
-	"description": "F# Language Support",
-	"categories":[
-		 "Linters", "Languages", "Snippets"
-	],
-	"license":"SEE LICENSE IN LICENSE.md",
-	"icon": "images/logo.png",
-	"bugs": {
-		"url": "https://github.com/ionide/ionide-vscode-fsharp/issues"
-	},
-	"homepage": "http://ionide.io",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/ionide/ionide-vscode-fsharp.git"
-	},
-	"engines": {
-		"vscode": "^0.10.0"
-	},
-	"main": "./fsharp",
-	"contributes": {
-		"languages": [{
+  "name": "Ionide-fsharp",
+  "version": "2.10.1",
+  "publisher": "Ionide",
+  "contributors": [
+    {
+      "name": "Krzysztof Cieślak",
+      "url": "https://twitter.com/k_cieslak"
+    },
+    {
+      "name": "Jared Hester",
+      "email": "jared.hester@gmail.com",
+      "url": "https://twitter.com/cloudRoutine"
+    }
+  ],
+  "description": "F# Language Support",
+  "categories": [
+    "Linters",
+    "Languages",
+    "Snippets"
+  ],
+  "license": "SEE LICENSE IN LICENSE.md",
+  "icon": "images/logo.png",
+  "bugs": {
+    "url": "https://github.com/ionide/ionide-vscode-fsharp/issues"
+  },
+  "homepage": "http://ionide.io",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
+  },
+  "engines": {
+    "vscode": "^0.10.0"
+  },
+  "main": "./fsharp",
+  "contributes": {
+    "languages": [
+      {
         "id": "fsharp",
-        "aliases": [ "F#" ],
-        "extensions": [ ".fs", ".fsx", ".fsi" ],
-        "configuration": "./fsharp.configuration.json"
-    }],
+        "aliases": [
+          "F#",
+          "FSharp",
+          "fsharp"
+        ],
+        "extensions": [
+          ".fs",
+          ".fsx",
+          ".fsi"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
     "grammars": [
       {
         "language": "fsharp",
@@ -63,12 +86,20 @@
         "title": "FSI: Send Selection"
       },
       {
+        "command": "fsi.SendLastSelection",
+        "title": "FSI: Send Last Selection"
+      },
+      {
         "command": "fsi.SendFile",
         "title": "FSI: Send File"
       },
       {
-        "command": "ff.Show",
-        "title": "F# Formatting: Show"
+        "command": "fsi.SendProjectReferences",
+        "title": "FSI: Send References from project"
+      },
+      {
+        "command": "fsi.GenerateProjectReferences",
+        "title": "FSI: Generate script file with references from project"
       },
       {
         "command": "webpreview.Show",
@@ -91,6 +122,10 @@
         "title": "F#: New Project"
       },
       {
+        "command": "fsharp.NewProjectNoFake",
+        "title": "F#: New Project (Without FAKE)"
+      },
+      {
         "command": "fsharp.RefreshProjectTemplates",
         "title": "F#: Refresh Project Templates"
       },
@@ -101,12 +136,29 @@
       {
         "command": "fsharp.RemoveFileFromProject",
         "title": "F#: Remove Current File From Project"
+      },
+      {
+        "command": "fsharp.AddProjectReference",
+        "title": "F#: Add Project Reference"
+      },
+      {
+        "command": "fsharp.RemoveProjectReference",
+        "title": "F#: Remove Project Reference"
+      },
+      {
+        "command": "fsharp.AddReference",
+        "title": "F#: Add Reference"
+      },
+      {
+        "command": "fsharp.RemoveReference",
+        "title": "F#: Remove Reference"
       }
     ],
-		"outputChannels": [
-			"F# Interactive",
+    "outputChannels": [
+      "F# Language Service",
+      "F# Interactive",
       "Forge"
-		],
+    ],
     "keybindings": [
       {
         "command": "fsi.SendLine",
@@ -116,7 +168,8 @@
       {
         "command": "fsi.SendSelection",
         "key": "alt+Enter",
-        "mac": "alt+Enter"
+        "mac": "alt+Enter",
+        "when": "editorFocus && !findWidgetVisible"
       },
       {
         "command": "fsharp.MoveFileUp",
@@ -126,27 +179,122 @@
         "command": "fsharp.MoveFileDown",
         "key": "ctrl+shift+down"
       }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "FSharp configuration",
+      "properties": {
+        "FSharp.logLanguageServiceRequests": {
+          "type": "string",
+          "default": "none",
+          "description": "Enable logging for F# Language Service requests (FSAC) to either an output channel, the developer tools console, or both",
+          "enum": [
+            "none",
+            "output",
+            "devconsole",
+            "both"
+          ]
+        },
+        "FSharp.logLanguageServiceRequestsOutputWindowLevel": {
+          "type": "string",
+          "default": "INFO",
+          "description": "Set the verbosity for F# Language Service Output Channel",
+          "enum": [
+            "DEBUG",
+            "INFO",
+            "WARN",
+            "ERROR"
+          ]
+        },
+        "FSharp.automaticProjectModification": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically modifies fsproj on file add/remove"
+        },
+        "FSharp.toolsDirPath": {
+          "type": "string",
+          "default": "",
+          "description": "The directory containing the F# tools"
+        },
+        "FSharp.monoPath": {
+          "type": "string",
+          "default": "mono",
+          "description": "The path to Mono executable"
+        },
+        "FSharp.fsiFilePath": {
+          "type": "string",
+          "default": "",
+          "description": "The path to the F# Interactive tool used by Ionide-FSharp"
+        },
+        "FSharp.keywordsAutocomplete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Includes keywords in autocomplete"
+        },
+        "FSharp.linter": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables integration with FSharpLinter (additional warnings)"
+        },
+        "FSharp.fsiExtraParameters": {
+          "type": "array",
+          "default": [],
+          "description": "Allows to pass extra parameters to FSI process"
+        },
+        "FSharp.legacyFSI": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allows to use legacy (read-only) version of FSI. Requires restart"
+        },
+        "FSharp.saveOnSendLastSelection": {
+          "type": "boolean",
+          "default": false,
+          "description": "Save Current file before send LastSelection to FSI"
+        }
+      }
+    },
+    "jsonValidation": [
+      {
+        "fileMatch": "fableconfig.json",
+        "url": "./schemas/fableconfig.json"
+      }
     ]
-	},
-	"activationEvents": [
-		"onLanguage:fsharp",
-		"onCommand:fsi.Start",
-		"onCommand:fsi.SendLine",
-		"onCommand:fsi.SendSelection",
+  },
+  "activationEvents": [
+    "onLanguage:fsharp",
+    "onCommand:fsi.Start",
+    "onCommand:fsi.SendLine",
+    "onCommand:fsi.SendSelection",
+    "onCommand:fsi.SendLastSelection",
     "onCommand:fsi.SendFile",
+    "onCommand:fsi.SendProjectReferences",
     "onCommand:fsharp.Methods",
     "onCommand:webpreview.Show",
     "onCommand:fsharp.NewProject",
-    "onCommand:fsharp.RefreshProjectTemplates"
-	],
-	"extensionDependencies": [
-        "vscode.fsharp"
-    ],
-	"dependencies": {
-		"xhr2": "*",
-    "toml": "*"
-	},
-	"devDependencies": {
-		"vscode": "*"
-	}
+    "onCommand:fsharp.NewProjectNoFake",
+    "onCommand:fsharp.RefreshProjectTemplates",
+    "onCommand:fsharp.AddProjectReference",
+    "onCommand:fsharp.RemoveProjectReference",
+    "onCommand:fsharp.AddReference",
+    "onCommand:fsharp.RemoveReference"
+  ],
+  "extensionDependencies": [
+    "vscode.fsharp"
+  ],
+  "scripts": {
+    "prebuild":"npm update",
+    "build": "fable ../src/Ionide.FSharp.fsproj -s -o ../release -m commonjs --verbose"
+  },
+  "dependencies": {
+    "axios": "*",
+    "fable-core": "0.6.x",
+    "toml": "*",
+    "ws": "*",
+    "xhr2": "*"
+  },
+  "devDependencies": {
+    "fable-compiler": "0.6.x",
+    "mocha": "*",
+    "vscode": "*"
+  }
 }

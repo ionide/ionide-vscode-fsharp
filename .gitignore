@@ -31,14 +31,11 @@ node_modules
 # Users Environment Variables
 .lock-wscript
 *.suo
-Test/
 Test/obj/
 Test/bin/
 .paket/paket.exe
 paket-files
 packages
-Test/Script.fsx
-Test/Script.fsx
 typings/FunScript.TypeScript/Output
 typings/FunScript.TypeScript/Types.zip
 typings/FunScript.TypeScript/*.txt
@@ -58,11 +55,15 @@ src/atom-fsharp/lib/fsharp.js
 /temp/release
 src/atom-fsharp/bin-fantomas/
 release/syntaxes
+release/templates
+release/schemas
+release_test/bin
 
 temp
 .fake
 .vs
 *.js
+*.js.map
 .orig
 release.cmd
 paket-files
