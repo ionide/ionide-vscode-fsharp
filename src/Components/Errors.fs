@@ -54,7 +54,7 @@ module Errors =
         timer <- Some (setTimeout((fun _ ->
             match event.document with
             | Document.FSharp ->  parse (event.document.fileName) (event.document.getText ()) event.document.version
-            | _ -> promise { () } ), 500.))
+            | _ -> promise { () } ), 1000.))
 
     let private handlerSave (doc : TextDocument) = promise {
         let! (res : ParseResult) = LanguageService.parseProjects doc.fileName

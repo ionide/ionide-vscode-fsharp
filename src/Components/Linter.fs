@@ -40,7 +40,7 @@ module Linter =
         timer |> Option.iter(clearTimeout)
         match event.document with
         | Document.FSharp when  isLinterEnabled () ->
-            timer <- Some (setTimeout((fun _ -> lintDocument event.document.fileName |> ignore), 500.))
+            timer <- Some (setTimeout((fun _ -> lintDocument event.document.fileName |> ignore), 1000.))
         | _ -> ()
 
     let private handlerOpen (event : TextEditor) =
