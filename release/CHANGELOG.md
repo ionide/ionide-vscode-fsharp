@@ -1,3 +1,7 @@
+### 2.11.1 - 26.11.2016
+* Update Forge version
+* Increase pause before `parse` request to 1000ms
+
 ### 2.11.0 - 23.11.2016
 * Add support for .Net Core preview3
 
