@@ -163,13 +163,14 @@
       {
         "command": "fsi.SendLine",
         "key": "alt+/",
-        "mac": "alt+/"
+        "mac": "alt+/",
+        "when": "editorFocus && !findWidgetVisible && editorLangId == 'fsharp'"
       },
       {
         "command": "fsi.SendSelection",
         "key": "alt+Enter",
         "mac": "alt+Enter",
-        "when": "editorFocus && !findWidgetVisible"
+        "when": "editorFocus && !findWidgetVisible && editorLangId == 'fsharp'"
       },
       {
         "command": "fsharp.MoveFileUp",
