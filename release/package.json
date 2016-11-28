@@ -163,7 +163,8 @@
       {
         "command": "fsi.SendLine",
         "key": "alt+/",
-        "mac": "alt+/"
+        "mac": "alt+/",
+        "when": "editorFocus && !findWidgetVisible && editorLangId == 'fsharp'"
       },
       {
         "command": "fsi.SendSelection",
