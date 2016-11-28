@@ -1,3 +1,6 @@
+### 2.11.2 - 28.11.2016
+* Update Forge version
+
 ### 2.11.1 - 26.11.2016
 * Update Forge version
 * Increase pause before `parse` request to 1000ms
