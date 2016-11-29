@@ -114,14 +114,17 @@ let releaseBinForge = "release/bin_forge"
 let forgeBin = "paket-files/github.com/fsharp-editing/Forge/temp/bin"
 let forgeExe = forgeBin </> "Forge.exe"
 let posixDll = forgeBin </> "Mono.Posix.dll"
+let nettDll = forgeBin </> "Nett.dll"
 
 Target "CopyForge" (fun _ ->
     ensureDirectory releaseBinForge
     CleanDir releaseBinForge
     checkFileExists forgeExe
     checkFileExists posixDll
+    checkFileExists nettDll
     !! forgeExe
     ++ posixDll
+    ++ nettDll
     |> CopyFiles releaseBinForge
 )
 
