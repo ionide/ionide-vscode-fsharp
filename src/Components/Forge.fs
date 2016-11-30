@@ -230,17 +230,17 @@ module Forge =
 
         watcher.onDidCreate $ (onFsFileCreateHandler, null, disposables) |> ignore
         watcher.onDidDelete $ (onFsFileRemovedHandler, null, disposables) |> ignore
-        commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox) |> ignore
-        commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox) |> ignore
-        commands.registerCommand("fsharp.NewProject", newProject |> unbox) |> ignore
-        commands.registerCommand("fsharp.NewProjectNoFake", newProjectNoFake |> unbox) |> ignore
-        commands.registerCommand("fsharp.RefreshProjectTemplates", refreshTemplates |> unbox) |> ignore
+        commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox<Func<obj,obj>> ) |> ignore
+        commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox<Func<obj,obj>>) |> ignore
+        commands.registerCommand("fsharp.NewProject", newProject |> unbox<Func<obj,obj>>) |> ignore
+        commands.registerCommand("fsharp.NewProjectNoFake", newProjectNoFake |> unbox<Func<obj,obj>>) |> ignore
+        commands.registerCommand("fsharp.RefreshProjectTemplates", refreshTemplates |> unbox<Func<obj,obj>>) |> ignore
         commands.registerTextEditorCommand("fsharp.AddFileToProject", addCurrentFileToProject |> unbox) |> ignore
         commands.registerTextEditorCommand("fsharp.RemoveFileFromProject", removeCurrentFileFromProject |> unbox) |> ignore
-        commands.registerCommand("fsharp.AddProjectReference", addProjectReference |> unbox) |> ignore
-        commands.registerCommand("fsharp.RemoveProjectReference", removeProjectReference |> unbox) |> ignore
-        commands.registerCommand("fsharp.AddReference", addReference |> unbox) |> ignore
-        commands.registerCommand("fsharp.RemoveReference", removeReference |> unbox) |> ignore
+        commands.registerCommand("fsharp.AddProjectReference", addProjectReference |> unbox<Func<obj,obj>>) |> ignore
+        commands.registerCommand("fsharp.RemoveProjectReference", removeProjectReference |> unbox<Func<obj,obj>>) |> ignore
+        commands.registerCommand("fsharp.AddReference", addReference |> unbox<Func<obj,obj>>) |> ignore
+        commands.registerCommand("fsharp.RemoveReference", removeReference |> unbox<Func<obj,obj>>) |> ignore
         if fs.existsSync templateLocation |> not then refreshTemplates () |> ignore
 
         ()

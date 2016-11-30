@@ -34,6 +34,7 @@ let activate(disposables: Disposable[]) =
         QuickInfo.activate disposables
         Linter.activate disposables
         CodeLens.activate df' disposables
+        QuickFix.activate df' disposables
     )
     |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
     |> ignore

@@ -33,7 +33,7 @@ GITHUB
     modules/Octokit/Octokit.fsx (3121e610f04d4c9839f44326ab4ca02e28eb15a2)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
-    Fable.Import.Axios.fs (037399766ed4a856ed4c03ccbadbf29f60ec03d9)
-    Fable.Import.VSCode.fs (037399766ed4a856ed4c03ccbadbf29f60ec03d9)
-    Fable.Import.ws.fs (037399766ed4a856ed4c03ccbadbf29f60ec03d9)
-    Helpers.fs (037399766ed4a856ed4c03ccbadbf29f60ec03d9)
+    Fable.Import.Axios.fs (acb324dcf319060bd54a91f9af1cfdc67facff88)
+    Fable.Import.VSCode.fs (acb324dcf319060bd54a91f9af1cfdc67facff88)
+    Fable.Import.ws.fs (acb324dcf319060bd54a91f9af1cfdc67facff88)
+    Helpers.fs (acb324dcf319060bd54a91f9af1cfdc67facff88)

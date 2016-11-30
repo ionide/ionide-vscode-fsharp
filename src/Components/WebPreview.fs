@@ -92,6 +92,6 @@ module WebPreview =
         let prov = createProvider ()
         workspace.registerTextDocumentContentProvider("webpreview" |> unbox, prov) |> ignore
 
-        commands.registerCommand("webpreview.Show", show |> unbox) |> ignore
-        commands.registerCommand("webpreview.Refresh", (fun _ -> eventEmitter.fire previewUri) |> unbox) |> ignore
+        commands.registerCommand("webpreview.Show", show |> unbox<Func<obj,obj>>) |> ignore
+        commands.registerCommand("webpreview.Refresh", (fun _ -> eventEmitter.fire previewUri) |> unbox<Func<obj,obj>>) |> ignore
         ()
