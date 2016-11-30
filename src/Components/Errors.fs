@@ -35,7 +35,7 @@ module Errors =
         |> Promise.map (fun (ev : ParseResult) ->  (Uri.file path, (mapResult ev |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
 
 
-    let parseFile (file : TextDocument) =
+    let private parseFile (file : TextDocument) =
         match file with
         | Document.FSharp ->
             let path = file.fileName
@@ -76,7 +76,7 @@ module Errors =
         else
             Promise.lift ()
 
-    let handleNotification res =
+    let private handleNotification res =
         res
         |> Array.map mapResult
         |> Array.iter (fun (file, errors) ->

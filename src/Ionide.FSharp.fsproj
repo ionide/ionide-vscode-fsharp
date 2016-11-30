@@ -85,6 +85,7 @@
     <Compile Include="Components/Forge.fs" />
     <Compile Include="Components/Linter.fs" />
     <Compile Include="Components/CodeLens.fs" />
+    <Compile Include="Components/QuickFix.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
