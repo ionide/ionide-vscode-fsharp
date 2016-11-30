@@ -1,3 +1,6 @@
+### 2.12.0 - 30.11.2016
+* Implement quick fix for types and record fields suggestions.
+
 ### 2.11.3 - 29.11.2016
 * Update Forge version
 
