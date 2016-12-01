@@ -42,6 +42,8 @@ module String =
         | _ -> str.Replace (oldVal, newVal)
     let split seperator (s : string) = s.Split seperator
 
+    let startsWith start (s: string) = s.StartsWith start
+
 [<RequireQualifiedAccess>]
 module Option =
     let fill (def: 'a) (x: 'a option) : 'a =
@@ -119,11 +121,11 @@ module Markdown =
                     | _ -> res
                 loop res
             ) str
-        
-        removePatterns 
+
+        removePatterns
         |> List.fold (fun (res: string) pat ->
              res.Replace(pat, "")
-        ) res 
+        ) res
 
 module Promise =
     open Fable.Import.JS
