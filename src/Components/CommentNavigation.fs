@@ -40,7 +40,6 @@ module CommentNavigation =
                                     let! td = workspace.openTextDocument path
                                     let! _ = LanguageService.parse td.fileName (td.getText()) td.version
                                     let! symbols = Symbols.getSymbols td
-                                    printfn "%A" symbols
                                     let symOpt = symbols |> Array.tryFind (fun n -> n.name = location.Trim())
                                     return
                                         match symOpt with
@@ -48,7 +47,8 @@ module CommentNavigation =
                                         | Some symbol ->
                                             (symbol.location.range.start.line + 1.).ToString()
                                 }
-                        let uri = Uri.file (path + "#" + line)
+                        let file = "file://" + path.Replace("\\", "/") + "#L" + line
+                        let uri = Uri.parse file
                         let l = float i
 
                         let range = vscode.Range(l,startChar + 1.,l,endChar)
