@@ -1,3 +1,6 @@
+### 2.12.1 - 05.12.2016
+* Update syntax highlighting
+
 ### 2.12.0 - 30.11.2016
 * Implement quick fix for types and record fields suggestions.
 
