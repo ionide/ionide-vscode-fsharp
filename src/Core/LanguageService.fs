@@ -128,6 +128,8 @@ module LanguageService =
                 null |> unbox
         )
 
+    let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
+
     let project s =
         {ProjectRequest.FileName = s}
         |> request "project" 0 (makeRequestId())
@@ -142,7 +144,7 @@ module LanguageService =
 
     let parse path (text : string) (version : float) =
         let lines = text.Replace("\uFEFF", "").Split('\n')
-        { ParseRequest.FileName = path
+        { ParseRequest.FileName = handleUntitled path
           ParseRequest.Lines = lines
           ParseRequest.IsAsync = true
           ParseRequest.Version = int version }
@@ -153,39 +155,39 @@ module LanguageService =
         |> request "helptext" 0 (makeRequestId())
 
     let completion fn sl line col keywords =
-        {CompletionRequest.Line = line; FileName = fn; Column = col; Filter = "Contains"; SourceLine = sl; IncludeKeywords = keywords}
+        {CompletionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "Contains"; SourceLine = sl; IncludeKeywords = keywords}
         |> request "completion" 1 (makeRequestId())
 
     let symbolUse fn line col =
-        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "symboluse" 0 (makeRequestId())
 
     let symbolUseProject fn line col =
-        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "symboluseproject" 0 (makeRequestId())
 
     let methods fn line col =
-        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "methods" 0 (makeRequestId())
 
     let tooltip fn line col =
-        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "tooltip" 0 (makeRequestId())
 
     let toolbar fn line col =
-        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "tooltip" 0 (makeRequestId())
 
     let signature fn line col =
-        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "signature" 0 (makeRequestId())
 
     let findDeclaration fn line col =
-        {PositionRequest.Line = line; FileName = fn; Column = col; Filter = ""}
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "finddeclaration" 0 (makeRequestId())
 
     let declarations fn =
-        {DeclarationsRequest.FileName = fn}
+        {DeclarationsRequest.FileName = handleUntitled fn}
         |> request "declarations" 0 (makeRequestId())
 
 
