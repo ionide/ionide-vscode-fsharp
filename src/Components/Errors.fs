@@ -32,7 +32,8 @@ module Errors =
 
     let private parse path text version =
         LanguageService.parse path text version
-        |> Promise.map (fun (ev : ParseResult) ->  (Uri.file path, (mapResult ev |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
+        |> Promise.map (fun (ev : ParseResult) ->
+            if isNotNull ev then (Uri.file path, (mapResult ev |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
 
 
     let private parseFile (file : TextDocument) =
