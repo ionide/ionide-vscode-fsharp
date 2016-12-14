@@ -1,3 +1,6 @@
+### 2.13.2 - 14.12.2016
+* Update FSAC - performance improvements for findings usages of file-local/project-internal symbols.
+
 ### 2.13.1 - 09.12.2016
 * Update Forge
 
