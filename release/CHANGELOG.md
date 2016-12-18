@@ -1,3 +1,6 @@
+### 2.14.0 - 19.12.2016
+* Add `F#: New Project (ProjectScaffold)` command
+
 ### 2.13.2 - 14.12.2016
 * Update FSAC - performance improvements for findings usages of file-local/project-internal symbols.
 
