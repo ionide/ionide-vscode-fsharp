@@ -223,6 +223,13 @@ module Forge =
                 window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command" |> ignore
         }
 
+    let newProjectScaffold () =
+        promise {
+            sprintf "new scaffold" |> spawnForge |> ignore
+            window.showInformationMessage "Project created" |> ignore
+
+        }
+
 
 
     let activate disposables =
@@ -234,6 +241,7 @@ module Forge =
         commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox<Func<obj,obj>>) |> ignore
         commands.registerCommand("fsharp.NewProject", newProject |> unbox<Func<obj,obj>>) |> ignore
         commands.registerCommand("fsharp.NewProjectNoFake", newProjectNoFake |> unbox<Func<obj,obj>>) |> ignore
+        commands.registerCommand("fsharp.NewProjectScaffold", newProjectScaffold |> unbox<Func<obj,obj>>) |> ignore
         commands.registerCommand("fsharp.RefreshProjectTemplates", refreshTemplates |> unbox<Func<obj,obj>>) |> ignore
         commands.registerTextEditorCommand("fsharp.AddFileToProject", addCurrentFileToProject |> unbox) |> ignore
         commands.registerTextEditorCommand("fsharp.RemoveFileFromProject", removeCurrentFileFromProject |> unbox) |> ignore
