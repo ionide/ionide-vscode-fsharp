@@ -1,3 +1,6 @@
+### 2.15.0 - 21.12.2016
+* Add `Resolve unopened namespaces and modules`
+
 ### 2.14.0 - 19.12.2016
 * Add `F#: New Project (ProjectScaffold)` command
 
