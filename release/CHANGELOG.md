@@ -1,3 +1,6 @@
+### 2.15.1 - 21.12.2016
+* Fix ResolveNamespaces trigger
+
 ### 2.15.0 - 21.12.2016
 * Add `Resolve unopened namespaces and modules`
 
