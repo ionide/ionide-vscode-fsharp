@@ -35,6 +35,7 @@ let activate(disposables: Disposable[]) =
         Linter.activate disposables
         CodeLens.activate df' disposables
         QuickFix.activate df' disposables
+        ResolveNamespaces.activate df' disposables
     )
     |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
     |> ignore

@@ -143,6 +143,27 @@ module DTO =
         Logs: Map<string, string>
     }
 
+    type OpenNamespace = {
+        Namespace : string
+        Name : string
+        Type : string
+        Line : int
+        Column : int
+        MultipleNames : bool
+    }
+
+    type QualifySymbol = {
+        Name : string
+        Qualifier : string
+    }
+
+    type ResolveNamespace = {
+        Opens : OpenNamespace []
+        Qualifies: QualifySymbol []
+        Word : string
+    }
+
+
 
     type Result<'T> = {Kind : string; Data : 'T}
     type CompilerLocationResult = Result<CompilerLocation>
@@ -156,3 +177,4 @@ module DTO =
     type DeclarationResult = Result<Symbols[]>
     type LintResult = Result<Lint[]>
     type ProjectResult = Result<Project>
+    type ResolveNamespaceResult = Result<ResolveNamespace>

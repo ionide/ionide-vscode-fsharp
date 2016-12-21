@@ -201,6 +201,11 @@ module LanguageService =
         {ProjectRequest.FileName = s}
         |> request "lint" 0 (makeRequestId())
 
+    let resolveNamespaces fn line col =
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        |> request "namespaces" 0 (makeRequestId())
+
+
     let registerNotify (cb : 'a [] -> unit) =
         socket |> Option.iter (fun ws ->
             ws.on_message((fun (res : string) ->
