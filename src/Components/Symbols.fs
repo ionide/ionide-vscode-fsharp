@@ -8,6 +8,7 @@ open Fable.Import.vscode
 open Fable.Import.Node
 open Fable.Core.JsInterop
 open DTO
+open Ionide.VSCode
 open Ionide.VSCode.Helpers
 
 module Symbols =
