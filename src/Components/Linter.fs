@@ -11,9 +11,8 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Linter =
-
-
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
+    let private fixes = ResizeArray<Fix>()
 
     let private isLinterEnabled () = "FSharp.linter" |> Configuration.get true
 
@@ -31,8 +30,11 @@ module Linter =
             ResizeArray ()
 
     let private lintDocument path =
+        fixes.Clear()
         LanguageService.lint path
-        |> Promise.onSuccess (fun (ev : LintResult) ->  (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
+        |> Promise.onSuccess (fun (ev : LintResult) ->
+            ev.Data |> Array.where (fun a -> (unbox a.Fix) <> null) |> Array.map (fun a ->a.Fix) |> fixes.AddRange
+            (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
 
     let mutable private timer = None
 
@@ -50,7 +52,42 @@ module Linter =
                 lintDocument event.document.fileName |> ignore
             | _ -> ()
 
-    let activate (disposables: Disposable[]) =
+    let private createProvider () =
+
+        { new CodeActionProvider
+          with
+            member this.provideCodeActions(doc, range, context, ct) =
+                let diagnostics = context.diagnostics
+                let diagnostic = diagnostics |> Seq.tryFind (fun d -> d.message.Contains "Lint:")
+                let res =
+                    match diagnostic with
+                    | None -> [||]
+                    | Some d ->
+                        fixes
+                        |> Seq.where (fun f ->  (unbox f.FromRange.StartColumn ) = d.range.start.character + 1. &&
+                                                (unbox f.FromRange.EndColumn ) = d.range.``end`` .character + 1. &&
+                                                (unbox f.FromRange.StartLine ) = d.range.start.line + 1. &&
+                                                (unbox f.FromRange.EndLine ) = d.range.``end`` .line + 1.)
+                        |> Seq.map (fun suggestion ->
+                            let cmd = createEmpty<Command>
+                            cmd.title <- sprintf "Replace with %s" suggestion.ToText
+                            cmd.command <- "fsharp.lintFix"
+                            cmd.arguments <- Some ([| doc |> unbox; d.range |> unbox; suggestion.ToText |> unbox; |] |> ResizeArray)
+                            cmd)
+                        |> Seq.toArray
+                res |> ResizeArray |> Case1
+            }
+
+    let private applyQuickFix(doc : TextDocument, range : vscode.Range, suggestion : string) =
+        let edit = WorkspaceEdit()
+        let uri = Uri.file doc.fileName
+        edit.replace(uri, range, suggestion)
+        workspace.applyEdit edit
+
+    let activate selector (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
         window.visibleTextEditors |> Seq.iter (handlerOpen)
+
+        languages.registerCodeActionsProvider (selector, createProvider()) |> ignore
+        commands.registerCommand("fsharp.lintFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> ignore
