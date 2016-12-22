@@ -1,3 +1,6 @@
+### 2.15.2 - 23.12.2016
+* Add new keyword suggestion
+
 ### 2.15.1 - 21.12.2016
 * Fix ResolveNamespaces trigger
 
