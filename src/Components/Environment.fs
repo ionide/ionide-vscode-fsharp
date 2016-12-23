@@ -80,3 +80,16 @@ module Environment =
         match findFirstValidFilePath fileName dirs with
         | None -> fileName
         | Some x -> x
+
+    let msbuild =
+        if not isWin then Some "xbuild"
+        else
+            let MSBuildPath =
+                [ (programFilesX86 </> @"\MSBuild\14.0\Bin")
+                  (programFilesX86 </> @"\MSBuild\12.0\Bin")
+                  (programFilesX86 </> @"\MSBuild\12.0\Bin\amd64")
+                  @"c:\Windows\Microsoft.NET\Framework\v4.0.30319\"
+                  @"c:\Windows\Microsoft.NET\Framework\v4.0.30128\"
+                  @"c:\Windows\Microsoft.NET\Framework\v3.5\" ]
+
+            findFirstValidFilePath "MSBuild.exe" MSBuildPath
