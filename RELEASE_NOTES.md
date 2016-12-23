@@ -1,3 +1,6 @@
+### 2.15.3 - 23.12.2016
+* Add unused value suggestion
+
 ### 2.15.2 - 23.12.2016
 * Add new keyword suggestion
 
