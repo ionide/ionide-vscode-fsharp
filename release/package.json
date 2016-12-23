@@ -156,12 +156,21 @@
       {
         "command": "fsharp.RemoveReference",
         "title": "F#: Remove Reference"
+      },
+      {
+        "command": "Expecto.build",
+        "title": "Expecto: Build"
+      },
+      {
+        "command": "Expecto.run",
+        "title": "Expecto: Run"
       }
     ],
     "outputChannels": [
       "F# Language Service",
       "F# Interactive",
-      "Forge"
+      "Forge",
+      "Expecto"
     ],
     "keybindings": [
       {
