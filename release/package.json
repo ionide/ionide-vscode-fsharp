@@ -168,6 +168,10 @@
       {
         "command": "Expecto.runSingle",
         "title": "Expecto: Run Single"
+      },
+      {
+        "command": "Expecto.runList",
+        "title": "Expecto: Run List"
       }
     ],
     "outputChannels": [
