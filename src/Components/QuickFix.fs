@@ -13,7 +13,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module QuickFix =
-    let private mkQucikFix (document : TextDocument) (range : vscode.Range) (title : string) (suggestion : string) =
+    let private mkQuickFix (document : TextDocument) (range : vscode.Range) (title : string) (suggestion : string) =
         let cmd = createEmpty<Command>
         cmd.title <- title
         cmd.command <- "fsharp.quickFix"
@@ -34,22 +34,22 @@ module QuickFix =
             |> Array.map (fun suggestion ->
                 let s = suggestion.Trim()
                 let tiltle = sprintf "Replace with %s" s
-                mkQucikFix doc d.range tiltle s
+                mkQuickFix doc d.range tiltle s
         ))
 
     let private getNewKeywordSuggestions (doc : TextDocument) (diagnostics : Diagnostic seq) =
         diagnostics
         |> ifDiagnostic "It is recommended that objects supporting the IDisposable interface are created using the syntax" (fun d ->
             let s = "new " + doc.getText(d.range)
-            [| mkQucikFix doc d.range "Add new" s |] )
+            [| mkQuickFix doc d.range "Add new" s |] )
 
     let private fixUnused (doc : TextDocument) (diagnostics : Diagnostic seq) =
         diagnostics
         |> ifDiagnostic "is unused" (fun d ->
             let s = "_"
             let s2 =  "_" + doc.getText(d.range)
-            [| mkQucikFix doc d.range "Replace with _" s
-               mkQucikFix doc d.range "Prefix with _" s2 |] )
+            [| mkQuickFix doc d.range "Replace with _" s
+               mkQuickFix doc d.range "Prefix with _" s2 |] )
 
 
     let private createProvider () =
