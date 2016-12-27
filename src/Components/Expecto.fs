@@ -72,7 +72,7 @@ module Expecto =
             |> Array.filter((<>) "")
             |> Array.map (fun n -> n.Trim())
 
-    let private getList () =
+    let private getTestCases () =
         buildExpectoProjects ()
         |> Promise.bind (fun res ->
             if res then
@@ -85,13 +85,33 @@ module Expecto =
             else
                 Promise.lift (ResizeArray()))
 
+    let private getTestLists () =
+        let getTestList (s : string) =
+            let all = s.Split ('/')
+            match all with
+            | [||] -> ""
+            | [|x|] -> ""
+            | xs -> xs.[0 .. all.Length - 2] |> String.concat "/"
+
+        getTestCases ()
+        |> Promise.map (Seq.map (getTestList) >> Seq.distinct >> Seq.filter ((<>) "") >> ResizeArray)
+
     let private runAll () = runExpecto "--summary"
 
     let private runSingle () =
-        window.showQuickPick (Case2 (getList() ))
+        window.showQuickPick (Case2 (getTestCases() ))
         |> Promise.bind(fun n ->
             if JS.isDefined n then
-                (sprintf "--run \"%s\"" n).Replace("\n", "") |> runExpecto
+                (sprintf "--run \"%s\"" n) |> runExpecto
+            else
+                Promise.empty
+        )
+
+    let private runList () =
+        window.showQuickPick (Case2 (getTestLists() ))
+        |> Promise.bind(fun n ->
+            if JS.isDefined n then
+                (sprintf "--filter \"%s\"" n) |> runExpecto
             else
                 Promise.empty
         )
@@ -104,3 +124,4 @@ module Expecto =
         registerCommand "Expecto.build" buildExpectoProjects
         registerCommand "Expecto.run" runAll
         registerCommand "Expecto.runSingle" runSingle
+        registerCommand "Expecto.runList" runList
