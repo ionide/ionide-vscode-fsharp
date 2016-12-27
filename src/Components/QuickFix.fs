@@ -13,12 +13,19 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module QuickFix =
-    let private mkQuickFix (document : TextDocument) (range : vscode.Range) (title : string) (suggestion : string) =
+
+    let private mkCommand name (document : TextDocument) (range : vscode.Range) (title : string) (suggestion : string) =
         let cmd = createEmpty<Command>
         cmd.title <- title
-        cmd.command <- "fsharp.quickFix"
+        cmd.command <- name
         cmd.arguments <- Some ([| document |> unbox; range |> unbox; suggestion |> unbox; |] |> ResizeArray)
         cmd
+
+    let private mkQuickFix =
+        mkCommand "fsharp.quickFix"
+
+    let private mkRenameFix =
+        mkCommand "fsharp.renameFix"
 
     let ifDiagnostic selector (f : Diagnostic -> Command[])  (diagnostics : Diagnostic seq) =
         let diagnostic = diagnostics |> Seq.tryFind (fun d -> d.message.Contains selector)
@@ -52,6 +59,18 @@ module QuickFix =
                mkQuickFix doc d.range "Prefix with _" s2 |] )
 
 
+    let upercaseDU (doc : TextDocument) (diagnostics : Diagnostic seq) =
+        diagnostics
+        |> ifDiagnostic "Discriminated union cases and exception labels must be uppercase identifiers" (fun d ->
+            let s = doc.getText(d.range).ToCharArray()
+            let c = s.[0]?toUpperCase() |> unbox<char>
+
+            let chars = [| yield c; yield! s.[1..]  |]
+            let s = String(chars)
+
+            [| mkRenameFix doc d.range (sprintf "Replace with %s" s) s |] )
+
+
     let private createProvider () =
         { new CodeActionProvider
           with
@@ -61,6 +80,7 @@ module QuickFix =
                     getSuggestions
                     getNewKeywordSuggestions
                     fixUnused
+                    upercaseDU
                 |] |> Array.collect (fun f -> f doc diagnostics) |> ResizeArray |> Case1
             }
 
@@ -70,10 +90,15 @@ module QuickFix =
         edit.replace(uri, range, suggestion)
         workspace.applyEdit edit
 
+    let applyRenameFix(doc : TextDocument, range : vscode.Range, suggestion : string) =
+        commands.executeCommand("vscode.executeDocumentRenameProvider", Uri.file doc.fileName, range.start, suggestion)
+        |> Promise.bind (workspace.applyEdit)
+
 
     let activate selector (disposables: Disposable[]) =
         languages.registerCodeActionsProvider (selector, createProvider()) |> ignore
         commands.registerCommand("fsharp.quickFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> ignore
+        commands.registerCommand("fsharp.renameFix",Func<obj,obj,obj,obj>(fun a b c -> applyRenameFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> ignore
 
         ()
 
