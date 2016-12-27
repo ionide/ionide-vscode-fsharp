@@ -158,10 +158,6 @@
         "title": "F#: Remove Reference"
       },
       {
-        "command": "Expecto.build",
-        "title": "Expecto: Build"
-      },
-      {
         "command": "Expecto.run",
         "title": "Expecto: Run"
       },

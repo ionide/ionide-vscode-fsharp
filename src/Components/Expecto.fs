@@ -121,7 +121,6 @@ module Expecto =
             vscode.commands.registerCommand(com, unbox<Func<obj,obj>> f)
             |> ignore
 
-        registerCommand "Expecto.build" buildExpectoProjects
         registerCommand "Expecto.run" runAll
         registerCommand "Expecto.runSingle" runSingle
         registerCommand "Expecto.runList" runList
