@@ -1,3 +1,6 @@
+### 2.15.4 - 27/12.2016
+* Don't parse git previw buffors
+
 ### 2.15.3 - 23.12.2016
 * Add unused value suggestion
 
