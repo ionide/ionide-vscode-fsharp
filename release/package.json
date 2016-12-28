@@ -168,6 +168,10 @@
       {
         "command": "Expecto.runList",
         "title": "Expecto: Run List"
+      },
+      {
+        "command": "Expecto.runFailed",
+        "title": "Expecto: Run Failed"
       }
     ],
     "outputChannels": [
@@ -202,6 +206,11 @@
       {
         "command": "Expecto.run",
         "key": "ctrl+F6",
+        "when": "editorFocus && editorLangId == 'fsharp'"
+      },
+      {
+        "command": "Expecto.runFailed",
+        "key": "ctrl+alt+F6",
         "when": "editorFocus && editorLangId == 'fsharp'"
       }
     ],
