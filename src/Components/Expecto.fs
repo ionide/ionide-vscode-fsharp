@@ -12,6 +12,7 @@ open Ionide.VSCode.Helpers
 
 module Expecto =
     let private outputChannel = window.createOutputChannel "Expecto"
+    let mutable private lastOutput = System.Collections.Generic.Dictionary<string,string>()
 
     let private getConfig () =
         let cfg = vscode.workspace.getConfiguration()
@@ -51,9 +52,12 @@ module Expecto =
         buildExpectoProjects ()
         |> Promise.bind (fun res ->
             if res then
+                lastOutput.Clear()
                 getExpectoExes ()
                 |> List.map(fun exe ->
+                    lastOutput.[exe] <- ""
                     Process.spawnWithNotification exe "mono" args outputChannel
+                    |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
                     |> Process.toPromise)
                 |> Promise.all
                 |> Promise.bind (fun codes ->
@@ -96,6 +100,16 @@ module Expecto =
         getTestCases ()
         |> Promise.map (Seq.map (getTestList) >> Seq.distinct >> Seq.filter ((<>) "") >> ResizeArray)
 
+    let private getFailed () =
+        lastOutput
+        |> Seq.collect (fun kv ->
+            kv.Value.Split('\n')
+            |> Seq.skipWhile ((<>) "Failed:")
+            |> Seq.takeWhile((<>) "Errored:")
+            |> Seq.map(String.trim)
+        )
+        |> Seq.map(fun n -> if n.Contains " " then sprintf "\"%s\"" n else n)
+
     let private runAll () = runExpecto "--summary"
 
     let private runSingle () =
@@ -111,10 +125,16 @@ module Expecto =
         window.showQuickPick (Case2 (getTestLists() ))
         |> Promise.bind(fun n ->
             if JS.isDefined n then
-                (sprintf "--filter \"%s\"" n) |> runExpecto
+                (sprintf "--filter \"%s\" --summary" n) |> runExpecto
             else
                 Promise.empty
         )
+
+    let private runFailed () =
+        getFailed ()
+        |> String.concat " "
+        |> sprintf "--run %s --summary"
+        |> runExpecto
 
     let activate disposables =
         let registerCommand com (f: unit-> _) =
@@ -124,3 +144,4 @@ module Expecto =
         registerCommand "Expecto.run" runAll
         registerCommand "Expecto.runSingle" runSingle
         registerCommand "Expecto.runList" runList
+        registerCommand "Expecto.runFailed" runFailed
