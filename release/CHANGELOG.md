@@ -1,3 +1,6 @@
+### 2.16.0 - 29.12.2016
+* Experimental Expecto support.
+
 ### 2.15.5 - 28.12.2016
 * Add upercase DU quick fix
 
