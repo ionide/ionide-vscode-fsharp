@@ -14,6 +14,9 @@ module Expecto =
     let private outputChannel = window.createOutputChannel "Expecto"
     let mutable private lastOutput = System.Collections.Generic.Dictionary<string,string>()
 
+    let logger = ConsoleAndOutputChannelLogger(Some "Expecto", Level.DEBUG, None, Some Level.DEBUG)
+
+
     let private getConfig () =
         let cfg = vscode.workspace.getConfiguration()
         cfg.get ("Expecto.autoshow", true)
@@ -35,6 +38,8 @@ module Expecto =
         |> List.map(fun proj ->
             let path = proj.Project
             let msbuild = defaultArg Environment.msbuild "xbuild"
+            logger.Debug ("%s %s", msbuild, path)
+
             Process.spawnWithNotification msbuild "" path outputChannel
             |> Process.toPromise)
         |> Promise.all
@@ -55,6 +60,7 @@ module Expecto =
                 lastOutput.Clear()
                 getExpectoExes ()
                 |> List.map(fun exe ->
+                    logger.Debug ("%s %s", exe, args)
                     lastOutput.[exe] <- ""
                     Process.spawnWithNotification exe "mono" args outputChannel
                     |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
