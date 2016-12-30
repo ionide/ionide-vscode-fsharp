@@ -1,3 +1,6 @@
+### 2.16.1 - 30.12.2016
+* Add some logging for Expecto
+
 ### 2.16.0 - 29.12.2016
 * Experimental Expecto support.
 
