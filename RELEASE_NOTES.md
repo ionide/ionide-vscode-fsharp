@@ -1,3 +1,6 @@
+### 2.17.0 - 31.12.2016
+* Add support for FSharpLint fixes
+
 ### 2.16.1 - 30.12.2016
 * Add some logging for Expecto
 
