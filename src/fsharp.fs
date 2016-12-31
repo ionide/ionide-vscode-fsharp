@@ -32,7 +32,7 @@ let activate(disposables: Disposable[]) =
         Rename.activate df' disposables
         WorkspaceSymbols.activate df' disposables
         QuickInfo.activate disposables
-        Linter.activate disposables
+        Linter.activate df' disposables
         CodeLens.activate df' disposables
         QuickFix.activate df' disposables
         ResolveNamespaces.activate df' disposables

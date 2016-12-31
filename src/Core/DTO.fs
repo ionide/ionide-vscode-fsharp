@@ -125,10 +125,17 @@ module DTO =
         Nested : Symbol []
     }
 
+    type Fix = {
+        FromRange: Range
+        FromText: string
+        ToText: string
+    }
+
     type Lint = {
         Info : string
         Input : string
         Range : Range
+        Fix: Fix
     }
 
     type ProjectFilePath = string
