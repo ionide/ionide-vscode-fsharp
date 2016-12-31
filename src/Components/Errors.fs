@@ -9,6 +9,7 @@ open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
+open System.Text.RegularExpressions
 
 
 module Errors =
@@ -21,6 +22,7 @@ module Errors =
             |> Seq.distinctBy (fun error -> error.Severity, error.StartLine, error.StartColumn)
             |> Seq.choose (fun error ->
                 try
+                    if Regex.IsMatch(error.FileName, "\\d") then None else
                     let range = CodeRange.fromError error
                     let loc = Location (Uri.file error.FileName, range |> Case1)
                     let severity = if error.Severity = "Error" then 0 else 1

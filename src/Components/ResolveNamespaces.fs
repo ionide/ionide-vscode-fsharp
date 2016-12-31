@@ -6,7 +6,6 @@ open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
-
 open Ionide.VSCode.Helpers
 
 open DTO
@@ -19,7 +18,7 @@ module ResolveNamespaces =
           with
             member this.provideCodeActions(doc, range, context, ct) =
                 promise {
-                    let diagnostic = context.diagnostics |> Seq.tryFind (fun d -> d.message.Contains "The value or constructor")
+                    let diagnostic = context.diagnostics |> Seq.tryFind (fun d -> d.message.Contains "is not defined")
                     let! res =
                         match diagnostic with
                         | None -> promise { return [||]}

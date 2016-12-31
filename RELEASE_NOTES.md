@@ -1,3 +1,24 @@
+### 2.16.1 - 30.12.2016
+* Add some logging for Expecto
+
+### 2.16.0 - 29.12.2016
+* Experimental Expecto support.
+
+### 2.15.5 - 28.12.2016
+* Add upercase DU quick fix
+
+### 2.15.4 - 27.12.2016
+* Don't parse git previw buffors
+
+### 2.15.3 - 23.12.2016
+* Add unused value suggestion
+
+### 2.15.2 - 23.12.2016
+* Add new keyword suggestion
+
+### 2.15.1 - 21.12.2016
+* Fix ResolveNamespaces trigger
+
 ### 2.15.0 - 21.12.2016
 * Add `Resolve unopened namespaces and modules`
 

@@ -77,7 +77,7 @@ module Project =
 
     let load (path:string) =
         LanguageService.project path
-        |> Promise.onSuccess (fun (pr:ProjectResult) -> 
+        |> Promise.onSuccess (fun (pr:ProjectResult) ->
             loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add)
 
     let tryFindLoadedProject (path:string) =
@@ -86,11 +86,13 @@ module Project =
     let tryFindLoadedProjectByFile (filePath:string) =
         loadedProjects
         |> Seq.choose (fun kvp ->
-            let len = 
-                kvp.Value.Files 
-                |> List.filter (fun f -> (f.ToUpperInvariant ()) = (filePath.ToUpperInvariant ())) 
+            let len =
+                kvp.Value.Files
+                |> List.filter (fun f -> (f.ToUpperInvariant ()) = (filePath.ToUpperInvariant ()))
                 |> List.length
             if len > 0 then Some kvp.Value else None )
         |> Seq.tryHead
 
-    let activate = clearLoadedProjects >> findAll >> (Promise.executeForAll load) 
+    let getLoaded () = loadedProjects |> Seq.map (fun kv -> kv.Value)
+
+    let activate = clearLoadedProjects >> findAll >> (Promise.executeForAll load)

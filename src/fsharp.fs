@@ -36,6 +36,7 @@ let activate(disposables: Disposable[]) =
         CodeLens.activate df' disposables
         QuickFix.activate df' disposables
         ResolveNamespaces.activate df' disposables
+        Expecto.activate disposables
     )
     |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
     |> ignore
