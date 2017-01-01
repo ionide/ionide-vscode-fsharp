@@ -172,6 +172,10 @@
       {
         "command": "Expecto.runFailed",
         "title": "Expecto: Run Failed"
+      },
+      {
+        "command": "Expecto.startWatchMode",
+        "title": "Expecto: Start Watch Mode"
       }
     ],
     "outputChannels": [
@@ -211,6 +215,11 @@
       {
         "command": "Expecto.runFailed",
         "key": "ctrl+alt+F6",
+        "when": "editorFocus && editorLangId == 'fsharp'"
+      },
+      {
+        "command": "Expecto.startWatchMode",
+        "key": "alt+F6",
         "when": "editorFocus && editorLangId == 'fsharp'"
       }
     ],

@@ -30,6 +30,24 @@ module Expecto =
         getExpectoProjects ()
         |> List.map (fun n -> n.Output)
 
+    let getFilesToWatch () =
+        let projects = Project.getLoaded () |> Seq.toArray
+        let getProject (ref : string) = projects |> Array.tryFind (fun p -> p.Output.ToLower() = ref.ToLower())
+
+        let rec loop p =
+            [
+                yield p.Project
+                yield! p.Files
+                yield! p.References |> List.collect (fun ref ->
+                    match getProject ref with
+                    | None -> [ref]
+                    | Some proj -> loop proj)
+            ]
+
+        getExpectoProjects ()
+        |> List.collect loop
+        |> List.distinct
+
 
     let private buildExpectoProjects () =
         outputChannel.clear ()
@@ -142,6 +160,11 @@ module Expecto =
         |> sprintf "--run %s --summary"
         |> runExpecto
 
+    let private startWatchMode () =
+        let files = getFilesToWatch () |> List.toArray
+        ()
+
+
     let activate disposables =
         let registerCommand com (f: unit-> _) =
             vscode.commands.registerCommand(com, unbox<Func<obj,obj>> f)
@@ -151,3 +174,4 @@ module Expecto =
         registerCommand "Expecto.runSingle" runSingle
         registerCommand "Expecto.runList" runList
         registerCommand "Expecto.runFailed" runFailed
+        registerCommand "Expecto.startWatchMode" startWatchMode
