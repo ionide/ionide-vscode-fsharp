@@ -59,19 +59,19 @@ module Errors =
             | Document.FSharp ->  parse (event.document.fileName) (event.document.getText ()) event.document.version
             | _ -> promise { () } ), 1000.))
 
-    let private handlerSave (doc : TextDocument) = promise {
-        let! (res : ParseResult) = LanguageService.parseProjects doc.fileName
-        let (_,mapped) = res |> mapResult
-        mapped
-        |> Seq.groupBy snd
-        |> Seq.iter (fun (fn, errors) ->
-            let errs = errors |> Seq.map fst |> ResizeArray
-            currentDiagnostic.set(Uri.file fn, errs)
-            ()
-        )
-    }
-
-
+    let private handlerSave (doc : TextDocument) =
+        match doc with
+        | Document.FSharp ->
+            promise {
+                let! (res : ParseResult) = LanguageService.parseProjects doc.fileName
+                let (_,mapped) = res |> mapResult
+                mapped
+                |> Seq.groupBy snd
+                |> Seq.iter (fun (fn, errors) ->
+                    let errs = errors |> Seq.map fst |> ResizeArray
+                    currentDiagnostic.set(Uri.file fn, errs) )
+            }
+        | _ -> Promise.empty
 
     let private handlerOpen (event : TextEditor) =
         if JS.isDefined event then

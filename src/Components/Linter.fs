@@ -33,8 +33,9 @@ module Linter =
         fixes.Clear()
         LanguageService.lint path
         |> Promise.onSuccess (fun (ev : LintResult) ->
-            ev.Data |> Array.where (fun a -> (unbox a.Fix) <> null) |> Array.map (fun a ->a.Fix) |> fixes.AddRange
-            (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
+            if isNotNull ev then
+                ev.Data |> Array.where (fun a -> isNotNull a.Fix) |> Array.map (fun a ->a.Fix) |> fixes.AddRange
+                (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
 
     let mutable private timer = None
 
