@@ -1,3 +1,6 @@
+### 2.17.1 - 01.01.2017
+* Fix startup behaviour (fix bug in parsing all projects, and handle linter)
+
 ### 2.17.0 - 31.12.2016
 * Add support for FSharpLint fixes
 
