@@ -13,8 +13,9 @@ open Ionide.VSCode.Helpers
 module Expecto =
     let private outputChannel = window.createOutputChannel "Expecto"
     let mutable private lastOutput = System.Collections.Generic.Dictionary<string,string>()
-
-    let logger = ConsoleAndOutputChannelLogger(Some "Expecto", Level.DEBUG, None, Some Level.DEBUG)
+    let private logger = ConsoleAndOutputChannelLogger(Some "Expecto", Level.DEBUG, None, Some Level.DEBUG)
+    let mutable private watcherEnabled = false
+    let private statusBar = window.createStatusBarItem(2 |> unbox, 100.)
 
 
     let private getConfig () =
@@ -47,11 +48,34 @@ module Expecto =
         getExpectoProjects ()
         |> List.collect loop
         |> List.distinct
+        |> List.toArray
+
+    let private handleExpectoList (error : Error, stdout : Buffer, stderr : Buffer) =
+        if(stdout.toString() = "") then
+            [||]
+        else
+            stdout.toString().Split('\n')
+            |> Array.filter((<>) "")
+            |> Array.map (fun n -> n.Trim())
 
 
-    let private buildExpectoProjects () =
+    let private getFailed () =
+        lastOutput
+        |> Seq.collect (fun kv ->
+            kv.Value.Split('\n')
+            |> Seq.skipWhile ((<>) "Failed:")
+            |> Seq.takeWhile((<>) "Errored:")
+            |> Seq.map(String.trim)
+            |> Seq.skip 1
+        )
+        |> Seq.map(fun n -> if n.Contains " " then sprintf "\"%s\"" n else n)
+
+    let private buildExpectoProjects watchMode =
         outputChannel.clear ()
-        if getConfig () then outputChannel.show ()
+
+        if getConfig () && not watchMode then outputChannel.show ()
+        elif watchMode then statusBar.text <- "$(eye) Watch Mode - building"
+
         getExpectoProjects ()
         |> List.map(fun proj ->
             let path = proj.Project
@@ -63,16 +87,22 @@ module Expecto =
         |> Promise.all
         |> Promise.bind (fun codes ->
             if codes |> Seq.exists ((<>) "0") then
-                vscode.window.showErrorMessage("Build of Expecto tests failed", "Show")
-                |> Promise.map (fun n -> if n = "Show" then outputChannel.show () )
-                |> Promise.map (fun _ -> false)
+                if not watchMode then
+                    vscode.window.showErrorMessage("Build of Expecto tests failed", "Show")
+                    |> Promise.map (fun n -> if n = "Show" then outputChannel.show () )
+                    |> Promise.map (fun _ -> false)
+                else
+                    statusBar.text <- "$(eye) Watch Mode - building failed"
+                    Promise.empty
             else
                 Promise.lift true)
 
-    let private runExpecto args =
+    let private runExpecto watchMode args =
         outputChannel.clear ()
-        if getConfig () then outputChannel.show ()
-        buildExpectoProjects ()
+        if getConfig () && not watchMode then outputChannel.show ()
+        elif watchMode then statusBar.text <- "$(eye) Watch Mode - running"
+
+        buildExpectoProjects watchMode
         |> Promise.bind (fun res ->
             if res then
                 lastOutput.Clear()
@@ -86,22 +116,24 @@ module Expecto =
                 |> Promise.all
                 |> Promise.bind (fun codes ->
                     if codes |> Seq.exists ((<>) "0") then
-                        vscode.window.showErrorMessage("Expecto tests failed", "Show")
-                        |> Promise.map (fun n -> if n = "Show" then outputChannel.show () )
+                        if not watchMode then
+                            vscode.window.showErrorMessage("Expecto tests failed", "Show")
+                            |> Promise.map (fun n -> if n = "Show" then outputChannel.show () )
+                        else
+                            let failed = getFailed () |> Seq.toArray
+
+                            statusBar.text <- (sprintf "$(eye) Watch Mode - %d tests failed" failed.Length)
+                            Promise.empty
                     else
+                        if watchMode then
+                            statusBar.text <- "$(eye) Watch Mode - tests passed"
                         Promise.empty)
             else Promise.empty)
 
-    let private handleExpectoList (error : Error, stdout : Buffer, stderr : Buffer) =
-        if(stdout.toString() = "") then
-            [||]
-        else
-            stdout.toString().Split('\n')
-            |> Array.filter((<>) "")
-            |> Array.map (fun n -> n.Trim())
+    let private runAll watchMode = runExpecto watchMode "--summary"
 
     let private getTestCases () =
-        buildExpectoProjects ()
+        buildExpectoProjects false
         |> Promise.bind (fun res ->
             if res then
                 getExpectoExes ()
@@ -112,6 +144,7 @@ module Expecto =
                 |> Promise.map (Seq.collect (handleExpectoList) >> ResizeArray)
             else
                 Promise.lift (ResizeArray()))
+
 
     let private getTestLists () =
         let getTestList (s : string) =
@@ -124,23 +157,11 @@ module Expecto =
         getTestCases ()
         |> Promise.map (Seq.map (getTestList) >> Seq.distinct >> Seq.filter ((<>) "") >> ResizeArray)
 
-    let private getFailed () =
-        lastOutput
-        |> Seq.collect (fun kv ->
-            kv.Value.Split('\n')
-            |> Seq.skipWhile ((<>) "Failed:")
-            |> Seq.takeWhile((<>) "Errored:")
-            |> Seq.map(String.trim)
-        )
-        |> Seq.map(fun n -> if n.Contains " " then sprintf "\"%s\"" n else n)
-
-    let private runAll () = runExpecto "--summary"
-
     let private runSingle () =
         window.showQuickPick (Case2 (getTestCases() ))
         |> Promise.bind(fun n ->
             if JS.isDefined n then
-                (sprintf "--run \"%s\"" n) |> runExpecto
+                (sprintf "--run \"%s\"" n) |> runExpecto false
             else
                 Promise.empty
         )
@@ -149,7 +170,7 @@ module Expecto =
         window.showQuickPick (Case2 (getTestLists() ))
         |> Promise.bind(fun n ->
             if JS.isDefined n then
-                (sprintf "--filter \"%s\" --summary" n) |> runExpecto
+                (sprintf "--filter \"%s\" --summary" n) |> runExpecto false
             else
                 Promise.empty
         )
@@ -158,20 +179,42 @@ module Expecto =
         getFailed ()
         |> String.concat " "
         |> sprintf "--run %s --summary"
-        |> runExpecto
+        |> runExpecto false
 
     let private startWatchMode () =
-        let files = getFilesToWatch () |> List.toArray
-        ()
+        statusBar.text <- "$(eye) Watch Mode On"
+        watcherEnabled <- true
 
+    let private stopWatchMode () =
+        statusBar.text <- "$(eye) Watch Mode Off"
+        watcherEnabled <- false
+
+    let private onFileChanged (uri : Uri) =
+        let files = getFilesToWatch ()
+
+        if watcherEnabled && files |> Array.exists (fun n -> uri.fsPath = n) then
+            runAll true
+        else
+            Promise.empty
 
     let activate disposables =
         let registerCommand com (f: unit-> _) =
             vscode.commands.registerCommand(com, unbox<Func<obj,obj>> f)
             |> ignore
 
-        registerCommand "Expecto.run" runAll
+        registerCommand "Expecto.run" (fun _ -> runAll false)
         registerCommand "Expecto.runSingle" runSingle
         registerCommand "Expecto.runList" runList
         registerCommand "Expecto.runFailed" runFailed
         registerCommand "Expecto.startWatchMode" startWatchMode
+        registerCommand "Expecto.stopWatchMode" stopWatchMode
+        registerCommand "Expecto.watchMode" (fun _ -> outputChannel.show () )
+
+
+        statusBar.text <- "$(eye) Watch Mode Off"
+        statusBar.tooltip <- "Expecto continues testing"
+        statusBar.command <- "Expecto.watchMode"
+        statusBar.show ()
+        let watcher = workspace.createFileSystemWatcher("**/*.*")
+        let _ = watcher.onDidChange $ onFileChanged
+        ()
