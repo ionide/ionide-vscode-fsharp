@@ -18,9 +18,13 @@ module Expecto =
     let private statusBar = window.createStatusBarItem(2 |> unbox, 100.)
 
 
-    let private getConfig () =
+    let private getAutoshow () =
         let cfg = vscode.workspace.getConfiguration()
         cfg.get ("Expecto.autoshow", true)
+
+    let private getSequenced () =
+        let cfg = vscode.workspace.getConfiguration()
+        cfg.get ("Expecto.runSequenced", false)
 
     let private getExpectoProjects () =
         Project.getLoaded ()
@@ -30,6 +34,7 @@ module Expecto =
     let private getExpectoExes () =
         getExpectoProjects ()
         |> List.map (fun n -> n.Output)
+        |> List.where (String.endWith ".exe")
 
     let getFilesToWatch () =
         let projects = Project.getLoaded () |> Seq.toArray
@@ -73,7 +78,7 @@ module Expecto =
     let private buildExpectoProjects watchMode =
         outputChannel.clear ()
 
-        if getConfig () && not watchMode then outputChannel.show ()
+        if getAutoshow () && not watchMode then outputChannel.show ()
         elif watchMode then statusBar.text <- "$(eye) Watch Mode - building"
 
         getExpectoProjects ()
@@ -99,8 +104,9 @@ module Expecto =
 
     let private runExpecto watchMode args =
         outputChannel.clear ()
-        if getConfig () && not watchMode then outputChannel.show ()
+        if getAutoshow () && not watchMode then outputChannel.show ()
         elif watchMode then statusBar.text <- "$(eye) Watch Mode - running"
+        let args = if getSequenced () then args + " --sequenced" else args
 
         buildExpectoProjects watchMode
         |> Promise.bind (fun res ->

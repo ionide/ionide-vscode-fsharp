@@ -176,6 +176,10 @@
       {
         "command": "Expecto.startWatchMode",
         "title": "Expecto: Start Watch Mode"
+      },
+      {
+        "command": "Expecto.stopWatchMode",
+        "title": "Expecto: Stop Watch Mode"
       }
     ],
     "outputChannels": [
@@ -293,6 +297,16 @@
           "type": "boolean",
           "default": false,
           "description": "Save Current file before send LastSelection to FSI"
+        },
+        "Expecto.runSequenced": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run Expecto tests with `--sequenced` flag"
+        },
+        "Expecto.autoshow": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically shows Expecto output panle"
         }
       }
     },
