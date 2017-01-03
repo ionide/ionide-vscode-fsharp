@@ -1,3 +1,6 @@
+### 2.18.0 - 03.01.2017
+* Add support for go to MSDN help (VS' F1)
+
 ### 2.17.1 - 01.01.2017
 * Fix startup behaviour (fix bug in parsing all projects, and handle linter)
 
