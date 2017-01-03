@@ -186,6 +186,10 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "finddeclaration" 0 (makeRequestId())
 
+    let f1Help fn line col =
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        |> request "help" 0 (makeRequestId())
+
     let declarations fn =
         {DeclarationsRequest.FileName = handleUntitled fn}
         |> request "declarations" 0 (makeRequestId())
