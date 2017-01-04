@@ -1,3 +1,6 @@
+### 2.18.1 - 04.01.2017
+* Set cwd for Expecto tests to exe dir
+
 ### 2.18.0 - 03.01.2017
 * Add support for go to MSDN help (VS' F1)
 
