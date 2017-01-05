@@ -1,3 +1,6 @@
+### 2.18.2 - 05.01.2017
+* Fix solution wide error reporting
+
 ### 2.18.1 - 04.01.2017
 * Set cwd for Expecto tests to exe dir
 
