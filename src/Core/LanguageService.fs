@@ -273,7 +273,7 @@ module LanguageService =
             |> ignore
         )
         |> Promise.onSuccess (fun _ ->
-            startSocket ()
+            () //startSocket ()
         )
         |> Promise.onFail (fun _ ->
             if Process.isMono () then
