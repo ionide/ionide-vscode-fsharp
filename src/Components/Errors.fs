@@ -63,13 +63,8 @@ module Errors =
         match doc with
         | Document.FSharp ->
             promise {
-                let! (res : ParseResult) = LanguageService.parseProjects doc.fileName
-                let (_,mapped) = res |> mapResult
-                mapped
-                |> Seq.groupBy snd
-                |> Seq.iter (fun (fn, errors) ->
-                    let errs = errors |> Seq.map fst |> ResizeArray
-                    currentDiagnostic.set(Uri.file fn, errs) )
+                let! (res : ParseResult) = LanguageService.parseProjectsInBackground doc.fileName
+                return ()
             }
         | _ -> Promise.empty
 

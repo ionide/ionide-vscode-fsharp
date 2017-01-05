@@ -138,8 +138,8 @@ module LanguageService =
         {ProjectRequest.FileName = s}
         |> request "parseProjects" 0 (makeRequestId())
 
-    let parseProjectsInBackground () =
-        ""
+    let parseProjectsInBackground s =
+        {ProjectRequest.FileName = s}
         |> request "parseProjectsInBackground" 0 (makeRequestId())
 
     let parse path (text : string) (version : float) =
