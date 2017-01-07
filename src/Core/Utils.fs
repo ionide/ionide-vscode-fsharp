@@ -44,6 +44,9 @@ module String =
 
     let endWith ending (s : string) = s.EndsWith ending
 
+    let startWith ending (s : string) = s.StartsWith ending
+
+
 [<RequireQualifiedAccess>]
 module Option =
     let fill (def: 'a) (x: 'a option) : 'a =

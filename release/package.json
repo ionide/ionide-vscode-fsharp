@@ -176,6 +176,14 @@
       {
         "command": "Expecto.runFailed",
         "title": "Expecto: Run Failed"
+      },
+      {
+        "command": "Expecto.startWatchMode",
+        "title": "Expecto: Start Watch Mode"
+      },
+      {
+        "command": "Expecto.stopWatchMode",
+        "title": "Expecto: Stop Watch Mode"
       }
     ],
     "outputChannels": [
@@ -218,6 +226,10 @@
         "when": "editorFocus && editorLangId == 'fsharp'"
       },
       {
+        "command": "Expecto.startWatchMode",
+        "key": "alt+F6",
+        "when": "editorFocus && editorLangId == 'fsharp'"
+      },
         "command": "FSharp.getHelp",
         "key": "shift+F1",
         "when": "editorFocus && editorLangId == 'fsharp'"
@@ -293,6 +305,16 @@
           "type": "boolean",
           "default": false,
           "description": "Save Current file before send LastSelection to FSI"
+        },
+        "Expecto.runSequenced": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run Expecto tests with `--sequenced` flag"
+        },
+        "Expecto.autoshow": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically shows Expecto output panle"
         }
       }
     },
