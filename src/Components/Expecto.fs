@@ -295,6 +295,7 @@ module Expecto =
     let private startWatchMode () =
         statusBar.text <- "$(eye) Watch Mode On"
         watcherEnabled <- true
+        runAll true
 
     let private stopWatchMode () =
         statusBar.text <- "$(eye) Watch Mode Off"
