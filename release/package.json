@@ -1,6 +1,6 @@
 {
   "name": "Ionide-fsharp",
-  "version": "2.17.0",
+  "version": "2.18.2",
   "publisher": "Ionide",
   "contributors": [
     {
@@ -158,6 +158,10 @@
         "title": "F#: Remove Reference"
       },
       {
+        "command": "fsharp.getHelp",
+        "title": "F#: Get Help"
+      },
+      {
         "command": "Expecto.run",
         "title": "Expecto: Run"
       },
@@ -224,6 +228,10 @@
       {
         "command": "Expecto.startWatchMode",
         "key": "alt+F6",
+        "when": "editorFocus && editorLangId == 'fsharp'"
+      },
+        "command": "FSharp.getHelp",
+        "key": "shift+F1",
         "when": "editorFocus && editorLangId == 'fsharp'"
       }
     ],

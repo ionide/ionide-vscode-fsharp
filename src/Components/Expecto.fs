@@ -219,7 +219,7 @@ module Expecto =
                 |> List.map(fun exe ->
                     logger.Debug ("%s %s", exe, args)
                     lastOutput.[exe] <- ""
-                    Process.spawnWithNotification exe "mono" args outputChannel
+                    Process.spawnWithNotificationInDir exe "mono" args outputChannel
                     |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
                     |> Process.toPromise)
                 |> Promise.all

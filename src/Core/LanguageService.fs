@@ -138,8 +138,8 @@ module LanguageService =
         {ProjectRequest.FileName = s}
         |> request "parseProjects" 0 (makeRequestId())
 
-    let parseProjectsInBackground () =
-        ""
+    let parseProjectsInBackground s =
+        {ProjectRequest.FileName = s}
         |> request "parseProjectsInBackground" 0 (makeRequestId())
 
     let parse path (text : string) (version : float) =
@@ -186,6 +186,10 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "finddeclaration" 0 (makeRequestId())
 
+    let f1Help fn line col =
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        |> request "help" 0 (makeRequestId())
+
     let declarations fn =
         {DeclarationsRequest.FileName = handleUntitled fn}
         |> request "declarations" 0 (makeRequestId())
@@ -209,7 +213,12 @@ module LanguageService =
     let registerNotify (cb : 'a [] -> unit) =
         socket |> Option.iter (fun ws ->
             ws.on_message((fun (res : string) ->
-                res |> ofJson |> Seq.map ofJson |> Seq.toArray |> cb
+                res
+                |> ofJson
+                |> Seq.map ofJson
+                |> Seq.where (fun n -> unbox n?Kind <>  "info" && unbox n?Kind <> "error")
+                |> Seq.toArray
+                |> cb
                 ) |> unbox) |> ignore
             ())
 
@@ -264,7 +273,7 @@ module LanguageService =
             |> ignore
         )
         |> Promise.onSuccess (fun _ ->
-            startSocket ()
+            () //startSocket ()
         )
         |> Promise.onFail (fun _ ->
             if Process.isMono () then

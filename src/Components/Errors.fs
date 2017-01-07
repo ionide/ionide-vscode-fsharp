@@ -65,6 +65,7 @@ module Errors =
             promise {
                 let! (res : ParseResult) = LanguageService.parseProjects doc.fileName
                 let (_,mapped) = res |> mapResult
+                currentDiagnostic.clear ()
                 mapped
                 |> Seq.groupBy snd
                 |> Seq.iter (fun (fn, errors) ->
@@ -79,18 +80,18 @@ module Errors =
         else
             Promise.lift ()
 
-    let private handleNotification res =
-        res
-        |> Array.map mapResult
-        |> Array.iter (fun (file, errors) ->
-            if window.activeTextEditor.document.fileName <> file then
-                currentDiagnostic.set(Uri.file file, errors |> Seq.map fst |> ResizeArray))
+    // let private handleNotification res =
+    //     res
+    //     |> Array.map mapResult
+    //     |> Array.iter (fun (file, errors) ->
+    //         if window.activeTextEditor.document.fileName <> file then
+    //             currentDiagnostic.set(Uri.file file, errors |> Seq.map fst |> ResizeArray))
 
     let activate (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
         workspace.onDidSaveTextDocument $ (handlerSave , (), disposables) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
-        LanguageService.registerNotify handleNotification
+        //LanguageService.registerNotify handleNotification
 
         match window.visibleTextEditors |> Seq.toList with
         | [] -> Promise.lift (null |> unbox)
