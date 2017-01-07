@@ -63,17 +63,120 @@ module Expecto =
             |> Array.filter((<>) "")
             |> Array.map (fun n -> n.Trim())
 
+    let parseTestSummaryRecord (n : string) =
+        let split = n.Split ('[')
+        let loc = split.[1] |> String.replace "]" ""
+        split.[0], loc
 
     let private getFailed () =
         lastOutput
         |> Seq.collect (fun kv ->
             kv.Value.Split('\n')
-            |> Seq.skipWhile ((<>) "Failed:")
-            |> Seq.takeWhile((<>) "Errored:")
             |> Seq.map(String.trim)
+            |> Seq.skipWhile (not << String.startWith "Failed:")
+            |> Seq.takeWhile (not << String.startWith "Errored:")
             |> Seq.skip 1
+            |> Seq.map (parseTestSummaryRecord)
         )
-        |> Seq.map(fun n -> if n.Contains " " then sprintf "\"%s\"" n else n)
+        |> Seq.map(fun (n,loc) -> if n.Contains " " then sprintf "\"%s\"" n,loc else n,loc)
+        |> Seq.toArray
+
+    let private getPassed () =
+        lastOutput
+        |> Seq.collect (fun kv ->
+            kv.Value.Split('\n')
+            |> Seq.map(String.trim)
+            |> Seq.skipWhile (not << String.startWith "Passed:")
+            |> Seq.takeWhile (not << String.startWith "Ignored:")
+            |> Seq.skip 1
+            |> Seq.map (parseTestSummaryRecord)
+        )
+        |> Seq.map(fun (n,loc) -> if n.Contains " " then sprintf "\"%s\"" n,loc else n,loc)
+        |> Seq.toArray
+
+    let private getIgnored () =
+        lastOutput
+        |> Seq.collect (fun kv ->
+            kv.Value.Split('\n')
+            |> Seq.map(String.trim)
+            |> Seq.skipWhile (not << String.startWith "Ignored:")
+            |> Seq.takeWhile (not << String.startWith "Failed:")
+            |> Seq.skip 1
+            |> Seq.map (parseTestSummaryRecord)
+        )
+        |> Seq.map(fun (n,loc) -> if n.Contains " " then sprintf "\"%s\"" n,loc else n,loc)
+        |> Seq.toArray
+
+    let failedDecorationType =
+        let opt = createEmpty<DecorationRenderOptions>
+        let file = "testFailed.png"
+        let path =  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
+        opt.gutterIconPath <- unbox path
+        opt.overviewRulerLane <- Some OverviewRulerLane.Full
+        opt.overviewRulerColor <- Some "rgba(224, 64, 6, 0.7)"
+        window.createTextEditorDecorationType opt
+
+    let passedDecorationType =
+        let opt = createEmpty<DecorationRenderOptions>
+        let file = "testPassed.png"
+        let path =  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
+        opt.gutterIconPath <- unbox path
+        opt.overviewRulerLane <- Some OverviewRulerLane.Full
+        opt.overviewRulerColor <- Some "rgba(166, 215, 133, 0.7)"
+        window.createTextEditorDecorationType opt
+
+    let ignoredDecorationType =
+        let opt = createEmpty<DecorationRenderOptions>
+        let file = "testIgnored.png"
+        let path =  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
+        opt.gutterIconPath <- unbox path
+        opt.overviewRulerLane <- Some OverviewRulerLane.Full
+        opt.overviewRulerColor <- Some "rgba(255, 188, 64, 0.7)"
+        window.createTextEditorDecorationType opt
+
+
+    let private setDecorations () =
+        let transform =
+            Array.map ( fun (_, v) ->
+                let split = String.split [|':'|] v
+                let leng = Array.length split
+                let fn = split.[0 .. leng-2] |> String.concat ":"
+                let line = split.[leng-1]
+                fn,line)
+            >> Array.groupBy (fst)
+            >> Array.map (fun (k,vals) -> Uri.file k, vals |> Array.map (fun (_, line) -> Range(float line - 1., 0., float line - 1., 0. )))
+
+        let get fn data  =
+            try
+                data
+                |> Array.find(fun (k : Uri,_) -> (Uri.file fn).fsPath = k.fsPath)
+                |> snd
+                |> Seq.ofArray
+                |> ResizeArray
+            with
+            | _ -> ResizeArray ()
+
+        let failed fn = getFailed () |> transform |> get fn
+        let passed fn = getPassed () |> transform |> get fn
+        let ignored fn = getIgnored () |> transform |> get fn
+
+
+        window.visibleTextEditors
+        |> Seq.iter (fun te ->
+            match te.document with
+            | Document.FSharp ->
+                let fld = failed te.document.fileName
+                te.setDecorations(failedDecorationType, Case1 fld)
+
+                let psd = passed te.document.fileName
+                te.setDecorations(passedDecorationType, Case1 psd)
+
+                let ign = ignored te.document.fileName
+                te.setDecorations(ignoredDecorationType, Case1 ign)
+            | _ -> ()
+        )
+
+        ()
 
     let private buildExpectoProjects watchMode =
         outputChannel.clear ()
@@ -121,6 +224,7 @@ module Expecto =
                     |> Process.toPromise)
                 |> Promise.all
                 |> Promise.bind (fun codes ->
+                    setDecorations ()
                     if codes |> Seq.exists ((<>) "0") then
                         if not watchMode then
                             vscode.window.showErrorMessage("Expecto tests failed", "Show")
@@ -136,7 +240,7 @@ module Expecto =
                         Promise.empty)
             else Promise.empty)
 
-    let private runAll watchMode = runExpecto watchMode "--summary"
+    let private runAll watchMode = runExpecto watchMode "--summary-location"
 
     let private getTestCases () =
         buildExpectoProjects false
@@ -176,15 +280,16 @@ module Expecto =
         window.showQuickPick (Case2 (getTestLists() ))
         |> Promise.bind(fun n ->
             if JS.isDefined n then
-                (sprintf "--filter \"%s\" --summary" n) |> runExpecto false
+                (sprintf "--filter \"%s\" --summary-location" n) |> runExpecto false
             else
                 Promise.empty
         )
 
     let private runFailed () =
         getFailed ()
+        |> Seq.map fst
         |> String.concat " "
-        |> sprintf "--run %s --summary"
+        |> sprintf "--run %s --summary-location"
         |> runExpecto false
 
     let private startWatchMode () =
