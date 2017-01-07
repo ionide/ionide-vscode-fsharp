@@ -230,6 +230,7 @@
         "key": "alt+F6",
         "when": "editorFocus && editorLangId == 'fsharp'"
       },
+      {
         "command": "FSharp.getHelp",
         "key": "shift+F1",
         "when": "editorFocus && editorLangId == 'fsharp'"
@@ -310,6 +311,26 @@
           "type": "boolean",
           "default": false,
           "description": "Run Expecto tests with `--sequenced` flag"
+        },
+        "Expecto.runDebug": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run Expecto tests with `--debug` flag"
+        },
+        "Expecto.runVersion": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run Expecto tests with `--version` flag"
+        },
+        "Expecto.runFailOnFocusedTests": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run Expecto tests with `--fail-on-focused-tests` flag"
+        },
+        "Expecto.customArgs": {
+          "type": "string",
+          "default": "",
+          "description": "Run Expecto tests with additional custom arguments"
         },
         "Expecto.autoshow": {
           "type": "boolean",

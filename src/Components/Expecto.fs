@@ -26,6 +26,22 @@ module Expecto =
         let cfg = vscode.workspace.getConfiguration()
         cfg.get ("Expecto.runSequenced", false)
 
+    let private getDebug () =
+        let cfg = vscode.workspace.getConfiguration()
+        cfg.get ("Expecto.runDebug", false)
+
+    let private getVersion () =
+        let cfg = vscode.workspace.getConfiguration()
+        cfg.get ("Expecto.runVersion", false)
+
+    let private getFailOnFocusedTests () =
+        let cfg = vscode.workspace.getConfiguration()
+        cfg.get ("Expecto.runFailOnFocusedTests", false)
+
+    let private getCustomArgs () =
+        let cfg = vscode.workspace.getConfiguration()
+        cfg.get ("Expecto.customArgs", "")
+
     let private getExpectoProjects () =
         Project.getLoaded ()
         |> Seq.where (fun p -> p.References |> List.exists (String.endWith "Expecto.dll" )  )
@@ -210,6 +226,11 @@ module Expecto =
         if getAutoshow () && not watchMode then outputChannel.show ()
         elif watchMode then statusBar.text <- "$(eye) Watch Mode - running"
         let args = if getSequenced () then args + " --sequenced" else args
+        let args = if getDebug () then args + " --debug" else args
+        let args = if getVersion () then args + " --version" else args
+        let args = if getFailOnFocusedTests () then args + " --fail-on-focused-tests" else args
+        let args = getCustomArgs() + " " + args
+
 
         buildExpectoProjects watchMode
         |> Promise.bind (fun res ->
