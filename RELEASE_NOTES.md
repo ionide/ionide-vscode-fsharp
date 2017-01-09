@@ -1,3 +1,9 @@
+### 2.19.0 - 09.01.2017
+* Add Expecto watch mode
+* Add UI Gutter notifications for Expecto tests
+* Add all Expecto flags to the settings
+* Add support for custom args passed to Expecto tests
+
 ### 2.18.2 - 05.01.2017
 * Fix solution wide error reporting
 
