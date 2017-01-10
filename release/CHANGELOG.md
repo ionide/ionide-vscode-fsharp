@@ -1,3 +1,7 @@
+### 2.19.1 - 10.01.2017
+* Fix detecting git previews
+* Fix UI notifications for Expecto (active file change)
+
 ### 2.19.0 - 09.01.2017
 * Add Expecto watch mode
 * Add UI Gutter notifications for Expecto tests
