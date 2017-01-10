@@ -30,10 +30,11 @@ GIT
      (16d4cc8cb0224d8861a7b48107ac102e3f51579a)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (82bf328cc145d8843e43ac2075c97a0990efc0ca)
+    modules/Octokit/Octokit.fsx (4c38cad5f0a1d3f29c22e50ef2bff189be47c730)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
-    Fable.Import.Axios.fs (4e6b3d67e3976202c4e0a991937295a23ae376d1)
-    Fable.Import.VSCode.fs (4e6b3d67e3976202c4e0a991937295a23ae376d1)
-    Fable.Import.ws.fs (4e6b3d67e3976202c4e0a991937295a23ae376d1)
-    Helpers.fs (4e6b3d67e3976202c4e0a991937295a23ae376d1)
+    Fable.Import.Axios.fs (6e0b34c03eda6f9274695a50bee2bf0a600b54a0)
+    Fable.Import.VSCode.fs (6e0b34c03eda6f9274695a50bee2bf0a600b54a0)
+    Fable.Import.VSCodeDebugger.fs (6e0b34c03eda6f9274695a50bee2bf0a600b54a0)
+    Fable.Import.ws.fs (6e0b34c03eda6f9274695a50bee2bf0a600b54a0)
+    Helpers.fs (6e0b34c03eda6f9274695a50bee2bf0a600b54a0)

@@ -374,7 +374,52 @@
         "fileMatch": "fableconfig.json",
         "url": "./schemas/fableconfig.json"
       }
-    ]
+    ],
+    "breakpoints": [
+			{
+				"language": "fsharp"
+			}
+		],
+		"debuggers": [
+			{
+				"type": "ionide",
+				"label": "Ionide Debug",
+
+				"program": "./debugger",
+				"runtime": "node",
+
+				"configurationSnippets": [
+					{
+						"label": "Ionide Debug: Launch",
+						"description": "A new configuration for launching a Ionide debuger program",
+						"body": {
+							"type": "ionide",
+							"request": "launch",
+							"name": "${2:Launch Program}",
+							"program": "^\"\\${workspaceRoot}/${1:Program}\""
+						}
+					}
+				],
+
+				"configurationAttributes": {
+					"launch": {
+						"required": [ "program" ],
+						"properties": {
+							"program": {
+								"type": "string",
+								"description": "Absolute path to a text file.",
+								"default": "${workspaceRoot}/App.exe"
+							},
+							"stopOnEntry": {
+								"type": "boolean",
+								"description": "Automatically stop after launch.",
+								"default": true
+							}
+						}
+					}
+				}
+			}
+		]
   },
   "activationEvents": [
     "onLanguage:fsharp",
@@ -407,7 +452,9 @@
     "fable-core": "0.6.x",
     "toml": "*",
     "ws": "*",
-    "xhr2": "*"
+    "xhr2": "*",
+    "vscode-debugprotocol": "^1.15.0",
+		"vscode-debugadapter": "^1.15.0"
   },
   "devDependencies": {
     "fable-compiler": "0.6.x",

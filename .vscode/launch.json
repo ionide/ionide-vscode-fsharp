@@ -10,6 +10,21 @@
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
 			"stopOnEntry": false,
 			"request": "launch"
+		},
+		{
+			"type": "node",
+			"request": "launch",
+			"name": "Server",
+			"cwd": "${workspaceRoot}",
+			"program": "${workspaceRoot}/release/debugger.js",
+			"args": [ "--server=4711" ],
+			"sourceMaps": false
+		}
+	],
+	"compounds": [
+		{
+			"name": "Extension + Server",
+			"configurations": [ "Launch Extension", "Server" ]
 		}
 	]
 }
