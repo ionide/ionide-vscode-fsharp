@@ -350,4 +350,5 @@ module Expecto =
         statusBar.show ()
         let watcher = workspace.createFileSystemWatcher("**/*.*")
         let _ = watcher.onDidChange $ onFileChanged
+        let _ = vscode.window.onDidChangeActiveTextEditor $ setDecorations
         ()
