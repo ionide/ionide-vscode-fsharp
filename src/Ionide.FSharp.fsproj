@@ -45,6 +45,10 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.VSCodeDebugger.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/Fable.Import.VSCodeDebugger.fs</Link>
+    </Compile>
     <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.VSCode.fs">
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.VSCode.fs</Link>
@@ -92,6 +96,7 @@
     <Compile Include="Components/MSBuild.fs" />
     <Compile Include="Components/Help.fs" />
     <Compile Include="fsharp.fs" />
+    <Compile Include="debugger.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="$(FSharpTargetsPath)" />
