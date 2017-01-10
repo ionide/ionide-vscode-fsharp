@@ -12,6 +12,7 @@ git https://github.com/ionide/ionide-fsgrammar.git
 nuget FAKE
 
 github fsharp/FAKE modules/Octokit/Octokit.fsx
+github Ionide/ionide-vscode-helpers Fable.Import.VSCodeDebugger.fs
 github Ionide/ionide-vscode-helpers Fable.Import.VSCode.fs
 github Ionide/ionide-vscode-helpers Helpers.fs
 github Ionide/ionide-vscode-helpers Fable.Import.Axios.fs
