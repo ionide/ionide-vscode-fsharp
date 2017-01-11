@@ -96,7 +96,7 @@ startingPage = ""
 
 [![](https://ci.appveyor.com/api/projects/status/5wqf80vub6hqywj8?svg=true)](https://ci.appveyor.com/project/Ionide/ionide-vscode-fsharp)
 
-0. Install nodejs. Via [chocolaty](https://chocolatey.org/packages/nodejs) this is `C:\> choco install nodejs`
+0. Install nodejs. (On Windows via [chocolaty](https://chocolatey.org/packages/nodejs) this is `C:\> choco install nodejs`)
 1. Clone repo
 2. Run `build.cmd Build` (or `build.sh Build`)
 3. Open folder in VSCode `code .`
