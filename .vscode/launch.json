@@ -16,7 +16,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Server",
-			"cwd": "${workspaceRoot}",
+			"cwd": "${workspaceRoot}/release",
 			"program": "${workspaceRoot}/release/debugger.js",
 			"args": [ "--server=4711" ],
 			"sourceMaps": false
