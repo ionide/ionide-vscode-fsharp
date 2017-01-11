@@ -85,13 +85,15 @@ module Expecto =
         split.[0], loc
 
     let private getFailed () =
+        printfn "last output: %O" lastOutput
         lastOutput
         |> Seq.collect (fun kv ->
             kv.Value.Split('\n')
             |> Seq.map(String.trim)
             |> Seq.skipWhile (not << String.startWith "Failed:")
-            |> Seq.takeWhile (not << String.startWith "Errored:")
-            |> Seq.skip 1
+            |> Seq.filter (not << String.startWith "Failed:")
+            |> Seq.filter (not << String.startWith "Errored:")
+            |> Seq.filter (not << String.IsNullOrWhiteSpace)
             |> Seq.map (parseTestSummaryRecord)
         )
         |> Seq.map(fun (n,loc) -> if n.Contains " " then sprintf "\"%s\"" n,loc else n,loc)
