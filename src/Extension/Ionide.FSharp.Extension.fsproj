@@ -1,9 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Name>Ionide.FSharp</Name>
-    <AssemblyName>Ionide.FSharp</AssemblyName>
-    <RootNamespace>Ionide.FSharp</RootNamespace>
+    <Name>Ionide.FSharp.Extension</Name>
+    <AssemblyName>Ionide.FSharp.Extension</AssemblyName>
+    <RootNamespace>Ionide.FSharp.Extension</RootNamespace>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
@@ -34,7 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Fable.Core">
-      <HintPath>../release/node_modules/fable-core/Fable.Core.dll</HintPath>
+      <HintPath>../../release/node_modules/fable-core/Fable.Core.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
@@ -45,23 +45,19 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.VSCodeDebugger.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Fable.Import.VSCodeDebugger.fs</Link>
-    </Compile>
-    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.VSCode.fs">
+    <Compile Include="../../paket-files/Ionide/ionide-vscode-helpers/Fable.Import.VSCode.fs">
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.VSCode.fs</Link>
     </Compile>
-    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Helpers.fs">
+    <Compile Include="../../paket-files/Ionide/ionide-vscode-helpers/Helpers.fs">
       <Paket>True</Paket>
       <Link>paket-files/Helpers.fs</Link>
     </Compile>
-    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.Axios.fs">
+    <Compile Include="../../paket-files/Ionide/ionide-vscode-helpers/Fable.Import.Axios.fs">
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.Axios.fs</Link>
     </Compile>
-    <Compile Include="..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.ws.fs">
+    <Compile Include="../../paket-files/Ionide/ionide-vscode-helpers/Fable.Import.ws.fs">
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.ws.fs</Link>
     </Compile>
@@ -96,7 +92,6 @@
     <Compile Include="Components/MSBuild.fs" />
     <Compile Include="Components/Help.fs" />
     <Compile Include="fsharp.fs" />
-    <Compile Include="debugger.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <Import Project="$(FSharpTargetsPath)" />
