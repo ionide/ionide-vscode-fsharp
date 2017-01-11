@@ -1,5 +1,5 @@
 #[Ionide-VSCode: FSharp](https://marketplace.visualstudio.com/items/Ionide.Ionide-fsharp)
-**Enhanced F# Language Features for Visual Studio Code**  
+**Enhanced F# Language Features for Visual Studio Code**
 _Part of the [Ionide](http://ionide.io) plugin suite._
 
 [Need Help? You can find us on Gitter](https://gitter.im/ionide/ionide-project):
@@ -17,8 +17,8 @@ For more detailed instructions on installing F# :
 * [Installing F# on Windows](http://fsharp.org/use/windows/)
 
 
-**FSC** _(F# Compiler)_ and **FSI/fsharpi** on Mono _(F# Interactive)_ need to be added to your system **PATH**.  
-The default location on Windows is 
+**FSC** _(F# Compiler)_ and **FSI/fsharpi** on Mono _(F# Interactive)_ need to be added to your system **PATH**.
+The default location on Windows is
 ```
   64-bit - C:\Program Files (x86)\Microsoft SDKs\F#\4.0\Framework\v4.0\
   32-bit - C:\Program Files\Microsoft SDKs\F#\4.0\Framework\v4.0
@@ -101,7 +101,8 @@ startingPage = ""
 2. Run `build.cmd Build` (or `build.sh Build`). If you have not done so already you may need to configure a GitHub SSH key. 
 3. Open folder in VSCode `code .`
 4. Make changes
-5. Press `F5` to build plugin and start experimental instance of VSCode
+5. Press `Ctrl+Shift+B` to build plugin
+5. Press `F5` start experimental instance of VSCode and debugger server
 6. Make PR ;)
 
 ## How to get logs for debugging / issue reporting

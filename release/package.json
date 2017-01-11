@@ -445,7 +445,9 @@
   ],
   "scripts": {
     "prebuild":"npm update",
-    "build": "fable ../src/Ionide.FSharp.fsproj -s -o ../release -m commonjs --verbose"
+    "debugger":"fable ../src/Debugger/Ionide.FSharp.Debugger.fsproj -s -o ../../release -m commonjs --verbose",
+    "extension": "fable ../src/Extension/Ionide.FSharp.Extension.fsproj -s -o ../../release -m commonjs --verbose",
+    "build": "concurrently \"npm run debugger \" \"npm run extension\" "
   },
   "dependencies": {
     "axios": "*",
@@ -459,6 +461,7 @@
   "devDependencies": {
     "fable-compiler": "0.6.x",
     "mocha": "*",
-    "vscode": "*"
+    "vscode": "*",
+    "concurrently": "^2.1.0"
   }
 }
