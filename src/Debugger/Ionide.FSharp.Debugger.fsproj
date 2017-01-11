@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Name>Ionide.FSharp.Debugger</Name>
@@ -45,11 +45,13 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\paket-files\Ionide\ionide-vscode-helpers\Fable.Import.VSCodeDebugger.fs">
+    <Compile Include="../../paket-files/Ionide/ionide-vscode-helpers/Fable.Import.VSCodeDebugger.fs">
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.VSCodeDebugger.fs</Link>
     </Compile>
     <None Include="paket.references" />
+    <Compile Include="DebugerComponents/Helpers.fs" />
+    <Compile Include="DebugerComponents/Mdbg.fs" />
     <Compile Include="debugger.fs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
