@@ -17,16 +17,19 @@ type LaunchRequestArguments =
     abstract member program : string with get,set
     abstract member stopOnEntry : bool option with get,set
 
-type IonideDebugger ()  =
+type IonideDebugger () as x =
     inherit DebugSession()
 
-    // member private x.breakpoints = Dictionary<
+    do
+        x.setDebuggerColumnsStartAt1(true)
+        x.setDebuggerLinesStartAt1(true)
+
+    member private x.brks = Dictionary<string, Mdbg.Breakpoint []>()
 
 
     member x.initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments) =
         log "{LOG} Init called"
-
-        Mdbg.spawn ()
+        Mdbg.spawn (Node.__dirname)
         response.body.supportsEvaluateForHovers <- Some true
 
 
@@ -103,6 +106,7 @@ type IonideDebugger ()  =
                 createObj [
                     "variables" ==> (vars |> Collections.Array.map (fun t -> Variable(t.name, t.value, 0.)))
                 ]
+            response.body <- body
             x.sendResponse(response)
         } |> ignore
 
@@ -156,6 +160,53 @@ type IonideDebugger ()  =
             response.body <- body
             x.sendResponse(response)
 
+        } |> ignore
+
+    //TODO: Breakpoints not working?????
+    member x.setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments) =
+        promise {
+            log "{LOG} Breakpoints called"
+            let fileName = args.source.path.Value
+            let file = Node.path.basename(fileName)
+            let current = if x.brks.ContainsKey fileName then x.brks.[fileName] else [||]
+
+            let toDelete, rest =
+                current |> Seq.toList |> List.partition (fun bp -> args.breakpoints.Value |> Seq.exists (fun b -> b.line = bp.line) )
+
+            let! dels  =
+                toDelete
+                |> Seq.map (fun bp -> Mdbg.deleteBreakpoint (unbox bp.id ))
+                |> Helpers.Promise.all
+
+            let toAdd =
+                args.breakpoints.Value
+                |> Seq.where (fun bp -> current |> Seq.exists (fun b -> b.line = bp.line) |> not)
+
+            let! added =
+                toAdd
+                |> Seq.map (fun bp ->Mdbg.setBreakpoint file (unbox bp.line) )
+                |> Helpers.Promise.all
+
+            let res =
+                added
+                |> Seq.map (fun (bp : Mdbg.Breakpoint) ->
+                    let verified =
+                        match bp.status with
+                        | Mdbg.Bound -> true
+                        | Mdbg.Unbound -> false
+                    let source = Source(file, fileName)
+                    bp, Breakpoint(verified, bp.line, 0., source)
+
+                )
+                |> Seq.toArray
+
+            x.brks.[fileName] <- [| yield! rest; yield! res |> Seq.map fst |]
+            let body =
+                createObj [
+                    "breakpoints" ==> (res |> Collections.Array.map snd)
+                ]
+            response.body <- body
+            x.sendResponse(response)
         } |> ignore
 
 let start () =
