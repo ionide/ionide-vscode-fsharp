@@ -28,10 +28,16 @@ type Continue =
 | Breakpoint of threadId : float
 | Exception of threadId : float
 
-type Breakpoint =
+type BreakpointStatus =
 | Bound
 | Unbound
 
+type Breakpoint = {
+    id : float
+    line : float
+    file : string
+    status : BreakpointStatus
+}
 
 
 let mutable private debugProcess : ChildProcess option = None
@@ -40,9 +46,9 @@ let mutable private reject : (string -> unit) option = Some ignore
 let mutable private answer = ""
 let mutable private busy = false
 
-let spawn () =
-    let cwd = ``process``.cwd ()
-    let mdbgPath = path.join("bin_mdbg", "mdbg.exe")
+
+let spawn dir =
+    let mdbgPath = path.join(dir, "bin_mdbg", "mdbg.exe")
     let proc =
         Process.spawn mdbgPath
         |> Process.onOutput (fun n ->
@@ -123,6 +129,24 @@ let stepOut () =
 let setBreakpoint file line =
     sprintf "b %s:%d" file line
     |> send
+    |> Promise.map (fun res ->
+        let ln = res.Split('\n').[0]
+        let x = ln.Split('#')
+        let id = x.[1].Split(' ').[0] |> float
+        let state =
+            if ln.Contains "unbound" then Unbound else Bound
+        {
+            Breakpoint.id = id
+            line = unbox line
+            file = file
+            status = state
+        }
+    )
+
+
+let deleteBreakpoint id =
+    sprintf "del %d" id
+    |> send
 
 let getThreads () =
     let parseThread (line : string) =
@@ -161,7 +185,7 @@ let getStack depth thread =
                         elif lc.Contains ".cs" then ".cs"
                         else ""
 
-                    let locs = location.Split([| ".fs:"; ".cs"; ".fsx" |], System.StringSplitOptions.RemoveEmptyEntries )
+                    let locs = location.Split([| ".fs:"; ".cs:"; ".fsx:" |], System.StringSplitOptions.RemoveEmptyEntries )
                     let p = locs.[0] + getExtension location
                     let line = locs.[1] |> float
                     Some p, line
