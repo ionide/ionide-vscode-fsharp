@@ -41,8 +41,8 @@ typings/FunScript.TypeScript/Types.zip
 typings/FunScript.TypeScript/*.txt
 
 .DS_Store
-src/bin/
-src/obj/
+src/**/bin/
+src/**/obj/
 *.userprefs
 src/paket/bin/paket.exe
 src/core/lib/core.js
@@ -66,5 +66,6 @@ temp
 *.js.map
 .orig
 release.cmd
+release-preview.cmd
 paket-files
 issueList.md
