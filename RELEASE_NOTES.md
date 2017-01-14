@@ -1,3 +1,6 @@
+### 2.19.2 - 14.01.2017
+*  Consolidate failed and errored tests
+
 ### 2.19.1 - 10.01.2017
 * Fix detecting git previews
 * Fix UI notifications for Expecto (active file change)

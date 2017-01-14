@@ -97,7 +97,7 @@ startingPage = ""
 [![](https://ci.appveyor.com/api/projects/status/5wqf80vub6hqywj8?svg=true)](https://ci.appveyor.com/project/Ionide/ionide-vscode-fsharp)
 
 0. Install nodejs. (On Windows via [chocolaty](https://chocolatey.org/packages/nodejs) this is `C:\> choco install nodejs`)
-1. Fork the repo to you own GitHub account, then clone locally.
+1. Fork the repo to your GitHub account, then clone locally.
 2. Run `build.cmd Build` (or `build.sh Build`). If you have not done so already you may need to configure a GitHub SSH key. 
 3. Open folder in VSCode `code .`
 4. Make changes
