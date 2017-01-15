@@ -38,21 +38,37 @@ module LanguageService =
         with
         | _ -> Level.INFO
 
-    // Always log to the logger, and let it decide where/if to write the message
-    let log =
+    // note: always log to the loggers, and let it decide where/if to write the message
+    let createConfiguredLoggers source channelName =
+
         let channel, logRequestsToConsole =
             match logLanguageServiceRequestsConfigSetting with
             | LogConfigSetting.None -> None, false
-            | LogConfigSetting.Both -> Some (window.createOutputChannel "F# Language Service"), true
+            | LogConfigSetting.Both -> Some (window.createOutputChannel channelName), true
             | LogConfigSetting.DevConsole -> None, true
-            | LogConfigSetting.Output -> Some (window.createOutputChannel "F# Language Service"), false
+            | LogConfigSetting.Output -> Some (window.createOutputChannel channelName), false
 
         let consoleMinLevel = if logRequestsToConsole then DEBUG else WARN
-        let inst = ConsoleAndOutputChannelLogger(Some "IONIDE-FSAC", logLanguageServiceRequestsOutputWindowLevel, channel, Some consoleMinLevel)
+
+        // if Output+DEBUG is enabled, show the stdout data printed from FSAC in a separate channel
+        let serverStdoutChannel =
+            match consoleMinLevel, channel with
+            | Level.DEBUG, Some _ -> Some (window.createOutputChannel (channelName + " (server)"))
+            | _, _ -> None
+
+        let editorSideLogger = ConsoleAndOutputChannelLogger(Some source, logLanguageServiceRequestsOutputWindowLevel, channel, Some consoleMinLevel)
         if logLanguageServiceRequestsOutputWindowLevel <> Level.DEBUG then
             let levelString = logLanguageServiceRequestsOutputWindowLevel.ToString()
-            inst.Info ("Logging to output at level %s. If you want detailed messages, try level DEBUG.", levelString)
-        inst
+            editorSideLogger.Info ("Logging to output at level %s. If you want detailed messages, try level DEBUG.", levelString)
+
+        let fsacStdOutWriter text =
+            match serverStdoutChannel with
+            | None -> ()
+            | Some chan -> chan.append text
+
+        editorSideLogger, fsacStdOutWriter
+
+    let log, fsacStdoutWriter = createConfiguredLoggers "IONIDE-FSAC" "F# Language Service"
 
     let genPort () =
         let r = JS.Math.random ()
@@ -60,7 +76,7 @@ module LanguageService =
         r'.ToString().Substring(0,4)
 
     let port = genPort ()
-    let private url fsacAction = (sprintf "http://127.0.0.1:%s/%s" port fsacAction)
+    let private url fsacAction requestId = (sprintf "http://127.0.0.1:%s/%s?requestId=%i" port fsacAction requestId)
     let mutable private service : child_process_types.ChildProcess option =  None
     let mutable private socket : WebSocket option = None
     let private platformPathSeparator = if Process.isMono () then "/" else "\\"
@@ -106,7 +122,7 @@ module LanguageService =
 
     let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
         let started = DateTime.Now
-        let fullRequestUrl = url fsacAction
+        let fullRequestUrl = url fsacAction requestId
         logOutgoingRequest requestId fsacAction obj
 
         ax.post (fullRequestUrl, obj)
@@ -250,23 +266,23 @@ module LanguageService =
                 let outputString = n.ToString()
                 // Wait until FsAC sends the 'listener started' magic string until
                 // we inform the caller that it's ready to accept requests.
-                let isStartedMessage = outputString.Contains ": listener started in"
+                let isStartedMessage = outputString.Contains "listener started in"
                 if isStartedMessage then
-                    log.Debug ("got FSAC line, is it the started message? %s", isStartedMessage)
+                    fsacStdoutWriter ("Resolving startup promise because FSAC printed the 'listener started' message")
+                    fsacStdoutWriter "\n"
                     service <- Some child
                     resolve child
                     isResolvedAsStarted <- true
 
-                // always log the output
-                log.Debug ("FSAC stdout: %s", n.ToString())
+                fsacStdoutWriter outputString
             )
             |> Process.onError (fun e ->
-                log.Error ("FSAC process error: %s", e.ToString())
+                fsacStdoutWriter (e.ToString())
                 if not isResolvedAsStarted then
                     reject ()
             )
             |> Process.onErrorOutput (fun n ->
-                log.Error ("FSAC stderr: %s", n.ToString())
+                fsacStdoutWriter (n.ToString())
                 if not isResolvedAsStarted then
                     reject ()
             )
@@ -282,7 +298,6 @@ module LanguageService =
                 "Failed to start language services. Please check if Microsoft Build Tools 2013 are installed"
             |> vscode.window.showErrorMessage
             |> ignore)
-
 
 
     let start () =
