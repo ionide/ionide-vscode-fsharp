@@ -1,3 +1,6 @@
+### 2.19.3 - 15.01.2017
+* Add an output channel for FSAC Stdout lines in DEBUG
+
 ### 2.19.2 - 14.01.2017
 *  Consolidate failed and errored tests
 
