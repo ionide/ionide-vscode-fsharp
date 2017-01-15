@@ -347,7 +347,7 @@ module Expecto =
 
 
         statusBar.text <- "$(eye) Watch Mode Off"
-        statusBar.tooltip <- "Expecto continues testing"
+        statusBar.tooltip <- "Expecto continuous testing"
         statusBar.command <- "Expecto.watchMode"
         statusBar.show ()
         let watcher = workspace.createFileSystemWatcher("**/*.*")
