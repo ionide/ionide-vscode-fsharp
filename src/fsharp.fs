@@ -50,4 +50,3 @@ let activate(disposables: Disposable[]) =
 
 let deactivate(disposables: Disposable[]) =
     LanguageService.stop ()
-
