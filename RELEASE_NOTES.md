@@ -1,3 +1,6 @@
+### 2.19.4 - 15.01.2017
+* Update FSAC - try to fix StackOverflow namespaces bug
+
 ### 2.19.3 - 15.01.2017
 * Add an output channel for FSAC Stdout lines in DEBUG
 
