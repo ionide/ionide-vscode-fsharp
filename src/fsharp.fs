@@ -38,6 +38,7 @@ let activate(disposables: Disposable[]) =
         ResolveNamespaces.activate df' disposables
         Help.activate disposables
         Expecto.activate disposables
+        MSBuild.activate disposables
     )
     |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
     |> ignore

@@ -184,13 +184,22 @@
       {
         "command": "Expecto.stopWatchMode",
         "title": "Expecto: Stop Watch Mode"
+      },
+      {
+        "command": "MSBuild.buildCurrent",
+        "title": "MSBuild: Build current project"
+      },
+      {
+        "command": "MSBuild.buildSelected",
+        "title": "MSBuild: Build project"
       }
     ],
     "outputChannels": [
       "F# Language Service",
       "F# Interactive",
       "Forge",
-      "Expecto"
+      "Expecto",
+      "MSBuild"
     ],
     "keybindings": [
       {
@@ -336,6 +345,11 @@
           "type": "boolean",
           "default": true,
           "description": "Automatically shows Expecto output panle"
+        },
+        "FSharp.msbuildLocation": {
+          "type":"string",
+          "default":"",
+          "description": "Use a specific version of msbuild to build this project."
         }
       }
     },

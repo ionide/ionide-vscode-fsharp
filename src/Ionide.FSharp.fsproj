@@ -88,6 +88,7 @@
     <Compile Include="Components/QuickFix.fs" />
     <Compile Include="Components/ResolveNamespaces.fs" />
     <Compile Include="Components/Expecto.fs" />
+    <Compile Include="Components/MSBuild.fs" />
     <Compile Include="Components/Help.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>
