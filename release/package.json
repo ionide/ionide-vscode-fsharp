@@ -192,6 +192,22 @@
       {
         "command": "MSBuild.buildSelected",
         "title": "MSBuild: Build project"
+      },
+      {
+        "command": "MSBuild.rebuildCurrent",
+        "title": "MSBuild: Rebuild current project"
+      },
+      {
+        "command": "MSBuild.rebuildSelected",
+        "title": "MSBuild: Rebuild project"
+      },
+      {
+        "command": "MSBuild.cleanCurrent",
+        "title": "MSBuild: Clean current project"
+      },
+      {
+        "command": "MSBuild.cleanSelected",
+        "title": "MSBuild: Clean project"
       }
     ],
     "outputChannels": [

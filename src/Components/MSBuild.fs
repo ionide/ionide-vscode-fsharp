@@ -19,13 +19,14 @@ module MSBuild =
         | Some location -> location
         | None -> Configuration.get "msbuild.exe" "FSharp.msbuildLocation"
 
-    let invokeMSBuild project =
+    let invokeMSBuild project target =
         let safeproject = sprintf "\"%s\"" project
-        logger.Debug("invoking msbuild from %s on %s", msbuildLocation, safeproject)
-        Process.spawnWithNotification msbuildLocation "mono" safeproject outputChannel |> ignore
+        logger.Debug("invoking msbuild from %s on %s for target %s", msbuildLocation, safeproject, target)
+        let command = sprintf "%s /t:%s" safeproject target
+        Process.spawnWithNotification msbuildLocation "mono" command outputChannel |> ignore
 
     /// discovers the project that the active document belongs to and builds that
-    let buildCurrentProject () = 
+    let buildCurrentProject target = 
         logger.Debug("discovering project")
         match window.activeTextEditor.document with
         | Document.FSharp | Document.CSharp | Document.VB ->
@@ -33,16 +34,16 @@ module MSBuild =
             match currentProject with
             | Some p -> 
                 logger.Debug("found project %s", p.Project)
-                invokeMSBuild p.Project
+                invokeMSBuild p.Project target
             | None -> 
                 logger.Debug("could not find a project that contained the file %s", window.activeTextEditor.document.fileName)
                 ()
         | Document.Other -> logger.Debug("I don't know how to handle a project of type %s", window.activeTextEditor.document.languageId)
         
     /// prompts the user to choose a project and builds that project
-    let buildProject () =
+    let buildProject target =
         promise {
-            logger.Debug "building current project"
+            logger.Debug "building project"
             let projects = Project.getAll () |> ResizeArray
             if projects.Count <> 0 then
                 let opts = createEmpty<QuickPickOptions>
@@ -51,13 +52,17 @@ module MSBuild =
                 logger.Debug("user chose project %s", chosen)
                 if JS.isDefined chosen 
                 then 
-                    invokeMSBuild chosen
+                    invokeMSBuild chosen target
         }
         
     let activate disposables = 
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> ignore
         logger.Debug("MSBuild found at %s", msbuildLocation)
-        registerCommand "MSBuild.buildCurrent" buildCurrentProject
-        registerCommand "MSBuild.buildSelected" buildProject
+        registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")
+        registerCommand "MSBuild.buildSelected" (fun _ -> buildProject "Build")
+        registerCommand "MSBuild.rebuildCurrent" (fun _ -> buildCurrentProject "Rebuild")
+        registerCommand "MSBuild.rebuildSelected" (fun _ -> buildProject "Rebuild")
+        registerCommand "MSBuild.cleanCurrent" (fun _ -> buildCurrentProject "Clean")
+        registerCommand "MSBuild.cleanSelected" (fun _ -> buildProject "Clean")
         logger.Debug("MSBuild activated")
-        ()
+        ()    
