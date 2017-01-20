@@ -1,3 +1,6 @@
+### 2.20.0 - 20.01.2017
+* Initial MsBuild support
+
 ### 2.19.5 - 17.01.2017
 * Grammar updates
 
