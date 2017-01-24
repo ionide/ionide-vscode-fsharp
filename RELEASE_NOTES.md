@@ -1,3 +1,6 @@
+### 3.0.0-Andromeda - 24.01.2017
+* Full Framework, Windows debugger for F#, VB and C#.
+
 ### 2.23.1 - 21.02.2017
 * Make `Resolve unopened namespaces and modules` code fix optional.
 * Workaround for the character limit in terminal.
@@ -26,6 +29,7 @@
 
 ### 2.21.1 - 26.01.2017
 * New project - emit error message on common failures
+
 
 ### 2.21.0 - 26.01.2107
 * Update FSAC version - declarations optimization
