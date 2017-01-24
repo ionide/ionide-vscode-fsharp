@@ -1,3 +1,7 @@
+### 3.0.0-Andromeda - 24.01.2017
+* Full Framework, Windows debugger for F#, VB and C#.
+* Bump version to 3.0.0-Andromeda
+
 ### 2.25.7 - 31.03.2017
 * Update grammar
 * Update FSAC - reverse to FCS11
@@ -75,6 +79,7 @@
 
 ### 2.21.1 - 26.01.2017
 * New project - emit error message on common failures
+
 
 ### 2.21.0 - 26.01.2107
 * Update FSAC version - declarations optimization
