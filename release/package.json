@@ -376,53 +376,53 @@
       }
     ],
     "breakpoints": [
-			{
-				"language": "fsharp"
-			},
       {
-				"language": "csharp"
-			}
-		],
-		"debuggers": [
-			{
-				"type": "ionide",
-				"label": "Ionide Debug",
+        "language": "fsharp"
+      },
+      {
+        "language": "csharp"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "ionide",
+        "label": "Ionide Debug",
 
-				"program": "./debugger.js",
-				"runtime": "node",
+        "program": "./debugger.js",
+        "runtime": "node",
 
-				"configurationSnippets": [
-					{
-						"label": "Ionide Debug: Launch",
-						"description": "A new configuration for launching a Ionide debuger program",
-						"body": {
-							"type": "ionide",
-							"request": "launch",
-							"name": "${2:Launch Program}",
-							"program": "^\"\\${workspaceRoot}/${1:Program}\""
-						}
-					}
-				],
+        "configurationSnippets": [
+          {
+            "label": "Ionide Debug: Launch",
+            "description": "A new configuration for launching a Ionide debuger program",
+            "body": {
+              "type": "ionide",
+              "request": "launch",
+              "name": "${2:Launch Program}",
+              "program": "^\"\\${workspaceRoot}/${1:Program}\""
+            }
+          }
+        ],
 
-				"configurationAttributes": {
-					"launch": {
-						"required": [ "program" ],
-						"properties": {
-							"program": {
-								"type": "string",
-								"description": "Absolute path to a text file.",
-								"default": "${workspaceRoot}/App.exe"
-							},
-							"stopOnEntry": {
-								"type": "boolean",
-								"description": "Automatically stop after launch.",
-								"default": true
-							}
-						}
-					}
-				}
-			}
-		]
+        "configurationAttributes": {
+          "launch": {
+            "required": [ "program" ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to a text file.",
+                "default": "${workspaceRoot}/App.exe"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after launch.",
+                "default": true
+              }
+            }
+          }
+        }
+      }
+    ]
   },
   "activationEvents": [
     "onLanguage:csharp",
@@ -460,7 +460,7 @@
     "ws": "*",
     "xhr2": "*",
     "vscode-debugprotocol": "^1.15.0",
-		"vscode-debugadapter": "^1.15.0"
+    "vscode-debugadapter": "^1.15.0"
   },
   "devDependencies": {
     "fable-compiler": "0.6.x",
