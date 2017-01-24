@@ -30,8 +30,8 @@ type IonideDebugger () as x =
     member x.initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments) =
         log "{LOG} Init called"
         Mdbg.spawn (Node.__dirname)
-        response.body.supportsEvaluateForHovers <- Some true
-
+        response.body.Value.supportsEvaluateForHovers <- Some true
+        x.sendEvent(unbox (InitializedEvent()))
 
         x.sendResponse(response)
 
