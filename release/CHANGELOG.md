@@ -1,3 +1,6 @@
+### 3.0.0-Andromeda - 24.01.2017
+* Full Framework, Windows debugger for F#, VB and C#.
+
 ### 2.20.0 - 20.01.2017
 * Initial MsBuild support
 
