@@ -67,7 +67,7 @@ module CodeLens =
             member __.provideCodeLenses(doc, _) =
                 promise {
                     let! _ = LanguageService.parse doc.fileName (doc.getText()) doc.version
-                    let! result = LanguageService.declarations doc.fileName
+                    let! result = LanguageService.declarations doc.fileName (unbox doc.version)
                     let data = symbolsToCodeLens doc result.Data
                     let d =
                         if data.Length > 0 then

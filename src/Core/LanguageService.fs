@@ -206,8 +206,8 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "help" 0 (makeRequestId())
 
-    let declarations fn =
-        {DeclarationsRequest.FileName = handleUntitled fn}
+    let declarations fn version=
+        {DeclarationsRequest.FileName = handleUntitled fn; Version = version}
         |> request "declarations" 0 (makeRequestId())
 
 

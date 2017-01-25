@@ -59,7 +59,7 @@ module Symbols =
           with
             member this.provideDocumentSymbols(doc, ct) =
                 promise {
-                    let! o = LanguageService.declarations doc.fileName
+                    let! o = LanguageService.declarations doc.fileName (unbox doc.version)
                     let data = mapRes doc o
                     return data |> ResizeArray
                 } |> Case2
