@@ -1,3 +1,6 @@
+### 2.21.0 - 26.01.2107
+* Update FSAC version - declarations optimization
+
 ### 2.20.0 - 20.01.2017
 * Initial MsBuild support
 
