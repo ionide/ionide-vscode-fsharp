@@ -24,7 +24,7 @@ type IonideDebugger () as x =
         x.setDebuggerColumnsStartAt1(true)
         x.setDebuggerLinesStartAt1(true)
 
-    member private x.brks = Dictionary<string, Mdbg.Breakpoint []>()
+    let brks = Dictionary<string, Mdbg.Breakpoint []>()
 
 
     member x.initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments) =
@@ -167,9 +167,10 @@ type IonideDebugger () as x =
             log "{LOG} Breakpoints called"
             let fileName = args.source.path.Value
             let file = Node.path.basename(fileName)
-            let current = if x.brks.ContainsKey fileName then x.brks.[fileName] else [||]
+            let current = if brks.ContainsKey fileName then brks.[fileName] else [||]
+            let source = Source(file, fileName)
 
-            let toDelete, rest =
+            let rest, toDelete =
                 current |> Seq.toList |> List.partition (fun bp -> args.breakpoints.Value |> Seq.exists (fun b -> b.line = bp.line) )
 
             let! dels  =
@@ -193,16 +194,24 @@ type IonideDebugger () as x =
                         match bp.status with
                         | Mdbg.Bound -> true
                         | Mdbg.Unbound -> false
-                    let source = Source(file, fileName)
+
                     bp, Breakpoint(verified, bp.line, 0., source)
 
                 )
                 |> Seq.toArray
 
-            x.brks.[fileName] <- [| yield! rest; yield! res |> Seq.map fst |]
+            let newBrks = [| yield! rest; yield! res |> Seq.map fst |]
+            brks.[fileName] <- newBrks
+
+
+            let resp = [|
+                yield! (rest |> Collections.List.map (fun n -> Breakpoint(true, n.line, 0., source)))
+                yield! (res |> Collections.Array.map snd)
+            |]
+
             let body =
                 createObj [
-                    "breakpoints" ==> (res |> Collections.Array.map snd)
+                    "breakpoints" ==> resp
                 ]
             response.body <- body
             x.sendResponse(response)
