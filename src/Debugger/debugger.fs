@@ -28,11 +28,14 @@ type IonideDebugger () as x =
 
 
     member x.initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments) =
-        log "{LOG} Init called"
-        Mdbg.spawn (Node.__dirname)
-        response.body.Value.supportsEvaluateForHovers <- Some true
+        promise {
+            log "{LOG} Init called"
+            Mdbg.spawn (Node.__dirname)
+            response.body.Value.supportsEvaluateForHovers <- Some true
+            do! Mdbg.config()
 
-        x.sendResponse(response)
+            x.sendResponse(response)
+        } |> ignore
 
     member x.launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): unit =
         promise {
