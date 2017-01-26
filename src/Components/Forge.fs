@@ -166,20 +166,27 @@ module Forge =
 
 
                 if n.Count <> 0 then
-                    let! template = window.showQuickPick ( n |> Case1)
-                    if JS.isDefined template then
-                        let opts = createEmpty<InputBoxOptions>
-                        opts.prompt <- Some "Project directory"
-                        let! dir = window.showInputBox (opts)
+                    let cwd = vscode.workspace.rootPath;
+                    if JS.isDefined cwd then
+                        let! template = window.showQuickPick ( n |> Case1)
+                        if JS.isDefined template then
+                            let opts = createEmpty<InputBoxOptions>
+                            opts.prompt <- Some "Project directory"
+                            let! dir = window.showInputBox (opts)
 
-                        let opts = createEmpty<InputBoxOptions>
-                        opts.prompt <- Some "Project name"
-                        let! name =  window.showInputBox(opts)
-                        if JS.isDefined dir && JS.isDefined name then
-                            sprintf "new project -n %s -t %s --folder %s" name template.label dir |> spawnForge |> ignore
+                            let opts = createEmpty<InputBoxOptions>
+                            opts.prompt <- Some "Project name"
+                            let! name =  window.showInputBox(opts)
+                            if JS.isDefined dir && JS.isDefined name then
+                                if name <> "" then
+                                    sprintf "new project -n %s -t %s --folder %s" name template.label dir |> spawnForge |> ignore
 
-                            window.showInformationMessage "Project created"
-                            |> ignore
+                                    window.showInformationMessage "Project created"
+                                    |> ignore
+                                else
+                                    window.showErrorMessage "Invalid project name." |> ignore
+                    else
+                        window.showErrorMessage "No open folder." |> ignore
                 else
                     window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command" |> ignore
             else
