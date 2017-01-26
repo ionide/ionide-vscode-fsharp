@@ -1,3 +1,6 @@
+### 2.21.1 - 26.01.2018
+* New project - emit error message on common failures
+
 ### 2.21.0 - 26.01.2107
 * Update FSAC version - declarations optimization
 
