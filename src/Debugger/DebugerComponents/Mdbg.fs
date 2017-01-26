@@ -94,6 +94,10 @@ let rec private send (cmd : string) =
             log ("{ REQ WAITING } " + cmd)
             delay 100
             |> Promise.bind (fun _ -> send cmd)
+let config () =
+    send "mo nc on"
+    |> Promise.map ignore
+
 
 let start path =
     path
@@ -101,13 +105,19 @@ let start path =
     |> send
     |> Promise.map (ignore)
 
+let findThread (res : string) =
+    let line = res.Split('\n') |> Array.find (fun n -> n.Contains "mdbg>")
+    line.Split(',').[1].Split(']').[0].Split(':').[1] |> float
+
 let go () =
     send "go"
     |> Promise.map (fun res ->
         if res.Contains "STOP: Process Exited" then
+            busy <- false
             Terminated
         elif res.Contains "STOP: Breakpoint" then
-            Breakpoint 0. //TODO: Find Thread
+            let thread = findThread res
+            Breakpoint thread
         else //TODO
             Exception 0. //TODO: Find Thread
 
@@ -116,15 +126,15 @@ let go () =
 
 let next () =
     send "n"
-    |> Promise.map (fun _ -> 0.) //TODO: Find Thread
+    |> Promise.map (findThread)
 
 let stepIn () =
     send "s"
-    |> Promise.map (fun _ -> 0.) //TODO: Find Thread
+    |> Promise.map (findThread)
 
 let stepOut () =
     send "u"
-    |> Promise.map (fun _ -> 0.) //TODO: Find Thread
+    |> Promise.map (findThread)
 
 let setBreakpoint file line =
     sprintf "b %s:%d" file line
