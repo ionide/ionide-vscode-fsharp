@@ -31,7 +31,6 @@ type IonideDebugger () as x =
         log "{LOG} Init called"
         Mdbg.spawn (Node.__dirname)
         response.body.Value.supportsEvaluateForHovers <- Some true
-        x.sendEvent(unbox (InitializedEvent()))
 
         x.sendResponse(response)
 
@@ -39,6 +38,7 @@ type IonideDebugger () as x =
         promise {
             log "{LOG} Launch called"
             let! _ = Mdbg.start(args.program)
+            x.sendEvent(unbox (InitializedEvent()))
             if (defaultArg args.stopOnEntry false)  then
                 x.sendResponse(response)
                 x.sendEvent(unbox (StoppedEvent("breakpoint",0.)))
@@ -162,7 +162,6 @@ type IonideDebugger () as x =
 
         } |> ignore
 
-    //TODO: Breakpoints not working?????
     member x.setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments) =
         promise {
             log "{LOG} Breakpoints called"
