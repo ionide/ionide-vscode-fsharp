@@ -36,6 +36,7 @@ let activate(disposables: Disposable[]) =
         CodeLens.activate df' disposables
         QuickFix.activate df' disposables
         ResolveNamespaces.activate df' disposables
+        UnionCaseGenerator.activate df' disposables
         Help.activate disposables
         Expecto.activate disposables
         MSBuild.activate disposables
