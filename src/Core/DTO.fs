@@ -107,6 +107,11 @@ module DTO =
         EndLine: int
     }
 
+    type Pos = {
+        Line: int
+        Col: int
+    }
+
     type Symbol = {
         UniqueName: string
         Name: string
@@ -170,6 +175,11 @@ module DTO =
         Word : string
     }
 
+    type UnionCaseGenerator = {
+        Text : string
+        Position : Pos
+    }
+
 
 
     type Result<'T> = {Kind : string; Data : 'T}
@@ -185,3 +195,4 @@ module DTO =
     type LintResult = Result<Lint[]>
     type ProjectResult = Result<Project>
     type ResolveNamespaceResult = Result<ResolveNamespace>
+    type UnionCaseGeneratorResult = Result<UnionCaseGenerator>

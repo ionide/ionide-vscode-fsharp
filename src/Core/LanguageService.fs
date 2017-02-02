@@ -225,6 +225,10 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "namespaces" 0 (makeRequestId())
 
+    let unionCaseGenerator fn line col =
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        |> request "unionCaseGenerator" 0 (makeRequestId())
+
 
     let registerNotify (cb : 'a [] -> unit) =
         socket |> Option.iter (fun ws ->
