@@ -1,4 +1,8 @@
-### 2.21.1 - 26.01.2018
+### 2.22.0 - 02.02.2017
+* Add union match patter case generator
+* Try to fix proxy bug
+
+### 2.21.1 - 26.01.2017
 * New project - emit error message on common failures
 
 ### 2.21.0 - 26.01.2107
