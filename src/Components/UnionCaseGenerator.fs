@@ -24,7 +24,11 @@ module UnionCaseGenerator =
                         | None -> promise { return [||]}
                         | Some d ->
                             promise {
-                                let! res = LanguageService.unionCaseGenerator doc.fileName ( int range.start.line + 2) (int range.start.character - 1)
+                                let line = int range.start.line + 2
+                                let col = doc.getText().Split('\n').[line - 1].IndexOf('|') + 3
+
+
+                                let! res = LanguageService.unionCaseGenerator doc.fileName line col
 
                                 let cmd = createEmpty<Command>
                                 cmd.title <- "Generate union pattern match case"
