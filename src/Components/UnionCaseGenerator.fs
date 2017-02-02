@@ -45,7 +45,7 @@ module UnionCaseGenerator =
         let edit = WorkspaceEdit()
         let uri = Uri.file doc.fileName
         let position = Position(unbox (pos.Line - 1), unbox pos.Col)
-        let text = text.Replace("$1", "failwith \"Not Implemetned\"")
+        let text = text.Replace("$1", "failwith \"Not Implemented\"")
         edit.insert(uri, position, text)
         workspace.applyEdit edit
 

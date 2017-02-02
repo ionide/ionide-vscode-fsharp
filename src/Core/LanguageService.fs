@@ -124,8 +124,12 @@ module LanguageService =
         let started = DateTime.Now
         let fullRequestUrl = url fsacAction requestId
         logOutgoingRequest requestId fsacAction obj
+        let options =
+            createObj [
+                "proxy" ==> false
+            ]
 
-        ax.post (fullRequestUrl, obj)
+        ax.post (fullRequestUrl, obj, unbox options)
         |> Promise.onFail (fun r ->
             // The outgoing request was not made
             logIncomingResponseError requestId fsacAction started r
