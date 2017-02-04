@@ -1,3 +1,7 @@
+### 2.22.1 - 05.02.2017
+* Refresh CodeLens only after parse request
+* Update grammar
+
 ### 2.22.0 - 02.02.2017
 * Add union match patter case generator
 * Try to fix proxy bug
