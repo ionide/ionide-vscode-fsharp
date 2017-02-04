@@ -67,7 +67,6 @@
     <Compile Include="Core/Utils.fs" />
     <Compile Include="Core/LanguageService.fs" />
     <Compile Include="Core/Project.fs" />
-    <Compile Include="Components/Errors.fs" />
     <Compile Include="Components/Tooltip.fs" />
     <Compile Include="Components/Autocomplete.fs" />
     <Compile Include="Components/ParameterHints.fs" />
@@ -88,6 +87,7 @@
     <Compile Include="Components/QuickFix.fs" />
     <Compile Include="Components/ResolveNamespaces.fs" />
     <Compile Include="Components/UnionCaseGenerator.fs" />
+    <Compile Include="Components/Errors.fs" />
     <Compile Include="Components/Expecto.fs" />
     <Compile Include="Components/MSBuild.fs" />
     <Compile Include="Components/Help.fs" />

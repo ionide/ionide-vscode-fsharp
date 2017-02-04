@@ -12,6 +12,8 @@ open Ionide.VSCode.Helpers
 module CodeLens =
     let mutable cache: Map<string, CodeLens[]> = Map.empty
 
+    let refresh = EventEmitter<unit>()
+
     let private createProvider () =
         let symbolsToCodeLens (doc : TextDocument) (symbols: Symbols[]) : CodeLens[] =
              symbols |> Array.collect (fun syms ->
@@ -77,7 +79,9 @@ module CodeLens =
                             defaultArg (cache |> Map.tryFind doc.fileName) [||]
 
                     return ResizeArray d
-                } |> Case2
+                }
+                |> Promise.catch (fun _ -> Promise.lift <| ResizeArray())
+                |> Case2
 
 
             member __.resolveCodeLens(codeLens, _) =
@@ -93,6 +97,8 @@ module CodeLens =
                     codeLens.command <- cmd
                     return codeLens
                 } |> Case2
+
+            member __.onDidChangeCodeLenses = refresh.event
         }
 
     let activate selector (disposables: Disposable[]) =
