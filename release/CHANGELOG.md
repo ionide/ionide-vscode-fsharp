@@ -1,3 +1,6 @@
+## 2.22.2 - 10.02.2017
+* Update FSAC - new fsrpoj changes
+
 ### 2.22.1 - 05.02.2017
 * Refresh CodeLens only after parse request
 * Update grammar
