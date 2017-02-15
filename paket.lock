@@ -2,7 +2,8 @@ FRAMEWORK: NET45
 NUGET
   remote: https://www.nuget.org/api/v2
     FAKE (4.50)
-    FSharp.Core (4.0.0.1)
+    FSharp.Core (4.1)
+      System.ValueTuple (>= 4.3)
     FsUnit (2.3.2)
       FSharp.Core (>= 3.1.2.5)
       NUnit (3.5)
@@ -11,6 +12,7 @@ NUGET
       Node.js (>= 0.12.7)
     NUnit (3.5)
     Octokit (0.24)
+    System.ValueTuple (4.3)
 GIT
   remote: https://github.com/ionide/FsAutoComplete.git
      (a93dd731da16c77118ac9aa0f874966a89b46b32)
@@ -27,7 +29,7 @@ GIT
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (edb05603ec3f2eb3c633f92df1649e82fe870545)
+     (4f7e4e4568d6710b0250c4d9bde26915875aee90)
 GITHUB
   remote: fsharp/FAKE
     modules/Octokit/Octokit.fsx (e842705560e95dd75dd2c6a78fb1ae62db545297)
