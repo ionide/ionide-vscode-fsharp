@@ -1,3 +1,7 @@
+### 2.22.4 - 16.02.2017
+* Improve CodeLens performance (caching)
+* Fix CodeLens and Linter startup behaviour
+
 ### 2.22.3 - 15.02.2017
 * Update grammar
 
