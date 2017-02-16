@@ -12,7 +12,6 @@ open Ionide.VSCode.Helpers
 module CodeLens =
     let mutable cache: Map<string, CodeLens[]> = Map.empty
     let refresh = EventEmitter<int>()
-    let updateChanges = EventEmitter<TextDocumentContentChangeEvent list>()
     let mutable private version = 0
     let mutable private flag = false
     let mutable changes : TextDocumentContentChangeEvent list = []
@@ -87,12 +86,14 @@ module CodeLens =
                             Promise.lift [||]
                     let d =
                         if data.Length > 0 && flag then
-                            printf "CodeLens - Result from FSAC"
+                            // printf "CodeLens - Result from FSAC"
                             data
                         else
                             let chngs = changes |>  List.choose (fun n -> let r = heightChange n in if r = 0 then None else Some (n.range.start.line, r) )
                             let fromCache = defaultArg (cache |> Map.tryFind doc.fileName) [||]
-                            printf "CodeLens - Result from cache"
+                            // printf "CodeLens - Result from cache."
+                            // printf "CodeLens - Changes: %A" changes
+                            // printf "CodeLens - Chngs: %A" chngs
                             let res =
                                 fromCache
                                 |> Array.map (fun n ->
@@ -129,10 +130,15 @@ module CodeLens =
             member __.onDidChangeCodeLenses = unbox refresh.event
         }
 
+    let private textChangedHandler (event : TextDocumentChangeEvent) =
+        changes <- [yield! changes; yield! event.contentChanges]
+        refresh.fire (-1)
+        ()
+
     let activate selector (disposables: Disposable[]) =
-        refresh.event.Invoke(fun n -> version <- n; flag <- true; null)
-        updateChanges.event.Invoke(fun n -> changes <- [ yield! changes; yield! n ]; null)
+        refresh.event.Invoke(fun (n) -> version <- n; flag <- n > 0 ; null) |> ignore
+        workspace.onDidChangeTextDocument $ (textChangedHandler,(), disposables) |> ignore
 
         languages.registerCodeLensProvider(selector, createProvider()) |> ignore
-        refresh.fire 1
+        refresh.fire (1)
         ()

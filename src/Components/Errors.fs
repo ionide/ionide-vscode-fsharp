@@ -55,7 +55,6 @@ module Errors =
     let mutable private timer = None
 
     let private handler (event : TextDocumentChangeEvent) =
-        CodeLens.updateChanges.fire (List.ofSeq event.contentChanges)
         timer |> Option.iter(clearTimeout)
         timer <- Some (setTimeout((fun _ ->
             match event.document with
