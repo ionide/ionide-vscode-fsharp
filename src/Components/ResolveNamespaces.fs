@@ -25,29 +25,32 @@ module ResolveNamespaces =
                         | Some d ->
                             promise {
                                 let! res = LanguageService.resolveNamespaces doc.fileName ( int range.start.line + 1) (int range.start.character + 2)
-                                let word = res.Data.Word
-                                let quals =
-                                    res.Data.Qualifies
-                                    |> Array.map (fun suggestion ->
-                                        let s = suggestion.Qualifier
-                                        let cmd = createEmpty<Command>
-                                        cmd.title <- sprintf "Use %s" s
-                                        cmd.command <- "fsharp.useNamespace"
-                                        cmd.arguments <- Some ([| doc |> unbox; d.range |> unbox; s |> unbox; |] |> ResizeArray)
-                                        cmd)
+                                if isNotNull res then
+                                    let word = res.Data.Word
+                                    let quals =
+                                        res.Data.Qualifies
+                                        |> Array.map (fun suggestion ->
+                                            let s = suggestion.Qualifier
+                                            let cmd = createEmpty<Command>
+                                            cmd.title <- sprintf "Use %s" s
+                                            cmd.command <- "fsharp.useNamespace"
+                                            cmd.arguments <- Some ([| doc |> unbox; d.range |> unbox; s |> unbox; |] |> ResizeArray)
+                                            cmd)
 
-                                let opens =
-                                    res.Data.Opens
-                                    |> Array.map (fun suggestion ->
-                                        let s = suggestion.Namespace
-                                        let cmd = createEmpty<Command>
-                                        cmd.title <- sprintf "Open %s" s
-                                        cmd.command <- "fsharp.openNamespace"
+                                    let opens =
+                                        res.Data.Opens
+                                        |> Array.map (fun suggestion ->
+                                            let s = suggestion.Namespace
+                                            let cmd = createEmpty<Command>
+                                            cmd.title <- sprintf "Open %s" s
+                                            cmd.command <- "fsharp.openNamespace"
 
-                                        cmd.arguments <- Some ([| doc |> unbox; suggestion |> unbox; s |> unbox; |] |> ResizeArray)
-                                        cmd)
+                                            cmd.arguments <- Some ([| doc |> unbox; suggestion |> unbox; s |> unbox; |] |> ResizeArray)
+                                            cmd)
 
-                                return [| yield! quals; yield! opens |]
+                                    return [| yield! quals; yield! opens |]
+                                else
+                                    return [||]
                             }
                     return res |> ResizeArray
                 } |> Case2

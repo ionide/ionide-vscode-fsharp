@@ -19,6 +19,10 @@ let activate(disposables: Disposable[]) =
     LanguageService.start ()
     |> Promise.onSuccess (fun _ ->
         Errors.activate disposables
+        |> Promise.onSuccess(fun _ ->
+            CodeLens.activate df' disposables
+            Linter.activate df' disposables
+        )
         |> Promise.bind(fun _ -> Project.activate ())
         |> ignore
 
@@ -32,8 +36,6 @@ let activate(disposables: Disposable[]) =
         Rename.activate df' disposables
         WorkspaceSymbols.activate df' disposables
         QuickInfo.activate disposables
-        Linter.activate df' disposables
-        CodeLens.activate df' disposables
         QuickFix.activate df' disposables
         ResolveNamespaces.activate df' disposables
         UnionCaseGenerator.activate df' disposables

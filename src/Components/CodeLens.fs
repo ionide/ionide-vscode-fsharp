@@ -11,8 +11,16 @@ open Ionide.VSCode.Helpers
 
 module CodeLens =
     let mutable cache: Map<string, CodeLens[]> = Map.empty
+    let refresh = EventEmitter<int>()
+    let updateChanges = EventEmitter<TextDocumentContentChangeEvent list>()
+    let mutable private version = 0
+    let mutable private flag = false
+    let mutable changes : TextDocumentContentChangeEvent list = []
 
-    let refresh = EventEmitter<unit>()
+    let private heightChange (change : TextDocumentContentChangeEvent) =
+        let oldHeight = change.range.``end``.line - change.range.start.line  |> int
+        let newHeight = change.text.ToCharArray() |> Seq.sumBy (fun n -> if n = '\n' then 1 else 0)
+        newHeight - oldHeight
 
     let private createProvider () =
         let symbolsToCodeLens (doc : TextDocument) (symbols: Symbols[]) : CodeLens[] =
@@ -68,21 +76,41 @@ module CodeLens =
         { new CodeLensProvider with
             member __.provideCodeLenses(doc, _) =
                 promise {
-                    let! _ = LanguageService.parse doc.fileName (doc.getText()) doc.version
-                    let! result = LanguageService.declarations doc.fileName (unbox doc.version)
-                    let data = symbolsToCodeLens doc result.Data
+                    let! data =
+                        if flag then
+                            promise {
+                                let! result = LanguageService.declarations doc.fileName version
+                                return
+                                    if isNotNull result then symbolsToCodeLens doc result.Data else [||]
+                            }
+                        else
+                            Promise.lift [||]
                     let d =
-                        if data.Length > 0 then
-                            cache <- cache |> Map.add doc.fileName data
+                        if data.Length > 0 && flag then
+                            printf "CodeLens - Result from FSAC"
                             data
                         else
-                            defaultArg (cache |> Map.tryFind doc.fileName) [||]
+                            let chngs = changes |>  List.choose (fun n -> let r = heightChange n in if r = 0 then None else Some (n.range.start.line, r) )
+                            let fromCache = defaultArg (cache |> Map.tryFind doc.fileName) [||]
+                            printf "CodeLens - Result from cache"
+                            let res =
+                                fromCache
+                                |> Array.map (fun n ->
+                                    let hChange = chngs |> Seq.sumBy(fun (ln,h) -> if ln < n.range.start.line then h else 0)
+                                    let ln = n.range.start.line + unbox hChange
+                                    let range = vscode.Range(ln, n.range.start.character, ln, n.range.``end``.character)
 
+                                    n.range <- range
+                                    n
+                                )
+                            res
+                    cache <- cache |> Map.add doc.fileName d
+                    flag <- false
+                    changes <- []
                     return ResizeArray d
                 }
-                |> Promise.catch (fun _ -> Promise.lift <| ResizeArray())
+                // |> Promise.catch (fun _ -> Promise.lift <| ResizeArray())
                 |> Case2
-
 
             member __.resolveCodeLens(codeLens, _) =
                 promise {
@@ -93,14 +121,18 @@ module CodeLens =
                             (int codeLens.range.start.character + 1)
 
                     let cmd = createEmpty<Command>
-                    cmd.title <- formatSignature signaturesResult.Data
+                    cmd.title <- if isNotNull signaturesResult then formatSignature signaturesResult.Data else ""
                     codeLens.command <- cmd
                     return codeLens
                 } |> Case2
 
-            member __.onDidChangeCodeLenses = refresh.event
+            member __.onDidChangeCodeLenses = unbox refresh.event
         }
 
     let activate selector (disposables: Disposable[]) =
+        refresh.event.Invoke(fun n -> version <- n; flag <- true; null)
+        updateChanges.event.Invoke(fun n -> changes <- [ yield! changes; yield! n ]; null)
+
         languages.registerCodeLensProvider(selector, createProvider()) |> ignore
+        refresh.fire 1
         ()

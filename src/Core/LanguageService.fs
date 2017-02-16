@@ -98,8 +98,8 @@ module LanguageService =
             else None, None
 
         match extraPropInfo with
-        | None, None -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}", fsacAction)
-        | Some extraTmpl, Some extraArg -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}" + extraTmpl, fsacAction, extraArg)
+        | None, None -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}\nData=%j", fsacAction, obj)
+        | Some extraTmpl, Some extraArg -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}" + extraTmpl + "\nData=%j", fsacAction, extraArg, obj)
         | _, _ -> failwithf "cannot happen %A" extraPropInfo
 
     let private logIncomingResponse requestId fsacAction (started: DateTime) (r: Axios.AxiosXHR<_>) (res: _ option) (ex: exn option) =

@@ -56,9 +56,10 @@ module Autocomplete =
                 ResizeArray ()
 
         let mapHelptext (sug : CompletionItem) (o : HelptextResult) =
-            let res = (o.Data.Overloads |> Array.collect id).[0]
-            sug.documentation <- Markdown.replaceXml res.Comment
-            sug.detail <- res.Signature
+            if isNotNull o then
+                let res = (o.Data.Overloads |> Array.collect id).[0]
+                sug.documentation <- Markdown.replaceXml res.Comment
+                sug.detail <- res.Signature
             sug
 
 

@@ -36,7 +36,7 @@ module Errors =
         LanguageService.parse path text version
         |> Promise.map (fun (ev : ParseResult) ->
             if isNotNull ev then
-                CodeLens.refresh.fire ()
+                CodeLens.refresh.fire (unbox version)
                 (Uri.file path, (mapResult ev |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
 
 
@@ -55,10 +55,12 @@ module Errors =
     let mutable private timer = None
 
     let private handler (event : TextDocumentChangeEvent) =
+        CodeLens.updateChanges.fire (List.ofSeq event.contentChanges)
         timer |> Option.iter(clearTimeout)
         timer <- Some (setTimeout((fun _ ->
             match event.document with
-            | Document.FSharp ->  parse (event.document.fileName) (event.document.getText ()) event.document.version
+            | Document.FSharp ->
+                parse (event.document.fileName) (event.document.getText ()) event.document.version
             | _ -> promise { () } ), 1000.))
 
     let private handlerSave (doc : TextDocument) =
