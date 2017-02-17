@@ -242,6 +242,7 @@ Target "Test" DoNothing
 
 "Clean"
 ==> "RunScript"
+==> "CopyFSAC"
 ==> "Default"
 
 "CopyFSACToTests"
