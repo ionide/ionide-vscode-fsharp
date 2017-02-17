@@ -15,10 +15,10 @@ NUGET
     System.ValueTuple (4.3)
 GIT
   remote: https://github.com/ionide/FsAutoComplete.git
-     (a93dd731da16c77118ac9aa0f874966a89b46b32)
+     (73aedee191b3ded62b8150e74c263520fcf77cef)
       build: build.cmd LocalRelease
       os: windows
-     (a93dd731da16c77118ac9aa0f874966a89b46b32)
+     (73aedee191b3ded62b8150e74c263520fcf77cef)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
