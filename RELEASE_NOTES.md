@@ -1,3 +1,7 @@
+### 2.23.0 - 17.02.2017
+* Improve CodeLens caching
+* Update FSAC - FCS 10
+
 ### 2.22.4 - 16.02.2017
 * Improve CodeLens performance (caching)
 * Fix CodeLens and Linter startup behaviour
