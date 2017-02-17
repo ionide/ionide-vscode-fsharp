@@ -13,7 +13,8 @@ module CodeLens =
     let mutable cache: Map<string, CodeLens[]> = Map.empty
     let refresh = EventEmitter<int>()
     let mutable private version = 0
-    let mutable private flag = false
+    let mutable private flag = true
+
     let mutable changes : TextDocumentContentChangeEvent list = []
 
     let private heightChange (change : TextDocumentContentChangeEvent) =
@@ -79,6 +80,8 @@ module CodeLens =
                         if flag then
                             promise {
                                 let! result = LanguageService.declarations doc.fileName version
+                                // printf "CodeLens - Result from FSAC"
+                                // printf "CodeLens - FileName: %s, Version: %d" doc.fileName version
                                 return
                                     if isNotNull result then symbolsToCodeLens doc result.Data else [||]
                             }
@@ -86,18 +89,19 @@ module CodeLens =
                             Promise.lift [||]
                     let d =
                         if data.Length > 0 && flag then
-                            // printf "CodeLens - Result from FSAC"
+                            cache <- cache |> Map.add doc.fileName data
+                            changes <- []
                             data
                         else
                             let chngs = changes |>  List.choose (fun n -> let r = heightChange n in if r = 0 then None else Some (n.range.start.line, r) )
                             let fromCache = defaultArg (cache |> Map.tryFind doc.fileName) [||]
                             // printf "CodeLens - Result from cache."
-                            // printf "CodeLens - Changes: %A" changes
+                            // printf "CodeLens - FileName: %s, Version: %d" doc.fileName version
                             // printf "CodeLens - Chngs: %A" chngs
                             let res =
                                 fromCache
                                 |> Array.map (fun n ->
-                                    let hChange = chngs |> Seq.sumBy(fun (ln,h) -> if ln < n.range.start.line then h else 0)
+                                    let hChange = chngs |> Seq.sumBy(fun (ln,h) -> if ln <= n.range.start.line then h else 0)
                                     let ln = n.range.start.line + unbox hChange
                                     let range = vscode.Range(ln, n.range.start.character, ln, n.range.``end``.character)
 
@@ -105,9 +109,7 @@ module CodeLens =
                                     n
                                 )
                             res
-                    cache <- cache |> Map.add doc.fileName d
                     flag <- false
-                    changes <- []
                     return ResizeArray d
                 }
                 // |> Promise.catch (fun _ -> Promise.lift <| ResizeArray())
@@ -131,13 +133,23 @@ module CodeLens =
         }
 
     let private textChangedHandler (event : TextDocumentChangeEvent) =
-        changes <- [yield! changes; yield! event.contentChanges]
-        refresh.fire (-1)
+        if isNotNull window.activeTextEditor && event.document.fileName = window.activeTextEditor.document.fileName  then
+            // printf "CodeLens - File changed."
+            changes <- [yield! changes; yield! event.contentChanges]
+        ()
+
+    let private fileOpenedHandler (event : TextEditor) =
+        changes <- []
+        version <- unbox event.document.version
+        flag <- true
         ()
 
     let activate selector (disposables: Disposable[]) =
-        refresh.event.Invoke(fun (n) -> version <- n; flag <- n > 0 ; null) |> ignore
+        refresh.event.Invoke(fun (n) -> version <- n; flag <- true; null) |> ignore
         workspace.onDidChangeTextDocument $ (textChangedHandler,(), disposables) |> ignore
+        window.onDidChangeActiveTextEditor $ (fileOpenedHandler, (), disposables) |> ignore
+
+
 
         languages.registerCodeLensProvider(selector, createProvider()) |> ignore
         refresh.fire (1)

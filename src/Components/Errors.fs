@@ -36,6 +36,7 @@ module Errors =
         LanguageService.parse path text version
         |> Promise.map (fun (ev : ParseResult) ->
             if isNotNull ev then
+                // printf "CodeLens - File parsed"
                 CodeLens.refresh.fire (unbox version)
                 (Uri.file path, (mapResult ev |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
 
