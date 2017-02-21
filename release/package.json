@@ -366,6 +366,11 @@
           "type":"string",
           "default":"",
           "description": "Use a specific version of msbuild to build this project."
+        },
+        "FSharp.resolveNamespaces": {
+          "type":"boolean",
+          "default": false,
+          "description": "Enables `resolve unopened namespaces and modules` code fix. Not stable, can crash FSAC - use at your own risk."
         }
       }
     },

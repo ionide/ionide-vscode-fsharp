@@ -15,6 +15,7 @@ let activate(disposables: Disposable[]) =
     let df' : DocumentSelector = df |> U3.Case2
 
     let legacyFsi = "FSharp.legacyFSI" |> Configuration.get false
+    let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
 
     LanguageService.start ()
     |> Promise.onSuccess (fun _ ->
@@ -37,7 +38,7 @@ let activate(disposables: Disposable[]) =
         WorkspaceSymbols.activate df' disposables
         QuickInfo.activate disposables
         QuickFix.activate df' disposables
-        ResolveNamespaces.activate df' disposables
+        if resolve then ResolveNamespaces.activate df' disposables
         UnionCaseGenerator.activate df' disposables
         Help.activate disposables
         Expecto.activate disposables
