@@ -66,6 +66,12 @@ module Fsi =
         |> Promise.onFail (fun _ ->
             window.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore)
 
+    let private chunkStringBySize (size : int) (str : string) =
+        let mutable i1 = 0
+        [while i1 < str.Length do
+            let i2 = min (i1 + size) (str.Length)
+            yield str.[i1..i2-1]
+            i1 <- i2]
 
     let private send (msg : string) =
         let msgWithNewline = msg + "\n;;\n"
@@ -74,7 +80,12 @@ module Fsi =
         | Some fo -> Promise.lift fo
         |> Promise.onSuccess (fun fp ->
             fp.show true
-            fp.sendText(msgWithNewline,false)
+
+            //send in chunks of 256, terminal has a character limit
+            msgWithNewline
+            |> chunkStringBySize 256
+            |> List.iter (fun x -> fp.sendText(x,false))
+
             lastSelectionSent <- Some msg)
         |> Promise.onFail (fun error ->
             window.showErrorMessage "Failed to send text to FSI" |> ignore)
