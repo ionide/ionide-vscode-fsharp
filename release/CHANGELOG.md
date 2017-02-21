@@ -1,3 +1,7 @@
+### 2.23.1 - 21.02.2017
+* Make `Resolve unopened namespaces and modules` code fix optional.
+* Workaround for the character limit in terminal.
+
 ### 2.23.0 - 17.02.2017
 * Improve CodeLens caching
 * Update FSAC - FCS 10
