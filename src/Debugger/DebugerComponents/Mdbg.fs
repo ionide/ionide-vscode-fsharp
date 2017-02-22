@@ -111,6 +111,23 @@ let start path =
     |> send
     |> Promise.map (ignore)
 
+let getPid (program : string) =
+    let programName = path.basename program
+
+    send "a"
+    |> Promise.map (fun (res : string) ->
+        let line = res.Split('\n') |> Array.find (fun n -> n.Contains programName)
+        let pid = line.Split(')').[0].Substring(6)
+        int pid
+    )
+
+let attach pid =
+    pid
+    |> sprintf "a %d"
+    |> send
+    |> Promise.map (ignore)
+
+
 let findThread (res : string) =
     let line = res.Split('\n') |> Array.find (fun n -> n.Contains "mdbg>")
     line.Split(',').[1].Split(']').[0].Split(':').[1] |> float
