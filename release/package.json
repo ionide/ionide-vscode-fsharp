@@ -379,6 +379,11 @@
         "fileMatch": "fableconfig.json",
         "url": "./schemas/fableconfig.json"
       }
+    ],
+    "breakpoints": [
+      {
+        "language": "fsharp"
+      }
     ]
   },
   "activationEvents": [
