@@ -51,6 +51,10 @@ type IonideDebugger () as x =
                 x.continueRequest(unbox response,args)
         } |> ignore
 
+    member x.disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): unit =
+        log "{LOG} Disconnect called"
+        Mdbg.close ()
+        x.sendResponse(response)
 
     member x.threadsRequest(response: DebugProtocol.ThreadsResponse) =
         promise {
