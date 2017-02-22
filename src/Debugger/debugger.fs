@@ -17,6 +17,11 @@ type LaunchRequestArguments =
     abstract member program : string with get,set
     abstract member stopOnEntry : bool option with get,set
 
+type AttachRequestArguments =
+    inherit DebugProtocol.AttachRequestArguments
+
+    abstract member program : string with get,set
+
 type IonideDebugger () as x =
     inherit DebugSession()
 
@@ -50,6 +55,21 @@ type IonideDebugger () as x =
                 args.threadId <- 0.
                 x.continueRequest(unbox response,args)
         } |> ignore
+
+    member x.attachRequest(response: DebugProtocol.AttachRequest, args: AttachRequestArguments) =
+        promise {
+            log "{LOG} Attach called"
+            x.sendEvent(unbox (InitializedEvent()))
+            let! pid = Mdbg.getPid args.program
+            let! _ = Mdbg.attach pid
+
+            setTimeout ( (fun _ ->
+                let args = createEmpty<DebugProtocol.ContinueArguments>
+                args.threadId <- 1.
+                x.continueRequest(unbox response,args)), 1000)
+
+        } |> ignore
+
 
     member x.disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): unit =
         log "{LOG} Disconnect called"
