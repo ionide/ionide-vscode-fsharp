@@ -1,5 +1,8 @@
-### 3.0.0-Andromeda - 24.01.2017
+### 3.0.0-Antlia - 22.02.2017
 * Full Framework, Windows debugger for F#, VB and C#.
+* Supports running and attaching to process
+* Better Language Service logging
+* Requires .Net 4.6 (Suave 2.0)
 
 ### 2.23.1 - 21.02.2017
 * Make `Resolve unopened namespaces and modules` code fix optional.
@@ -29,7 +32,6 @@
 
 ### 2.21.1 - 26.01.2017
 * New project - emit error message on common failures
-
 
 ### 2.21.0 - 26.01.2107
 * Update FSAC version - declarations optimization
