@@ -39,13 +39,11 @@ type Breakpoint = {
     status : BreakpointStatus
 }
 
-
 let mutable private debugProcess : ChildProcess option = None
 let mutable private resolve : (string -> unit) option = Some ignore
 let mutable private reject : (string -> unit) option = Some ignore
 let mutable private answer = ""
 let mutable private busy = false
-
 
 let spawn dir =
     let mdbgPath = path.join(dir, "bin_mdbg", "mdbg.exe")
@@ -74,6 +72,13 @@ let spawn dir =
     debugProcess <- Some proc
     busy <- true
 
+let close () =
+    busy <- false
+    resolve <- Some ignore
+    reject <- Some ignore
+    answer <- ""
+    debugProcess |> Option.iter (fun p -> p.kill())
+
 let private delay ms =
     Promise.create(fun res rej -> setTimeout(res, ms) |> ignore )
 
@@ -91,9 +96,10 @@ let rec private send (cmd : string) =
                 reject <- Some rej
             )
     else
-            log ("{ REQ WAITING } " + cmd)
-            delay 100
-            |> Promise.bind (fun _ -> send cmd)
+        log ("{ REQ WAITING } " + cmd)
+        delay 100
+        |> Promise.bind (fun _ -> send cmd)
+
 let config () =
     send "mo nc on"
     |> Promise.map ignore
@@ -113,7 +119,6 @@ let go () =
     send "go"
     |> Promise.map (fun res ->
         if res.Contains "STOP: Process Exited" then
-            busy <- false
             Terminated
         elif res.Contains "STOP: Breakpoint" then
             let thread = findThread res
