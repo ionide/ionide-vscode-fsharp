@@ -1,3 +1,7 @@
+### 2.23.2 - 23.02.2017
+* Enable F# breakpoints
+* Add more handling for null responses.
+
 ### 2.23.1 - 21.02.2017
 * Make `Resolve unopened namespaces and modules` code fix optional.
 * Workaround for the character limit in terminal.
