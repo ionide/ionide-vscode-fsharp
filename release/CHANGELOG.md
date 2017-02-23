@@ -1,3 +1,6 @@
+### 2.23.3 - 23.02.2017
+* Normalize paths for Forge
+
 ### 2.23.2 - 23.02.2017
 * Enable F# breakpoints
 * Add more handling for null responses.
