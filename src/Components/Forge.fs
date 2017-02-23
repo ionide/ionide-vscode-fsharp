@@ -45,6 +45,9 @@ module Forge =
             |> Array.filter((<>) "" )
         |> ResizeArray
 
+    let private quotePath (path : string) =
+        if path.Contains " " then "\"" + path + "\"" else path
+
     let onFsFileCreateHandler (uri : Uri) =
         if "FSharp.automaticProjectModification" |> Configuration.get false then sprintf "add file -n %s" uri.fsPath |> spawnForge |> ignore
 
@@ -84,7 +87,7 @@ module Forge =
             if projects.Count <> 0 then
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Project to edit"
-                let! edit = window.showQuickPick(projects |> Case1,opts)
+                let! edit = window.showQuickPick(projects |> Case1,opts) |> Promise.map quotePath
 
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "Reference"
@@ -98,7 +101,7 @@ module Forge =
             if projects.Count <> 0 then
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Project to edit"
-                let! edit = window.showQuickPick(projects |> Case1,opts)
+                let! edit = window.showQuickPick(projects |> Case1,opts) |> Promise.map quotePath
 
                 let! n =
                     sprintf "list references -p %s" edit
@@ -119,11 +122,11 @@ module Forge =
             if projects.Count <> 0 then
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Project to edit"
-                let! edit = window.showQuickPick(projects |> Case1, opts)
+                let! edit = window.showQuickPick(projects |> Case1, opts) |> Promise.map quotePath
 
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Reference"
-                let! n = window.showQuickPick(projects |> Case1, opts)
+                let! n = window.showQuickPick(projects |> Case1, opts) |> Promise.map quotePath
                 if JS.isDefined n && JS.isDefined edit then
                     sprintf "add project -n %s -p %s" n edit |> spawnForge |> ignore }
 
@@ -134,7 +137,7 @@ module Forge =
             if projects.Count <> 0 then
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Project to edit"
-                let! edit = window.showQuickPick(projects |> Case1,opts)
+                let! edit = window.showQuickPick(projects |> Case1,opts) |> Promise.map quotePath
 
                 let! n =
                     sprintf "list projectReferences -p %s" edit
@@ -144,7 +147,7 @@ module Forge =
                 if n.Count <> 0 then
                     let opts = createEmpty<QuickPickOptions>
                     opts.placeHolder <- Some "Reference"
-                    let! ref = window.showQuickPick(n |> Case1,opts)
+                    let! ref = window.showQuickPick(n |> Case1,opts) |> Promise.map quotePath
                     if JS.isDefined ref && JS.isDefined edit then
                         sprintf "remove project -n %s -p %s" ref edit |> spawnForge |> ignore }
 
