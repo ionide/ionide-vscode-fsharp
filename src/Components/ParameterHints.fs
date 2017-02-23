@@ -16,26 +16,27 @@ module ParameterHints =
 
         let mapResult o =
             let res = SignatureHelp ()
-            let sigs = o.Data.Overloads |> Array.choose (fun c ->
-                try
-                    let tip = c.Tip.[0].[0]
-                    let signature = SignatureInformation (tip.Signature, tip.Comment)
-                    c.Parameters |> Array.iter (fun p ->
-                        let parameter = ParameterInformation (p.Name, p.CanonicalTypeTextForSorting)
-                        signature.parameters.Add (parameter )
-                        |> ignore
-                    )
-                    Some signature
-                with
-                | e -> None) |> ResizeArray
-            res.activeParameter <- float (o.Data.CurrentParameter)
-            res.activeSignature <-
-                sigs
-                |> Seq.sortBy (fun n -> n.parameters.Count)
-                |> Seq.findIndex (fun s -> s.parameters.Count >= o.Data.CurrentParameter )
-                |> (+) 1
-                |> float
-            res.signatures <- sigs
+            if isNotNull o then
+                let sigs = o.Data.Overloads |> Array.choose (fun c ->
+                    try
+                        let tip = c.Tip.[0].[0]
+                        let signature = SignatureInformation (tip.Signature, tip.Comment)
+                        c.Parameters |> Array.iter (fun p ->
+                            let parameter = ParameterInformation (p.Name, p.CanonicalTypeTextForSorting)
+                            signature.parameters.Add (parameter )
+                            |> ignore
+                        )
+                        Some signature
+                    with
+                    | e -> None) |> ResizeArray
+                res.activeParameter <- float (o.Data.CurrentParameter)
+                res.activeSignature <-
+                    sigs
+                    |> Seq.sortBy (fun n -> n.parameters.Count)
+                    |> Seq.findIndex (fun s -> s.parameters.Count >= o.Data.CurrentParameter )
+                    |> (+) 1
+                    |> float
+                res.signatures <- sigs
             res
 
         { new SignatureHelpProvider

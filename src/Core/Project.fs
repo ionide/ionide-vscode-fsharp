@@ -78,7 +78,8 @@ module Project =
     let load (path:string) =
         LanguageService.project path
         |> Promise.onSuccess (fun (pr:ProjectResult) ->
-            loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add)
+            if isNotNull pr then
+                loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add)
 
     let tryFindLoadedProject (path:string) =
          loadedProjects.TryFind (path.ToUpperInvariant ())

@@ -68,13 +68,14 @@ module Errors =
         | Document.FSharp ->
             promise {
                 let! (res : ParseResult) = LanguageService.parseProjects doc.fileName
-                let (_,mapped) = res |> mapResult
-                currentDiagnostic.clear ()
-                mapped
-                |> Seq.groupBy snd
-                |> Seq.iter (fun (fn, errors) ->
-                    let errs = errors |> Seq.map fst |> ResizeArray
-                    currentDiagnostic.set(Uri.file fn, errs) )
+                if isNotNull res then
+                    let (_,mapped) = res |> mapResult
+                    currentDiagnostic.clear ()
+                    mapped
+                    |> Seq.groupBy snd
+                    |> Seq.iter (fun (fn, errors) ->
+                        let errs = errors |> Seq.map fst |> ResizeArray
+                        currentDiagnostic.set(Uri.file fn, errs) )
             }
         | _ -> Promise.empty
 
