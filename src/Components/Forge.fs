@@ -46,7 +46,10 @@ module Forge =
         |> ResizeArray
 
     let private quotePath (path : string) =
-        if path.Contains " " then "\"" + path + "\"" else path
+        if JS.isDefined path then
+            if path.Contains " " then "\"" + path + "\"" else path
+        else
+            path
 
     let onFsFileCreateHandler (uri : Uri) =
         if "FSharp.automaticProjectModification" |> Configuration.get false then sprintf "add file -n %s" uri.fsPath |> spawnForge |> ignore
@@ -91,7 +94,7 @@ module Forge =
 
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "Reference"
-                let! name = window.showInputBox(opts)
+                let! name = window.showInputBox(opts) |> Promise.map quotePath
                 if JS.isDefined name && JS.isDefined edit then
                     sprintf "add reference -n %s -p %s" name edit |> spawnForge |> ignore }
 
@@ -111,7 +114,7 @@ module Forge =
                 if n.Count <> 0 then
                     let opts = createEmpty<QuickPickOptions>
                     opts.placeHolder <- Some "Reference"
-                    let! ref = window.showQuickPick(n |> Case1,opts)
+                    let! ref = window.showQuickPick(n |> Case1,opts) |> Promise.map quotePath
                     if JS.isDefined ref && JS.isDefined edit then
                         sprintf "remove reference -n %s -p %s" ref edit |> spawnForge |> ignore }
 
