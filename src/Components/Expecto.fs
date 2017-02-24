@@ -162,7 +162,7 @@ module Expecto =
                 let line = split.[leng-1]
                 fn,line)
             >> Array.groupBy (fst)
-            >> Array.map (fun (k,vals) -> Uri.file k, vals |> Array.map (fun (_, line) -> Range(float line - 1., 0., float line - 1., 0. )))
+            >> Array.map (fun (k,vals) -> Uri.file k, vals |> Array.choose (fun (_, line) -> if int line > 1 then Some <| Range(float line - 1., 0., float line - 1., 0. ) else None))
 
         let get fn data  =
             try
@@ -231,7 +231,8 @@ module Expecto =
         let args = if getDebug () then args + " --debug" else args
         let args = if getVersion () then args + " --version" else args
         let args = if getFailOnFocusedTests () then args + " --fail-on-focused-tests" else args
-        let args = getCustomArgs() + " " + args
+        let customArgs = getCustomArgs ()
+        let args = if customArgs <> "" then customArgs + " " + args else args
 
 
         buildExpectoProjects watchMode
