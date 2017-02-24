@@ -1,3 +1,9 @@
+### 2.23.4 - 23.02.2017
+* Update FSAC - FCS11
+* Normalize paths for Forge... again
+* Fix `missing command` CodeLens bug
+
+
 ### 2.23.3 - 23.02.2017
 * Normalize paths for Forge
 
