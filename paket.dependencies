@@ -1,10 +1,10 @@
 framework: net45
 source https://nuget.org/api/v2
 
-git https://github.com/ionide/FsAutoComplete.git fcs10 build:"build.cmd LocalRelease", OS: windows
+git https://github.com/ionide/FsAutoComplete.git master build:"build.cmd LocalRelease", OS: windows
 git https://github.com/fsharp-editing/Forge.git master build:"build.cmd Build", OS: windows
 
-git https://github.com/ionide/FsAutoComplete.git fcs10 build:"build.sh LocalRelease", OS: mono
+git https://github.com/ionide/FsAutoComplete.git master build:"build.sh LocalRelease", OS: mono
 git https://github.com/fsharp-editing/Forge.git master build:"build.sh Build", OS: mono
 
 git https://github.com/ionide/ionide-fsgrammar.git
