@@ -122,13 +122,10 @@ module CodeLens =
                             window.activeTextEditor.document.fileName
                             (int codeLens.range.start.line + 1)
                             (int codeLens.range.start.character + 1)
-                    if isNotNull signaturesResult then
-                        let cmd = createEmpty<Command>
-                        cmd.title <- if isNotNull signaturesResult then formatSignature signaturesResult.Data else ""
-                        codeLens.command <- cmd
-                        return codeLens
-                    else
-                        return codeLens
+                    let cmd = createEmpty<Command>
+                    cmd.title <- if isNotNull signaturesResult then formatSignature signaturesResult.Data else ""
+                    codeLens.command <- cmd
+                    return codeLens
 
                 } |> Case2
 
