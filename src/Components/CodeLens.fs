@@ -139,9 +139,10 @@ module CodeLens =
         ()
 
     let private fileOpenedHandler (event : TextEditor) =
-        changes <- []
-        version <- unbox event.document.version
-        flag <- true
+        if isNotNull event then
+            changes <- []
+            version <- unbox event.document.version
+            flag <- true
         ()
 
     let activate selector (disposables: Disposable[]) =
