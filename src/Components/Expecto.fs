@@ -128,7 +128,11 @@ module Expecto =
     let failedDecorationType =
         let opt = createEmpty<DecorationRenderOptions>
         let file = "testFailed.png"
-        let path =  (VSCode.getPluginPath "Ionide.ionide-fsharp") + "/images/" + file |> Uri.file
+        let path =
+            try
+                (VSCode.getPluginPath "Ionide.ionide-fsharp") + "/images/" + file |> Uri.file
+            with
+            | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
         opt.gutterIconPath <- unbox path
         opt.overviewRulerLane <- Some OverviewRulerLane.Full
         opt.overviewRulerColor <- Some "rgba(224, 64, 6, 0.7)"
@@ -137,7 +141,11 @@ module Expecto =
     let passedDecorationType =
         let opt = createEmpty<DecorationRenderOptions>
         let file = "testPassed.png"
-        let path =  (VSCode.getPluginPath "Ionide.ionide-fsharp") + "/images/" + file |> Uri.file
+        let path =
+            try
+                (VSCode.getPluginPath "Ionide.ionide-fsharp") + "/images/" + file |> Uri.file
+            with
+            | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
         opt.gutterIconPath <- unbox path
         opt.overviewRulerLane <- Some OverviewRulerLane.Full
         opt.overviewRulerColor <- Some "rgba(166, 215, 133, 0.7)"
@@ -146,7 +154,11 @@ module Expecto =
     let ignoredDecorationType =
         let opt = createEmpty<DecorationRenderOptions>
         let file = "testIgnored.png"
-        let path =  (VSCode.getPluginPath "Ionide.ionide-fsharp") + "/images/" + file |> Uri.file
+        let path =
+            try
+                (VSCode.getPluginPath "Ionide.ionide-fsharp") + "/images/" + file |> Uri.file
+            with
+            | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
         opt.gutterIconPath <- unbox path
         opt.overviewRulerLane <- Some OverviewRulerLane.Full
         opt.overviewRulerColor <- Some "rgba(255, 188, 64, 0.7)"

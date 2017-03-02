@@ -308,7 +308,12 @@ module LanguageService =
 
 
     let start () =
-         let path = (VSCode.getPluginPath "Ionide.ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
+         let path =
+            try
+                (VSCode.getPluginPath "Ionide.ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
+            with
+            | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
+
          start' path
 
     let stop () =
