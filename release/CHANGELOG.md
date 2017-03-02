@@ -1,4 +1,7 @@
-### 2.23.6 - 24.02.2017
+### 2.23.7 - 02.03.2017
+* Handle both cases in `getPluginPath`
+
+### 2.23.6 - 02.03.2017
 * Breaking change in getPluginPath
 
 ### 2.23.5 - 24.02.2017
