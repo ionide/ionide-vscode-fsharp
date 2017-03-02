@@ -21,8 +21,8 @@ module Forge =
         then a + @"\" + b
         else a + "/" + b
 
-    let private location = (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "bin_forge" </> "Forge.exe"
-    let private templateLocation = (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "templates" </> "templates.json"
+    let private location = (VSCode.getPluginPath "Ionide.ionide-fsharp") </> "bin_forge" </> "Forge.exe"
+    let private templateLocation = (VSCode.getPluginPath "Ionide.ionide-fsharp") </> "templates" </> "templates.json"
     let outputChannel = window.createOutputChannel "Forge"
 
     let private spawnForge (cmd : string) =
