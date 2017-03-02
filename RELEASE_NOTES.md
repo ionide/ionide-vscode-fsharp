@@ -1,3 +1,6 @@
+### 2.23.6 - 24.02.2017
+* Breaking change in getPluginPath
+
 ### 2.23.5 - 24.02.2017
 * Fix bugs in Expecto integration
 
