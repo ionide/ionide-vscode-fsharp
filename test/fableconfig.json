@@ -1,9 +1,0 @@
-{
-    "projFile": "Ionide.FSharp.Test.fsproj",
-    "outDir": "../release_test",
-    "module": "commonjs",
-    "plugins": ["node_modules/fable-plugins-nunit/Fable.Plugins.NUnit.dll"],
-    "refs": {
-        "Ionide.FSharp": "../src/Ionide.FSharp"
-    }
-}

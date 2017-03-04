@@ -50,19 +50,18 @@ let run cmd args dir =
 
 
 let platformTool tool path =
-    isUnix |> function | true -> tool | _ -> path
+    isUnix |> function | true -> tool | _ -> path |> ProcessHelper.tryFindFileOnPath |> fun n -> n.Value
 
 let npmTool =
-    platformTool "npm" ("packages" </> "Npm.js" </> "tools"  </> "npm.cmd" |> FullName)
+    platformTool "npm"  "npm.cmd"
 
 let vsceTool =
-    platformTool "vsce" ("packages" </> "Node.js" </> "vsce.cmd" |> FullName)
+    platformTool "vsce" "vsce.cmd"
 
 let codeTool =
     platformTool "code" (ProgramFilesX86  </> "Microsoft VS Code" </> "bin/code.cmd")
 
 
-let releaseTestsBin = "release_test/bin"
 let releaseBin      = "release/bin"
 let fsacBin         = "paket-files/github.com/ionide/FsAutoComplete/bin/release"
 
@@ -81,26 +80,6 @@ Target "RunScript" (fun _ ->
     run npmTool "install" "release"
     run npmTool "run build" "release"
 )
-
-Target "CopyFSACToTests" (fun _ ->
-    ensureDirectory releaseTestsBin
-    CleanDir releaseTestsBin
-
-    !! (fsacBin + "/*")
-    |> CopyFiles releaseTestsBin
-)
-
-Target "BuildTest" (fun _ ->
-    run npmTool "install" "test"
-    run npmTool "run build" "test"
-)
-
-Target "RunTest" (fun _ ->
-    run npmTool "install" "release_test"
-    run npmTool "run test" "release_test"
-)
-
-
 
 Target "CopyFSAC" (fun _ ->
     ensureDirectory releaseBin
@@ -238,17 +217,10 @@ Target "ReleaseGitHub" (fun _ ->
 Target "Default" DoNothing
 Target "Build" DoNothing
 Target "Release" DoNothing
-Target "Test" DoNothing
 
 "Clean"
 ==> "RunScript"
 ==> "Default"
-
-"CopyFSACToTests"
-==> "BuildTest"
-==> "RunTest"
-==> "Test"
-//==> "BuildPackage"
 
 "Clean"
 ==> "RunScript"
