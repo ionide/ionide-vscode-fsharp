@@ -1,3 +1,6 @@
+### 2.23.8 - 04.03.2017
+* Update FSAC - FCS `11.0.4`
+
 ### 2.23.7 - 02.03.2017
 * Handle both cases in `getPluginPath`
 
