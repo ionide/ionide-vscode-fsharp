@@ -15,6 +15,8 @@ open Ionide.VSCode.Helpers
 module LanguageService =
     let ax =  Node.require.Invoke "axios" |>  unbox<Axios.AxiosStatic>
 
+    let devMode = false
+
     [<RequireQualifiedAccess>]
     type LogConfigSetting = None | Output | DevConsole | Both
     let logLanguageServiceRequestsConfigSetting =
@@ -75,7 +77,7 @@ module LanguageService =
         let r' = r * (8999. - 8100.) + 8100.
         r'.ToString().Substring(0,4)
 
-    let port = genPort ()
+    let port = if devMode then "8088" else genPort ()
     let private url fsacAction requestId = (sprintf "http://127.0.0.1:%s/%s?requestId=%i" port fsacAction requestId)
     let mutable private service : child_process_types.ChildProcess option =  None
     let mutable private socket : WebSocket option = None
@@ -314,7 +316,7 @@ module LanguageService =
             with
             | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
 
-         start' path
+         if devMode then Promise.empty else start' path
 
     let stop () =
         service |> Option.iter (fun n -> n.kill "SIGKILL")
