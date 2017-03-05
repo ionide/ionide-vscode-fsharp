@@ -1,3 +1,6 @@
+### 2.23.9 - 05.03.2017
+* Try to fix CodeLens cache... yet another time
+
 ### 2.23.8 - 04.03.2017
 * Update FSAC - FCS `11.0.4`
 

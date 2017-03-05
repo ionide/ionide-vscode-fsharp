@@ -232,7 +232,7 @@ Target "Release" DoNothing
 
 "Build"
 ==> "SetVersion"
-==> "InstallVSCE"
+// ==> "InstallVSCE"
 ==> "BuildPackage"
 ==> "ReleaseGitHub"
 ==> "PublishToGallery"
