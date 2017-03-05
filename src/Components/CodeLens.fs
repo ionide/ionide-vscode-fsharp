@@ -75,15 +75,19 @@ module CodeLens =
 
         { new CodeLensProvider with
             member __.provideCodeLenses(doc, _) =
+                // printf "[%d:%d:%d:%d] CodeLens - provide called" DateTime.Now.Hour DateTime.Now.Minute DateTime.Now.Second  DateTime.Now.Millisecond
                 promise {
                     let! data =
                         if flag then
                             promise {
                                 let! result = LanguageService.declarations doc.fileName version
-                                // printf "CodeLens - Result from FSAC"
                                 // printf "CodeLens - FileName: %s, Version: %d" doc.fileName version
                                 return
-                                    if isNotNull result then symbolsToCodeLens doc result.Data else [||]
+                                    if isNotNull result then
+                                        let res = symbolsToCodeLens doc result.Data
+                                        // printf "[%d:%d:%d:%d] CodeLens - Result from FSAC. %A" DateTime.Now.Hour DateTime.Now.Minute DateTime.Now.Second  DateTime.Now.Millisecond res
+                                        res
+                                    else [||]
                             }
                         else
                             Promise.lift [||]
@@ -95,9 +99,7 @@ module CodeLens =
                         else
                             let chngs = changes |>  List.choose (fun n -> let r = heightChange n in if r = 0 then None else Some (n.range.start.line, r) )
                             let fromCache = defaultArg (cache |> Map.tryFind doc.fileName) [||]
-                            // printf "CodeLens - Result from cache."
                             // printf "CodeLens - FileName: %s, Version: %d" doc.fileName version
-                            // printf "CodeLens - Chngs: %A" chngs
                             let res =
                                 fromCache
                                 |> Array.map (fun n ->
@@ -108,6 +110,10 @@ module CodeLens =
                                     n.range <- range
                                     n
                                 )
+                            // printf "[%d:%d:%d:%d] CodeLens - Result from cache. %A" DateTime.Now.Hour DateTime.Now.Minute DateTime.Now.Second  DateTime.Now.Millisecond res
+                            // printf "CodeLens - Chngs: %A" chngs
+                            cache <- cache |> Map.add doc.fileName res
+                            changes <- []
                             res
                     flag <- false
                     return ResizeArray d
@@ -134,8 +140,9 @@ module CodeLens =
 
     let private textChangedHandler (event : TextDocumentChangeEvent) =
         if isNotNull window.activeTextEditor && event.document.fileName = window.activeTextEditor.document.fileName  then
-            // printf "CodeLens - File changed."
+            // printf "[%d:%d:%d:%d] CodeLens - File changed." DateTime.Now.Hour DateTime.Now.Minute DateTime.Now.Second  DateTime.Now.Millisecond
             changes <- [yield! changes; yield! event.contentChanges]
+            refresh.fire(-1)
         ()
 
     let private fileOpenedHandler (event : TextEditor) =
@@ -146,7 +153,7 @@ module CodeLens =
         ()
 
     let activate selector (disposables: Disposable[]) =
-        refresh.event.Invoke(fun (n) -> version <- n; flag <- true; null) |> ignore
+        refresh.event.Invoke(fun (n) -> version <- n; flag <- n > 0; null) |> ignore
         workspace.onDidChangeTextDocument $ (textChangedHandler,(), disposables) |> ignore
         window.onDidChangeActiveTextEditor $ (fileOpenedHandler, (), disposables) |> ignore
 
