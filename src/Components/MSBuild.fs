@@ -14,19 +14,11 @@ module MSBuild =
     let private outputChannel = window.createOutputChannel "msbuild"
     let private logger = ConsoleAndOutputChannelLogger(Some "msbuild", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
 
-    let msbuildLocation =
-        let defaultLocation = "msbuild.exe"
-        let configured = Configuration.get defaultLocation "FSharp.msbuildLocation"
-        if configured <> defaultLocation && configured <> ""
-        then configured |> Promise.lift
-        else
-            Environment.msbuild |> Promise.map (fun envOption -> defaultArg envOption defaultLocation)
-
     let invokeMSBuild project target =
         let safeproject = sprintf "\"%s\"" project
         let command = sprintf "%s /t:%s" safeproject target
         promise {
-            let! msbuildPath = msbuildLocation
+            let! msbuildPath = Environment.msbuild
             logger.Debug("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
             Process.spawnWithNotification msbuildPath "" command outputChannel |> ignore
         } |> ignore
@@ -64,7 +56,7 @@ module MSBuild =
 
     let activate disposables =
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> ignore
-        msbuildLocation
+        Environment.msbuild
         |> Promise.map (fun p ->
             logger.Debug("MSBuild found at %s", p)
             logger.Debug("MSBuild activated")

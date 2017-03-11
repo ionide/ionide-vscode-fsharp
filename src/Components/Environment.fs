@@ -92,30 +92,33 @@ module Environment =
         |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None )
 
 
+    /// discover the path to msbuild by a) checking the user-specified configuration, and only if that's not present then try probing
     let msbuild =
-        if not isWin
-        then
-            let tools = [
-                "msbuild"
-                "xbuild"
-            ]
-
-            promise {
-                let! [msbuild; xbuild] = Promise.all (tools |> List.map tryGetTool) |> Promise.map Seq.toList
-                match msbuild, xbuild with
-                | Some m, _ -> return Some m
-                | _, Some x -> return Some x
-                | _, _ -> return None
-            }
-
-
+        let configured = Configuration.get "" "FSharp.msbuildLocation"
+        if configured <> ""
+        then configured |> Promise.lift
         else
-            let MSBuildPath =
-                [ (programFilesX86 </> @"\MSBuild\14.0\Bin")
-                  (programFilesX86 </> @"\MSBuild\12.0\Bin")
-                  (programFilesX86 </> @"\MSBuild\12.0\Bin\amd64")
-                  @"c:\Windows\Microsoft.NET\Framework\v4.0.30319\"
-                  @"c:\Windows\Microsoft.NET\Framework\v4.0.30128\"
-                  @"c:\Windows\Microsoft.NET\Framework\v3.5\" ]
+            if not isWin
+            then
+                let tools = [
+                    "msbuild"
+                    "xbuild"
+                ]
 
-            findFirstValidFilePath "MSBuild.exe" MSBuildPath |> Promise.lift
+                promise {
+                    let! [msbuild; xbuild] = Promise.all (tools |> List.map tryGetTool) |> Promise.map Seq.toList
+                    match msbuild, xbuild with
+                    | Some m, _ -> return m
+                    | _, Some x -> return x
+                    | _, _ -> return "xbuild" // at this point nothing really matters because we don't have a sane default at all :(
+                }
+            else
+                let MSBuildPath =
+                    [ (programFilesX86 </> @"\MSBuild\14.0\Bin")
+                      (programFilesX86 </> @"\MSBuild\12.0\Bin")
+                      (programFilesX86 </> @"\MSBuild\12.0\Bin\amd64")
+                      @"c:\Windows\Microsoft.NET\Framework\v4.0.30319\"
+                      @"c:\Windows\Microsoft.NET\Framework\v4.0.30128\"
+                      @"c:\Windows\Microsoft.NET\Framework\v3.5\" ]
+
+                defaultArg (findFirstValidFilePath "MSBuild.exe" MSBuildPath) "msbuild.exe" |> Promise.lift

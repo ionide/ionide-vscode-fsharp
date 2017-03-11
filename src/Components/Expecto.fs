@@ -218,8 +218,7 @@ module Expecto =
         |> List.map(fun proj ->
             let path = proj.Project
             promise {
-                let! envmsbuild = Environment.msbuild
-                let msbuild = defaultArg envmsbuild "xbuild"
+                let! msbuild = Environment.msbuild
                 logger.Debug ("%s %s", msbuild, path)
                 return! Process.spawnWithNotification msbuild "" path outputChannel
                 |> Process.toPromise
