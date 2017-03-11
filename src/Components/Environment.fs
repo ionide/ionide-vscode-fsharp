@@ -10,6 +10,7 @@ module Environment =
     open Fable.Import.vscode
     open Fable.Import.Node
     open Fable.Import.Node.fs_types
+    open Ionide.VSCode.Helpers
 
     let isWin = ``process``.platform = "win32"
 
@@ -81,8 +82,33 @@ module Environment =
         | None -> fileName
         | Some x -> x
 
+    // because the buffers from console output contain newlines, we need to trim them out if we want to have usable path inputs
+    let spawnAndGetTrimmedOutput location linuxCmd command =
+        Process.exec location linuxCmd command
+        |> Promise.map (fun (err, stdoutBuf, stderrBuf) -> err, stdoutBuf |> string |> String.trim, stderrBuf |> string |> String.trim )
+
+    let tryGetTool toolName =
+        spawnAndGetTrimmedOutput "which" "" toolName
+        |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None )
+
+
     let msbuild =
-        if not isWin then Some "xbuild"
+        if not isWin
+        then
+            let tools = [
+                "msbuild"
+                "xbuild"
+            ]
+
+            promise {
+                let! [msbuild; xbuild] = Promise.all (tools |> List.map tryGetTool) |> Promise.map Seq.toList
+                match msbuild, xbuild with
+                | Some m, _ -> return Some m
+                | _, Some x -> return Some x
+                | _, _ -> return None
+            }
+
+
         else
             let MSBuildPath =
                 [ (programFilesX86 </> @"\MSBuild\14.0\Bin")
@@ -92,4 +118,4 @@ module Environment =
                   @"c:\Windows\Microsoft.NET\Framework\v4.0.30128\"
                   @"c:\Windows\Microsoft.NET\Framework\v3.5\" ]
 
-            findFirstValidFilePath "MSBuild.exe" MSBuildPath
+            findFirstValidFilePath "MSBuild.exe" MSBuildPath |> Promise.lift
