@@ -217,11 +217,14 @@ module Expecto =
         getExpectoProjects ()
         |> List.map(fun proj ->
             let path = proj.Project
-            let msbuild = defaultArg Environment.msbuild "xbuild"
-            logger.Debug ("%s %s", msbuild, path)
-
-            Process.spawnWithNotification msbuild "" path outputChannel
-            |> Process.toPromise)
+            promise {
+                let! envmsbuild = Environment.msbuild
+                let msbuild = defaultArg envmsbuild "xbuild"
+                logger.Debug ("%s %s", msbuild, path)
+                return! Process.spawnWithNotification msbuild "" path outputChannel
+                |> Process.toPromise
+            }
+        )
         |> Promise.all
         |> Promise.bind (fun codes ->
             if codes |> Seq.exists ((<>) "0") then
