@@ -20,11 +20,15 @@ module Project =
         let rec findFsProj dir =
             if fs.lstatSync(dir).isDirectory() then
                 let files = fs.readdirSync dir
-                let projfile = files |> Seq.tryFind(fun s -> s.EndsWith(".fsproj") || s.EndsWith "project.json")
+                let projfile = files |> Seq.tryFind(fun s -> s.EndsWith(".fsproj"))
                 match projfile with
                 | None ->
-                    let parent = if dir.LastIndexOf(path.sep) > 0 then dir.Substring(0, dir.LastIndexOf path.sep) else ""
-                    if System.String.IsNullOrEmpty parent then None else findFsProj parent
+                    let projfile = files |> Seq.tryFind(fun s -> s.EndsWith "project.json")
+                    match projfile with
+                    | None ->
+                        let parent = if dir.LastIndexOf(path.sep) > 0 then dir.Substring(0, dir.LastIndexOf path.sep) else ""
+                        if System.String.IsNullOrEmpty parent then None else findFsProj parent
+                    | Some p -> dir + path.sep + p |> Some
                 | Some p -> dir + path.sep + p |> Some
             else None
 
