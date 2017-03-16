@@ -1,3 +1,6 @@
+### 2.24.1 - 16.03.2017
+* Add more MsBuild config - keybord shortcut, and autoshow output panel
+
 ### 2.24.0 - 15.03.2017
 * Fix MsBuild integration on *nix
 * Handle `.fsi` files
