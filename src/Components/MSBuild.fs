@@ -15,12 +15,17 @@ module MSBuild =
     let private logger = ConsoleAndOutputChannelLogger(Some "msbuild", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
 
     let invokeMSBuild project target =
+        let autoshow =
+            let cfg = vscode.workspace.getConfiguration()
+            cfg.get ("FSharp.msbuildAutoshow", true)
+
         let safeproject = sprintf "\"%s\"" project
         let command = sprintf "%s /t:%s" safeproject target
         promise {
             let! msbuildPath = Environment.msbuild
             logger.Debug("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
             Process.spawnWithNotification msbuildPath "" command outputChannel |> ignore
+            if autoshow then outputChannel.show()
         } |> ignore
 
 

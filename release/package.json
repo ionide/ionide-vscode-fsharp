@@ -259,6 +259,11 @@
         "command": "FSharp.getHelp",
         "key": "shift+F1",
         "when": "editorFocus && editorLangId == 'fsharp'"
+      },
+      {
+        "command": "MSBuild.buildCurrent",
+        "key": "ctrl+alt+b",
+        "when": "editorFocus && editorLangId == 'fsharp'"
       }
     ],
     "configuration": {
@@ -360,12 +365,17 @@
         "Expecto.autoshow": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically shows Expecto output panle"
+          "description": "Automatically shows Expecto output panel"
         },
         "FSharp.msbuildLocation": {
           "type":"string",
           "default":"",
           "description": "Use a specific version of msbuild to build this project."
+        },
+        "FSharp.msbuildAutoshow": {
+          "type":"boolean",
+          "default":true,
+          "description": "Automatically shows Expecto output panel"
         },
         "FSharp.resolveNamespaces": {
           "type":"boolean",
