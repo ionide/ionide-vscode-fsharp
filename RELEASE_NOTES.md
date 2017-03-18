@@ -1,3 +1,9 @@
+### 2.25.0 - 16.03.2017
+* Update FSAC
+* Support for latest fsproj
+* Try to fix "crashing tooltips and autocomplete" bug
+* Format error notes for tooltip/healtext
+
 ### 2.24.1 - 16.03.2017
 * Add more MsBuild config - keybord shortcut, and autoshow output panel
 
