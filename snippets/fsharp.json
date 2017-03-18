@@ -113,7 +113,7 @@
     "Array reduce": {
         "prefix": "reduceA",
         "body": [
-            "Array.reduce (fun ${1:x} -> $2) $3"
+            "Array.reduce (fun ${1:accumulator} ${2:element} -> $3) $4"
         ],
         "description": "Array reduce"
     },
@@ -141,7 +141,7 @@
     "List reduce": {
         "prefix": "reduceL",
         "body": [
-            "List.reduce (fun ${1:x} -> $2) $3"
+            "List.reduce (fun ${1:accumulator} ${2:element} -> $3) $4"
         ],
         "description": "List reduce"
     },
@@ -169,7 +169,7 @@
     "Set reduce": {
         "prefix": "reduceS",
         "body": [
-            "Set.reduce (fun ${1:x} -> $2) $3"
+            "Set.reduce (fun ${1:accumulator} ${2:element} -> $3) $4"
         ],
         "description": "Set reduce"
     },
