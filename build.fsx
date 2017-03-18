@@ -224,7 +224,7 @@ Target "Release" DoNothing
 
 "Clean"
 ==> "RunScript"
-// ==> "CopyFSAC"
+==> "CopyFSAC"
 ==> "CopyForge"
 ==> "CopyGrammar"
 ==> "CopySchemas"
