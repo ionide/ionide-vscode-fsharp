@@ -32,7 +32,7 @@
   "engines": {
     "vscode": "^0.10.0"
   },
-  "main": "./fsharp",
+  "main": "./src/fsharp",
   "contributes": {
     "languages": [
       {
@@ -50,6 +50,10 @@
         "configuration": "./language-configuration.json"
       }
     ],
+    "snippets": [{
+        "language": "fsharp",
+        "path": "./snippets/fsharp.json"
+    }],
     "grammars": [
       {
         "language": "fsharp",
@@ -424,13 +428,13 @@
   },
   "dependencies": {
     "axios": "*",
-    "fable-core": "0.6.x",
+    "fable-core": "0.7.x",
     "toml": "*",
     "ws": "*",
     "xhr2": "*"
   },
   "devDependencies": {
-    "fable-compiler": "0.6.x",
+    "fable-compiler": "0.7.x",
     "mocha": "*",
     "vscode": "*"
   }

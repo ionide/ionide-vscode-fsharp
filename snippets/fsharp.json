@@ -1,0 +1,184 @@
+{
+    "Lambda function": {
+        "prefix": "fx",
+        "body": [
+            "(fun ${1:x} -> $2) $0"
+        ],
+        "description": "Lamba function"
+    },
+	
+	// Surround width snippets
+    "Surround with If": {
+        "prefix": "surroundIf",
+        "body": [
+            "if ${1:x} then",
+			"\t${TM_SELECTED_TEXT}",
+			"\t$0"
+        ],
+        "description": "Surround selected expression with if"
+    },
+    "Surround with Try": {
+        "prefix": "surroundTry",
+        "body": [
+            "try",
+			"\t${TM_SELECTED_TEXT}",
+			"with",
+			"| ${1::? Exception as ex} -> ${0:None} "
+        ],
+        "description": "Surround selected expression with try..with"
+    },
+
+	// Iterations
+    "For .. in": {
+        "prefix": "forIn",
+        "body": [
+            "for ${1:element} in ${2:collection} do",
+			"\t$3"
+        ],
+        "description": "Iteration using for..in"
+    },
+    "For .. to": {
+        "prefix": "forTo",
+        "body": [
+            "for ${1:index} to ${2:number} do",
+			"\t$3"	
+        ],
+        "description": "Iteration using for..to"
+    },
+    "While": {
+        "prefix": "while",
+        "body": [
+            "while ${1:text-expression} do",
+			"\t$3"
+        ],
+        "description": "Iteration using while..do"
+    },
+	
+	// Conditional snippets
+    "Match": {
+        "prefix": "match",
+        "body": [
+            "match ${1:test-expression} with",
+			"| ${2:_} -> ${3:None}"
+        ],
+        "description": "Match expression"
+    },
+    "If": {
+        "prefix": "if",
+        "body": [
+            "if ${1:test-expression} then",
+			"\t$2"
+        ],
+        "description": "if..then expression"
+    },
+    "If else": {
+        "prefix": "ifElse",
+        "body": [
+            "if ${1:test-expression} then",
+			"\t$2",
+			"else ${3:None}"
+        ],
+        "description": "if..then..else expression"
+    },
+    "If inline": {
+        "prefix": "ifInline",
+        "body": [
+            "if ${1:test-expression} then $2"
+        ],
+        "description": "Inline if..then expression"
+    },
+    "If else inline": {
+        "prefix": "ifElseInline",
+        "body": [
+            "if ${1:test-expression} then $2 else ${3:None}"
+        ],
+        "description": "Inline if..then..else expression"
+    },
+
+	// Collection snippets
+    "Array map": {
+        "prefix": "mapA",
+        "body": [
+            "Array.map (fun ${1:x} -> $2) $3"
+        ],
+        "description": "Array map"
+    },
+	"Array choose": {
+        "prefix": "chooseA",
+        "body": [
+            "Array.choose (fun ${1:x} -> ${2:None}) $3"
+        ],
+        "description": "Array choose"
+    },
+    "Array reduce": {
+        "prefix": "reduceA",
+        "body": [
+            "Array.reduce (fun ${1:x} -> $2) $3"
+        ],
+        "description": "Array reduce"
+    },
+    "Array filter": {
+        "prefix": "filterA",
+        "body": [
+            "Array.filter (fun ${1:x} -> $2) $3"
+        ],
+        "description": "Array filter"
+    },
+    "List map": {
+        "prefix": "mapL",
+        "body": [
+            "List.map (fun ${1:x} -> $2) $3"
+        ],
+        "description": "List map"
+    },
+    "List choose": {
+        "prefix": "chooseL",
+        "body": [
+            "List.choose (fun ${1:x} -> ${2:None}) $3"
+        ],
+        "description": "List choose"
+    },
+    "List reduce": {
+        "prefix": "reduceL",
+        "body": [
+            "List.reduce (fun ${1:x} -> $2) $3"
+        ],
+        "description": "List reduce"
+    },
+    "List filter": {
+        "prefix": "filterL",
+        "body": [
+            "List.filter (fun ${1:x} -> $2) $3"
+        ],
+        "description": "List filter"
+    },
+    "Set map": {
+        "prefix": "mapS",
+        "body": [
+            "Set.map (fun ${1:x} -> $2) $3"
+        ],
+        "description": "Set map"
+    },
+    "Set choose": {
+        "prefix": "chooseS",
+        "body": [
+            "Set.choose (fun ${1:x} -> ${2:None}) $3"
+        ],
+        "description": "Set choose"
+    },
+    "Set reduce": {
+        "prefix": "reduceS",
+        "body": [
+            "Set.reduce (fun ${1:x} -> $2) $3"
+        ],
+        "description": "Set reduce"
+    },
+    "Set filter": {
+        "prefix": "filterS",
+        "body": [
+            "Set.filter (fun ${1:x} -> $2) $3"
+        ],
+        "description": "Set filter"
+    }
+
+}
