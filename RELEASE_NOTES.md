@@ -1,4 +1,4 @@
-### 2.25.0 - 16.03.2017
+### 2.25.1 - 16.03.2017
 * Update FSAC
 * Support for latest fsproj
 * Try to fix "crashing tooltips and autocomplete" bug
