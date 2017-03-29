@@ -1,3 +1,6 @@
+### 2.25.3 - 29.03.2017
+* Update to latest FSAC - FCS12
+
 ### 2.25.2 - 16.03.2017
 * Update FSAC
 * Support for latest fsproj
