@@ -1,4 +1,4 @@
-### 2.25.6 - 31.03.2017
+### 2.25.7 - 31.03.2017
 * Update grammar
 * Update FSAC - reverse to FCS11
 * Update to latest FSAC - Fix `.fs` files without `.fsproj`
