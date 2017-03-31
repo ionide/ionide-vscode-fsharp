@@ -1,4 +1,5 @@
-### 2.25.4 - 31.03.2017
+### 2.25.5 - 31.03.2017
+* Update FSAC - reverse to FCS11
 * Update to latest FSAC - Fix `.fs` files without `.fsproj`
 
 ### 2.25.3 - 29.03.2017
