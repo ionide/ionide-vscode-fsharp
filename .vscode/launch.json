@@ -2,15 +2,30 @@
 {
 	"version": "0.2.0",
 	"configurations": [
+
 		{
-            "preLaunchTask": "Default",
-			"name": "Launch Extension",
+            // "preLaunchTask": "Default",
+			"name": "Extension",
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
 			"stopOnEntry": false,
+			"request": "launch"
+		},
+		{
+			"type": "node",
 			"request": "launch",
+			"name": "Server",
+			"cwd": "${workspaceRoot}/release",
+			"program": "${workspaceRoot}/release/debugger.js",
+			"args": [ "--server=4711" ],
 			"sourceMaps": false
+		}
+	],
+	"compounds": [
+		{
+			"name": "Extension and Server",
+			"configurations": [ "Extension", "Server" ]
 		}
 	]
 }

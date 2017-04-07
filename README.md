@@ -60,7 +60,8 @@ choco install visualstudiocode -y
 2. Run `build.cmd Build` (or `build.sh Build`). If you have not done so already you may need to configure a GitHub SSH key.
 3. Open folder in VSCode `code .`
 4. Make changes
-5. Press `F5` to build plugin and start experimental instance of VSCode
+5. Press `Ctrl+Shift+B` to build plugin
+5. Press `F5` start experimental instance of VSCode and debugger server
 6. Make PR ;)
 
 ## How to get logs for debugging / issue reporting

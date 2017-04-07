@@ -5,13 +5,15 @@ git https://github.com/ionide/FsAutoComplete.git master build:"build.cmd LocalRe
 git https://github.com/fsharp-editing/Forge.git master build:"build.cmd Build", OS: windows
 
 git https://github.com/ionide/FsAutoComplete.git master build:"build.sh LocalRelease", OS: mono
-git https://github.com/fsharp-editing/Forge.git master build:"build.sh Build", OS: mono
+git https://github.com/fsharp-editing/Forge.git master build:"build.cmd Build", OS: windows
+
 
 git https://github.com/ionide/ionide-fsgrammar.git
 
 nuget FAKE
 
 github fsharp/FAKE modules/Octokit/Octokit.fsx
+github Ionide/ionide-vscode-helpers Fable.Import.VSCodeDebugger.fs
 github Ionide/ionide-vscode-helpers Fable.Import.VSCode.fs
 github Ionide/ionide-vscode-helpers Helpers.fs
 github Ionide/ionide-vscode-helpers Fable.Import.Axios.fs

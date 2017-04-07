@@ -1,6 +1,6 @@
 {
   "name": "Ionide-fsharp",
-  "version": "2.25.7",
+  "version": "3.0.0-Antlia",
   "publisher": "Ionide",
   "contributors": [
     {
@@ -393,10 +393,64 @@
     "breakpoints": [
       {
         "language": "fsharp"
+      },
+      {
+        "language": "csharp"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "ionide",
+        "label": "Ionide Debug",
+
+        "program": "./debugger.js",
+        "runtime": "node",
+
+        "configurationSnippets": [
+          {
+            "label": "Ionide Debug: Launch",
+            "description": "A new configuration for launching a Ionide debuger program",
+            "body": {
+              "type": "ionide",
+              "request": "launch",
+              "name": "${2:Launch Program}",
+              "program": "^\"\\${workspaceRoot}/${1:Program}\""
+            }
+          }
+        ],
+
+        "configurationAttributes": {
+          "launch": {
+            "required": [ "program" ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to a text file.",
+                "default": "${workspaceRoot}/App.exe"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Automatically stop after launch.",
+                "default": true
+              }
+            }
+          },
+          "attach": {
+            "required": [ "program" ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "Absolute path to a text file.",
+                "default": "${workspaceRoot}/App.exe"
+              }
+            }
+          }
+        }
       }
     ]
   },
   "activationEvents": [
+    "onLanguage:csharp",
     "onLanguage:fsharp",
     "onCommand:fsi.Start",
     "onCommand:fsi.SendLine",
@@ -420,18 +474,23 @@
   ],
   "scripts": {
     "prebuild":"npm update",
-    "build": "fable ../src/Ionide.FSharp.fsproj -o ../release -m commonjs --verbose"
+    "debugger":"fable ../src/Debugger/Ionide.FSharp.Debugger.fsproj -o ../../release -m commonjs --verbose",
+    "extension": "fable ../src/Extension/Ionide.FSharp.Extension.fsproj -o ../../release -m commonjs --verbose",
+    "build": "concurrently \"npm run debugger \" \"npm run extension\" "
   },
   "dependencies": {
     "axios": "*",
     "fable-core": "0.6.x",
     "toml": "*",
     "ws": "*",
-    "xhr2": "*"
+    "xhr2": "*",
+    "vscode-debugprotocol": "^1.15.0",
+    "vscode-debugadapter": "^1.15.0"
   },
   "devDependencies": {
     "fable-compiler": "0.6.x",
     "mocha": "*",
-    "vscode": "*"
+    "vscode": "*",
+    "concurrently": "^2.1.0"
   }
 }

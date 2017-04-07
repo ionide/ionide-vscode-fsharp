@@ -1,3 +1,6 @@
+### 3.0.0-Antlia - 22.02.2017
+* Full Framework, Windows debugger for F#, VB and C#.
+
 ### 2.25.7 - 31.03.2017
 * Update grammar
 * Update FSAC - reverse to FCS11
