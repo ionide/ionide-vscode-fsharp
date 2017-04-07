@@ -37,7 +37,7 @@ module QuickFix =
     let private getSuggestions doc (diagnostics : Diagnostic seq) =
         diagnostics
         |> ifDiagnostic "Maybe you want one of the following:" (fun d ->
-            d.message.Split('\n').[2..]
+            d.message.Split('\n').[1..]
             |> Array.map (fun suggestion ->
                 let s = suggestion.Trim()
                 let tiltle = sprintf "Replace with %s" s
