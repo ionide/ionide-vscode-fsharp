@@ -1,3 +1,8 @@
+### 2.25.8 - 08.04.2017
+* Fix QuickFix for compiler messages
+* Done from train from Cambridge to London
+* Special thanks to Phillip, Marcus, Riccardo and Jay
+
 ### 2.25.7 - 31.03.2017
 * Update grammar
 * Update FSAC - reverse to FCS11
