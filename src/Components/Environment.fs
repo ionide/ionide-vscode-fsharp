@@ -45,6 +45,12 @@ module Environment =
             if detected = null then @"C:\Program Files (x86)\"
             else detected
 
+    // Always returns host program files folder
+    let private platformProgramFiles =
+        programFilesX86
+        |> String.replace " (x86)" ""
+        
+
     let private getToolsPathWindows () =
         [ "4.0"; "3.1"; "3.0" ]
         |> List.map (fun v -> programFilesX86 </> @"\Microsoft SDKs\F#\" </> v </> @"\Framework\v4.0")
@@ -122,3 +128,23 @@ module Environment =
                       @"c:\Windows\Microsoft.NET\Framework\v3.5\" ]
 
                 defaultArg (findFirstValidFilePath "MSBuild.exe" MSBuildPath) "msbuild.exe" |> Promise.lift
+    
+    let dotnet =
+        let configured = Configuration.get "" "FSharp.dotnetLocation"
+        if configured <> ""
+        then configured |> Promise.lift
+        else
+            if not isWin
+            then
+                promise {
+                    let! dotnet = tryGetTool "dotnet"
+                    match dotnet with
+                    | Some tool -> return tool
+                    | None -> return "dotnet" // at this point nothing really matters because we don't have a sane default at all :(
+                }
+            else
+                let dotnetPath =
+                    [ (platformProgramFiles </> @"dotnet")
+                      (programFilesX86 </> @"dotnet") ]
+
+                defaultArg (findFirstValidFilePath "dotnet.exe" dotnetPath) "dotnet.exe" |> Promise.lift
