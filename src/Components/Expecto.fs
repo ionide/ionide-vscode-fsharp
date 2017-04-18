@@ -62,8 +62,7 @@ module Expecto =
     let private getExpectoProjects () =
         Project.getLoaded ()
         |> Seq.where (fun p -> 
-            p.Project |> (String.endWith "tests.fsproj" )
-            || p.References |> List.exists (String.endWith "Expecto.dll" )  )
+            p.References |> List.exists ( String.endWith "Expecto.dll" )  )
         |> Seq.toList
 
     let execWithDotnet cmd =
