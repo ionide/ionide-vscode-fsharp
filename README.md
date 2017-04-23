@@ -21,6 +21,9 @@ The default location on Windows is
   64-bit - C:\Program Files (x86)\Microsoft SDKs\F#\4.0\Framework\v4.0\
   32-bit - C:\Program Files\Microsoft SDKs\F#\4.0\Framework\v4.0
 ```
+
+Add **MSBUILD_PATH** environment variable which points to the home of **Microsoft Build Tools**, e.g., `MSBUILD_PATH = D:\Program Files (x86)\MSBuild\14.0\Bin`.
+
 ## Quick Install Guide
 
 ### Windows
@@ -56,12 +59,13 @@ choco install visualstudiocode -y
 ## How to contribute
 
 0. Install nodejs. (On Windows via [chocolaty](https://chocolatey.org/packages/nodejs) this is `C:\> choco install nodejs`)
-1. Fork the repo to your GitHub account, then clone locally.
-2. Run `build.cmd Build` (or `build.sh Build`). If you have not done so already you may need to configure a GitHub SSH key.
-3. Open folder in VSCode `code .`
-4. Make changes
-5. Press `F5` to build plugin and start experimental instance of VSCode
-6. Make PR ;)
+1. Run `npm install -g vsce` to install **vsce** globally.
+2. Fork the repo to your GitHub account, then clone locally.
+3. Run `build.cmd Build` (or `build.sh Build`). If you have not done so already you may need to configure a GitHub SSH key.
+4. Open folder in VSCode `code .`
+5. Make changes
+6. Press `F5` to build plugin and start experimental instance of VSCode
+7. Make PR ;)
 
 ## How to get logs for debugging / issue reporting
 
