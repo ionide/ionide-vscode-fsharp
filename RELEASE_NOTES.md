@@ -1,3 +1,8 @@
+### 2.25.10 - 23.04.2017
+* Update FSAC
+* Expecto integration supports .Net Core
+
+
 ### 2.25.9 - 13.04.2017
 * Update FSAC
 
