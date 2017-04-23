@@ -1,6 +1,7 @@
 namespace Ionide.VSCode.FSharp
 
 open System
+open System.Text.RegularExpressions
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
@@ -17,6 +18,12 @@ module Expecto =
     let mutable private watcherEnabled = false
     let private statusBar = window.createStatusBarItem(2 |> unbox, 100.)
 
+    let private trySkip count seq = 
+        let mutable index = 0
+        seq
+        |> Seq.skipWhile (fun _ -> 
+            index <- index + 1
+            index <= count)
 
     let private getAutoshow () =
         let cfg = vscode.workspace.getConfiguration()
@@ -42,15 +49,46 @@ module Expecto =
         let cfg = vscode.workspace.getConfiguration()
         cfg.get ("Expecto.customArgs", "")
 
+    let private isANetCoreAppProject (project:Project) = 
+        let projectContent = (fs.readFileSync project.Project).ToString()
+        let netCoreTargets = 
+            [ "<TargetFramework>netcoreapp" ]
+
+        let findInProject (toFind:string) =
+            projectContent.IndexOf(toFind) >= 0
+        
+        netCoreTargets |> Seq.exists findInProject
+
     let private getExpectoProjects () =
         Project.getLoaded ()
-        |> Seq.where (fun p -> p.References |> List.exists (String.endWith "Expecto.dll" )  )
+        |> Seq.where (fun p -> 
+            p.References |> List.exists ( String.endWith "Expecto.dll" )  )
         |> Seq.toList
 
-    let private getExpectoExes () =
+    let execWithDotnet cmd =
+        promise {
+            let! dotnet = Environment.dotnet
+            logger.Debug ("%s %s", dotnet, cmd)
+            return Process.spawnWithNotification dotnet dotnet cmd outputChannel
+        }
+
+    let exec exe cmd =
+        promise {
+            return Process.spawnWithNotification exe "mono" cmd outputChannel
+        }
+
+    let private getExpectoLauncher () =
         getExpectoProjects ()
-        |> List.map (fun n -> n.Output)
-        |> List.where (String.endWith ".exe")
+        |> List.choose ( fun project -> 
+            let execDotnet = fun args -> 
+                let cmd = "run -p " + project.Project + " -- " + args
+                execWithDotnet cmd
+            match project.Output, isANetCoreAppProject project with
+            | null, true
+            | "null", true -> Some (execDotnet, project.Project)
+            | out, _ when out |> String.endWith ".exe" -> Some ((fun args -> exec out args), out)
+            | _ -> None
+        )
 
     let getFilesToWatch () =
         let projects = Project.getLoaded () |> Seq.toArray
@@ -71,18 +109,18 @@ module Expecto =
         |> List.distinct
         |> List.toArray
 
-    let private handleExpectoList (error : Error, stdout : Buffer, stderr : Buffer) =
-        if(stdout.toString() = "") then
+    let private handleExpectoList (output : string) =
+        if(output = "") then
             [||]
         else
-            stdout.toString().Split('\n')
+            output.Split('\n')
             |> Array.filter((<>) "")
             |> Array.map (fun n -> n.Trim())
 
     let parseTestSummaryRecord (n : string) =
         let split = n.Split ('[')
         let loc = split.[1] |> String.replace "]" ""
-        split.[0], loc
+        split.[0], loc    
 
     let private getFailed () =
         printfn "last output: %O" lastOutput
@@ -106,7 +144,7 @@ module Expecto =
             |> Seq.map(String.trim)
             |> Seq.skipWhile (not << String.startWith "Passed:")
             |> Seq.takeWhile (not << String.startWith "Ignored:")
-            |> Seq.skip 1
+            |> trySkip 1
             |> Seq.map (parseTestSummaryRecord)
         )
         |> Seq.map(fun (n,loc) -> if n.Contains " " then sprintf "\"%s\"" n,loc else n,loc)
@@ -119,7 +157,7 @@ module Expecto =
             |> Seq.map(String.trim)
             |> Seq.skipWhile (not << String.startWith "Ignored:")
             |> Seq.takeWhile (not << String.startWith "Failed:")
-            |> Seq.skip 1
+            |> trySkip 1
             |> Seq.map (parseTestSummaryRecord)
         )
         |> Seq.map(fun (n,loc) -> if n.Contains " " then sprintf "\"%s\"" n,loc else n,loc)
@@ -214,15 +252,28 @@ module Expecto =
         if getAutoshow () && not watchMode then outputChannel.show ()
         elif watchMode then statusBar.text <- "$(eye) Watch Mode - building"
 
-        getExpectoProjects ()
-        |> List.map(fun proj ->
-            let path = proj.Project
+        let buildWithMsbuild path = 
             promise {
                 let! msbuild = Environment.msbuild
                 logger.Debug ("%s %s", msbuild, path)
                 return! Process.spawnWithNotification msbuild "" path outputChannel
                 |> Process.toPromise
             }
+        
+        let buildWithDotnet path = 
+            promise {
+                let! childProcess = execWithDotnet ("build " + path)
+                return!
+                    childProcess
+                    |> Process.toPromise
+            }
+        
+        getExpectoProjects ()
+        |> List.map(fun proj ->
+            let path = proj.Project
+            match isANetCoreAppProject proj with
+            | true -> buildWithDotnet path
+            | false -> buildWithMsbuild path
         )
         |> Promise.all
         |> Promise.bind (fun codes ->
@@ -253,13 +304,16 @@ module Expecto =
         |> Promise.bind (fun res ->
             if res then
                 lastOutput.Clear()
-                getExpectoExes ()
-                |> List.map(fun exe ->
-                    logger.Debug ("%s %s", exe, args)
+                getExpectoLauncher ()
+                |> List.map(fun (executor,exe) ->
                     lastOutput.[exe] <- ""
-                    Process.spawnWithNotificationInDir exe "mono" args outputChannel
-                    |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
-                    |> Process.toPromise)
+                    promise {
+                        let! childProcess = executor args
+                        return!
+                            childProcess
+                            |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
+                            |> Process.toPromise
+                    })
                 |> Promise.all
                 |> Promise.bind (fun codes ->
                     setDecorations ()
@@ -284,12 +338,19 @@ module Expecto =
         buildExpectoProjects false
         |> Promise.bind (fun res ->
             if res then
-                getExpectoExes ()
-                |> List.map (fun exe ->
-                    Process.exec exe "mono" "--list-tests"
-                )
+                getExpectoLauncher ()
+                |> List.map(fun (executor,exe) -> 
+                    lastOutput.[exe] <- ""
+                    promise { 
+                        let! childProcess = executor "--list-tests"
+                        return! 
+                            childProcess
+                            |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
+                            |> Process.toPromise
+                            |> Promise.map (fun res -> res, exe)
+                    })
                 |> Promise.all
-                |> Promise.map (Seq.collect (handleExpectoList) >> ResizeArray)
+                |> Promise.map (Seq.collect (fun (res, exe) -> lastOutput.[exe] |> handleExpectoList) >> ResizeArray)
             else
                 Promise.lift (ResizeArray()))
 
