@@ -15,7 +15,7 @@ open Ionide.VSCode.Helpers
 module LanguageService =
     let ax =  Node.require.Invoke "axios" |>  unbox<Axios.AxiosStatic>
 
-    let devMode = false
+    let devMode = true
 
     [<RequireQualifiedAccess>]
     type LogConfigSetting = None | Output | DevConsole | Both

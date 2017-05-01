@@ -19,15 +19,23 @@ module MSBuild =
             let cfg = vscode.workspace.getConfiguration()
             cfg.get ("FSharp.msbuildAutoshow", true)
 
-        let safeproject = sprintf "\"%s\"" project
-        let command = sprintf "%s /t:%s" safeproject target
-        promise {
-            let! msbuildPath = Environment.msbuild
-            logger.Debug("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
-            Process.spawnWithNotification msbuildPath "" command outputChannel |> ignore
-            if autoshow then outputChannel.show()
-        } |> ignore
-
+        let safeproject = sprintf "\"%s\"" project.Project
+        if Project.isANetCoreAppProject project
+        then
+            promise {
+                let! dotnetPath = Environment.dotnet
+                let command = sprintf "build %s /t:%s" safeproject target
+                logger.Debug("invoking dotnet msbuild from %s on %s for target %s", dotnetPath, safeproject, target)
+                Process.spawnWithNotification dotnetPath "" command outputChannel |> ignore
+            } |> ignore
+        else
+            promise {
+                let! msbuildPath = Environment.msbuild
+                let command = sprintf "%s /t:%s" safeproject target
+                logger.Debug("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
+                Process.spawnWithNotification msbuildPath "" command outputChannel |> ignore
+            } |> ignore
+        if autoshow then outputChannel.show()
 
     /// discovers the project that the active document belongs to and builds that
     let buildCurrentProject target =
@@ -38,7 +46,7 @@ module MSBuild =
             match currentProject with
             | Some p ->
                 logger.Debug("found project %s", p.Project)
-                invokeMSBuild p.Project target
+                invokeMSBuild p target
             | None ->
                 logger.Debug("could not find a project that contained the file %s", window.activeTextEditor.document.fileName)
                 ()
@@ -56,7 +64,11 @@ module MSBuild =
                 logger.Debug("user chose project %s", chosen)
                 if JS.isDefined chosen
                 then
-                    invokeMSBuild chosen target
+                    match Project.tryFindLoadedProject chosen with
+                    | Some project ->
+                        invokeMSBuild project target
+                    | None ->
+                        logger.Error("Could not find project %s that the user chose", chosen)
         }
 
     let activate disposables =
