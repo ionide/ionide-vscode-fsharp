@@ -16,6 +16,16 @@ module Project =
     let private emptyProjectsMap = Map<ProjectFilePath,Project> []
     let mutable private loadedProjects = emptyProjectsMap
 
+    let isANetCoreAppProject (project:Project) =
+        let projectContent = (fs.readFileSync project.Project).ToString()
+        let netCoreTargets =
+            [ "<TargetFramework>netcoreapp" ]
+
+        let findInProject (toFind:string) =
+            projectContent.IndexOf(toFind) >= 0
+
+        netCoreTargets |> Seq.exists findInProject
+
     let find p =
         let rec findFsProj dir =
             if fs.lstatSync(dir).isDirectory() then

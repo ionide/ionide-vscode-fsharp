@@ -18,10 +18,10 @@ module Expecto =
     let mutable private watcherEnabled = false
     let private statusBar = window.createStatusBarItem(2 |> unbox, 100.)
 
-    let private trySkip count seq = 
+    let private trySkip count seq =
         let mutable index = 0
         seq
-        |> Seq.skipWhile (fun _ -> 
+        |> Seq.skipWhile (fun _ ->
             index <- index + 1
             index <= count)
 
@@ -49,19 +49,9 @@ module Expecto =
         let cfg = vscode.workspace.getConfiguration()
         cfg.get ("Expecto.customArgs", "")
 
-    let private isANetCoreAppProject (project:Project) = 
-        let projectContent = (fs.readFileSync project.Project).ToString()
-        let netCoreTargets = 
-            [ "<TargetFramework>netcoreapp" ]
-
-        let findInProject (toFind:string) =
-            projectContent.IndexOf(toFind) >= 0
-        
-        netCoreTargets |> Seq.exists findInProject
-
     let private getExpectoProjects () =
         Project.getLoaded ()
-        |> Seq.where (fun p -> 
+        |> Seq.where (fun p ->
             p.References |> List.exists ( String.endWith "Expecto.dll" )  )
         |> Seq.toList
 
@@ -79,11 +69,11 @@ module Expecto =
 
     let private getExpectoLauncher () =
         getExpectoProjects ()
-        |> List.choose ( fun project -> 
-            let execDotnet = fun args -> 
+        |> List.choose ( fun project ->
+            let execDotnet = fun args ->
                 let cmd = "run -p " + project.Project + " -- " + args
                 execWithDotnet cmd
-            match project.Output, isANetCoreAppProject project with
+            match project.Output, Project.isANetCoreAppProject project with
             | null, true
             | "null", true -> Some (execDotnet, project.Project)
             | out, _ when out |> String.endWith ".exe" -> Some ((fun args -> exec out args), out)
@@ -120,7 +110,7 @@ module Expecto =
     let parseTestSummaryRecord (n : string) =
         let split = n.Split ('[')
         let loc = split.[1] |> String.replace "]" ""
-        split.[0], loc    
+        split.[0], loc
 
     let private getFailed () =
         printfn "last output: %O" lastOutput
@@ -252,26 +242,26 @@ module Expecto =
         if getAutoshow () && not watchMode then outputChannel.show ()
         elif watchMode then statusBar.text <- "$(eye) Watch Mode - building"
 
-        let buildWithMsbuild path = 
+        let buildWithMsbuild path =
             promise {
                 let! msbuild = Environment.msbuild
                 logger.Debug ("%s %s", msbuild, path)
                 return! Process.spawnWithNotification msbuild "" path outputChannel
                 |> Process.toPromise
             }
-        
-        let buildWithDotnet path = 
+
+        let buildWithDotnet path =
             promise {
                 let! childProcess = execWithDotnet ("build " + path)
                 return!
                     childProcess
                     |> Process.toPromise
             }
-        
+
         getExpectoProjects ()
         |> List.map(fun proj ->
             let path = proj.Project
-            match isANetCoreAppProject proj with
+            match Project.isANetCoreAppProject proj with
             | true -> buildWithDotnet path
             | false -> buildWithMsbuild path
         )
@@ -339,11 +329,11 @@ module Expecto =
         |> Promise.bind (fun res ->
             if res then
                 getExpectoLauncher ()
-                |> List.map(fun (executor,exe) -> 
+                |> List.map(fun (executor,exe) ->
                     lastOutput.[exe] <- ""
-                    promise { 
+                    promise {
                         let! childProcess = executor "--list-tests"
-                        return! 
+                        return!
                             childProcess
                             |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
                             |> Process.toPromise
