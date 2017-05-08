@@ -1,3 +1,6 @@
+### 2.25.12 - 08.05.2017
+* FSI detection on Windows should support F# 4.1 FSI
+
 ### 2.25.11 - 04.05.2017
 * Update FSAC
 
