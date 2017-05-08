@@ -49,17 +49,17 @@ module Environment =
     let private platformProgramFiles =
         programFilesX86
         |> String.replace " (x86)" ""
-        
+
 
     let private getToolsPathWindows () =
-        [ "4.0"; "3.1"; "3.0" ]
+        [ "4.1"; "4.0"; "3.1"; "3.0" ]
         |> List.map (fun v -> programFilesX86 </> @"\Microsoft SDKs\F#\" </> v </> @"\Framework\v4.0")
         |> List.tryFind dirExists
 
     let private getToolsPathFromConfiguration () =
         let cfg = workspace.getConfiguration ()
         let path = cfg.get("FSharp.toolsDirPath", "")
-        if not (path = "") && dirExists path then Some path
+        if path <> "" && dirExists path then Some path
         else None
 
     let private getListDirectoriesToSearchForTools () =
@@ -128,7 +128,7 @@ module Environment =
                       @"c:\Windows\Microsoft.NET\Framework\v3.5\" ]
 
                 defaultArg (findFirstValidFilePath "MSBuild.exe" MSBuildPath) "msbuild.exe" |> Promise.lift
-    
+
     let dotnet =
         let configured = Configuration.get "" "FSharp.dotnetLocation"
         if configured <> ""
