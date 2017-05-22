@@ -1,3 +1,6 @@
+### 2.25.13 - 22.05.2017
+* Fix leak in Expecto Watch Mode
+
 ### 2.25.12 - 08.05.2017
 * FSI detection on Windows should support F# 4.1 FSI
 
