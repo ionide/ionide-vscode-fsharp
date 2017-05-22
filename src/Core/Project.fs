@@ -26,8 +26,11 @@ module Project =
                     let projfile = files |> Seq.tryFind(fun s -> s.EndsWith "project.json")
                     match projfile with
                     | None ->
-                        let parent = if dir.LastIndexOf(path.sep) > 0 then dir.Substring(0, dir.LastIndexOf path.sep) else ""
-                        if System.String.IsNullOrEmpty parent then None else findFsProj parent
+                        try
+                            let parent = if dir.LastIndexOf(path.sep) > 0 then dir.Substring(0, dir.LastIndexOf path.sep) else ""
+                            if System.String.IsNullOrEmpty parent then None else findFsProj parent
+                        with
+                        | _ -> None
                     | Some p -> dir + path.sep + p |> Some
                 | Some p -> dir + path.sep + p |> Some
             else None

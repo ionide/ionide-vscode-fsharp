@@ -18,10 +18,10 @@ module Expecto =
     let mutable private watcherEnabled = false
     let private statusBar = window.createStatusBarItem(2 |> unbox, 100.)
 
-    let private trySkip count seq = 
+    let private trySkip count seq =
         let mutable index = 0
         seq
-        |> Seq.skipWhile (fun _ -> 
+        |> Seq.skipWhile (fun _ ->
             index <- index + 1
             index <= count)
 
@@ -49,19 +49,19 @@ module Expecto =
         let cfg = vscode.workspace.getConfiguration()
         cfg.get ("Expecto.customArgs", "")
 
-    let private isANetCoreAppProject (project:Project) = 
+    let private isANetCoreAppProject (project:Project) =
         let projectContent = (fs.readFileSync project.Project).ToString()
-        let netCoreTargets = 
+        let netCoreTargets =
             [ "<TargetFramework>netcoreapp" ]
 
         let findInProject (toFind:string) =
             projectContent.IndexOf(toFind) >= 0
-        
+
         netCoreTargets |> Seq.exists findInProject
 
     let private getExpectoProjects () =
         Project.getLoaded ()
-        |> Seq.where (fun p -> 
+        |> Seq.where (fun p ->
             p.References |> List.exists ( String.endWith "Expecto.dll" )  )
         |> Seq.toList
 
@@ -79,8 +79,8 @@ module Expecto =
 
     let private getExpectoLauncher () =
         getExpectoProjects ()
-        |> List.choose ( fun project -> 
-            let execDotnet = fun args -> 
+        |> List.choose ( fun project ->
+            let execDotnet = fun args ->
                 let cmd = "run -p " + project.Project + " -- " + args
                 execWithDotnet cmd
             match project.Output, isANetCoreAppProject project with
@@ -120,7 +120,7 @@ module Expecto =
     let parseTestSummaryRecord (n : string) =
         let split = n.Split ('[')
         let loc = split.[1] |> String.replace "]" ""
-        split.[0], loc    
+        split.[0], loc
 
     let private getFailed () =
         printfn "last output: %O" lastOutput
@@ -205,12 +205,15 @@ module Expecto =
 
     let private setDecorations () =
         let transform =
-            Array.map ( fun (_, v) ->
-                let split = String.split [|':'|] v
-                let leng = Array.length split
-                let fn = split.[0 .. leng-2] |> String.concat ":"
-                let line = split.[leng-1]
-                fn,line)
+            Array.choose ( fun (_, v) ->
+                try
+                    let split = String.split [|':'|] v
+                    let leng = Array.length split
+                    let fn = split.[0 .. leng-2] |> String.concat ":"
+                    let line = split.[leng-1]
+                    Some (fn,line)
+                with
+                | _ -> None )
             >> Array.groupBy (fst)
             >> Array.map (fun (k,vals) -> Uri.file k, vals |> Array.choose (fun (_, line) -> if int line > 1 then Some <| Range(float line - 1., 0., float line - 1., 0. ) else None))
 
@@ -252,22 +255,22 @@ module Expecto =
         if getAutoshow () && not watchMode then outputChannel.show ()
         elif watchMode then statusBar.text <- "$(eye) Watch Mode - building"
 
-        let buildWithMsbuild path = 
+        let buildWithMsbuild path =
             promise {
                 let! msbuild = Environment.msbuild
                 logger.Debug ("%s %s", msbuild, path)
                 return! Process.spawnWithNotification msbuild "" path outputChannel
                 |> Process.toPromise
             }
-        
-        let buildWithDotnet path = 
+
+        let buildWithDotnet path =
             promise {
                 let! childProcess = execWithDotnet ("build " + path)
                 return!
                     childProcess
                     |> Process.toPromise
             }
-        
+
         getExpectoProjects ()
         |> List.map(fun proj ->
             let path = proj.Project
@@ -339,11 +342,11 @@ module Expecto =
         |> Promise.bind (fun res ->
             if res then
                 getExpectoLauncher ()
-                |> List.map(fun (executor,exe) -> 
+                |> List.map(fun (executor,exe) ->
                     lastOutput.[exe] <- ""
-                    promise { 
+                    promise {
                         let! childProcess = executor "--list-tests"
-                        return! 
+                        return!
                             childProcess
                             |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
                             |> Process.toPromise
@@ -391,15 +394,6 @@ module Expecto =
         |> sprintf "--run %s --summary-location"
         |> runExpecto false
 
-    let private startWatchMode () =
-        statusBar.text <- "$(eye) Watch Mode On"
-        watcherEnabled <- true
-        runAll true
-
-    let private stopWatchMode () =
-        statusBar.text <- "$(eye) Watch Mode Off"
-        watcherEnabled <- false
-
     let private onFileChanged (uri : Uri) =
         let files = getFilesToWatch ()
 
@@ -407,6 +401,24 @@ module Expecto =
             runAll true
         else
             Promise.empty
+
+    let mutable watcher = None
+
+    let private startWatchMode () =
+        let w = workspace.createFileSystemWatcher("**/*.fs")
+        watcher <- w |> Some
+        let _ = w.onDidChange $ onFileChanged
+        statusBar.text <- "$(eye) Watch Mode On"
+        watcherEnabled <- true
+        runAll true
+
+    let private stopWatchMode () =
+        watcher |> Option.iter (fun w -> w.dispose() |> ignore)
+        watcher <- None
+        statusBar.text <- "$(eye) Watch Mode Off"
+        watcherEnabled <- false
+
+
 
     let activate disposables =
         let registerCommand com (f: unit-> _) =
@@ -426,7 +438,6 @@ module Expecto =
         statusBar.tooltip <- "Expecto continuous testing"
         statusBar.command <- "Expecto.watchMode"
         statusBar.show ()
-        let watcher = workspace.createFileSystemWatcher("**/*.*")
-        let _ = watcher.onDidChange $ onFileChanged
+
         let _ = vscode.window.onDidChangeActiveTextEditor $ setDecorations
         ()
