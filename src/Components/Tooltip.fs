@@ -27,11 +27,11 @@ module Tooltip =
             |> Case1
             |> Array.singleton
 
-        let mapResult (doc : TextDocument) (pos : Position) o =
+        let mapResult (doc : TextDocument) (pos : Position) (result : Result<OverloadSignature>) =
             let range = doc.getWordRangeAtPosition pos
-            if isNotNull o then
-                let res = (o.Data |> Array.collect id).[0]
-                if JS.isDefined res.Signature then
+            if isNotNull result && isNotNull result.Data then
+                let data = result.Data
+                if JS.isDefined data.Signature then
                     let markStr lang (value:string) : MarkedString =
                         createObj [
                             "language" ==> lang
@@ -41,20 +41,14 @@ module Tooltip =
                     let fsharpBlock (lines: string[]) : MarkedString =
                         lines |> String.concat "\n" |> markStr "fsharp"
 
-                    let sigContent =
-                        let lines =
-                            res.Signature
-                            |> String.split [|'\n'|]
-                            |> Array.filter (not << String.IsNullOrWhiteSpace)
-
-                        match lines |> Array.splitAt (lines.Length - 1) with
-                        | (h, [| StartsWith "Full name:" fullName |]) ->
-                            [| yield fsharpBlock h
-                               yield Case1 ("_" + fullName + "_") |]
-                        | _ -> [| fsharpBlock lines |]
-
+                    let sigContent = 
+                        data.Signature 
+                        |> String.split [|'\n'|]
+                        |> fsharpBlock
+                        |> Array.singleton
+                        
                     let commentContent =
-                        res.Comment
+                        data.Comment
                         |> String.replace "&lt;" "<"
                         |> String.replace "&gt;" ">"
                         |> createCommentBlock
