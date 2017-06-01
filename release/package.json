@@ -266,6 +266,11 @@
         "when": "editorFocus && editorLangId == 'fsharp'"
       }
     ],
+    "configurationDefaults": {
+      "[fsharp]": {
+        "editor.useTabStops": false
+      }
+    },
     "configuration": {
       "type": "object",
       "title": "FSharp configuration",
