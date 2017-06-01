@@ -1,3 +1,6 @@
+### 2.25.14 - 01.06.2017
+* Default config for Tab Stops
+
 ### 2.25.13 - 22.05.2017
 * Fix leak in Expecto Watch Mode
 
