@@ -132,6 +132,14 @@ Target "CopySchemas" (fun _ ->
     CopyFile fsschemaRelease (fsschemaDir </> "fableconfig.json")
 )
 
+let snippetsDir = "snippets"
+let snippetsReleaseDir = "release/snippets"
+Target "CopySnippets" (fun _ ->
+    ensureDirectory snippetsReleaseDir
+    CleanDir snippetsReleaseDir
+    CopyFile snippetsReleaseDir (snippetsDir </> "fsharp.json")
+)
+
 
 Target "InstallVSCE" ( fun _ ->
     killProcess "npm"
@@ -228,6 +236,7 @@ Target "Release" DoNothing
 ==> "CopyForge"
 ==> "CopyGrammar"
 ==> "CopySchemas"
+==> "CopySnippets"
 ==> "Build"
 
 "Build"
