@@ -15,6 +15,7 @@ open Ionide.VSCode.Helpers
 module Project =
     let private emptyProjectsMap = Map<ProjectFilePath,Project> []
     let mutable private loadedProjects = emptyProjectsMap
+    let projectChanged = EventEmitter<Project>()
 
     let find p =
         let rec findFsProj dir =
@@ -83,10 +84,21 @@ module Project =
         loadedProjects <- emptyProjectsMap
 
     let load (path:string) =
+        let projEquals (p1 : Project) (p2 : Project) =
+            p1.Project.ToUpperInvariant() = p2.Project.ToUpperInvariant() &&
+            List.forall2 (=) p1.Files p2.Files &&
+            List.forall2 (=) p1.References p2.References
+
         LanguageService.project path
         |> Promise.onSuccess (fun (pr:ProjectResult) ->
             if isNotNull pr then
-                loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add)
+                match loadedProjects.TryFind (pr.Data.Project.ToUpperInvariant ()) with
+                | Some existing when not (projEquals existing pr.Data)  ->
+                    projectChanged.fire pr.Data
+                | None -> projectChanged.fire pr.Data
+                | _ -> ()
+                loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add
+                )
 
     let tryFindLoadedProject (path:string) =
          loadedProjects.TryFind (path.ToUpperInvariant ())
@@ -103,4 +115,8 @@ module Project =
 
     let getLoaded () = loadedProjects |> Seq.map (fun kv -> kv.Value)
 
-    let activate = clearLoadedProjects >> findAll >> (Promise.executeForAll load)
+    let activate =
+        let w = workspace.createFileSystemWatcher("**/*.fsproj")
+        w.onDidCreate.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
+        w.onDidChange.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
+        clearLoadedProjects >> findAll >> (Promise.executeForAll load)
