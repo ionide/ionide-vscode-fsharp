@@ -24,6 +24,7 @@ let activate(disposables: Disposable[]) =
             CodeLens.activate df' disposables
             Linter.activate df' disposables
         )
+        |> Promise.onSuccess(fun _ -> SolutionExplorer.activate ())
         |> Promise.bind(fun _ -> Project.activate ())
         |> ignore
 

@@ -66,6 +66,36 @@ module Forge =
     let onFsFileRemovedHandler (uri : Uri) =
         if "FSharp.automaticProjectModification" |> Configuration.get false then sprintf "remove file -n %s" uri.fsPath |> spawnForge |> ignore
 
+    let moveFileUpPath path =
+        sprintf "move file -n %s -u" path |> spawnForge |> ignore
+
+    let moveFileDownPath path =
+        sprintf "move file -n %s -d" path |> spawnForge |> ignore
+
+    let removeFilePath path =
+        sprintf "remove file -n %s" path |> spawnForge |> ignore
+
+    let addReferencePath path =
+        promise {
+            let opts = createEmpty<InputBoxOptions>
+            opts.placeHolder <- Some "Reference"
+            let! name = window.showInputBox(opts) |> Promise.map quotePath
+            if JS.isDefined name && JS.isDefined path then
+                sprintf "add reference -n %s -p %s" name path |> spawnForge |> ignore }
+
+    let addProjectReferencePath path =
+        promise {
+            let projects = Project.getAll () |> ResizeArray
+            if projects.Count <> 0 then
+                let opts = createEmpty<QuickPickOptions>
+                opts.placeHolder <- Some "Reference"
+                let! n = window.showQuickPick(projects |> Case1, opts) |> Promise.map quotePath
+                if JS.isDefined n && JS.isDefined path then
+                    sprintf "add project -n %s -p %s" n path |> spawnForge |> ignore }
+
+    let removeProjectReferencePath ref proj =
+        sprintf "remove project -n %s -p %s" ref proj |> spawnForge |> ignore
+
     let moveFileUp () =
         let editor = vscode.window.activeTextEditor
         match editor.document with
