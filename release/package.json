@@ -405,7 +405,7 @@
         },
         "FSharp.enableTreeView": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "Enables solution explorer - experimental feature."
         }
       }
