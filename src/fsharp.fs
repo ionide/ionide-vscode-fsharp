@@ -16,6 +16,8 @@ let activate(disposables: Disposable[]) =
 
     let legacyFsi = "FSharp.legacyFSI" |> Configuration.get false
     let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
+    let solutionExploer = "FSharp.enableTreeView" |> Configuration.get true
+
 
     LanguageService.start ()
     |> Promise.onSuccess (fun _ ->
@@ -24,7 +26,7 @@ let activate(disposables: Disposable[]) =
             CodeLens.activate df' disposables
             Linter.activate df' disposables
         )
-        |> Promise.onSuccess(fun _ -> SolutionExplorer.activate ())
+        |> Promise.onSuccess(fun _ -> if solutionExploer then SolutionExplorer.activate ())
         |> Promise.bind(fun _ -> Project.activate ())
         |> ignore
 
