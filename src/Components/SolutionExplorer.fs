@@ -89,10 +89,11 @@ module SolutionExplorer =
                 ti.collapsibleState <- collaps
                 let command =
                     match node with
-                    | File _  ->
+                    | File (p, _, _)  ->
                         let c = createEmpty<Command>
-                        c.command <- "ionide.projectExplorer.open"
+                        c.command <- "vscode.open"
                         c.title <- "open"
+                        c.arguments <- Some (ResizeArray [| unbox (Uri.file p) |])
                         Some c
                     | _ -> None
                 ti.command <- command
@@ -118,47 +119,7 @@ module SolutionExplorer =
             emiter.fire (unbox ()) |> unbox)
         |> ignore
 
-        commands.registerCommand("ionide.projectExplorer.open",  unbox<Func<obj,obj>> (fun n ->
-            match n with
-            | File (path, _, _) ->
-                commands.executeCommand("vscode.open", Uri.file path)
-                |> ignore
-            | _ -> ())) |> ignore
-
-        commands.registerCommand("ionide.projectExplorer.editProject",  unbox<Func<obj,obj>> (fun n ->
-            match n with
-            | Project (path, _, _,_,_) ->
-                commands.executeCommand("vscode.open", Uri.file path)
-                |> ignore
-            | _ -> ())) |> ignore
-
-        commands.registerCommand("ionide.projectExplorer.moveUp",  unbox<Func<obj,obj>> (fun n ->
-            match n with
-            | File (path, _, _) -> Forge.moveFileUpPath path
-            | _ -> ())) |> ignore
-
-        commands.registerCommand("ionide.projectExplorer.moveDown",  unbox<Func<obj,obj>> (fun n ->
-            match n with
-            | File (path, _, _) -> Forge.moveFileDownPath path
-            | _ -> ())) |> ignore
-
-        commands.registerCommand("ionide.projectExplorer.remove",  unbox<Func<obj,obj>> (fun n ->
-            match n with
-            | File (path, _, _) -> Forge.removeFilePath path
-            | _ -> ())) |> ignore
-
-        commands.registerCommand("ionide.projectExplorer.addProjectReference",  unbox<Func<obj,obj>> (fun n ->
-            match n with
-            | Project (path, _,_, _, _) -> Forge.addProjectReferencePath path  |> ignore
-            | _ -> ())) |> ignore
-
-        commands.registerCommand("ionide.projectExplorer.removeProjectReference",  unbox<Func<obj,obj>> (fun n ->
-            match n with
-            | ProjectReference (path, _, proj) -> Forge.removeProjectReferencePath path proj |> ignore
-            | _ -> ())) |> ignore
-
-
-        window.registerTreeDataProviderForView("ionide.projectExplorer", provider )
+        window.registerTreeDataProvider("ionide.projectExplorer", provider )
         |> ignore
 
         ()

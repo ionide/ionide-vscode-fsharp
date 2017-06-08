@@ -33,7 +33,6 @@
     "vscode": "^0.10.0"
   },
   "main": "./fsharp",
-  "enableProposedApi": true,
   "contributes": {
     "languages": [
       {
@@ -209,30 +208,6 @@
       {
         "command": "MSBuild.cleanSelected",
         "title": "MSBuild: Clean project"
-      },
-      {
-        "command": "ionide.projectExplorer.moveUp",
-        "title": "Move File Up"
-      },
-      {
-        "command": "ionide.projectExplorer.moveDown",
-        "title": "Move File Down"
-      },
-      {
-        "command": "ionide.projectExplorer.remove",
-        "title": "Remove File From Project"
-      },
-      {
-        "command": "ionide.projectExplorer.addProjectReference",
-        "title": "Add Project Reference To Project"
-      },
-      {
-        "command": "ionide.projectExplorer.removeProjectReference",
-        "title": "Remove Project Reference From Project"
-      },
-      {
-        "command": "ionide.projectExplorer.editProject",
-        "title": "Edit"
       }
     ],
     "views": {
@@ -248,32 +223,6 @@
         {
           "command": "fsharp.NewProject",
           "when": "view == ionide.projectExplorer"
-        }
-      ],
-      "view/item/context": [
-        {
-          "command": "ionide.projectExplorer.moveUp",
-          "when": "view == ionide.projectExplorer && item == ionide.projectExplorer.file"
-        },
-        {
-          "command": "ionide.projectExplorer.moveDown",
-          "when": "view == ionide.projectExplorer && item == ionide.projectExplorer.file"
-        },
-        {
-          "command": "ionide.projectExplorer.remove",
-          "when": "view == ionide.projectExplorer && item == ionide.projectExplorer.file"
-        },
-        {
-          "command": "ionide.projectExplorer.addProjectReference",
-          "when": "view == ionide.projectExplorer && item == ionide.projectExplorer.project"
-        },
-        {
-          "command": "ionide.projectExplorer.removeProjectReference",
-          "when": "view == ionide.projectExplorer && item == ionide.projectExplorer.projRef"
-        },
-        {
-          "command": "ionide.projectExplorer.editProject",
-          "when": "view == ionide.projectExplorer && item == ionide.projectExplorer.project"
         }
       ]
     },
@@ -448,6 +397,11 @@
           "type":"boolean",
           "default": false,
           "description": "Enables `resolve unopened namespaces and modules` code fix. Not stable, can crash FSAC - use at your own risk."
+        },
+        "FSharp.enableTreeView": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enables solution explorer - experimental feature."
         }
       }
     },
