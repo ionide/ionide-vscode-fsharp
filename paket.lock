@@ -22,7 +22,7 @@ GIT
      (f2e3c30f0ebfcc89fb78ad908701159f20516812)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (395ce583e1261e08848e9492ba42a5c1203511bc)
+    modules/Octokit/Octokit.fsx (ad65548e62c35ad64ad1f9db6f5768330bc06594)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
     Fable.Import.Axios.fs (7ae8824950760c981f482f668b6a27ef8a3d6ba4)

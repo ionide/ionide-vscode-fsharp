@@ -63,7 +63,7 @@ let codeTool =
 
 
 let releaseBin      = "release/bin"
-let fsacBin         = "paket-files/github.com/ionide/FsAutoComplete/bin/release"
+let fsacBin         = "paket-files/github.com/fsharp/FsAutoComplete/bin/release"
 
 
 // --------------------------------------------------------------------------------------
