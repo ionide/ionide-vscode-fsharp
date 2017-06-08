@@ -1,3 +1,6 @@
+### 2.26.0 - 01.06.2017
+* Initial implementation of Project Explorer
+
 ### 2.25.14 - 01.06.2017
 * Default config for Tab Stops
 
