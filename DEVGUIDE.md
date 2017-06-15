@@ -15,6 +15,7 @@ _(WIP feel free to flesh out further)_
 
 # Working with FSAC
 
+1. Run `build.cmd Build` \ `build.sh Build`
 1. Open Ionide-vscode-fsharp in VSCode.
 2. Set `devMode` to `true` in `src/Core/LanguageService.fs`
 3. Open FSAC in VS
