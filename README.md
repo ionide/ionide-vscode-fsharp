@@ -39,7 +39,7 @@ If you use [chocolatey](https://chocolatey.org/), you can install all the pre-re
 ```batch
 choco install windows-sdk-8.0 -y
 choco install visualfsharptools -y
-choco install microsoft-build-tools -y
+choco install microsoft-build-tools --version 14.0.25420.1 -y
 choco install visualstudiocode -y
 ```
 
