@@ -14,6 +14,7 @@ module CodeLens =
     let refresh = EventEmitter<int>()
     let mutable private version = 0
     let mutable private flag = true
+    let mutable private fileName = ""
 
     let mutable changes : TextDocumentContentChangeEvent list = []
 
@@ -139,17 +140,24 @@ module CodeLens =
         }
 
     let private textChangedHandler (event : TextDocumentChangeEvent) =
-        if isNotNull window.activeTextEditor && event.document.fileName = window.activeTextEditor.document.fileName  then
+        if isNotNull window.activeTextEditor && event.document.fileName = fileName  then
             // printf "[%d:%d:%d:%d] CodeLens - File changed." DateTime.Now.Hour DateTime.Now.Minute DateTime.Now.Second  DateTime.Now.Millisecond
             changes <- [yield! changes; yield! event.contentChanges]
             refresh.fire(-1)
         ()
 
+
+
     let private fileOpenedHandler (event : TextEditor) =
         if isNotNull event then
-            changes <- []
-            version <- unbox event.document.version
-            flag <- true
+            match event.document with
+            | Document.FSharp ->
+                changes <- []
+                version <- unbox event.document.version
+                flag <- true
+                fileName <- event.document.fileName
+            | _ -> ()
+
         ()
 
     let activate selector (disposables: Disposable[]) =
