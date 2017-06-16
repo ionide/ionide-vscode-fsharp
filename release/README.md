@@ -1,7 +1,9 @@
-#[Ionide-VSCode: FSharp](https://marketplace.visualstudio.com/items/Ionide.Ionide-fsharp)
+# [Ionide-VSCode: FSharp](https://marketplace.visualstudio.com/items/Ionide.Ionide-fsharp)
 **Enhanced F# Language Features for Visual Studio Code**
+
 _Part of the [Ionide](http://ionide.io) plugin suite._
 
+[![Version](https://vsmarketplacebadge.apphb.com/version/Ionide.Ionide-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp) [![Installs](https://vsmarketplacebadge.apphb.com/installs-short/Ionide.Ionide-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp)
 [![Join the chat at https://gitter.im/ionide/ionide-project](https://img.shields.io/badge/gitter-join%20chat%20%E2%86%92-brightgreen.svg?style=flat-square)](https://gitter.im/ionide/ionide-project?utm_source=share-link&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # Getting Started
@@ -37,7 +39,7 @@ If you use [chocolatey](https://chocolatey.org/), you can install all the pre-re
 ```batch
 choco install windows-sdk-8.0 -y
 choco install visualfsharptools -y
-choco install microsoft-build-tools -y
+choco install microsoft-build-tools --version 14.0.25420.1 -y
 choco install visualstudiocode -y
 ```
 

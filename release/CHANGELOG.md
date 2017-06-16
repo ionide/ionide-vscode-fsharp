@@ -1,3 +1,10 @@
+### 2.27.0 - 16.06.2017
+* Update FSAC - Experimental SDK 2.0 support
+* Add progress bar for plugin startup
+* Add `excludeProjectDirectories` setting
+* Update code lenses only for active F# file
+* Add icons for solution explorer
+
 ### 2.26.1 - 09.06.2017
 * Initial implementation of Project Explorer
 
