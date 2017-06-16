@@ -21,13 +21,24 @@ let activate(disposables: Disposable[]) =
 
     LanguageService.start ()
     |> Promise.onSuccess (fun _ ->
-        Errors.activate disposables
-        |> Promise.onSuccess(fun _ ->
-            CodeLens.activate df' disposables
-            Linter.activate df' disposables
-        )
-        |> Promise.onSuccess(fun _ -> if solutionExploer then SolutionExplorer.activate ())
-        |> Promise.bind(fun _ -> Project.activate ())
+        let progressOpts = createEmpty<ProgressOptions>
+        progressOpts.location <- ProgressLocation.Window
+        window.withProgress(progressOpts, (fun p ->
+            let pm = createEmpty<ProgressMessage>
+            pm.message <- "Loading current project"
+            p.report pm
+            Errors.activate disposables
+            |> Promise.onSuccess(fun _ ->
+                pm.message <- "Loading all projects"
+                p.report pm
+                CodeLens.activate df' disposables
+                Linter.activate df' disposables
+            )
+            |> Promise.onSuccess(fun _ -> if solutionExploer then SolutionExplorer.activate ())
+            |> Promise.bind(fun _ -> Project.activate ())
+
+
+        ))
         |> ignore
 
         Tooltip.activate df' disposables
