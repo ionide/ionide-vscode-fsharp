@@ -1,6 +1,6 @@
 {
   "name": "Ionide-fsharp",
-  "version": "2.27.0",
+  "version": "2.27.1",
   "publisher": "Ionide",
   "contributors": [
     {
@@ -424,6 +424,31 @@
     "breakpoints": [
       {
         "language": "fsharp"
+      }
+    ],
+    "problemMatchers": [
+      {
+        "name": "fable",
+        "owner": "fsharp",
+        "fileLocation": "absolute",
+        "background": {
+            "beginsPattern":{
+                "regexp": "(Parsing F# project)"
+            },
+            "endsPattern":{
+                "regexp": "(webpack:)"
+            }
+        },
+        "pattern": {
+            "regexp": "(.*)\\((\\d+),(\\d+),(\\d+),(\\d+)\\)\\s*:\\s*(warning|error) FABLE\\s*:\\s*(.*)$",
+            "file": 1,
+            "line": 2,
+            "column": 3,
+            "endLine": 4,
+            "endColumn": 5,
+            "severity": 6,
+            "message": 7
+        }
       }
     ]
   },
