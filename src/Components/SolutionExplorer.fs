@@ -108,6 +108,30 @@ module SolutionExplorer =
                     | Reference _  -> Some "ionide.projectExplorer.reference"
                     | _ -> None
                 ti.contextValue <- context
+                let plugPath =
+                    try
+                        (VSCode.getPluginPath "Ionide.ionide-fsharp")
+                    with
+                    | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp")
+
+                let p = createEmpty<TreeIconPath>
+                let icon =
+                    match node with
+                    | File _ ->
+                        p.light <- plugPath + "/images/file-code-light.svg"
+                        p.dark <- plugPath + "/images/file-code-dark.svg"
+                        Some p
+                    | Project _ ->
+                        p.light <- plugPath + "/images/project-light.svg"
+                        p.dark <- plugPath + "/images/project-dark.svg"
+                        Some p
+                    | Reference _ | ProjectReference _ ->
+                        p.light <- plugPath + "/images/circuit-board-light.svg"
+                        p.dark <- plugPath + "/images/circuit-board-dark.svg"
+                        Some p
+                    | _ -> None
+                ti.iconPath <- icon
+
                 ti
         }
 
