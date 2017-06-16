@@ -407,6 +407,11 @@
           "type": "boolean",
           "default": true,
           "description": "Enables solution explorer - experimental feature."
+        },
+        "FSharp.excludeProjectDirectories": {
+          "type":"array",
+          "default": [".git", "paket-files"],
+          "description": "Directories in the array are excluded from project file search. Requires restart"
         }
       }
     },

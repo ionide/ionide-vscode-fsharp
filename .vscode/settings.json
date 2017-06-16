@@ -14,5 +14,11 @@
     "**/bower_components": true,
     "**/packages": true,
     "**/paket-files": true
-  }
+  },
+  "FSharp.excludeProjectDirectories": [
+    ".git",
+    "paket-files",
+    "release"
+  ]
+
 }

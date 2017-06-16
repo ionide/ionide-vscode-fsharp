@@ -17,6 +17,8 @@ module Project =
     let mutable private loadedProjects = emptyProjectsMap
     let projectChanged = EventEmitter<Project>()
 
+    let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files" |]
+
     let find p =
         let rec findFsProj dir =
             if fs.lstatSync(dir).isDirectory() then
@@ -46,7 +48,7 @@ module Project =
             |> List.collect(fun s' ->
                 try
                     let s = dir + path.sep + s'
-                    if s' = ".git" || s' = "paket-files" then
+                    if excluded |> Array.contains s' then
                         []
                     elif fs.statSync(s).isDirectory () then
                         findProjs (s)
@@ -68,7 +70,7 @@ module Project =
             |> List.collect(fun s' ->
                 try
                     let s = dir + path.sep + s'
-                    if s' = ".git" || s' = "paket-files" then []
+                    if excluded |> Array.contains s' then []
                     elif fs.statSync(s).isDirectory () then findProjs (s)
                     elif s.EndsWith ".fsproj" || s.EndsWith ".csproj" || s.EndsWith ".vbproj" then [ s ]
                     else []
