@@ -1,5 +1,5 @@
-### 2.27.1 - 17.06.2017
-* Add Fable problem matcher
+### 2.27.2 - 17.06.2017
+* Add Fable (`fable-webpack`) problem matcher
 
 ### 2.27.0 - 16.06.2017
 * Update FSAC - Experimental SDK 2.0 support
