@@ -428,16 +428,17 @@
     ],
     "problemMatchers": [
       {
-        "name": "fable",
+        "name": "fable-webpack",
         "owner": "fsharp",
         "fileLocation": "absolute",
         "background": {
-            "beginsPattern":{
-                "regexp": "(Parsing F# project)"
-            },
-            "endsPattern":{
-                "regexp": "(webpack:)"
-            }
+          "activeOnStart": true,
+          "beginsPattern":{
+              "regexp": "webpack: Compiling"
+          },
+          "endsPattern":{
+              "regexp": "webpack: (Compiled successfully|Failed to compile)"
+          }
         },
         "pattern": {
             "regexp": "(.*)\\((\\d+),(\\d+),(\\d+),(\\d+)\\)\\s*:\\s*(warning|error) FABLE\\s*:\\s*(.*)$",
