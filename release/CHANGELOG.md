@@ -1,3 +1,6 @@
+### 2.27.5 - 19.06.2017
+* Add support for multi targetting in new `fsproj`
+
 ### 2.27.4 - 19.06.2017
 * Add error handling for expecto output parser
 
