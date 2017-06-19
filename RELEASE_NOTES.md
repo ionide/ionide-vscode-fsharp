@@ -1,3 +1,7 @@
+### 2.27.3 - 19.06.2017
+* Linter runs after parse is completed
+* Linter runs after linter quick fix
+
 ### 2.27.2 - 17.06.2017
 * Add Fable (`fable-webpack`) problem matcher
 
