@@ -13,6 +13,7 @@ open Ionide.VSCode.Helpers
 module Linter =
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
     let private fixes = ResizeArray<Fix>()
+    let refresh = EventEmitter<string>()
 
     let private isLinterEnabled () = "FSharp.linter" |> Configuration.get true
 
@@ -39,19 +40,10 @@ module Linter =
 
     let mutable private timer = None
 
-    let private handler (event : TextDocumentChangeEvent) =
+    let private handler filename =
         timer |> Option.iter(clearTimeout)
-        match event.document with
-        | Document.FSharp when  isLinterEnabled () ->
-            timer <- Some (setTimeout((fun _ -> lintDocument event.document.fileName |> ignore), 1000.))
-        | _ -> ()
+        timer <- Some (setTimeout((fun _ -> lintDocument filename |> ignore), 1000.))
 
-    let private handlerOpen (event : TextEditor) =
-        if JS.isDefined event then
-            match event.document with
-            | Document.FSharp when isLinterEnabled () ->
-                lintDocument event.document.fileName |> ignore
-            | _ -> ()
 
     let private createProvider () =
 
@@ -84,11 +76,14 @@ module Linter =
         let uri = Uri.file doc.fileName
         edit.replace(uri, range, suggestion)
         workspace.applyEdit edit
+        |> Promise.onSuccess (fun _ ->
+            lintDocument doc.fileName
+            |> ignore
+        )
 
     let activate selector (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
-        window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
-        window.visibleTextEditors |> Seq.iter (handlerOpen)
+        refresh.event $ (handler,(), disposables) |> ignore
 
         languages.registerCodeActionsProvider (selector, createProvider()) |> ignore
         commands.registerCommand("fsharp.lintFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> ignore

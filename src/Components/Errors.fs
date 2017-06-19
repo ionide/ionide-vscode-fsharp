@@ -38,6 +38,7 @@ module Errors =
             if isNotNull ev then
                 // printf "CodeLens - File parsed"
                 CodeLens.refresh.fire (unbox version)
+                Linter.refresh.fire path
                 (Uri.file path, (mapResult ev |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
 
 
