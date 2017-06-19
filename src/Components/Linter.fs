@@ -84,6 +84,10 @@ module Linter =
     let activate selector (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
         refresh.event $ (handler,(), disposables) |> ignore
+        if JS.isDefined window.activeTextEditor then
+            match window.activeTextEditor.document with
+            | Document.FSharp -> refresh.fire window.activeTextEditor.document.fileName
+            | _ -> ()
 
         languages.registerCodeActionsProvider (selector, createProvider()) |> ignore
         commands.registerCommand("fsharp.lintFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> ignore
