@@ -1,3 +1,6 @@
+### 2.27.4 - 19.06.2017
+* Add error handling for expecto output parser
+
 ### 2.27.3 - 19.06.2017
 * Linter runs after parse is completed
 * Linter runs after linter quick fix
