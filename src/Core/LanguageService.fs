@@ -122,7 +122,13 @@ module LanguageService =
         log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %s Data=%j",
                     fsacAction, elapsed.TotalMilliseconds, r.ToString(), obj)
 
-    let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+    type FSACResponse<'b> =
+        | Error of obj
+        | Info of obj
+        | Kind of string * 'b
+        | Invalid
+
+    let private requestRaw<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
         let started = DateTime.Now
         let fullRequestUrl = url fsacAction requestId
         logOutgoingRequest requestId fsacAction obj
@@ -140,21 +146,55 @@ module LanguageService =
         |> Promise.map(fun r ->
             // the outgoing request was made
             try
-                let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
+                let resObj = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse
+                let res = resObj |> unbox<'b>
                 logIncomingResponse requestId fsacAction started r (Some res) None
-                if res?Kind |> unbox = "error" || res?Kind |> unbox = "info" then null |> unbox
-                else res
+                if res?Kind |> unbox = "error" then FSACResponse.Error (res?Data |> unbox)
+                elif res?Kind |> unbox = "info" then FSACResponse.Info (res?Data |> unbox)
+                else FSACResponse.Kind ((res?Kind |> unbox), res)
             with
             | ex ->
                 logIncomingResponse requestId fsacAction started r None (Some ex)
-                null |> unbox
+                FSACResponse.Invalid
+        )
+
+    let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+        requestRaw fsacAction id requestId obj
+        |> Promise.map(fun (r: FSACResponse<'b>) ->
+            match r with
+            | FSACResponse.Error err -> null |> unbox
+            | FSACResponse.Info err -> null |> unbox
+            | FSACResponse.Kind (t, res) -> res
+            | FSACResponse.Invalid -> null |> unbox
+        )
+
+    let handleError err =
+        match err?Code |> unbox with
+        | 100 ->
+            log.Error "RESTORE!"
+            vscode.window.showErrorMessage "Restore required"
+            |> Promise.bind (fun _ -> Promise.empty)
+        | _ ->
+            log.Error (sprintf "boh %A" err)
+            Promise.empty
+
+    let private requestHandleError<'b> p =
+        p
+        |> Promise.bind(fun (r: FSACResponse<'b>) ->
+            match r with
+            | FSACResponse.Error err ->
+                Promise.empty |> Promise.map (fun _ -> err) |> Promise.bind handleError
+            | FSACResponse.Info err -> Promise.empty
+            | FSACResponse.Kind (t, res) -> Promise.lift res
+            | FSACResponse.Invalid -> Promise.empty
         )
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
     let project s =
         {ProjectRequest.FileName = s}
-        |> request "project" 0 (makeRequestId())
+        |> requestRaw "project" 0 (makeRequestId())
+        |> requestHandleError
 
     let parseProjects s =
         {ProjectRequest.FileName = s}
