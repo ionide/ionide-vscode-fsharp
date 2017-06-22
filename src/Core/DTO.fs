@@ -181,8 +181,14 @@ module DTO =
     }
 
 
+    type ResponseError<'T> = { 
+        Code: int
+        Message: string
+        Data: 'T
+    }
 
     type Result<'T> = {Kind : string; Data : 'T}
+    type ResponseErrorResult<'T> = Result<ResponseError<'T>>
     type CompilerLocationResult = Result<CompilerLocation>
     type HelptextResult = Result<Helptext>
     type CompletionResult = Result<Completion[]>
