@@ -92,23 +92,15 @@ module Project =
             List.forall2 (=) p1.References p2.References
 
         LanguageService.project path
-        |> Promise.onSuccess (fun (result: Result<obj>) ->
-            match result.Data with
-            | :? ResponseError<obj> as prR when result.Kind = "error" ->
-                printfn "err ResponseError %A" prR
-                // if isNotNull pr then
-                //     match loadedProjects.TryFind (pr.Data.Project.ToUpperInvariant ()) with
-                //     | Some existing when not (projEquals existing pr.Data)  ->
-                //         projectChanged.fire pr.Data
-                //     | None -> projectChanged.fire pr.Data
-                //     | _ -> ()
-                //     loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add
-            | :? ResponseErrorResult<string> as err ->
-                printfn "err case %A" err
-            | e ->
-                printfn "err catchall n %A" e
-                    )
-
+        |> Promise.onSuccess (fun (pr:ProjectResult) ->
+            if isNotNull pr then
+                match loadedProjects.TryFind (pr.Data.Project.ToUpperInvariant ()) with
+                | Some existing when not (projEquals existing pr.Data)  ->
+                    projectChanged.fire pr.Data
+                | None -> projectChanged.fire pr.Data
+                | _ -> ()
+                loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add
+                )
 
     let tryFindLoadedProject (path:string) =
          loadedProjects.TryFind (path.ToUpperInvariant ())
