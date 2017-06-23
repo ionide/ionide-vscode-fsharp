@@ -1,3 +1,6 @@
+### 2.27.6 - 23.06.2017
+* Check if linter is enabled before linting
+
 ### 2.27.5 - 19.06.2017
 * Add support for multi targetting in new `fsproj`
 
