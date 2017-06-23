@@ -32,17 +32,19 @@ module Linter =
 
     let private lintDocument path =
         fixes.Clear()
-        LanguageService.lint path
-        |> Promise.onSuccess (fun (ev : LintResult) ->
-            if isNotNull ev then
-                ev.Data |> Array.where (fun a -> isNotNull a.Fix) |> Array.map (fun a ->a.Fix) |> fixes.AddRange
-                (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
+        if isLinterEnabled () then
+            LanguageService.lint path
+            |> Promise.onSuccess (fun (ev : LintResult) ->
+                if isNotNull ev then
+                    ev.Data |> Array.where (fun a -> isNotNull a.Fix) |> Array.map (fun a ->a.Fix) |> fixes.AddRange
+                    (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
+            |> ignore
 
     let mutable private timer = None
 
     let private handler filename =
         timer |> Option.iter(clearTimeout)
-        timer <- Some (setTimeout((fun _ -> lintDocument filename |> ignore), 1000.))
+        timer <- Some (setTimeout((fun _ -> lintDocument filename), 1000.))
 
 
     let private createProvider () =
@@ -76,10 +78,7 @@ module Linter =
         let uri = Uri.file doc.fileName
         edit.replace(uri, range, suggestion)
         workspace.applyEdit edit
-        |> Promise.onSuccess (fun _ ->
-            lintDocument doc.fileName
-            |> ignore
-        )
+        |> Promise.onSuccess (fun _ -> lintDocument doc.fileName)
 
     let activate selector (disposables: Disposable[]) =
         workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
