@@ -14,20 +14,93 @@ module MSBuild =
     let private outputChannel = window.createOutputChannel "msbuild"
     let private logger = ConsoleAndOutputChannelLogger(Some "msbuild", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
 
-    let invokeMSBuild project target =
+    type MSbuildHost = 
+        | MSBuildExe // .net on win, mono on non win
+        | DotnetCli
+
+    let mutable private msbuildHostType : MSbuildHost option = None
+
+    let pickMSbuildHostType () =
+        promise {
+            let hosts =
+                [ ".NET", MSbuildHost.MSBuildExe
+                  ".NET Core", MSbuildHost.DotnetCli ]
+                |> Map.ofList
+
+            let hostsLabels = hosts |> Map.toList |> List.map fst |> ResizeArray
+            let opts = createEmpty<QuickPickOptions>
+            opts.placeHolder <- Some "The msbuild host to use"
+            let! chosen = window.showQuickPick(hostsLabels |> Case1, opts)
+            return
+                if JS.isDefined chosen
+                then
+                    logger.Debug("user choose host %s", chosen)
+                    hosts |> Map.tryFind chosen
+                else
+                    logger.Debug("user cancelled host pick")
+                    None
+        }
+
+    let switchMSbuildHostType () = 
+        logger.Debug "switching msbuild host (msbuild <-> dotnet cli)"
+        let next =
+            match msbuildHostType with
+            | Some MSbuildHost.MSBuildExe ->
+                Some MSbuildHost.DotnetCli |> Promise.lift
+            | Some MSbuildHost.DotnetCli ->
+                Some MSbuildHost.MSBuildExe |> Promise.lift
+            | None ->
+                logger.Debug("not yet choosen, try pick one")
+                pickMSbuildHostType ()
+        next
+        |> Promise.map (fun h ->
+            msbuildHostType <- h
+            match msbuildHostType with
+            | Some MSbuildHost.MSBuildExe ->
+                logger.Debug("using msbuild")
+            | Some MSbuildHost.DotnetCli ->
+                logger.Debug("using cli")
+            | None ->
+                logger.Debug("not choosen yet")
+            )
+
+    let getMSbuildHostType () =
+        match msbuildHostType with
+        | Some h -> Some h |> Promise.lift
+        | None ->
+            //TODO add from configuration
+            logger.Debug "No MSBuild host selected yet"
+            pickMSbuildHostType ()
+
+    let invokeMSBuildPromise project target =
         let autoshow =
             let cfg = vscode.workspace.getConfiguration()
             cfg.get ("FSharp.msbuildAutoshow", true)
 
         let safeproject = sprintf "\"%s\"" project
         let command = sprintf "%s /t:%s" safeproject target
-        promise {
-            let! msbuildPath = Environment.msbuild
-            logger.Debug("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
-            Process.spawnWithNotification msbuildPath "" command outputChannel |> ignore
-            if autoshow then outputChannel.show()
-        } |> ignore
+        let executeWithHost host =
+            promise {
+                let! msbuildPath =
+                    match host with
+                    | MSbuildHost.MSBuildExe -> Environment.msbuild
+                    | MSbuildHost.DotnetCli -> Environment.dotnet
+                let cmd =
+                    match host with
+                    | MSbuildHost.MSBuildExe -> command
+                    | MSbuildHost.DotnetCli -> sprintf "msbuild %s" command
+                logger.Debug("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
+                let _ =
+                    if autoshow then outputChannel.show()
+                return! Process.spawnWithNotification msbuildPath "" cmd outputChannel
+                        |> Process.toPromise
+            }
+        getMSbuildHostType ()
+        |> Promise.bind (function None -> Promise.empty | Some h -> executeWithHost h)
 
+    let invokeMSBuild project target =
+        invokeMSBuildPromise project target
+        |> ignore
 
     /// discovers the project that the active document belongs to and builds that
     let buildCurrentProject target =
@@ -67,9 +140,19 @@ module MSBuild =
             logger.Debug("MSBuild activated")
         )
         |> ignore
+        Environment.dotnet
+        |> Promise.map (fun p ->
+            logger.Debug("Dotnet cli (.NET Core) found at %s", p)
+            logger.Debug("Dotnet cli (.NET Core) activated")
+        )
+        |> ignore
         registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")
         registerCommand "MSBuild.buildSelected" (fun _ -> buildProject "Build")
         registerCommand "MSBuild.rebuildCurrent" (fun _ -> buildCurrentProject "Rebuild")
         registerCommand "MSBuild.rebuildSelected" (fun _ -> buildProject "Rebuild")
         registerCommand "MSBuild.cleanCurrent" (fun _ -> buildCurrentProject "Clean")
         registerCommand "MSBuild.cleanSelected" (fun _ -> buildProject "Clean")
+        registerCommand "MSBuild.switchMSbuildHostType" (fun _ -> switchMSbuildHostType ())
+
+        let registerCommand2 com (action : obj -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> ignore
+        registerCommand2 "MSBuild.restore" (fun a -> invokeMSBuildPromise (unbox<string>(a)) "Restore")
