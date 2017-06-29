@@ -191,54 +191,73 @@ module LanguageService =
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
+    let initializeProject reportProgressMessage s =
+        reportProgressMessage "Project initialization..."
+
+        let handleProjectNotRestored retry (projectFullPath: string) =
+            log.Error "RESTORE REQUIRED!"
+            
+            let msg = sprintf "There are unresolved dependencies from '%s'. Execute restore to continue." (path.basename(projectFullPath))
+
+            vscode.window.showErrorMessage(msg, [|"Restore"|])
+            |> Promise.map (function "Restore" -> true | _ -> false)
+            |> Promise.bind (fun shouldRestore ->
+                log.Debug("user choose to %srestore", (if shouldRestore then "" else "not "))
+                if shouldRestore then
+                    //restore it with .net core msbuild as default for now
+                    reportProgressMessage "Restoring..."
+                    vscode.commands.executeCommand("MSBuild.restore", projectFullPath, 2)
+                    |> Promise.bind (fun exitCode ->
+                        match exitCode with
+                        | "0" -> retry ()
+                        | _ -> Promise.empty )
+                else
+                    Promise.empty
+                )
+
+        let rec doProject () =
+            {ProjectRequest.FileName = s}
+            |> requestRaw "project" 0 (makeRequestId())
+            |> requestHandleError
+            |> Promise.either (Promise.lift) (fun err ->
+                match parseErrors err with
+                | ProjectNotRestored data ->
+                    log.Error (sprintf "data %A" data)
+                    handleProjectNotRestored doProject (data.ProjectFullPath)
+                | ErrorUnknown ->
+                    defaultErrorHandler err
+                    Promise.empty )
+
+        doProject ()
+
     let mutable private projectInitializing = false
 
     let project s =
         if projectInitializing then
             Promise.reject "Project initialization already in progress..."
         else
-            log.Error "Project initialization started..."
-
             projectInitializing <- true
 
-            let handleProjectNotRestored retry (projectFullPath: string) =
-                log.Error "RESTORE REQUIRED!"
-                
-                let msg = sprintf "There are unresolved dependencies from '%s'. Execute restore to continue." (path.basename(projectFullPath))
+            log.Info "Project initialization started..."
 
-                vscode.window.showErrorMessage(msg, [|"Restore"|])
-                |> Promise.map (function "Restore" -> true | _ -> false)
-                |> Promise.bind (fun shouldRestore ->
-                    log.Debug("user choose to %srestore", (if shouldRestore then "" else "not "))
-                    if shouldRestore then
-                        //restore it with .net core msbuild as default for now
-                        vscode.commands.executeCommand("MSBuild.restore", projectFullPath, 2)
-                        |> Promise.bind (fun exitCode ->
-                            match exitCode with
-                            | "0" -> retry ()
-                            | _ -> Promise.empty )
-                    else
-                        Promise.empty
-                    )
+            let progressOpts = createEmpty<ProgressOptions>
+            progressOpts.location <- ProgressLocation.Window
 
-            let rec doProject () =
-                {ProjectRequest.FileName = s}
-                |> requestRaw "project" 0 (makeRequestId())
-                |> requestHandleError
-                |> Promise.either (Promise.lift) (fun err ->
-                    match parseErrors err with
-                    | ProjectNotRestored data ->
-                        log.Error (sprintf "data %A" data)
-                        handleProjectNotRestored doProject (data.ProjectFullPath)
-                    | ErrorUnknown ->
-                        defaultErrorHandler err
-                        Promise.empty )
-            
-            doProject ()
-            |> Promise.map (fun p ->
-                log.Error "Project done (for good or bad)"
-                projectInitializing <- false
-                p)
+            window.withProgress(progressOpts, (fun progress ->
+                let reportProgressMessage m =
+                    let pm = createEmpty<ProgressMessage>
+                    pm.message <- m
+                    progress.report pm
+
+                initializeProject reportProgressMessage s
+                |> Promise.map (fun p ->
+                    log.Error "Project done (for good or bad)"
+                    projectInitializing <- false
+                    p)
+
+                )
+            )
+
 
     let parseProjects s =
         {ProjectRequest.FileName = s}
