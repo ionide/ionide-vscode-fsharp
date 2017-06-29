@@ -209,8 +209,10 @@ module LanguageService =
                 vscode.window.showErrorMessage(msg, [|"Restore"|])
                 |> Promise.map (function "Restore" -> true | _ -> false)
                 |> Promise.bind (fun shouldRestore ->
+                    log.Debug("user choose to %srestore", (if shouldRestore then "" else "not "))
                     if shouldRestore then
-                        vscode.commands.executeCommand("MSBuild.restore", projectFullPath)
+                        //restore it with .net core msbuild as default for now
+                        vscode.commands.executeCommand("MSBuild.restore", projectFullPath, 2)
                         |> Promise.bind (fun exitCode ->
                             match exitCode with
                             | "0" -> retry ()
