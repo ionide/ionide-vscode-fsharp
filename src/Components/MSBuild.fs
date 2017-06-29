@@ -72,7 +72,7 @@ module MSBuild =
             logger.Debug "No MSBuild host selected yet"
             pickMSbuildHostType ()
 
-    let invokeMSBuildPromise project target =
+    let invokeMSBuildPromise project hostPreference target =
         let autoshow =
             let cfg = vscode.workspace.getConfiguration()
             cfg.get ("FSharp.msbuildAutoshow", true)
@@ -95,11 +95,17 @@ module MSBuild =
                 return! Process.spawnWithNotification msbuildPath "" cmd outputChannel
                         |> Process.toPromise
             }
-        getMSbuildHostType ()
+
+        let theMSbuildHostType =
+            match hostPreference with
+            | Some h -> Promise.lift (Some h)
+            | None -> getMSbuildHostType ()
+        
+        theMSbuildHostType
         |> Promise.bind (function None -> Promise.empty | Some h -> executeWithHost h)
 
     let invokeMSBuild project target =
-        invokeMSBuildPromise project target
+        invokeMSBuildPromise project None target
         |> ignore
 
     /// discovers the project that the active document belongs to and builds that
@@ -154,5 +160,14 @@ module MSBuild =
         registerCommand "MSBuild.cleanSelected" (fun _ -> buildProject "Clean")
         registerCommand "MSBuild.switchMSbuildHostType" (fun _ -> switchMSbuildHostType ())
 
-        let registerCommand2 com (action : obj -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> ignore
-        registerCommand2 "MSBuild.restore" (fun a -> invokeMSBuildPromise (unbox<string>(a)) "Restore")
+        let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> ignore
+        registerCommand2 "MSBuild.restore" (fun a b ->
+            logger.Debug("a %s", a)
+            logger.Debug("b %j", b)
+            let host = //TODO define a shared type to use, or make MSbuildHost more high level
+                let h = if JS.isDefined b then unbox<int>(b) else 0
+                match h with
+                | 1 -> Some MSbuildHost.MSBuildExe
+                | 2 -> Some MSbuildHost.DotnetCli
+                | 0 | _ -> None
+            invokeMSBuildPromise (unbox<string>(a)) host "Restore")
