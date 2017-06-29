@@ -208,6 +208,10 @@
       {
         "command": "MSBuild.cleanSelected",
         "title": "MSBuild: Clean project"
+      },
+      {
+        "command": "MSBuild.switchMSbuildHostType",
+        "title": "MSBuild: Switch host type"
       }
     ],
     "views": {
@@ -397,6 +401,16 @@
           "type":"boolean",
           "default":true,
           "description": "Automatically shows Expecto output panel"
+        },
+        "FSharp.msbuildHost": {
+          "type": "string",
+          "default": ".net",
+          "description": "MSBuild host",
+          "enum": [
+            ".net",
+            ".net core",
+            "ask at first use"
+          ]
         },
         "FSharp.resolveNamespaces": {
           "type":"boolean",
