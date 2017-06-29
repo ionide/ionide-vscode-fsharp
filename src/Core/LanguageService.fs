@@ -168,33 +168,75 @@ module LanguageService =
             | FSACResponse.Invalid -> null |> unbox
         )
 
-    let handleError err =
-        match err?Code |> unbox with
-        | 100 ->
-            log.Error "RESTORE!"
-            vscode.window.showErrorMessage "Restore required"
-            |> Promise.bind (fun _ -> Promise.empty)
-        | _ ->
-            log.Error (sprintf "boh %A" err)
-            Promise.empty
+    let defaultErrorHandler err =
+        log.Error (sprintf "boh %A" err)
 
     let private requestHandleError<'b> p =
         p
         |> Promise.bind(fun (r: FSACResponse<'b>) ->
             match r with
-            | FSACResponse.Error err ->
-                Promise.empty |> Promise.map (fun _ -> err) |> Promise.bind handleError
+            | FSACResponse.Error err -> Promise.reject err
             | FSACResponse.Info err -> Promise.empty
             | FSACResponse.Kind (t, res) -> Promise.lift res
             | FSACResponse.Invalid -> Promise.empty
         )
 
+    let parseErrors (err: obj) =
+        match err?Code |> unbox with
+        | 100 ->
+            ProjectNotRestored { ProjectFullPath = (err?Data |> unbox) }
+        | _ ->
+            ErrorUnknown
+
+
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
+    let mutable private projectInitializing = false
+
     let project s =
-        {ProjectRequest.FileName = s}
-        |> requestRaw "project" 0 (makeRequestId())
-        |> requestHandleError
+        if projectInitializing then
+            Promise.reject "Project initialization already in progress..."
+        else
+            log.Error "Project initialization started..."
+
+            projectInitializing <- true
+
+            let handleProjectNotRestored retry (projectFullPath: string) =
+                log.Error "RESTORE REQUIRED!"
+                
+                let msg = sprintf "There are unresolved dependencies from '%s'. Execute restore to continue." (path.basename(projectFullPath))
+
+                vscode.window.showErrorMessage(msg, [|"Restore"|])
+                |> Promise.map (function "Restore" -> true | _ -> false)
+                |> Promise.bind (fun shouldRestore ->
+                    if shouldRestore then
+                        vscode.commands.executeCommand("MSBuild.restore", projectFullPath)
+                        |> Promise.bind (fun exitCode ->
+                            match exitCode with
+                            | "0" -> retry ()
+                            | _ -> Promise.empty )
+                    else
+                        Promise.empty
+                    )
+
+            let rec doProject () =
+                {ProjectRequest.FileName = s}
+                |> requestRaw "project" 0 (makeRequestId())
+                |> requestHandleError
+                |> Promise.either (Promise.lift) (fun err ->
+                    match parseErrors err with
+                    | ProjectNotRestored data ->
+                        log.Error (sprintf "data %A" data)
+                        handleProjectNotRestored doProject (data.ProjectFullPath)
+                    | ErrorUnknown ->
+                        defaultErrorHandler err
+                        Promise.empty )
+            
+            doProject ()
+            |> Promise.map (fun p ->
+                log.Error "Project done (for good or bad)"
+                projectInitializing <- false
+                p)
 
     let parseProjects s =
         {ProjectRequest.FileName = s}
