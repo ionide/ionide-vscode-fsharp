@@ -13,7 +13,6 @@ module CodeLens =
     let mutable cache: Map<string, CodeLens[]> = Map.empty
     let refresh = EventEmitter<int>()
     let mutable private version = 0
-    let mutable private flag = true
     let mutable private fileName = ""
 
     let mutable changes : TextDocumentContentChangeEvent list = []
@@ -78,11 +77,14 @@ module CodeLens =
             member __.provideCodeLenses(doc, _) =
                 // printf "[%d:%d:%d:%d] CodeLens - provide called" DateTime.Now.Hour DateTime.Now.Minute DateTime.Now.Second  DateTime.Now.Millisecond
                 promise {
+                    // printf "[%d:%d:%d:%d] CodeLens - Active document name - %s, version: %d; Asked document name - %s, version: %d" DateTime.Now.Hour DateTime.Now.Minute DateTime.Now.Second  DateTime.Now.Millisecond (window.activeTextEditor.document.fileName) (unbox window.activeTextEditor.document.version) doc.fileName version
+
                     let! data =
-                        if flag then
+                        if (unbox window.activeTextEditor.document.version) = version then
+                            // printf "CodeLens - From FSAC"
                             promise {
                                 let! result = LanguageService.declarations doc.fileName version
-                                // printf "CodeLens - FileName: %s, Version: %d" doc.fileName version
+                                // printf "[%d:%d:%d:%d] CodeLens - FileName: %s, Version: %d" DateTime.Now.Hour DateTime.Now.Minute DateTime.Now.Second  DateTime.Now.Millisecond doc.fileName version
                                 return
                                     if isNotNull result then
                                         let res = symbolsToCodeLens doc result.Data
@@ -91,32 +93,34 @@ module CodeLens =
                                     else [||]
                             }
                         else
-                            Promise.lift [||]
+                            // printf "CodeLens - Old request"
+                            promise.Return [||]
+
+
                     let d =
-                        if data.Length > 0 && flag then
+                        if data.Length > 0 then
                             cache <- cache |> Map.add doc.fileName data
                             changes <- []
                             data
                         else
                             let chngs = changes |>  List.choose (fun n -> let r = heightChange n in if r = 0 then None else Some (n.range.start.line, r) )
                             let fromCache = defaultArg (cache |> Map.tryFind doc.fileName) [||]
-                            // printf "CodeLens - FileName: %s, Version: %d" doc.fileName version
                             let res =
                                 fromCache
                                 |> Array.map (fun n ->
-                                    let hChange = chngs |> Seq.sumBy(fun (ln,h) -> if ln <= n.range.start.line then h else 0)
+                                    let hChange = chngs |> Seq.sumBy(fun (ln,h) -> if (ln - 1.) <= n.range.start.line then h else 0)
                                     let ln = n.range.start.line + unbox hChange
                                     let range = vscode.Range(ln, n.range.start.character, ln, n.range.``end``.character)
 
+                                    // printfn "CodeLens - Old ln - %d, New ln - %d" ( unbox n.range.start.line) (unbox ln)
                                     n.range <- range
                                     n
                                 )
                             // printf "[%d:%d:%d:%d] CodeLens - Result from cache. %A" DateTime.Now.Hour DateTime.Now.Minute DateTime.Now.Second  DateTime.Now.Millisecond res
                             // printf "CodeLens - Chngs: %A" chngs
                             cache <- cache |> Map.add doc.fileName res
-                            changes <- []
+                            changes <- changes |> List.skip (chngs |> List.length)
                             res
-                    flag <- false
                     return ResizeArray d
                 }
                 // |> Promise.catch (fun _ -> Promise.lift <| ResizeArray())
@@ -154,17 +158,17 @@ module CodeLens =
             | Document.FSharp ->
                 changes <- []
                 version <- unbox event.document.version
-                flag <- true
                 fileName <- event.document.fileName
             | _ -> ()
 
         ()
 
     let activate selector (disposables: Disposable[]) =
-        refresh.event.Invoke(fun (n) -> version <- n; flag <- n > 0; null) |> ignore
+        refresh.event.Invoke(fun (n) -> version <- n; null) |> ignore
         workspace.onDidChangeTextDocument $ (textChangedHandler,(), disposables) |> ignore
         window.onDidChangeActiveTextEditor $ (fileOpenedHandler, (), disposables) |> ignore
 
+        fileOpenedHandler window.activeTextEditor
 
 
         languages.registerCodeLensProvider(selector, createProvider()) |> ignore
