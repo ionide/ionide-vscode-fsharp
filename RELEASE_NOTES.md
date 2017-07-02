@@ -1,3 +1,6 @@
+### 2.27.7 - 02.07.2017
+* Change CodeLens caching method
+
 ### 2.27.6 - 23.06.2017
 * Check if linter is enabled before linting
 
