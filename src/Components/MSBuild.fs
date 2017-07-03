@@ -74,7 +74,7 @@ module MSBuild =
             logger.Debug "No MSBuild host selected yet"
             let cfg = vscode.workspace.getConfiguration()
             let p =
-                match cfg.get ("FSharp.msbuildHost", "auto") with
+                match cfg.get ("FSharp.msbuildHost", ".net") with
                 | ".net" -> Some MSbuildHost.MSBuildExe |> Promise.lift
                 | ".net core" -> Some MSbuildHost.DotnetCli |> Promise.lift
                 | "ask at first use" -> pickMSbuildHostType ()
