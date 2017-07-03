@@ -181,8 +181,18 @@ module DTO =
     }
 
 
+    type ResponseError<'T> = { 
+        Code: int
+        Message: string
+        Data: 'T
+    }
+
+    type ProjectNotRestoredData = {
+        ProjectFullPath : string;
+    }
 
     type Result<'T> = {Kind : string; Data : 'T}
+    type ResponseErrorResult<'T> = Result<ResponseError<'T>>
     type CompilerLocationResult = Result<CompilerLocation>
     type HelptextResult = Result<Helptext>
     type CompletionResult = Result<Completion[]>
@@ -196,3 +206,9 @@ module DTO =
     type ProjectResult = Result<Project>
     type ResolveNamespaceResult = Result<ResolveNamespace>
     type UnionCaseGeneratorResult = Result<UnionCaseGenerator>
+
+
+    type DetailedErrors =
+        | ProjectNotRestored of ProjectNotRestoredData
+        | ErrorUnknown
+

@@ -122,7 +122,13 @@ module LanguageService =
         log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %s Data=%j",
                     fsacAction, elapsed.TotalMilliseconds, r.ToString(), obj)
 
-    let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+    type FSACResponse<'b> =
+        | Error of obj
+        | Info of obj
+        | Kind of string * 'b
+        | Invalid
+
+    let private requestRaw<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
         let started = DateTime.Now
         let fullRequestUrl = url fsacAction requestId
         logOutgoingRequest requestId fsacAction obj
@@ -140,21 +146,118 @@ module LanguageService =
         |> Promise.map(fun r ->
             // the outgoing request was made
             try
-                let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
+                let resObj = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse
+                let res = resObj |> unbox<'b>
                 logIncomingResponse requestId fsacAction started r (Some res) None
-                if res?Kind |> unbox = "error" || res?Kind |> unbox = "info" then null |> unbox
-                else res
+                if res?Kind |> unbox = "error" then FSACResponse.Error (res?Data |> unbox)
+                elif res?Kind |> unbox = "info" then FSACResponse.Info (res?Data |> unbox)
+                else FSACResponse.Kind ((res?Kind |> unbox), res)
             with
             | ex ->
                 logIncomingResponse requestId fsacAction started r None (Some ex)
-                null |> unbox
+                FSACResponse.Invalid
         )
+
+    let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+        requestRaw fsacAction id requestId obj
+        |> Promise.map(fun (r: FSACResponse<'b>) ->
+            match r with
+            | FSACResponse.Error err -> null |> unbox
+            | FSACResponse.Info err -> null |> unbox
+            | FSACResponse.Kind (t, res) -> res
+            | FSACResponse.Invalid -> null |> unbox
+        )
+
+    let defaultErrorHandler err =
+        log.Error (sprintf "boh %A" err)
+
+    let private requestHandleError<'b> p =
+        p
+        |> Promise.bind(fun (r: FSACResponse<'b>) ->
+            match r with
+            | FSACResponse.Error err -> Promise.reject err
+            | FSACResponse.Info err -> Promise.empty
+            | FSACResponse.Kind (t, res) -> Promise.lift res
+            | FSACResponse.Invalid -> Promise.empty
+        )
+
+    let parseErrors (err: obj) =
+        match err?Code |> unbox with
+        | 100 ->
+            ProjectNotRestored { ProjectFullPath = (err?Data |> unbox) }
+        | _ ->
+            ErrorUnknown
+
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
+    let initializeProject reportProgressMessage s =
+        reportProgressMessage "Project initialization..."
+
+        let handleProjectNotRestored retry (projectFullPath: string) =
+            log.Error "RESTORE REQUIRED!"
+            
+            let msg = sprintf "There are unresolved dependencies from '%s'. Execute restore to continue." (path.basename(projectFullPath))
+
+            vscode.window.showErrorMessage(msg, [|"Restore"|])
+            |> Promise.map (function "Restore" -> true | _ -> false)
+            |> Promise.bind (fun shouldRestore ->
+                log.Debug("user choose to %srestore", (if shouldRestore then "" else "not "))
+                if shouldRestore then
+                    //restore it with .net core msbuild as default for now
+                    reportProgressMessage "Restoring..."
+                    vscode.commands.executeCommand("MSBuild.restore", projectFullPath, 2)
+                    |> Promise.bind (fun exitCode ->
+                        match exitCode with
+                        | "0" -> retry ()
+                        | _ -> Promise.empty )
+                else
+                    Promise.empty
+                )
+
+        let rec doProject () =
+            {ProjectRequest.FileName = s}
+            |> requestRaw "project" 0 (makeRequestId())
+            |> requestHandleError
+            |> Promise.either (Promise.lift) (fun err ->
+                match parseErrors err with
+                | ProjectNotRestored data ->
+                    log.Error (sprintf "data %A" data)
+                    handleProjectNotRestored doProject (data.ProjectFullPath)
+                | ErrorUnknown ->
+                    defaultErrorHandler err
+                    Promise.empty )
+
+        doProject ()
+
+    let mutable private projectInitializing = false
+
     let project s =
-        {ProjectRequest.FileName = s}
-        |> request "project" 0 (makeRequestId())
+        if projectInitializing then
+            Promise.reject "Project initialization already in progress..."
+        else
+            projectInitializing <- true
+
+            log.Info "Project initialization started..."
+
+            let progressOpts = createEmpty<ProgressOptions>
+            progressOpts.location <- ProgressLocation.Window
+
+            window.withProgress(progressOpts, (fun progress ->
+                let reportProgressMessage m =
+                    let pm = createEmpty<ProgressMessage>
+                    pm.message <- m
+                    progress.report pm
+
+                initializeProject reportProgressMessage s
+                |> Promise.map (fun p ->
+                    log.Error "Project done (for good or bad)"
+                    projectInitializing <- false
+                    p)
+
+                )
+            )
+
 
     let parseProjects s =
         {ProjectRequest.FileName = s}

@@ -208,6 +208,10 @@
       {
         "command": "MSBuild.cleanSelected",
         "title": "MSBuild: Clean project"
+      },
+      {
+        "command": "MSBuild.switchMSbuildHostType",
+        "title": "MSBuild: Switch host type"
       }
     ],
     "views": {
