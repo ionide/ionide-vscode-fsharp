@@ -22,9 +22,12 @@ module MSBuild =
 
     let pickMSbuildHostType () =
         promise {
+            let! envMsbuild = Environment.msbuild
+            let! envDotnet = Environment.dotnet
+
             let hosts =
-                [ ".NET", MSbuildHost.MSBuildExe
-                  ".NET Core", MSbuildHost.DotnetCli ]
+                [ sprintf ".NET (%s)" envMsbuild, MSbuildHost.MSBuildExe
+                  sprintf ".NET Core (%s msbuild)" envDotnet, MSbuildHost.DotnetCli ]
                 |> Map.ofList
 
             let hostsLabels = hosts |> Map.toList |> List.map fst |> ResizeArray
@@ -68,9 +71,18 @@ module MSBuild =
         match msbuildHostType with
         | Some h -> Some h |> Promise.lift
         | None ->
-            //TODO add from configuration
             logger.Debug "No MSBuild host selected yet"
-            pickMSbuildHostType ()
+            let cfg = vscode.workspace.getConfiguration()
+            let p =
+                match cfg.get ("FSharp.msbuildHost", "auto") with
+                | ".net" -> Some MSbuildHost.MSBuildExe |> Promise.lift
+                | ".net core" -> Some MSbuildHost.DotnetCli |> Promise.lift
+                | "ask at first use" -> pickMSbuildHostType ()
+                | _ -> Some MSbuildHost.MSBuildExe |> Promise.lift
+            p
+            |> Promise.map (fun ho ->
+                ho |> Option.iter (fun h -> msbuildHostType <- Some h)
+                ho)
 
     let invokeMSBuildPromise project hostPreference target =
         let autoshow =
