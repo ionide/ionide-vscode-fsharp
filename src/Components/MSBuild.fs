@@ -18,7 +18,19 @@ module MSBuild =
         | MSBuildExe // .net on win, mono on non win
         | DotnetCli
 
-    let mutable private msbuildHostType : MSbuildHost option = None
+    type private Host () =
+        let mutable currentMsbuildHostType : MSbuildHost option = None
+        let _onMSbuildHostTypeDidChange = vscode.EventEmitter<MSbuildHost option>()
+        
+        member public this.onMSbuildHostTypeDidChange with get () = _onMSbuildHostTypeDidChange.event
+
+        member public this.value
+            with get () = currentMsbuildHostType
+             and set host =
+                currentMsbuildHostType <- host
+                _onMSbuildHostTypeDidChange.fire(currentMsbuildHostType)
+
+    let private host = Host ()
 
     let pickMSbuildHostType () =
         promise {
@@ -55,18 +67,11 @@ module MSBuild =
             | _ -> Some MSbuildHost.MSBuildExe
         }
 
-    let private _onMSbuildHostTypeDidChange = vscode.EventEmitter<MSbuildHost option>()
-    let onMSbuildHostTypeDidChange = _onMSbuildHostTypeDidChange.event
-
-    let setMSbuildHostType host =
-        msbuildHostType <- host
-        _onMSbuildHostTypeDidChange.fire(msbuildHostType)
-
     let switchMSbuildHostType () = 
         promise {
             logger.Debug "switching msbuild host (msbuild <-> dotnet cli)"
             let! h =
-                match msbuildHostType with
+                match host.value with
                 | Some MSbuildHost.MSBuildExe ->
                     Some MSbuildHost.DotnetCli |> Promise.lift
                 | Some MSbuildHost.DotnetCli ->
@@ -75,13 +80,13 @@ module MSBuild =
                     logger.Debug("not yet choosen, try pick one")
                     pickMSbuildHostType ()
 
-            setMSbuildHostType h
+            host.value <- h
 
             return h
         }
 
     let getMSbuildHostType () =
-        match msbuildHostType with
+        match host.value with
         | Some h -> Some h |> Promise.lift
         | None ->
             promise {
@@ -92,7 +97,7 @@ module MSBuild =
                     | Some h -> Some h |> Promise.lift
                     | None -> pickMSbuildHostType ()
 
-                ho |> Option.iter (Some >> setMSbuildHostType)
+                ho |> Option.iter (fun h -> host.value <- Some h)
 
                 return ho
             }
@@ -203,7 +208,7 @@ module MSBuild =
                 logger.Info("Dotnet cli (.NET Core) found at %s", p)
                 p)
 
-        onMSbuildHostTypeDidChange
+        host.onMSbuildHostTypeDidChange
         |> Event.invoke (fun host ->
             match host with
             | Some MSbuildHost.MSBuildExe ->
@@ -214,7 +219,7 @@ module MSBuild =
                 logger.Info("Active msbuild: not choosen yet") )
         |> ignore
 
-        let reloadCfg = loadMSBuildHostCfg >> Promise.map setMSbuildHostType
+        let reloadCfg = loadMSBuildHostCfg >> Promise.map (fun h -> host.value <- h)
 
         [envMsbuild; envDotnet]
         |> Promise.all
