@@ -94,8 +94,13 @@ module Environment =
         |> Promise.map (fun (err, stdoutBuf, stderrBuf) -> err, stdoutBuf |> string |> String.trim, stderrBuf |> string |> String.trim )
 
     let tryGetTool toolName =
-        spawnAndGetTrimmedOutput "which" "" toolName
-        |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None )
+        if isWin then
+            spawnAndGetTrimmedOutput "cmd /C where" "" toolName
+            |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None )
+            |> Promise.map (Option.bind (fun paths -> paths.Split('\n') |> Array.map (String.trim) |> Array.tryHead))
+        else
+            spawnAndGetTrimmedOutput "which" "" toolName
+            |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None )
 
 
     /// discover the path to msbuild by a) checking the user-specified configuration, and only if that's not present then try probing
@@ -134,17 +139,18 @@ module Environment =
         if configured <> ""
         then configured |> Promise.lift
         else
-            if not isWin
-            then
-                promise {
-                    let! dotnet = tryGetTool "dotnet"
+            promise {
+                let! dotnet = tryGetTool "dotnet"
+                return
                     match dotnet with
-                    | Some tool -> return tool
-                    | None -> return "dotnet" // at this point nothing really matters because we don't have a sane default at all :(
-                }
-            else
-                let dotnetPath =
-                    [ (platformProgramFiles </> @"dotnet")
-                      (programFilesX86 </> @"dotnet") ]
+                    | Some tool -> tool
+                    | None ->
+                        if isWin then
+                            let dotnetPath =
+                                [ (platformProgramFiles </> @"dotnet")
+                                  (programFilesX86 </> @"dotnet") ]
 
-                defaultArg (findFirstValidFilePath "dotnet.exe" dotnetPath) "dotnet.exe" |> Promise.lift
+                            defaultArg (findFirstValidFilePath "dotnet.exe" dotnetPath) "dotnet.exe"
+                        else
+                            "dotnet" // at this point nothing really matters because we don't have a sane default at all :(
+            }
