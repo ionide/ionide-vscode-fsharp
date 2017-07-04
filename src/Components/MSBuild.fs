@@ -184,7 +184,6 @@ module MSBuild =
     let activate disposables =
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> ignore
         let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> ignore
-        let onDidChangeConfiguration (action : unit -> _) = vscode.workspace.onDidChangeConfiguration.Invoke(unbox<Func<_, obj>>(fun _ -> action ())) |> ignore
 
         /// typed msbuild cmd. Optional project and msbuild host
         let typedMsbuildCmd f projOpt hostOpt =
