@@ -1,3 +1,6 @@
+### 2.27.8 - 04.07.2017
+* Add support for the .Net Core / `dotnet` CLI MsBuild
+
 ### 2.27.7 - 02.07.2017
 * Change CodeLens caching method
 
