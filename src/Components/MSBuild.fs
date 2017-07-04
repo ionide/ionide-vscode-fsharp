@@ -45,44 +45,50 @@ module MSBuild =
         }
 
     let switchMSbuildHostType () = 
-        logger.Debug "switching msbuild host (msbuild <-> dotnet cli)"
-        let next =
-            match msbuildHostType with
-            | Some MSbuildHost.MSBuildExe ->
-                Some MSbuildHost.DotnetCli |> Promise.lift
-            | Some MSbuildHost.DotnetCli ->
-                Some MSbuildHost.MSBuildExe |> Promise.lift
-            | None ->
-                logger.Debug("not yet choosen, try pick one")
-                pickMSbuildHostType ()
-        next
-        |> Promise.map (fun h ->
+        promise {
+            logger.Debug "switching msbuild host (msbuild <-> dotnet cli)"
+            let! h =
+                match msbuildHostType with
+                | Some MSbuildHost.MSBuildExe ->
+                    Some MSbuildHost.DotnetCli |> Promise.lift
+                | Some MSbuildHost.DotnetCli ->
+                    Some MSbuildHost.MSBuildExe |> Promise.lift
+                | None ->
+                    logger.Debug("not yet choosen, try pick one")
+                    pickMSbuildHostType ()
+
             msbuildHostType <- h
-            match msbuildHostType with
-            | Some MSbuildHost.MSBuildExe ->
-                logger.Debug("using msbuild")
-            | Some MSbuildHost.DotnetCli ->
-                logger.Debug("using cli")
-            | None ->
-                logger.Debug("not choosen yet")
-            )
+
+            let _ =
+                match msbuildHostType with
+                | Some MSbuildHost.MSBuildExe ->
+                    logger.Debug("using .NET msbuild")
+                | Some MSbuildHost.DotnetCli ->
+                    logger.Debug("using .NET Core msbuild")
+                | None ->
+                    logger.Debug("not choosen yet")
+
+            return h
+        }
 
     let getMSbuildHostType () =
         match msbuildHostType with
         | Some h -> Some h |> Promise.lift
         | None ->
-            logger.Debug "No MSBuild host selected yet"
-            let cfg = vscode.workspace.getConfiguration()
-            let p =
-                match cfg.get ("FSharp.msbuildHost", ".net") with
-                | ".net" -> Some MSbuildHost.MSBuildExe |> Promise.lift
-                | ".net core" -> Some MSbuildHost.DotnetCli |> Promise.lift
-                | "ask at first use" -> pickMSbuildHostType ()
-                | _ -> Some MSbuildHost.MSBuildExe |> Promise.lift
-            p
-            |> Promise.map (fun ho ->
+            promise {
+                logger.Debug "No MSBuild host selected yet"
+                let cfg = vscode.workspace.getConfiguration()
+                let! ho =
+                    match cfg.get ("FSharp.msbuildHost", ".net") with
+                    | ".net" -> Some MSbuildHost.MSBuildExe |> Promise.lift
+                    | ".net core" -> Some MSbuildHost.DotnetCli |> Promise.lift
+                    | "ask at first use" -> pickMSbuildHostType ()
+                    | _ -> Some MSbuildHost.MSBuildExe |> Promise.lift
+
                 ho |> Option.iter (fun h -> msbuildHostType <- Some h)
-                ho)
+
+                return ho
+            }
 
     let invokeMSBuildPromise project hostPreference target =
         let autoshow =
