@@ -44,6 +44,27 @@ module MSBuild =
                     None
         }
 
+
+    let loadMSBuildHostCfg () = promise {
+        let cfg = vscode.workspace.getConfiguration()
+        return
+            match cfg.get ("FSharp.msbuildHost", ".net") with
+            | ".net" -> Some MSbuildHost.MSBuildExe
+            | ".net core" -> Some MSbuildHost.DotnetCli
+            | "ask at first use" -> None
+            | _ -> Some MSbuildHost.MSBuildExe
+        }
+
+    let setMSbuildHostType host =
+        msbuildHostType <- host
+        match msbuildHostType with
+        | Some MSbuildHost.MSBuildExe ->
+            logger.Info("MSBuild (.NET) activated")
+        | Some MSbuildHost.DotnetCli ->
+            logger.Info("Dotnet cli (.NET Core) activated")
+        | None ->
+            logger.Info("Active msbuild: not choosen yet")
+
     let switchMSbuildHostType () = 
         promise {
             logger.Debug "switching msbuild host (msbuild <-> dotnet cli)"
@@ -57,16 +78,7 @@ module MSBuild =
                     logger.Debug("not yet choosen, try pick one")
                     pickMSbuildHostType ()
 
-            msbuildHostType <- h
-
-            let _ =
-                match msbuildHostType with
-                | Some MSbuildHost.MSBuildExe ->
-                    logger.Debug("using .NET msbuild")
-                | Some MSbuildHost.DotnetCli ->
-                    logger.Debug("using .NET Core msbuild")
-                | None ->
-                    logger.Debug("not choosen yet")
+            setMSbuildHostType h
 
             return h
         }
@@ -77,15 +89,13 @@ module MSBuild =
         | None ->
             promise {
                 logger.Debug "No MSBuild host selected yet"
-                let cfg = vscode.workspace.getConfiguration()
+                let! hostFromConfig = loadMSBuildHostCfg ()
                 let! ho =
-                    match cfg.get ("FSharp.msbuildHost", ".net") with
-                    | ".net" -> Some MSbuildHost.MSBuildExe |> Promise.lift
-                    | ".net core" -> Some MSbuildHost.DotnetCli |> Promise.lift
-                    | "ask at first use" -> pickMSbuildHostType ()
-                    | _ -> Some MSbuildHost.MSBuildExe |> Promise.lift
+                    match hostFromConfig with
+                    | Some h -> Some h |> Promise.lift
+                    | None -> pickMSbuildHostType ()
 
-                ho |> Option.iter (fun h -> msbuildHostType <- Some h)
+                ho |> Option.iter (Some >> setMSbuildHostType)
 
                 return ho
             }
@@ -107,7 +117,7 @@ module MSBuild =
                     match host with
                     | MSbuildHost.MSBuildExe -> command
                     | MSbuildHost.DotnetCli -> sprintf "msbuild %s" command
-                logger.Debug("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
+                logger.Info("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
                 let _ =
                     if autoshow then outputChannel.show()
                 return! Process.spawnWithNotification msbuildPath "" cmd outputChannel
@@ -172,6 +182,7 @@ module MSBuild =
     let activate disposables =
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> ignore
         let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> ignore
+        let onDidChangeConfiguration (action : unit -> _) = vscode.workspace.onDidChangeConfiguration.Invoke(unbox<Func<_, obj>>(fun _ -> action ())) |> ignore
 
         /// typed msbuild cmd. Optional project and msbuild host
         let typedMsbuildCmd f projOpt hostOpt =
@@ -183,18 +194,27 @@ module MSBuild =
                 | 0 | _ -> None
             f p h
 
-        Environment.msbuild
-        |> Promise.map (fun p ->
-            logger.Debug("MSBuild found at %s", p)
-            logger.Debug("MSBuild activated")
-        )
+        let envMsbuild =
+            Environment.msbuild
+            |> Promise.map (fun p ->
+                logger.Info("MSBuild (.NET) found at %s", p)
+                p)
+
+        let envDotnet = 
+            Environment.dotnet
+            |> Promise.map (fun p ->
+                logger.Info("Dotnet cli (.NET Core) found at %s", p)
+                p)
+
+        let reloadCfg = loadMSBuildHostCfg >> Promise.map setMSbuildHostType
+
+        [envMsbuild; envDotnet]
+        |> Promise.all
+        |> Promise.map Seq.toList
+        |> Promise.bind (fun [_msbuild; _dotnet] -> reloadCfg ())
         |> ignore
-        Environment.dotnet
-        |> Promise.map (fun p ->
-            logger.Debug("Dotnet cli (.NET Core) found at %s", p)
-            logger.Debug("Dotnet cli (.NET Core) activated")
-        )
-        |> ignore
+
+        onDidChangeConfiguration(reloadCfg)
 
         registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")
         registerCommand "MSBuild.rebuildCurrent" (fun _ -> buildCurrentProject "Rebuild")
