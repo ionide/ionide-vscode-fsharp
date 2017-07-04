@@ -146,3 +146,8 @@ module Promise =
         | [x] -> f x
         | x::tail ->
             tail |> List.fold (fun acc next -> acc |> Ionide.VSCode.Helpers.Promise.bind (fun _ -> f next)) (f x)
+
+module Event =
+
+    let invoke (listener: 'T -> _) (event: Fable.Import.vscode.Event<'T>) =
+        event.Invoke(unbox<System.Func<_, _>>(fun a -> listener a))

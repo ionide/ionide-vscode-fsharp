@@ -55,15 +55,12 @@ module MSBuild =
             | _ -> Some MSbuildHost.MSBuildExe
         }
 
+    let private _onMSbuildHostTypeDidChange = vscode.EventEmitter<MSbuildHost option>()
+    let onMSbuildHostTypeDidChange = _onMSbuildHostTypeDidChange.event
+
     let setMSbuildHostType host =
         msbuildHostType <- host
-        match msbuildHostType with
-        | Some MSbuildHost.MSBuildExe ->
-            logger.Info("MSBuild (.NET) activated")
-        | Some MSbuildHost.DotnetCli ->
-            logger.Info("Dotnet cli (.NET Core) activated")
-        | None ->
-            logger.Info("Active msbuild: not choosen yet")
+        _onMSbuildHostTypeDidChange.fire(msbuildHostType)
 
     let switchMSbuildHostType () = 
         promise {
@@ -206,6 +203,17 @@ module MSBuild =
                 logger.Info("Dotnet cli (.NET Core) found at %s", p)
                 p)
 
+        onMSbuildHostTypeDidChange
+        |> Event.invoke (fun host ->
+            match host with
+            | Some MSbuildHost.MSBuildExe ->
+                logger.Info("MSBuild (.NET) activated")
+            | Some MSbuildHost.DotnetCli ->
+                logger.Info("Dotnet cli (.NET Core) activated")
+            | None ->
+                logger.Info("Active msbuild: not choosen yet") )
+        |> ignore
+
         let reloadCfg = loadMSBuildHostCfg >> Promise.map setMSbuildHostType
 
         [envMsbuild; envDotnet]
@@ -214,7 +222,9 @@ module MSBuild =
         |> Promise.bind (fun [_msbuild; _dotnet] -> reloadCfg ())
         |> ignore
 
-        onDidChangeConfiguration(reloadCfg)
+        vscode.workspace.onDidChangeConfiguration
+        |> Event.invoke reloadCfg
+        |> ignore
 
         registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")
         registerCommand "MSBuild.rebuildCurrent" (fun _ -> buildCurrentProject "Rebuild")
