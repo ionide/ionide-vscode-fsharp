@@ -90,7 +90,7 @@ module MSBuild =
                 return ho
             }
 
-    let invokeMSBuildPromise project hostPreference target =
+    let invokeMSBuild project target hostPreference =
         let autoshow =
             let cfg = vscode.workspace.getConfiguration()
             cfg.get ("FSharp.msbuildAutoshow", true)
@@ -122,10 +122,6 @@ module MSBuild =
         theMSbuildHostType
         |> Promise.bind (function None -> Promise.empty | Some h -> executeWithHost h)
 
-    let invokeMSBuild project target =
-        invokeMSBuildPromise project None target
-        |> ignore
-
     /// discovers the project that the active document belongs to and builds that
     let buildCurrentProject target =
         logger.Debug("discovering project")
@@ -135,29 +131,58 @@ module MSBuild =
             match currentProject with
             | Some p ->
                 logger.Debug("found project %s", p.Project)
-                invokeMSBuild p.Project target
+                invokeMSBuild p.Project target None
             | None ->
                 logger.Debug("could not find a project that contained the file %s", window.activeTextEditor.document.fileName)
-                ()
-        | Document.Other -> logger.Debug("I don't know how to handle a project of type %s", window.activeTextEditor.document.languageId)
+                Promise.empty
+        | Document.Other ->
+                logger.Debug("I don't know how to handle a project of type %s", window.activeTextEditor.document.languageId)
+                Promise.empty
 
-    /// prompts the user to choose a project and builds that project
-    let buildProject target =
-        promise {
-            logger.Debug "building project"
-            let projects = Project.getAll () |> ResizeArray
-            if projects.Count <> 0 then
+    /// prompts the user to choose a project
+    let pickProject placeHolder =
+        logger.Debug "pick project"
+        let projects = Project.getAll () |> ResizeArray
+        if projects.Count = 0 then
+            None |> Promise.lift
+        else
+            promise {
                 let opts = createEmpty<QuickPickOptions>
-                opts.placeHolder <- Some "Project to build"
+                opts.placeHolder <- Some placeHolder
                 let! chosen = window.showQuickPick(projects |> Case1, opts)
                 logger.Debug("user chose project %s", chosen)
-                if JS.isDefined chosen
-                then
-                    invokeMSBuild chosen target
+                return if JS.isDefined chosen
+                       then Some chosen
+                       else None
+            }
+
+    /// prompts the user to choose a project (if not specified) and builds that project
+    let buildProject target projOpt hostOpt =
+        promise {
+            logger.Debug "building project"
+            let! chosen =
+                match projOpt with
+                | None -> pickProject "Project to build"
+                | Some h -> Some h |> Promise.lift
+            return! match chosen with
+                    | None -> Promise.empty
+                    | Some proj -> invokeMSBuild proj target hostOpt
         }
 
     let activate disposables =
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> ignore
+        let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> ignore
+
+        /// typed msbuild cmd. Optional project and msbuild host
+        let typedMsbuildCmd f projOpt hostOpt =
+            let p = if JS.isDefined projOpt then Some (unbox<string>(projOpt)) else None
+            let h =
+                match (if JS.isDefined hostOpt then unbox<int>(hostOpt) else 0) with
+                | 1 -> Some MSbuildHost.MSBuildExe
+                | 2 -> Some MSbuildHost.DotnetCli
+                | 0 | _ -> None
+            f p h
+
         Environment.msbuild
         |> Promise.map (fun p ->
             logger.Debug("MSBuild found at %s", p)
@@ -170,22 +195,14 @@ module MSBuild =
             logger.Debug("Dotnet cli (.NET Core) activated")
         )
         |> ignore
-        registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")
-        registerCommand "MSBuild.buildSelected" (fun _ -> buildProject "Build")
-        registerCommand "MSBuild.rebuildCurrent" (fun _ -> buildCurrentProject "Rebuild")
-        registerCommand "MSBuild.rebuildSelected" (fun _ -> buildProject "Rebuild")
-        registerCommand "MSBuild.cleanCurrent" (fun _ -> buildCurrentProject "Clean")
-        registerCommand "MSBuild.cleanSelected" (fun _ -> buildProject "Clean")
-        registerCommand "MSBuild.switchMSbuildHostType" (fun _ -> switchMSbuildHostType ())
 
-        let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> ignore
-        registerCommand2 "MSBuild.restore" (fun a b ->
-            logger.Debug("a %s", a)
-            logger.Debug("b %j", b)
-            let host = //TODO define a shared type to use, or make MSbuildHost more high level
-                let h = if JS.isDefined b then unbox<int>(b) else 0
-                match h with
-                | 1 -> Some MSbuildHost.MSBuildExe
-                | 2 -> Some MSbuildHost.DotnetCli
-                | 0 | _ -> None
-            invokeMSBuildPromise (unbox<string>(a)) host "Restore")
+        registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")
+        registerCommand "MSBuild.rebuildCurrent" (fun _ -> buildCurrentProject "Rebuild")
+        registerCommand "MSBuild.cleanCurrent" (fun _ -> buildCurrentProject "Clean")
+
+        registerCommand2 "MSBuild.buildSelected" (typedMsbuildCmd (buildProject "Build"))
+        registerCommand2 "MSBuild.rebuildSelected" (typedMsbuildCmd (buildProject "Rebuild"))
+        registerCommand2 "MSBuild.cleanSelected" (typedMsbuildCmd (buildProject "Clean"))
+        registerCommand2 "MSBuild.restoreSelected" (typedMsbuildCmd (buildProject"Restore"))
+
+        registerCommand "MSBuild.switchMSbuildHostType" (fun _ -> switchMSbuildHostType ())

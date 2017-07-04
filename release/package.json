@@ -210,6 +210,10 @@
         "title": "MSBuild: Clean project"
       },
       {
+        "command": "MSBuild.restoreSelected",
+        "title": "MSBuild: Restore project"
+      },
+      {
         "command": "MSBuild.switchMSbuildHostType",
         "title": "MSBuild: Switch host type"
       }
