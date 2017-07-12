@@ -1,3 +1,6 @@
+### 2.27.10 - 12.07.2017
+* Fix Expecto `dotnet` CLI runner
+
 ### 2.27.9 - 12.07.2017
 * Fix Expecto .Net SDK detection
 
