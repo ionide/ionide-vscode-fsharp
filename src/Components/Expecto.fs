@@ -85,8 +85,7 @@ module Expecto =
                 let cmd = "run -p " + project.Project + " -- " + args
                 execWithDotnet cmd
             match project.Output, isANetCoreAppProject project with
-            | null, true
-            | "null", true -> Some (execDotnet, project.Project)
+            | _, true -> Some (execDotnet, project.Project)
             | out, _ when out |> String.endWith ".exe" -> Some ((fun args -> exec out args), out)
             | _ -> None
         )
