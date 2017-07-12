@@ -52,7 +52,8 @@ module Expecto =
     let private isANetCoreAppProject (project:Project) =
         let projectContent = (fs.readFileSync project.Project).ToString()
         let netCoreTargets =
-            [ "<TargetFramework>netcoreapp" ]
+            [ "<TargetFramework>netcoreapp"
+              "<Project Sdk=\"" ]
 
         let findInProject (toFind:string) =
             projectContent.IndexOf(toFind) >= 0
