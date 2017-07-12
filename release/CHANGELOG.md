@@ -1,3 +1,6 @@
+### 2.27.9 - 12.07.2017
+* Fix Expecto .Net SDK detection
+
 ### 2.27.8 - 04.07.2017
 * Add support for the .Net Core / `dotnet` CLI MsBuild
 
