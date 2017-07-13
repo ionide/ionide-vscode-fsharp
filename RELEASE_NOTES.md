@@ -1,3 +1,6 @@
+### 2.27.11 - 13.07.2017
+*  Show Expecto Watch mode on Status Bar only if Expecto is used in workspace
+
 ### 2.27.10 - 12.07.2017
 * Fix Expecto `dotnet` CLI runner
 
