@@ -446,7 +446,14 @@ module Expecto =
         statusBar.text <- "$(eye) Watch Mode Off"
         statusBar.tooltip <- "Expecto continuous testing"
         statusBar.command <- "Expecto.watchMode"
-        statusBar.show ()
+
+        Project.projectChanged.event.Invoke (fun proj ->
+            if getExpectoProjects() |> List.isEmpty then
+                statusBar.hide()
+            else
+                statusBar.show()
+            unbox ()
+        ) |> ignore
 
         let _ = vscode.window.onDidChangeActiveTextEditor $ setDecorations
         ()
