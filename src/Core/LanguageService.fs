@@ -29,19 +29,19 @@ module LanguageService =
         with
         | _ -> LogConfigSetting.None
 
-    let logLanguageServiceRequestsOutputWindowLevel =
-        try
-            match "FSharp.logLanguageServiceRequestsOutputWindowLevel" |> Configuration.get "INFO" with
-            | "DEBUG" -> Level.DEBUG
-            | "INFO" -> Level.INFO
-            | "WARN" -> Level.WARN
-            | "ERROR" -> Level.ERROR
-            | _ -> Level.INFO
-        with
-        | _ -> Level.INFO
-
     // note: always log to the loggers, and let it decide where/if to write the message
     let createConfiguredLoggers source channelName =
+
+        let logLanguageServiceRequestsOutputWindowLevel () =
+            try
+                match "FSharp.logLanguageServiceRequestsOutputWindowLevel" |> Configuration.get "INFO" with
+                | "DEBUG" -> Level.DEBUG
+                | "INFO" -> Level.INFO
+                | "WARN" -> Level.WARN
+                | "ERROR" -> Level.ERROR
+                | _ -> Level.INFO
+            with
+            | _ -> Level.INFO
 
         let channel, logRequestsToConsole =
             match logLanguageServiceRequestsConfigSetting with
@@ -58,10 +58,11 @@ module LanguageService =
             | Level.DEBUG, Some _ -> Some (window.createOutputChannel (channelName + " (server)"))
             | _, _ -> None
 
-        let editorSideLogger = ConsoleAndOutputChannelLogger(Some source, logLanguageServiceRequestsOutputWindowLevel, channel, Some consoleMinLevel)
-        if logLanguageServiceRequestsOutputWindowLevel <> Level.DEBUG then
-            let levelString = logLanguageServiceRequestsOutputWindowLevel.ToString()
-            editorSideLogger.Info ("Logging to output at level %s. If you want detailed messages, try level DEBUG.", levelString)
+        let level = logLanguageServiceRequestsOutputWindowLevel ()
+
+        let editorSideLogger = ConsoleAndOutputChannelLogger(Some source, level, channel, Some consoleMinLevel)
+        if level <> Level.DEBUG then
+            editorSideLogger.Info ("Logging to output at level %s. If you want detailed messages, try level DEBUG.", (level.ToString()))
 
         let fsacStdOutWriter text =
             match serverStdoutChannel with
