@@ -181,6 +181,24 @@ module DTO =
     }
 
 
+    type ResponseError<'T> = {
+        Code: int
+        Message: string
+        AdditionalData: 'T
+    }
+
+    [<RequireQualifiedAccess>]
+    type ErrorCodes =
+       | GenericError = 1
+       | ProjectNotRestored = 100
+
+    module ErrorDataTypes =
+        type ProjectNotRestoredData = { Project: ProjectFilePath }
+
+    [<RequireQualifiedAccess>]
+    type ErrorData =
+       | GenericError
+       | ProjectNotRestored of ErrorDataTypes.ProjectNotRestoredData
 
     type Result<'T> = {Kind : string; Data : 'T}
     type CompilerLocationResult = Result<CompilerLocation>

@@ -122,7 +122,25 @@ module LanguageService =
         log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %s Data=%j",
                     fsacAction, elapsed.TotalMilliseconds, r.ToString(), obj)
 
-    let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+    type FSACResponse<'b> =
+        | Error of string * ErrorData
+        | Info of obj
+        | Kind of string * 'b
+        | Invalid
+
+    let parseError (err: obj) =
+        let data =
+            match err?Code |> unbox with
+            | ErrorCodes.GenericError ->
+                ErrorData.GenericError
+            | ErrorCodes.ProjectNotRestored ->
+                ErrorData.ProjectNotRestored (err?AdditionalData |> unbox)
+            | unknown ->
+                //todo log not recognized for Debug
+                ErrorData.GenericError
+        (err?Message |> unbox<string>), data
+
+    let private requestRaw<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
         let started = DateTime.Now
         let fullRequestUrl = url fsacAction requestId
         logOutgoingRequest requestId fsacAction obj
@@ -140,15 +158,27 @@ module LanguageService =
         |> Promise.map(fun r ->
             // the outgoing request was made
             try
-                let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
+                let resObj = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse
+                let res = resObj |> unbox<'b>
                 logIncomingResponse requestId fsacAction started r (Some res) None
-                if res?Kind |> unbox = "error" || res?Kind |> unbox = "info" then null |> unbox
-                else res
+                if res?Kind |> unbox = "error" then FSACResponse.Error (res?Data |> parseError)
+                elif res?Kind |> unbox = "info" then FSACResponse.Info (res?Data |> unbox)
+                else FSACResponse.Kind ((res?Kind |> unbox), res)
             with
             | ex ->
                 logIncomingResponse requestId fsacAction started r None (Some ex)
-                null |> unbox
+                FSACResponse.Invalid
         )
+
+    let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+         requestRaw fsacAction id requestId obj
+         |> Promise.map(fun (r: FSACResponse<'b>) ->
+             match r with
+             | FSACResponse.Error (msg, err) -> null |> unbox
+             | FSACResponse.Info err -> null |> unbox
+             | FSACResponse.Kind (t, res) -> res
+             | FSACResponse.Invalid -> null |> unbox
+          )
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
