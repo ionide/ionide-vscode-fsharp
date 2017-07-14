@@ -81,7 +81,6 @@ module Linter =
         |> Promise.onSuccess (fun _ -> lintDocument doc.fileName)
 
     let activate selector (disposables: Disposable[]) =
-        workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
         refresh.event $ (handler,(), disposables) |> ignore
         if JS.isDefined window.activeTextEditor then
             match window.activeTextEditor.document with
