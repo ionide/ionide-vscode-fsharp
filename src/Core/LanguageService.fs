@@ -136,6 +136,19 @@ module LanguageService =
                 ErrorData.GenericError
         (err?Message |> unbox<string>), data
 
+    let prettyPrintError fsacAction (msg: string) (err: ErrorData) =
+        let whenMsg =
+            match fsacAction with
+            | "project" -> "Project loading failed"
+            | a -> sprintf "Cannot execute %s" a
+        let d =
+            match err with
+            | ErrorData.GenericError ->
+                ""
+            | ErrorData.ProjectNotRestored data ->
+                sprintf "'%s'" data.Project
+        sprintf "%s, %s %s" whenMsg msg d
+
     let private requestRaw<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
         let started = DateTime.Now
         let fullRequestUrl = url fsacAction requestId
@@ -170,7 +183,9 @@ module LanguageService =
          requestRaw fsacAction id requestId obj
          |> Promise.map(fun (r: FSACResponse<'b>) ->
              match r with
-             | FSACResponse.Error (msg, err) -> null |> unbox
+             | FSACResponse.Error (msg, err) ->
+                log.Error (prettyPrintError fsacAction msg err)
+                null |> unbox
              | FSACResponse.Info err -> null |> unbox
              | FSACResponse.Kind (t, res) -> res
              | FSACResponse.Invalid -> null |> unbox
