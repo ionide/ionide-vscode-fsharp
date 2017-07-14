@@ -58,11 +58,13 @@ module LanguageService =
             | Level.DEBUG, Some _ -> Some (window.createOutputChannel (channelName + " (server)"))
             | _, _ -> None
 
-        let level = logLanguageServiceRequestsOutputWindowLevel ()
+        let editorSideLogger = ConsoleAndOutputChannelLogger(Some source, (logLanguageServiceRequestsOutputWindowLevel ()), channel, Some consoleMinLevel)
 
-        let editorSideLogger = ConsoleAndOutputChannelLogger(Some source, level, channel, Some consoleMinLevel)
-        if level <> Level.DEBUG then
-            editorSideLogger.Info ("Logging to output at level %s. If you want detailed messages, try level DEBUG.", (level.ToString()))
+        let showCurrentLevel level =
+            if level <> Level.DEBUG then
+                editorSideLogger.Info ("Logging to output at level %s. If you want detailed messages, try level DEBUG.", (level.ToString()))
+        
+        editorSideLogger.ChanMinLevel |> showCurrentLevel
 
         let fsacStdOutWriter text =
             match serverStdoutChannel with
