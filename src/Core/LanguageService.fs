@@ -66,6 +66,12 @@ module LanguageService =
         
         editorSideLogger.ChanMinLevel |> showCurrentLevel
 
+        vscode.workspace.onDidChangeConfiguration
+        |> Event.invoke (fun () ->
+            editorSideLogger.ChanMinLevel <- logLanguageServiceRequestsOutputWindowLevel ()
+            editorSideLogger.ChanMinLevel |> showCurrentLevel )
+        |> ignore
+
         let fsacStdOutWriter text =
             match serverStdoutChannel with
             | None -> ()
