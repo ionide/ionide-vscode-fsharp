@@ -1,3 +1,6 @@
+### 2.27.13 - 14.07.2017
+* Fix linter initialization
+
 ### 2.27.12 - 14.07.2017
 * Update FSAC (fix C# project references)
 * Enhance `F# language service` logging
