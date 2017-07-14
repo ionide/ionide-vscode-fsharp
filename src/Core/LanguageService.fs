@@ -21,13 +21,13 @@ module LanguageService =
     type LogConfigSetting = None | Output | DevConsole | Both
     let logLanguageServiceRequestsConfigSetting =
         try
-            match "FSharp.logLanguageServiceRequests" |> Configuration.get "" with
+            match "FSharp.logLanguageServiceRequests" |> Configuration.get "output" with
             | "devconsole" -> LogConfigSetting.DevConsole
             | "output" -> LogConfigSetting.Output
             | "both" -> LogConfigSetting.Both
-            | _ -> LogConfigSetting.None
+            | _ -> LogConfigSetting.Output
         with
-        | _ -> LogConfigSetting.None
+        | _ -> LogConfigSetting.Output
 
     // note: always log to the loggers, and let it decide where/if to write the message
     let createConfiguredLoggers source channelName =
