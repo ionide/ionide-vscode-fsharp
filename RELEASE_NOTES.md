@@ -1,3 +1,7 @@
+### 2.27.12 - 14.07.2017
+* Update FSAC (fix C# project references)
+* Enhance `F# language service` logging
+
 ### 2.27.11 - 13.07.2017
 *  Show Expecto Watch mode on Status Bar only if Expecto is used in workspace
 
