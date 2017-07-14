@@ -29,19 +29,19 @@ module LanguageService =
         with
         | _ -> LogConfigSetting.None
 
-    let logLanguageServiceRequestsOutputWindowLevel =
-        try
-            match "FSharp.logLanguageServiceRequestsOutputWindowLevel" |> Configuration.get "INFO" with
-            | "DEBUG" -> Level.DEBUG
-            | "INFO" -> Level.INFO
-            | "WARN" -> Level.WARN
-            | "ERROR" -> Level.ERROR
-            | _ -> Level.INFO
-        with
-        | _ -> Level.INFO
-
     // note: always log to the loggers, and let it decide where/if to write the message
     let createConfiguredLoggers source channelName =
+
+        let logLanguageServiceRequestsOutputWindowLevel () =
+            try
+                match "FSharp.logLanguageServiceRequestsOutputWindowLevel" |> Configuration.get "INFO" with
+                | "DEBUG" -> Level.DEBUG
+                | "INFO" -> Level.INFO
+                | "WARN" -> Level.WARN
+                | "ERROR" -> Level.ERROR
+                | _ -> Level.INFO
+            with
+            | _ -> Level.INFO
 
         let channel, logRequestsToConsole =
             match logLanguageServiceRequestsConfigSetting with
@@ -58,10 +58,19 @@ module LanguageService =
             | Level.DEBUG, Some _ -> Some (window.createOutputChannel (channelName + " (server)"))
             | _, _ -> None
 
-        let editorSideLogger = ConsoleAndOutputChannelLogger(Some source, logLanguageServiceRequestsOutputWindowLevel, channel, Some consoleMinLevel)
-        if logLanguageServiceRequestsOutputWindowLevel <> Level.DEBUG then
-            let levelString = logLanguageServiceRequestsOutputWindowLevel.ToString()
-            editorSideLogger.Info ("Logging to output at level %s. If you want detailed messages, try level DEBUG.", levelString)
+        let editorSideLogger = ConsoleAndOutputChannelLogger(Some source, (logLanguageServiceRequestsOutputWindowLevel ()), channel, Some consoleMinLevel)
+
+        let showCurrentLevel level =
+            if level <> Level.DEBUG then
+                editorSideLogger.Info ("Logging to output at level %s. If you want detailed messages, try level DEBUG.", (level.ToString()))
+        
+        editorSideLogger.ChanMinLevel |> showCurrentLevel
+
+        vscode.workspace.onDidChangeConfiguration
+        |> Event.invoke (fun () ->
+            editorSideLogger.ChanMinLevel <- logLanguageServiceRequestsOutputWindowLevel ()
+            editorSideLogger.ChanMinLevel |> showCurrentLevel )
+        |> ignore
 
         let fsacStdOutWriter text =
             match serverStdoutChannel with
@@ -100,19 +109,15 @@ module LanguageService =
             else None, None
 
         match extraPropInfo with
-        | None, None -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}\nData=%j", fsacAction, obj)
-        | Some extraTmpl, Some extraArg -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}" + extraTmpl + "\nData=%j", fsacAction, extraArg, obj)
+        | None, None -> log.Debug (makeOutgoingLogPrefix(requestId) + " {%s}\nData=%j", fsacAction, obj)
+        | Some extraTmpl, Some extraArg -> log.Debug (makeOutgoingLogPrefix(requestId) + " {%s}" + extraTmpl + "\nData=%j", fsacAction, extraArg, obj)
         | _, _ -> failwithf "cannot happen %A" extraPropInfo
 
     let private logIncomingResponse requestId fsacAction (started: DateTime) (r: Axios.AxiosXHR<_>) (res: _ option) (ex: exn option) =
         let elapsed = DateTime.Now - started
         match res, ex with
         | Some res, None ->
-            let debugLog : string*obj[] = makeIncomingLogPrefix(requestId) + " {%s} in %s ms: Kind={\"%s\"}\nData=%j",
-                                          [| fsacAction; elapsed.TotalMilliseconds; res?Kind; res?Data |]
-            let infoLog : string*obj[] = makeIncomingLogPrefix(requestId) + " {%s} in %s ms: Kind={\"%s\"} ",
-                                          [| fsacAction; elapsed.TotalMilliseconds; res?Kind |]
-            log.DebugOrInfo debugLog infoLog
+            log.Debug(makeIncomingLogPrefix(requestId) + " {%s} in %s ms: Kind={\"%s\"}\nData=%j", fsacAction, elapsed.TotalMilliseconds, res?Kind, res?Data)
         | None, Some ex ->
             log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: {%j}, Data=%j", fsacAction, elapsed.TotalMilliseconds, ex.ToString(), obj)
         | _, _ -> log.Error(makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %j, %j, %j", fsacAction, elapsed.TotalMilliseconds, res, ex.ToString(), obj)
@@ -122,7 +127,38 @@ module LanguageService =
         log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %s Data=%j",
                     fsacAction, elapsed.TotalMilliseconds, r.ToString(), obj)
 
-    let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+    type FSACResponse<'b> =
+        | Error of string * ErrorData
+        | Info of obj
+        | Kind of string * 'b
+        | Invalid
+
+    let parseError (err: obj) =
+        let data =
+            match err?Code |> unbox with
+            | ErrorCodes.GenericError ->
+                ErrorData.GenericError
+            | ErrorCodes.ProjectNotRestored ->
+                ErrorData.ProjectNotRestored (err?AdditionalData |> unbox)
+            | unknown ->
+                //todo log not recognized for Debug
+                ErrorData.GenericError
+        (err?Message |> unbox<string>), data
+
+    let prettyPrintError fsacAction (msg: string) (err: ErrorData) =
+        let whenMsg =
+            match fsacAction with
+            | "project" -> "Project loading failed"
+            | a -> sprintf "Cannot execute %s" a
+        let d =
+            match err with
+            | ErrorData.GenericError ->
+                ""
+            | ErrorData.ProjectNotRestored data ->
+                sprintf "'%s'" data.Project
+        sprintf "%s, %s %s" whenMsg msg d
+
+    let private requestRaw<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
         let started = DateTime.Now
         let fullRequestUrl = url fsacAction requestId
         logOutgoingRequest requestId fsacAction obj
@@ -140,15 +176,29 @@ module LanguageService =
         |> Promise.map(fun r ->
             // the outgoing request was made
             try
-                let res = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse |> unbox<'b>
+                let resObj = (r.data |> unbox<string[]>).[id] |> JS.JSON.parse
+                let res = resObj |> unbox<'b>
                 logIncomingResponse requestId fsacAction started r (Some res) None
-                if res?Kind |> unbox = "error" || res?Kind |> unbox = "info" then null |> unbox
-                else res
+                if res?Kind |> unbox = "error" then FSACResponse.Error (res?Data |> parseError)
+                elif res?Kind |> unbox = "info" then FSACResponse.Info (res?Data |> unbox)
+                else FSACResponse.Kind ((res?Kind |> unbox), res)
             with
             | ex ->
                 logIncomingResponse requestId fsacAction started r None (Some ex)
-                null |> unbox
+                FSACResponse.Invalid
         )
+
+    let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+         requestRaw fsacAction id requestId obj
+         |> Promise.map(fun (r: FSACResponse<'b>) ->
+             match r with
+             | FSACResponse.Error (msg, err) ->
+                log.Error (prettyPrintError fsacAction msg err)
+                null |> unbox
+             | FSACResponse.Info err -> null |> unbox
+             | FSACResponse.Kind (t, res) -> res
+             | FSACResponse.Invalid -> null |> unbox
+          )
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 

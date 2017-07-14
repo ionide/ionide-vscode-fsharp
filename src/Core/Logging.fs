@@ -45,7 +45,8 @@ module Logging =
 
     /// The templates may use node util.format placeholders: %s, %d, %j, %%
     /// https://nodejs.org/api/util.html#util_util_format_format
-    type ConsoleAndOutputChannelLogger(source: string option, chanMinLevel: Level, out:OutputChannel option, consoleMinLevel: Level option) =
+    type ConsoleAndOutputChannelLogger(source: string option, chanDefaultMinLevel: Level, out:OutputChannel option, consoleMinLevel: Level option) =
+        member val ChanMinLevel = chanDefaultMinLevel with get, set
 
         /// Logs a different message in either DEBUG (if enabled) or INFO (otherwise).
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
@@ -55,9 +56,9 @@ module Logging =
                         (infoTemplateAndArgs: string * obj[]) =
             // OutputChannel: when at DEBUG level, use the DEBUG template and args, otherwise INFO
             if out.IsSome then
-                if chanMinLevel.isLessOrEqualTo(Level.DEBUG) then
+                if this.ChanMinLevel.isLessOrEqualTo(Level.DEBUG) then
                     writeOutputChannel out.Value DEBUG source (fst debugTemplateAndArgs) (snd debugTemplateAndArgs)
-                elif chanMinLevel.isLessOrEqualTo(Level.INFO) then
+                elif this.ChanMinLevel.isLessOrEqualTo(Level.INFO) then
                     writeOutputChannel out.Value INFO source (fst infoTemplateAndArgs) (snd infoTemplateAndArgs)
 
             // Console: when at DEBUG level, use the DEBUG template and args, otherwise INFO
@@ -71,19 +72,19 @@ module Logging =
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Debug (template, [<ParamArray>]args:obj[]) =
-            writeBothIfConfigured out chanMinLevel consoleMinLevel DEBUG source template args
+            writeBothIfConfigured out this.ChanMinLevel consoleMinLevel DEBUG source template args
         /// Logs a message that should/could be seen by the user in the output channel.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Info (template, [<ParamArray>]args:obj[]) =
-            writeBothIfConfigured out chanMinLevel consoleMinLevel INFO source template args
+            writeBothIfConfigured out this.ChanMinLevel consoleMinLevel INFO source template args
         /// Logs a message that should/could be seen by the user in the output channel when a problem happens.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Error (template, [<ParamArray>]args:obj[]) =
-            writeBothIfConfigured out chanMinLevel consoleMinLevel ERROR source template args
+            writeBothIfConfigured out this.ChanMinLevel consoleMinLevel ERROR source template args
         /// Logs a message that should/could be seen by the user in the output channel when a problem happens.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Warn (template, [<ParamArray>]args:obj[]) =
-            writeBothIfConfigured out chanMinLevel consoleMinLevel WARN source template args
+            writeBothIfConfigured out this.ChanMinLevel consoleMinLevel WARN source template args
