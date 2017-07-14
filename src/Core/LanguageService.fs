@@ -100,19 +100,15 @@ module LanguageService =
             else None, None
 
         match extraPropInfo with
-        | None, None -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}\nData=%j", fsacAction, obj)
-        | Some extraTmpl, Some extraArg -> log.Info (makeOutgoingLogPrefix(requestId) + " {%s}" + extraTmpl + "\nData=%j", fsacAction, extraArg, obj)
+        | None, None -> log.Debug (makeOutgoingLogPrefix(requestId) + " {%s}\nData=%j", fsacAction, obj)
+        | Some extraTmpl, Some extraArg -> log.Debug (makeOutgoingLogPrefix(requestId) + " {%s}" + extraTmpl + "\nData=%j", fsacAction, extraArg, obj)
         | _, _ -> failwithf "cannot happen %A" extraPropInfo
 
     let private logIncomingResponse requestId fsacAction (started: DateTime) (r: Axios.AxiosXHR<_>) (res: _ option) (ex: exn option) =
         let elapsed = DateTime.Now - started
         match res, ex with
         | Some res, None ->
-            let debugLog : string*obj[] = makeIncomingLogPrefix(requestId) + " {%s} in %s ms: Kind={\"%s\"}\nData=%j",
-                                          [| fsacAction; elapsed.TotalMilliseconds; res?Kind; res?Data |]
-            let infoLog : string*obj[] = makeIncomingLogPrefix(requestId) + " {%s} in %s ms: Kind={\"%s\"} ",
-                                          [| fsacAction; elapsed.TotalMilliseconds; res?Kind |]
-            log.DebugOrInfo debugLog infoLog
+            log.Debug(makeIncomingLogPrefix(requestId) + " {%s} in %s ms: Kind={\"%s\"}\nData=%j", fsacAction, elapsed.TotalMilliseconds, res?Kind, res?Data)
         | None, Some ex ->
             log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: {%j}, Data=%j", fsacAction, elapsed.TotalMilliseconds, ex.ToString(), obj)
         | _, _ -> log.Error(makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %j, %j, %j", fsacAction, elapsed.TotalMilliseconds, res, ex.ToString(), obj)
