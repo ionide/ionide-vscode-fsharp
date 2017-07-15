@@ -301,7 +301,7 @@
       "properties": {
         "FSharp.logLanguageServiceRequests": {
           "type": "string",
-          "default": "none",
+          "default": "output",
           "description": "Enable logging for F# Language Service requests (FSAC) to either an output channel, the developer tools console, or both",
           "enum": [
             "none",

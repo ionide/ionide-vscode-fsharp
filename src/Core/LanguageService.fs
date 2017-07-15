@@ -21,13 +21,13 @@ module LanguageService =
     type LogConfigSetting = None | Output | DevConsole | Both
     let logLanguageServiceRequestsConfigSetting =
         try
-            match "FSharp.logLanguageServiceRequests" |> Configuration.get "" with
+            match "FSharp.logLanguageServiceRequests" |> Configuration.get "output" with
             | "devconsole" -> LogConfigSetting.DevConsole
             | "output" -> LogConfigSetting.Output
             | "both" -> LogConfigSetting.Both
-            | _ -> LogConfigSetting.None
+            | _ -> LogConfigSetting.Output
         with
-        | _ -> LogConfigSetting.None
+        | _ -> LogConfigSetting.Output
 
     // note: always log to the loggers, and let it decide where/if to write the message
     let createConfiguredLoggers source channelName =
@@ -50,15 +50,8 @@ module LanguageService =
             | LogConfigSetting.DevConsole -> None, true
             | LogConfigSetting.Output -> Some (window.createOutputChannel channelName), false
 
-        let consoleMinLevel = if logRequestsToConsole then DEBUG else WARN
-
-        // if Output+DEBUG is enabled, show the stdout data printed from FSAC in a separate channel
-        let serverStdoutChannel =
-            match consoleMinLevel, channel with
-            | Level.DEBUG, Some _ -> Some (window.createOutputChannel (channelName + " (server)"))
-            | _, _ -> None
-
-        let editorSideLogger = ConsoleAndOutputChannelLogger(Some source, (logLanguageServiceRequestsOutputWindowLevel ()), channel, Some consoleMinLevel)
+        let logLevel = logLanguageServiceRequestsOutputWindowLevel ()
+        let editorSideLogger = ConsoleAndOutputChannelLogger(Some source, logLevel, channel, Some logLevel)
 
         let showCurrentLevel level =
             if level <> Level.DEBUG then
@@ -72,10 +65,13 @@ module LanguageService =
             editorSideLogger.ChanMinLevel |> showCurrentLevel )
         |> ignore
 
-        let fsacStdOutWriter text =
-            match serverStdoutChannel with
-            | None -> ()
-            | Some chan -> chan.append text
+        // show the stdout data printed from FSAC in a separate channel
+        let fsacStdOutWriter =
+            if logRequestsToConsole then
+                let chan = window.createOutputChannel (channelName + " (server)")
+                chan.append
+            else
+                ignore
 
         editorSideLogger, fsacStdOutWriter
 
