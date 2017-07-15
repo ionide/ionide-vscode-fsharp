@@ -50,7 +50,11 @@ let run cmd args dir =
 
 
 let platformTool tool path =
-    isUnix |> function | true -> tool | _ -> path |> ProcessHelper.tryFindFileOnPath |> fun n -> n.Value
+    match isUnix with
+    | true -> tool 
+    | _ ->  match ProcessHelper.tryFindFileOnPath path with
+            | None -> failwithf "can't find tool %s on PATH" tool 
+            | Some v -> v
 
 let npmTool =
     platformTool "npm"  "npm.cmd"
