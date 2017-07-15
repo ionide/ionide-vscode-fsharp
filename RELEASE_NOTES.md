@@ -1,3 +1,6 @@
+### 2.27.14 - 15.07.2017
+* Make `F# language service` logging enabled by default
+
 ### 2.27.13 - 14.07.2017
 * Fix linter initialization
 
