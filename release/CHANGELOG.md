@@ -1,3 +1,6 @@
+### 2.27.15 - 19.07.2017
+* Add Experimental caching for project cracking
+
 ### 2.27.14 - 15.07.2017
 * Make `F# language service` logging enabled by default
 
