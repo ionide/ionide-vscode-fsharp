@@ -18,7 +18,7 @@ let activate(disposables: Disposable[]) =
     let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
     let solutionExploer = "FSharp.enableTreeView" |> Configuration.get true
 
-
+    let init = DateTime.Now
     LanguageService.start ()
     |> Promise.onSuccess (fun _ ->
         let progressOpts = createEmpty<ProgressOptions>
@@ -39,6 +39,10 @@ let activate(disposables: Disposable[]) =
 
 
         ))
+        |> Promise.onSuccess (fun n ->
+            let e = DateTime.Now - init
+            printfn "Startup took: %f ms" e.TotalMilliseconds
+        )
         |> ignore
 
         Tooltip.activate df' disposables

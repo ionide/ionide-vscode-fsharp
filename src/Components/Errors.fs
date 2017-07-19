@@ -102,11 +102,11 @@ module Errors =
         match window.visibleTextEditors |> Seq.toList with
         | [] -> Promise.lift (null |> unbox)
         | [x] -> parseFile x.document
-                 |> Promise.bind (fun _ -> handlerSave x.document)
+                 |> Promise.onSuccess (fun _ -> handlerSave x.document |> ignore)
         | x::tail ->
             tail
             |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document ) )
                (parseFile x.document )
-            |> Promise.bind (fun _ -> handlerSave x.document )
+            |> Promise.onSuccess (fun _ -> handlerSave x.document |> ignore)
 
 
