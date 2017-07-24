@@ -50,6 +50,11 @@
         "configuration": "./language-configuration.json"
       }
     ],
+    "activationEvents": [
+      "workspaceContains:**/.fs",
+      "workspaceContains:**/.fsx",
+      "workspaceContains:**/.fsproj"
+    ],
     "grammars": [
       {
         "language": "fsharp",
