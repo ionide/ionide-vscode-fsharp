@@ -1,3 +1,7 @@
+### 2.28.0 - 27.07.2017
+* Change activation events - use workspace contains
+* Add `F#: Clear Cache` command
+
 ### 2.27.15 - 19.07.2017
 * Add Experimental caching for project cracking
 
