@@ -143,11 +143,12 @@ module Project =
 
 
         cached |> Seq.iter fs.unlinkSync
+        window.showInformationMessage("Cache cleared")
 
 
     let activate =
         let w = workspace.createFileSystemWatcher("**/*.fsproj")
-        commands.registerCommand("fsharp.ClearCache", clearCache |> unbox<Func<obj,obj>> ) |> ignore
+        commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> ) |> ignore
 
         w.onDidCreate.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
         w.onDidChange.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
