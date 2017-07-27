@@ -24,7 +24,7 @@ The default location on Windows is
   32-bit - C:\Program Files\Microsoft SDKs\F#\4.0\Framework\v4.0
 ```
 
-Add **MSBUILD_PATH** environment variable which points to the home of **Microsoft Build Tools**, e.g., `MSBUILD_PATH = D:\Program Files (x86)\MSBuild\14.0\Bin`.
+Add **MSBUILD_PATH** environment variable which points to the home of **Microsoft Build Tools**, e.g., `MSBUILD_PATH = C:\Program Files (x86)\MSBuild\14.0\Bin`.
 
 ## Quick Install Guide
 
