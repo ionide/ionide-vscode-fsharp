@@ -117,8 +117,38 @@ module Project =
 
     let getLoaded () = loadedProjects |> Seq.map (fun kv -> kv.Value)
 
+    let clearCache () =
+        let cached =
+            let rec findProjs dir =
+                let files = fs.readdirSync dir
+                files
+                |> Seq.toList
+                |> List.collect(fun s' ->
+                    try
+                        let s = dir + path.sep + s'
+                        if excluded |> Array.contains s' then
+                            []
+                        elif fs.statSync(s).isDirectory () then
+                            findProjs (s)
+                        else
+                           if s.EndsWith "fsac.cache" then [ s ] else []
+                    with
+                    | _ -> []
+                )
+
+            match workspace.rootPath with
+            | null -> []
+            | rootPath -> findProjs rootPath
+
+
+
+        cached |> Seq.iter fs.unlinkSync
+
+
     let activate =
         let w = workspace.createFileSystemWatcher("**/*.fsproj")
+        commands.registerCommand("fsharp.ClearCache", clearCache |> unbox<Func<obj,obj>> ) |> ignore
+
         w.onDidCreate.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
         w.onDidChange.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
         clearLoadedProjects >> findAll >> (Promise.executeForAll load)

@@ -1,6 +1,7 @@
 release/bin
 release/bin_ff
 release/bin_forge
+release/bin_profiler
 
 # Logs
 logs
