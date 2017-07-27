@@ -63,7 +63,7 @@ let vsceTool =
     platformTool "vsce" "vsce.cmd"
 
 let codeTool =
-    platformTool "code" (ProgramFilesX86  </> "Microsoft VS Code" </> "bin/code.cmd")
+    platformTool "code" "code.cmd"
 
 
 let releaseBin      = "release/bin"
