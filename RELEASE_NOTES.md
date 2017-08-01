@@ -1,3 +1,6 @@
+### 2.29.1 - 01.08.2017
+* Add folders to file paths in solution explorer
+
 ### 2.29.0 - 31.07.2017
 * Add documentation generator - `F#: Generate Documentation` command
 
