@@ -19,6 +19,7 @@ module SolutionExplorer =
         | FileList of Files: Model list
         | ProjectReferencesList of Projects : Model list
         | Project of path: string * name: string * FileList: Model  * ProjectReferencesList : Model  * ReferenceList: Model
+        | Folder of name : string * Files : Model list
         | File of path: string * name: string * projectPath : string
         | Reference of path: string * name: string * projectPath : string
         | ProjectReference of path: string * name: string * projectPath : string
@@ -26,7 +27,13 @@ module SolutionExplorer =
     let getProjectModel proj =
         let projects = Project.getLoaded ()
 
-        let files = proj.Files |> List.map ( fun p -> File(p, path.basename p, proj.Project)) |> FileList
+        let files =
+            proj.Files
+            |> List.map ( fun p ->
+                let n = path.relative(path.dirname proj.Project, p)
+
+                File(p, n, proj.Project))
+            |> FileList
         let refs = proj.References |> List.map (fun p -> Reference(p, path.basename p, proj.Project)) |> ReferenceList
         let projs = proj.References |> List.choose (fun r -> projects |> Seq.tryFind (fun pr -> pr.Output = r)) |> List.map (fun p -> ProjectReference(p.Project, path.basename(p.Project, ".fsproj"), proj.Project))  |> ProjectReferencesList
         let name = path.basename(proj.Project, ".fsproj")
@@ -47,6 +54,7 @@ module SolutionExplorer =
             | ReferenceList refs -> refs
             | ProjectReferencesList refs -> refs
             | FileList files -> files
+            | Folder (name,files) -> files
             | File _ -> []
             | Reference _ -> []
             | ProjectReference _ -> []
@@ -59,6 +67,7 @@ module SolutionExplorer =
         | ReferenceList _ -> "References"
         | ProjectReferencesList refs -> "Project References"
         | FileList _ -> "Files"
+        | Folder (n, _) -> n
         | File (_, name, _) -> name
         | Reference (_, name, _) -> name
         | ProjectReference (_, name, _) -> name
