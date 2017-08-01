@@ -180,6 +180,16 @@ module DTO =
         Position : Pos
     }
 
+    type Parameter = {
+        Name : string
+        Type : string
+    }
+
+    type SignatureData = {
+        OutputType : string
+        Parameters : Parameter list list
+    }
+
 
     type ResponseError<'T> = {
         Code: int
@@ -214,3 +224,5 @@ module DTO =
     type ProjectResult = Result<Project>
     type ResolveNamespaceResult = Result<ResolveNamespace>
     type UnionCaseGeneratorResult = Result<UnionCaseGenerator>
+    type SignatureDataResult = Result<SignatureData>
+

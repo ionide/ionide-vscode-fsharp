@@ -56,7 +56,7 @@ module LanguageService =
         let showCurrentLevel level =
             if level <> Level.DEBUG then
                 editorSideLogger.Info ("Logging to output at level %s. If you want detailed messages, try level DEBUG.", (level.ToString()))
-        
+
         editorSideLogger.ChanMinLevel |> showCurrentLevel
 
         vscode.workspace.onDidChangeConfiguration
@@ -257,6 +257,10 @@ module LanguageService =
     let f1Help fn line col =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "help" 0 (makeRequestId())
+
+    let signatureData fn line col =
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        |> request "signatureData" 0 (makeRequestId())
 
     let declarations fn version=
         {DeclarationsRequest.FileName = handleUntitled fn; Version = version}
