@@ -1,3 +1,6 @@
+### 2.29.0 - 31.07.2017
+* Add documentation generator - `F#: Generate Documentation` command
+
 ### 2.28.0 - 27.07.2017
 * Change activation events - use workspace contains
 * Add `F#: Clear Cache` command
