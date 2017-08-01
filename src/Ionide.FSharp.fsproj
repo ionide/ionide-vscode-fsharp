@@ -76,6 +76,7 @@
     <Compile Include="Components/Symbols.fs" />
     <Compile Include="Components/Rename.fs" />
     <Compile Include="Components/WorkspaceSymbols.fs" />
+    <Compile Include="Components/SignatureData.fs" />
     <Compile Include="Components/Environment.fs" />
     <Compile Include="Components/Fsi.fs" />
     <Compile Include="Components/LegacyFsi.fs" />

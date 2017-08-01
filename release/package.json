@@ -166,6 +166,10 @@
         "title": "F#: Clear Cache"
       },
       {
+        "command": "fsharp.generateDoc",
+        "title": "F#: Generate Documentation"
+      },
+      {
         "command": "Expecto.run",
         "title": "Expecto: Run"
       },
@@ -236,6 +240,13 @@
           "command": "fsharp.NewProject",
           "when": "view == ionide.projectExplorer"
         }
+      ],
+      "editor/context":[
+        {
+          "command": "fsharp.generateDoc",
+          "group": "1_modification",
+          "when": "editorTextFocus && editorLangId == 'fsharp'"
+        }
       ]
     },
     "outputChannels": [
@@ -266,6 +277,11 @@
       {
         "command": "fsharp.MoveFileDown",
         "key": "ctrl+shift+down",
+        "when": "editorFocus && editorLangId == 'fsharp'"
+      },
+      {
+        "command": "fsharp.generateDoc",
+        "key": "alt+shift+j",
         "when": "editorFocus && editorLangId == 'fsharp'"
       },
       {
