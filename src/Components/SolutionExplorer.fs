@@ -152,6 +152,30 @@ module SolutionExplorer =
             emiter.fire (unbox ()) |> unbox)
         |> ignore
 
+        commands.registerCommand("fsharp.explorer.moveUp", Func<obj, obj>(fun m ->
+            match unbox m with
+            | File (p, _, _) ->
+                Forge.moveFileUpPath p
+                |> unbox
+            | _ -> unbox ()
+        )) |> ignore
+
+        commands.registerCommand("fsharp.explorer.moveDown", Func<obj, obj>(fun m ->
+            match unbox m with
+            | File (p, _, _) ->
+                Forge.moveFileDownPath p
+                |> unbox
+            | _ -> unbox ()
+        )) |> ignore
+
+        commands.registerCommand("fsharp.explorer.removeFile", Func<obj, obj>(fun m ->
+            match unbox m with
+            | File (p, _, _) ->
+                Forge.removeFilePath p
+                |> unbox
+            | _ -> unbox ()
+        )) |> ignore
+
         window.registerTreeDataProvider("ionide.projectExplorer", provider )
         |> ignore
 

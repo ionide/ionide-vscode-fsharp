@@ -6,11 +6,6 @@
     {
       "name": "Krzysztof Cieślak",
       "url": "https://twitter.com/k_cieslak"
-    },
-    {
-      "name": "Jared Hester",
-      "email": "jared.hester@gmail.com",
-      "url": "https://twitter.com/cloudRoutine"
     }
   ],
   "description": "F# Language Support",
@@ -100,14 +95,6 @@
       {
         "command": "fsi.GenerateProjectReferences",
         "title": "FSI: Generate script file with references from project"
-      },
-      {
-        "command": "webpreview.Show",
-        "title": "Ionide: Show Web View"
-      },
-      {
-        "command": "webpreview.Refresh",
-        "title": "Ionide: Refresh Web View"
       },
       {
         "command": "fsharp.MoveFileUp",
@@ -224,6 +211,18 @@
       {
         "command": "MSBuild.switchMSbuildHostType",
         "title": "MSBuild: Switch host type"
+      },
+      {
+        "command": "fsharp.explorer.moveUp",
+        "title": "Move file up"
+      },
+      {
+        "command": "fsharp.explorer.moveDown",
+        "title": "Move file down"
+      },
+      {
+        "command": "fsharp.explorer.removeFile",
+        "title": "Remove file"
       }
     ],
     "views": {
@@ -235,10 +234,38 @@
       ]
     },
     "menus": {
+      "commandPalette": [
+        {
+          "command": "fsharp.explorer.moveUp",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.moveDown",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.removeFile",
+          "when": "false"
+        }
+      ],
       "view/title": [
         {
           "command": "fsharp.NewProject",
           "when": "view == ionide.projectExplorer"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "fsharp.explorer.moveUp",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file"
+        },
+        {
+          "command": "fsharp.explorer.moveDown",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file"
+        },
+        {
+          "command": "fsharp.explorer.removeFile",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file"
         }
       ],
       "editor/context":[
