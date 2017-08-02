@@ -1,3 +1,7 @@
+### 2.30.0 - 01.08.2017
+* Remove `webpreview`
+* Add commands for file ordering in solution explorer
+
 ### 2.29.1 - 01.08.2017
 * Add folders to file paths in solution explorer
 
