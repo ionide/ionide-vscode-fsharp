@@ -196,11 +196,42 @@ module LanguageService =
              | FSACResponse.Invalid -> null |> unbox
           )
 
+    let private requestCanFail<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+         requestRaw fsacAction id requestId obj
+         |> Promise.bind(fun (r: FSACResponse<'b>) ->
+             match r with
+             | FSACResponse.Error (msg, err) ->
+                log.Error (prettyPrintError fsacAction msg err)
+                Promise.reject (msg, err)
+             | FSACResponse.Kind (t, res) ->
+                Promise.lift res
+             | FSACResponse.Info _
+             | FSACResponse.Invalid ->
+                Promise.lift (null |> unbox)
+          )
+
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
     let project s =
+        let parseInfo (f: obj) =
+            match f?SdkType |> unbox with
+            | "dotnet/sdk" ->
+                ProjectResponseInfo.DotnetSdk (f?Data |> unbox)
+            | "verbose" ->
+                ProjectResponseInfo.Verbose
+            | "project.json" ->
+                ProjectResponseInfo.ProjectJson
+            | s ->
+                log.Error("error during parsing of ProjectResult, invalid %j", f)
+                f |> unbox
+                
+        let parse (res: ProjectResult) =
+            let info = res.Data.Info |> parseInfo 
+            { res with Data = { res.Data with Info = info }}
+
         {ProjectRequest.FileName = s}
-        |> request "project" 0 (makeRequestId())
+        |> requestCanFail "project" 0 (makeRequestId())
+        |> Promise.map (parse)
 
     let parseProjects s =
         {ProjectRequest.FileName = s}
@@ -285,6 +316,47 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "unionCaseGenerator" 0 (makeRequestId())
 
+    let workspacePeek dir deep excludedDirs =
+        let rec mapItem (f: WorkspacePeekFoundSolutionItem) : WorkspacePeekFoundSolutionItem option = 
+            let mapItemKind (i: obj) : WorkspacePeekFoundSolutionItemKind option =
+                let data = i?Data
+                match i?Kind |> unbox with
+                | "folder" ->
+                    let folderData : WorkspacePeekFoundSolutionItemKindFolder = data |> unbox
+                    let folder : WorkspacePeekFoundSolutionItemKindFolder =
+                        { Files = folderData.Files
+                          Items = folderData.Items |> Array.choose mapItem }
+                    Some (WorkspacePeekFoundSolutionItemKind.Folder folder)
+                | "msbuildFormat" ->
+                    Some (WorkspacePeekFoundSolutionItemKind.MsbuildFormat (data |> unbox))
+                | _ ->
+                    None
+            match mapItemKind f.Kind with
+            | Some kind ->
+                Some 
+                   { WorkspacePeekFoundSolutionItem.Guid = f.Guid
+                     Name = f.Name
+                     Kind = kind }
+            | None -> None
+        let mapFound (f: obj) : WorkspacePeekFound option =
+            let data = f?Data
+            match f?Type |> unbox with
+            | "directory" ->
+                Some (WorkspacePeekFound.Directory (data |> unbox))
+            | "solution" ->
+                let sln =
+                    { WorkspacePeekFoundSolution.Path = data?Path |> unbox
+                      Configurations = data?Configurations |> unbox
+                      Items = data?Items |> unbox |> Array.choose mapItem }
+                Some (WorkspacePeekFound.Solution sln)
+            | _ ->
+                None
+        let parse (ws: obj) =
+            { WorkspacePeek.Found = ws?Found |> unbox |> Array.choose mapFound }
+
+        {WorkspacePeekRequest.Directory = dir; Deep = deep; ExcludedDirs = excludedDirs |> Array.ofList}
+        |> request "workspacePeek" 0 (makeRequestId())
+        |> Promise.map (fun res -> parse (res?Data |> unbox))
 
     let registerNotify (cb : 'a [] -> unit) =
         socket |> Option.iter (fun ws ->
