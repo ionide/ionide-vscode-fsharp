@@ -68,7 +68,6 @@ let activate(disposables: Disposable[]) =
 
     Forge.activate disposables
     if legacyFsi then LegacyFsi.activate disposables else Fsi.activate disposables
-    WebPreview.activate disposables
 
     ()
 
