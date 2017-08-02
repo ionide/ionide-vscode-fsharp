@@ -15,8 +15,13 @@ open Ionide.VSCode.Helpers
 module SolutionExplorer =
     type Model =
         | Workspace of Projects : Model list
+        | Solution of path: string * name: string * items: Model list
+        | WorkspaceFolder of name: string * items: Model list
         | ReferenceList of References: Model list * projectPath : string
         | ProjectReferencesList of Projects : Model list * ProjectPath : string
+        | ProjectNotLoaded of path: string * name: string
+        | ProjectLoading of path: string * name: string
+        | ProjectFailedToLoad of path: string * name: string * error: string
         | Project of path: string * name: string * Files: Model list * ProjectReferencesList : Model  * ReferenceList: Model * isExe : bool * project : DTO.Project
         | Folder of name : string * path: string * Files : Model list
         | File of path: string * name: string * projectPath : string
@@ -72,8 +77,10 @@ module SolutionExplorer =
 
 
 
-    let getProjectModel proj =
-        let projects = Project.getLoaded ()
+    let private getProjectModel proj =
+        let projects =
+            Project.getLoaded ()
+            |> Seq.toArray
 
         let files =
             proj.Files
@@ -81,9 +88,18 @@ module SolutionExplorer =
             |> buildTree proj.Project
 
         let refs = proj.References |> List.map (fun p -> Reference(p, path.basename p, proj.Project)) |> fun n -> ReferenceList(n, proj.Project)
-        let projs = proj.References |> List.choose (fun r -> projects |> Seq.tryFind (fun pr -> pr.Output = r)) |> List.map (fun p -> ProjectReference(p.Project, path.basename(p.Project, ".fsproj"), proj.Project)) |> fun n -> ProjectReferencesList(n, proj.Project)
+        let projs = proj.References |> List.choose (fun r -> projects |> Array.tryFind (fun pr -> pr.Output = r)) |> List.map (fun p -> ProjectReference(p.Project, path.basename(p.Project, ".fsproj"), proj.Project)) |> fun n -> ProjectReferencesList(n, proj.Project)
         let name = path.basename(proj.Project, ".fsproj")
         Project(proj.Project, name,files, projs, refs, Project.isExeProject proj, proj)
+
+    let private getProjectModelByState proj =
+        match proj with
+        | Project.ProjectLoadingState.Loading p ->
+            Model.ProjectLoading (p, path.basename p)
+        | Project.ProjectLoadingState.Loaded proj ->
+            getProjectModel proj
+        | Project.ProjectLoadingState.Failed (p, err) ->
+            Model.ProjectFailedToLoad (p, path.basename p, err)
 
     let getFolders model =
         let rec loop model lst =
@@ -101,34 +117,64 @@ module SolutionExplorer =
 
         "."::lst
 
-    let private getModel() =
-        let projects = Project.getLoaded ()
-        projects
-        |> Seq.toList
-        |> List.map getProjectModel
-        |> Workspace
+    let private getSolutionModel (ws: WorkspacePeekFound) : Model =
+        let getProjItem projPath =
+            match Project.tryFindInWorkspace projPath with
+            | None ->
+                Model.ProjectNotLoaded (projPath, (path.basename projPath))
+            | Some p ->
+                getProjectModelByState p
+        let rec getItem (item: WorkspacePeekFoundSolutionItem) =
+            match item.Kind with
+            | WorkspacePeekFoundSolutionItemKind.Folder folder ->
+                let files =
+                    folder.Files
+                    |> Array.map (fun f -> Model.File (f,path.basename(f),""))
+                let items = folder.Items |> Array.map getItem
+                Model.WorkspaceFolder (item.Name, (Seq.append files items |> List.ofSeq))
+            | MsbuildFormat proj ->
+                getProjItem item.Name 
+        match ws with
+        | WorkspacePeekFound.Solution sln ->
+            let s = Solution (sln.Path, (path.basename sln.Path), (sln.Items |> Array.map getItem |> List.ofArray))
+            Workspace [s]
+        | WorkspacePeekFound.Directory dir ->
+            Workspace (dir.Fsprojs |> Array.map getProjItem |> List.ofArray)
 
-    let rec private getSubmodel node =
+    let private getSolution () =
+        Project.getLoadedSolution ()
+        |> Option.map getSolutionModel
+
+    let private getSubmodel node =
         match node with
-            | Workspace projects -> projects
-            | Project (_, _, files, projs, refs, _, _) ->
-                [
-                     // SHOULD REFS BE DISPLAYED AT ALL? THOSE ARE RESOLVED BY MSBUILD REFS
-                    yield refs
-                    yield projs
-                    yield! files
-                ]
-            | ReferenceList (refs, _) -> refs
-            | ProjectReferencesList (refs, _) -> refs
-            | Folder (_,_,files) -> files
-            | File _ -> []
-            | Reference _ -> []
-            | ProjectReference _ -> []
-        |> List.toArray
+        | Workspace projects -> projects
+        | WorkspaceFolder (_, items) -> items
+        | Solution (_,_, items) -> items
+        | ProjectNotLoaded _ -> []
+        | ProjectLoading _ -> []
+        | ProjectFailedToLoad _ -> []
+        | Project (_, _, files, projs, refs, _, _) ->
+            [
+                 // SHOULD REFS BE DISPLAYED AT ALL? THOSE ARE RESOLVED BY MSBUILD REFS
+                yield refs
+                yield projs
+                yield! files
+            ]
+        | ReferenceList (refs, _) -> refs
+        | ProjectReferencesList (refs, _) -> refs
+        | Folder (_,_,files) -> files
+        | File _ -> []
+        | Reference _ -> []
+        | ProjectReference _ -> []
 
     let private getLabel node =
         match node with
         | Workspace _ -> "Workspace"
+        | WorkspaceFolder (name,_) -> name
+        | Solution (_, name, _) -> name
+        | ProjectNotLoaded (_, name) -> sprintf "%s (not loaded yet)" name
+        | ProjectLoading (_, name) -> sprintf "%s (loading..)" name
+        | ProjectFailedToLoad (_, name, _) -> sprintf "%s (load failed)" name
         | Project (_, name,_, _,_, _, _) -> name
         | ReferenceList _ -> "References"
         | ProjectReferencesList (refs, _) -> "Project References"
@@ -140,6 +186,9 @@ module SolutionExplorer =
             else
                 name
         | ProjectReference (_, name, _) -> name
+
+    let private getRoot () =
+        defaultArg (getSolution ()) (Workspace [])
 
     let private createProvider (emiter : EventEmitter<Model>) : TreeDataProvider<Model> =
         let plugPath =
@@ -157,17 +206,38 @@ module SolutionExplorer =
                 if JS.isDefined node then
                     getSubmodel node |> ResizeArray
                 else
-                    getModel () |> getSubmodel |> ResizeArray
+                    getRoot () |> getSubmodel |> ResizeArray
 
             member this.getTreeItem(node) =
                 let ti = createEmpty<TreeItem>
+
                 ti.label <- getLabel node
+
                 let collaps =
                     match node with
-                    | File _ | Reference _ | ProjectReference _ -> None
-                    | Workspace _ | Project _ -> Some TreeItemCollapsibleState.Expanded
-                    | _ ->  Some TreeItemCollapsibleState.Collapsed
-                ti.collapsibleState <- collaps
+                    | File _ | Reference _ | ProjectReference _ ->
+                        vscode.TreeItemCollapsibleState.None
+                    | ProjectFailedToLoad _ | ProjectLoading _ | ProjectNotLoaded _
+                    | Workspace _ | Solution _ ->
+                        vscode.TreeItemCollapsibleState.Expanded
+                    | WorkspaceFolder (_, items) ->
+                        let isProj model =
+                            match model with
+                            | ProjectNotLoaded _ -> true
+                            | ProjectLoading _ -> true
+                            | Project _ -> true
+                            | ProjectFailedToLoad _ -> true
+                            | _ -> false
+                        // expand workspace folder if contains a project
+                        if items |> List.exists isProj then
+                            vscode.TreeItemCollapsibleState.Expanded
+                        else
+                            vscode.TreeItemCollapsibleState.Collapsed
+                    | Folder _ | Project _ | ProjectReferencesList _ | ReferenceList _ ->
+                        vscode.TreeItemCollapsibleState.Collapsed
+
+                ti.collapsibleState <- Some collaps
+
                 let command =
                     match node with
                     | File (p, _, _)  ->
@@ -178,17 +248,25 @@ module SolutionExplorer =
                         Some c
                     | _ -> None
                 ti.command <- command
+
                 let context =
                     match node with
-                    | File _  -> Some "ionide.projectExplorer.file"
-                    | ProjectReferencesList _  -> Some "ionide.projectExplorer.projectRefList"
-                    | ReferenceList _  -> Some "ionide.projectExplorer.referencesList"
-                    | Project (_, _, _, _, _, false, _)  -> Some "ionide.projectExplorer.project"
-                    | Project (_, _, _, _, _, true, _)  -> Some "ionide.projectExplorer.projectExe"
-                    | ProjectReference _  -> Some "ionide.projectExplorer.projRef"
-                    | Reference _  -> Some "ionide.projectExplorer.reference"
-                    | _ -> None
-                ti.contextValue <- context
+                    | File _  -> "file"
+                    | ProjectReferencesList _  -> "projectRefList"
+                    | ReferenceList _  -> "referencesList"
+                    | Project (_, _, _, _, _, false, _)  -> "project"
+                    | Project (_, _, _, _, _, true, _)  -> "projectExe"
+                    | ProjectReference _  -> "projectRef"
+                    | Reference _  -> "reference"
+                    | Folder _ -> "folder"
+                    | ProjectFailedToLoad _ -> "projectLoadFailed"
+                    | ProjectLoading _ -> "projectLoading"
+                    | ProjectNotLoaded _ -> "projectNotLoaded"
+                    | Solution _ -> "solution"
+                    | Workspace _ -> "workspace"
+                    | WorkspaceFolder _ -> "workspaceFolder"
+
+                ti.contextValue <- Some (sprintf "ionide.projectExplorer.%s" context)
 
                 let p = createEmpty<TreeIconPath>
 
@@ -234,9 +312,10 @@ module SolutionExplorer =
 
     let activate (context: ExtensionContext) =
         let emiter = EventEmitter<Model>()
+
         let provider = createProvider emiter
 
-        Project.projectChanged.event.Invoke(fun proj ->
+        Project.workspaceChanged.event.Invoke(fun _ ->
             emiter.fire (unbox ()) |> unbox)
         |> context.subscriptions.Add
 
@@ -272,7 +351,7 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.moveToFolder", Func<obj, obj>(fun m ->
             let folders =
-                getModel()
+                getRoot()
                 |> getFolders
 
             match unbox m with
@@ -313,6 +392,95 @@ module SolutionExplorer =
                 |> unbox
             | _ -> unbox ()
         )) |> context.subscriptions.Add
+
+        window.registerTreeDataProvider("ionide.projectExplorer", provider )
+        |> context.subscriptions.Add
+
+        let wsProvider =
+            let viewLoading path =
+                "<b>Status:</b> loading.."
+            let viewParsed (proj: Project) =
+                [ yield "<b>Status:</b> parsed correctly"
+                  yield ""
+                  yield sprintf "<b>Project</b>: %s" proj.Project
+                  yield ""
+                  yield sprintf "<b>Output Type</b>: %s" proj.OutputType
+                  yield sprintf "<b>Output</b>: %s" proj.Output
+                  yield ""
+                  match proj.Info with
+                  | ProjectResponseInfo.DotnetSdk info ->
+                      yield sprintf "<b>Project Type</b>: .NET Sdk (dotnet/sdk)"
+                      yield ""
+                      yield sprintf "<b>Configuration</b>: %s" info.Configuration
+                      yield sprintf "<b>Target Framework</b>: %s (%s %s)" info.TargetFramework info.TargetFrameworkIdentifier info.TargetFrameworkVersion
+                      yield ""
+                      let boolToString x = if x then "yes" else "no"
+                      yield sprintf "<b>Restored successfully</b>: %s" (info.RestoreSuccess |> boolToString)
+                      yield ""
+                      let crossgen = not (info.TargetFrameworks |> Seq.isEmpty)
+                      yield sprintf "<b>Crossgen (multiple target frameworks)</b>: %s" (crossgen |> boolToString)
+                      if crossgen then
+                        yield "<b>NOTE atm the target framework choosen by the language service is the first one in the list (transitive targer framework of libs should be ok). Is not possibile "
+                            + "yet to choose, but you can change the position it in the fsproj</b>"
+                        yield "TODO add link to wiki/issue "
+                      yield "<ul>"
+                      for tfm in info.TargetFrameworks do
+                        yield sprintf "<li>%s</li>" tfm
+                      yield "</ul>"
+                  | ProjectResponseInfo.Verbose ->
+                      yield sprintf "<b>Project Type</b>: old/verbose sdk"
+                  | ProjectResponseInfo.ProjectJson ->
+                      yield sprintf "<b>Project Type</b>: project.json"
+                  ]
+                |> String.concat "<br />"
+            let viewFailed path error =
+                [ "<b>Status:</b> failed to load"; ""
+                  "<b>Error:</b>"
+                  error ]
+                |> String.concat "<br />"
+
+            { new TextDocumentContentProvider with
+                  member this.provideTextDocumentContent (uri: Uri) =
+                      match uri.path with
+                      | "/projects/status" ->
+                          let q = querystring.parse(uri.query)
+                          let path : string = q?path |> unbox
+                          match Project.tryFindInWorkspace path with
+                          | None ->
+                              sprintf "Project '%s' not found" path
+                          | Some (Project.ProjectLoadingState.Loading path) ->
+                              viewLoading path
+                          | Some (Project.ProjectLoadingState.Loaded proj) ->
+                              viewParsed proj
+                          | Some (Project.ProjectLoadingState.Failed (path, error)) ->
+                              viewFailed path error
+                      | _ ->
+                          sprintf "Requested uri: %s" (uri.toString())
+            }
+
+        vscode.workspace.registerTextDocumentContentProvider(DocumentSelector.Case1 "fsharp-workspace", wsProvider)
+        |> context.subscriptions.Add
+
+        let projectStatusUri projectPath = vscode.Uri.parse(sprintf "fsharp-workspace://authority/projects/status?path=%s" (JS.encodeURIComponent(projectPath)))
+
+        let projectStatusCommand m =
+            let showStatus path name =
+                vscode.commands.executeCommand("vscode.previewHtml", projectStatusUri path, vscode.ViewColumn.One, (sprintf "Project %s status" name))
+            match m with
+            | ProjectFailedToLoad (path, name, _) ->
+                showStatus path name
+            | Model.ProjectLoading (path, name) ->
+                showStatus path name
+            | Model.Project (path, name, _, _, _, _, _) ->
+                showStatus path name
+            | _ ->
+                Promise.empty
+
+        commands.registerCommand("fsharp.explorer.showProjectLoadFailedInfo", (unbox >> projectStatusCommand >> box))
+        |> context.subscriptions.Add
+
+        commands.registerCommand("fsharp.explorer.showProjectStatus", (unbox >> projectStatusCommand >> box))
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.openProjectFile", Func<obj, obj>(fun m ->
             match unbox m with
@@ -361,9 +529,6 @@ module SolutionExplorer =
         //         |> unbox
         //     | _ -> unbox ()
         // )) |> context.subscriptions.Add
-
-        window.registerTreeDataProvider("ionide.projectExplorer", provider )
-        |> context.subscriptions.Add
 
         workspace.onDidChangeConfiguration.Invoke(fun _ ->
             loadCurrentTheme emiter |> ignore

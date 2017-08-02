@@ -8,6 +8,7 @@ module DTO =
     type HelptextRequest = {Symbol : string}
     type PositionRequest = {FileName : string; Line : int; Column : int; Filter : string}
     type CompletionRequest = {FileName : string; SourceLine : string; Line : int; Column : int; Filter : string; IncludeKeywords : bool}
+    type WorkspacePeekRequest = {Directory: string; Deep: int; ExcludedDirs: string[] }
 
     type OverloadSignature = {
         Signature: string
@@ -147,12 +148,33 @@ module DTO =
     type SourceFilePath = string
     type ProjectReferencePath = string
 
+    [<RequireQualifiedAccess>]
+    type ProjectResponseInfo =
+      | DotnetSdk of ProjectResponseInfoDotnetSdk
+      | Verbose
+      | ProjectJson
+    and ProjectResponseInfoDotnetSdk = {
+      IsTestProject: bool
+      Configuration: string
+      IsPackable: bool
+      TargetFramework: string
+      TargetFrameworkIdentifier: string
+      TargetFrameworkVersion: string
+      RestoreSuccess: bool
+      TargetFrameworks: string list
+      RunCmd: RunCmd option
+      IsPublishable: bool option }
+    and [<RequireQualifiedAccess>] RunCmd = { Command: string; Arguments: string }
+
     type Project = {
         Project: ProjectFilePath
         Files: SourceFilePath list
         Output: string
         References: ProjectReferencePath list
         Logs: Map<string, string>
+        OutputType: string
+        Info: ProjectResponseInfo
+        AdditionalInfo: Map<string, string>
     }
 
     type OpenNamespace = {
@@ -190,6 +212,41 @@ module DTO =
         Parameters : Parameter list list
     }
 
+    type WorkspacePeek = {
+        Found : WorkspacePeekFound []
+    }
+    and WorkspacePeekFound =
+      | Directory of WorkspacePeekFoundDirectory
+      | Solution of WorkspacePeekFoundSolution
+    and WorkspacePeekFoundDirectory = {
+        Directory: string
+        Fsprojs: string []
+    }
+    and WorkspacePeekFoundSolution = {
+        Path: string
+        Items: WorkspacePeekFoundSolutionItem []
+        Configurations: WorkspacePeekFoundSolutionConfiguration []
+    }
+    and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionItem = {
+        Guid: string
+        Name: string
+        Kind: WorkspacePeekFoundSolutionItemKind
+    }
+    and WorkspacePeekFoundSolutionItemKind =
+        | MsbuildFormat of WorkspacePeekFoundSolutionItemKindMsbuildFormat
+        | Folder of WorkspacePeekFoundSolutionItemKindFolder
+    and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionItemKindMsbuildFormat = {
+        Configurations: WorkspacePeekFoundSolutionConfiguration []
+    }
+    and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionItemKindFolder = {
+        Items: WorkspacePeekFoundSolutionItem []
+        Files: string []
+    }
+    and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionConfiguration = {
+        Id: string
+        ConfigurationName: string
+        PlatformName: string
+    }
 
     type ResponseError<'T> = {
         Code: int
@@ -225,4 +282,5 @@ module DTO =
     type ResolveNamespaceResult = Result<ResolveNamespace>
     type UnionCaseGeneratorResult = Result<UnionCaseGenerator>
     type SignatureDataResult = Result<SignatureData>
+    type WorkspacePeekResult = Result<WorkspacePeek>
 
