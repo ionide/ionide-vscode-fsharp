@@ -223,6 +223,14 @@
       {
         "command": "fsharp.explorer.removeFile",
         "title": "Remove file"
+      },
+      {
+        "command": "fsharp.explorer.addProjecRef",
+        "title": "Add project reference"
+      },
+      {
+        "command": "fsharp.explorer.removeProjecRef",
+        "title": "Remove project reference"
       }
     ],
     "views": {
@@ -245,6 +253,14 @@
         },
         {
           "command": "fsharp.explorer.removeFile",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.addProjecRef",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.removeProjecRef",
           "when": "false"
         },
         {
@@ -326,16 +342,19 @@
         {
           "command": "fsharp.explorer.removeFile",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file"
+        },
+        {
+          "command": "fsharp.explorer.addProjecRef",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectRefList"
+        },
+        {
+          "command": "fsharp.explorer.removeProjecRef",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projRef"
         }
       ],
       "editor/context":[
         {
           "command": "fsharp.generateDoc",
-          "group": "1_modification",
-          "when": "editorTextFocus && editorLangId == 'fsharp'"
-        },
-        {
-          "command": "fsharp.getHelp",
           "group": "1_modification",
           "when": "editorTextFocus && editorLangId == 'fsharp'"
         }
