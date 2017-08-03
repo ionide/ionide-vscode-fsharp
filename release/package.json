@@ -149,12 +149,12 @@
         "title": "F#: Get Help"
       },
       {
-        "command": "fsharp.clearCache",
-        "title": "F#: Clear Cache"
-      },
-      {
         "command": "fsharp.generateDoc",
         "title": "F#: Generate Documentation"
+      },
+      {
+        "command": "fsharp.clearCache",
+        "title": "F#: Clear Cache"
       },
       {
         "command": "Expecto.run",
@@ -246,6 +246,66 @@
         {
           "command": "fsharp.explorer.removeFile",
           "when": "false"
+        },
+        {
+          "command": "fsi.SendLine",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsi.SendSelection",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsi.SendLastSelection",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsi.SendFile",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsi.SendProjectReferences",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsi.GenerateProjectReferences",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsharp.MoveFileUp",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsharp.MoveFileDown",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsharp.AddFileToProject",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsharp.RemoveFileFromProject",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsharp.getHelp",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsharp.generateDoc",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "MSBuild.buildCurrent",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "MSBuild.rebuildCurrent",
+          "when": "editorLangId == 'fsharp'"
+        },
+        {
+          "command": "MSBuild.cleanCurrent",
+          "when": "editorLangId == 'fsharp'"
         }
       ],
       "view/title": [
@@ -271,6 +331,11 @@
       "editor/context":[
         {
           "command": "fsharp.generateDoc",
+          "group": "1_modification",
+          "when": "editorTextFocus && editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsharp.getHelp",
           "group": "1_modification",
           "when": "editorTextFocus && editorLangId == 'fsharp'"
         }
