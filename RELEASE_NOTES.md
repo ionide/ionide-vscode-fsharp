@@ -1,3 +1,7 @@
+### 2.31.0 - 02.08.2017
+* Hide most commands from Command Palette when not necessary
+* Add remove/add project references commands to solution explorer
+
 ### 2.30.0 - 01.08.2017
 * Remove `webpreview`
 * Add commands for file ordering in solution explorer
