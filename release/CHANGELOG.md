@@ -1,3 +1,6 @@
+### 2.32.0 - 09.08.2017
+* Add folders to project explorer
+
 ### 2.31.0 - 02.08.2017
 * Hide most commands from Command Palette when not necessary
 * Add remove/add project references commands to solution explorer
