@@ -51,9 +51,9 @@ let run cmd args dir =
 
 let platformTool tool path =
     match isUnix with
-    | true -> tool 
+    | true -> tool
     | _ ->  match ProcessHelper.tryFindFileOnPath path with
-            | None -> failwithf "can't find tool %s on PATH" tool 
+            | None -> failwithf "can't find tool %s on PATH" tool
             | Some v -> v
 
 let npmTool =
@@ -61,9 +61,6 @@ let npmTool =
 
 let vsceTool =
     platformTool "vsce" "vsce.cmd"
-
-let codeTool =
-    platformTool "code" "code.cmd"
 
 
 let releaseBin      = "release/bin"
@@ -161,11 +158,6 @@ Target "BuildPackage" ( fun _ ->
     |> Seq.iter(MoveFile "./temp/")
 )
 
-Target "TryPackage"(fun _ ->
-    killProcess "code"
-    run codeTool (sprintf "./temp/Ionide-fsharp-%s.vsix" release.NugetVersion) ""
-)
-
 
 Target "PublishToGallery" ( fun _ ->
     let token =
@@ -241,9 +233,5 @@ Target "Release" DoNothing
 ==> "ReleaseGitHub"
 ==> "PublishToGallery"
 ==> "Release"
-
-
-"BuildPackage"
-==> "TryPackage"
 
 RunTargetOrDefault "Default"
