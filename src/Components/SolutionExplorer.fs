@@ -7,6 +7,7 @@ open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
 open Ionide.VSCode.Helpers
+open System.Collections.Generic
 
 open DTO
 open Ionide.VSCode.Helpers
@@ -24,20 +25,77 @@ module SolutionExplorer =
         | Reference of path: string * name: string * projectPath : string
         | ProjectReference of path: string * name: string * projectPath : string
 
+    type NodeEntry = {
+        Key : string
+        Children : Dictionary<string, NodeEntry>
+    }
+
+    let rec add' (state : NodeEntry) (entry : string) index =
+        let sep = "\\"
+
+        if index >= entry.Length then
+            state
+        else
+            let endIndex = entry.IndexOf(sep, index)
+            let endIndex = if endIndex = -1 then entry.Length else endIndex
+
+            let key = entry.Substring(index, endIndex - index)
+            if String.IsNullOrEmpty key then
+                state
+            else
+                if state.Children.ContainsKey key |> not then
+                    let x = {Key = key; Children = new Dictionary<_,_>()}
+                    state.Children.Add(key,x)
+                let item = state.Children.[key]
+                add' item entry (endIndex + 1)
+
+    let rec toModel folder pp (entry : NodeEntry)  =
+        let f = (folder + path.sep + entry.Key)
+        if entry.Children.Count > 0 then
+            let childs =
+                entry.Children
+                |> Seq.map (fun n -> toModel f pp n.Value )
+                |> Seq.toList
+            Folder(entry.Key, childs)
+        else
+            let p = (path.dirname pp) + f
+            File(p, entry.Key, pp)
+
+
+
+    let buildTree pp (files : string list) =
+        let entry = {Key = ""; Children = new Dictionary<_,_>()}
+        files |> List.iter (fun x -> add' entry x 0 |> ignore )
+        entry.Children
+        |> Seq.map (fun n -> toModel "" pp n.Value )
+        |> Seq.toList
+
+
+
     let getProjectModel proj =
         let projects = Project.getLoaded ()
 
         let files =
             proj.Files
-            |> List.map ( fun p ->
-                let n = path.relative(path.dirname proj.Project, p)
+            |> List.map (fun p -> path.relative(path.dirname proj.Project, p))
+            |> buildTree proj.Project
 
-                File(p, n, proj.Project))
-            |>fun n -> FileList(n, proj.Project)
+        // printfn "PROJECT MODEL: %A" files'
+
+
+
+        // let files =
+        //     proj.Files
+        //     |> List.map ( fun p ->
+        //         let n = path.relative(path.dirname proj.Project, p)
+        //         File(p, n, proj.Project))
+
+
+        let fls =  FileList(files, proj.Project)
         let refs = proj.References |> List.map (fun p -> Reference(p, path.basename p, proj.Project)) |> fun n -> ReferenceList(n, proj.Project)
         let projs = proj.References |> List.choose (fun r -> projects |> Seq.tryFind (fun pr -> pr.Output = r)) |> List.map (fun p -> ProjectReference(p.Project, path.basename(p.Project, ".fsproj"), proj.Project)) |> fun n -> ProjectReferencesList(n, proj.Project)
         let name = path.basename(proj.Project, ".fsproj")
-        Project(proj.Project, name,files, projs, refs)
+        Project(proj.Project, name,fls, projs, refs)
 
     let private getModel() =
         let projects = Project.getLoaded ()
@@ -133,6 +191,10 @@ module SolutionExplorer =
                     | Project _ ->
                         p.light <- plugPath + "/images/project-light.svg"
                         p.dark <- plugPath + "/images/project-dark.svg"
+                        Some p
+                    | Folder _  ->
+                        p.light <- plugPath + "/images/folder-light.svg"
+                        p.dark <- plugPath + "/images/folder-dark.svg"
                         Some p
                     | Reference _ | ProjectReference _ ->
                         p.light <- plugPath + "/images/circuit-board-light.svg"
