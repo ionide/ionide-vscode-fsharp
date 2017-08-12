@@ -231,6 +231,10 @@
       {
         "command": "fsharp.explorer.removeProjecRef",
         "title": "Remove project reference"
+      },
+      {
+        "command": "fsharp.explorer.openProjectFile",
+        "title": "Open project file"
       }
     ],
     "views": {
@@ -261,6 +265,10 @@
         },
         {
           "command": "fsharp.explorer.removeProjecRef",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
           "when": "false"
         },
         {
@@ -350,6 +358,10 @@
         {
           "command": "fsharp.explorer.removeProjecRef",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projRef"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project"
         }
       ],
       "editor/context":[
