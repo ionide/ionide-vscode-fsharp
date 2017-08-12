@@ -17,9 +17,8 @@ module SolutionExplorer =
     type Model =
         | Workspace of Projects : Model list
         | ReferenceList of References: Model list * projectPath : string
-        | FileList of Files: Model list * projectPath : string
         | ProjectReferencesList of Projects : Model list * ProjectPath : string
-        | Project of path: string * name: string * FileList: Model  * ProjectReferencesList : Model  * ReferenceList: Model
+        | Project of path: string * name: string * Files: Model list * ProjectReferencesList : Model  * ReferenceList: Model
         | Folder of name : string * Files : Model list
         | File of path: string * name: string * projectPath : string
         | Reference of path: string * name: string * projectPath : string
@@ -91,11 +90,10 @@ module SolutionExplorer =
         //         File(p, n, proj.Project))
 
 
-        let fls =  FileList(files, proj.Project)
         let refs = proj.References |> List.map (fun p -> Reference(p, path.basename p, proj.Project)) |> fun n -> ReferenceList(n, proj.Project)
         let projs = proj.References |> List.choose (fun r -> projects |> Seq.tryFind (fun pr -> pr.Output = r)) |> List.map (fun p -> ProjectReference(p.Project, path.basename(p.Project, ".fsproj"), proj.Project)) |> fun n -> ProjectReferencesList(n, proj.Project)
         let name = path.basename(proj.Project, ".fsproj")
-        Project(proj.Project, name,fls, projs, refs)
+        Project(proj.Project, name,files, projs, refs)
 
     let private getModel() =
         let projects = Project.getLoaded ()
@@ -105,13 +103,18 @@ module SolutionExplorer =
         |> Workspace
 
 
-    let private getSubmodel node =
+    let rec private getSubmodel node =
         match node with
             | Workspace projects -> projects
-            | Project (_, _, files, projs, refs) -> [yield refs; yield projs; yield files] // SHOLD REFS BE DISPLAYED AT ALL? THOSE ARE RESOLVED BY MSBUILD REFS
+            | Project (_, _, files, projs, refs) ->
+                [
+                     // SHOULD REFS BE DISPLAYED AT ALL? THOSE ARE RESOLVED BY MSBUILD REFS
+                    yield refs
+                    yield projs
+                    yield! files
+                ]
             | ReferenceList (refs, _) -> refs
             | ProjectReferencesList (refs, _) -> refs
-            | FileList (files, _) -> files
             | Folder (name,files) -> files
             | File _ -> []
             | Reference _ -> []
@@ -124,7 +127,6 @@ module SolutionExplorer =
         | Project (_, name,_, _,_) -> name
         | ReferenceList _ -> "References"
         | ProjectReferencesList (refs, _) -> "Project References"
-        | FileList _ -> "Files"
         | Folder (n, _) -> n
         | File (_, name, _) -> name
         | Reference (_, name, _) ->
@@ -154,7 +156,7 @@ module SolutionExplorer =
                 let collaps =
                     match node with
                     | File _ | Reference _ | ProjectReference _ -> None
-                    | Workspace _ | FileList _ | Project _ -> Some 2
+                    | Workspace _ | Project _ -> Some 2
                     | _ ->  Some 1
                 ti.collapsibleState <- collaps
                 let command =
@@ -170,7 +172,6 @@ module SolutionExplorer =
                 let context =
                     match node with
                     | File _  -> Some "ionide.projectExplorer.file"
-                    | FileList _  -> Some "ionide.projectExplorer.fileList"
                     | ProjectReferencesList _  -> Some "ionide.projectExplorer.projectRefList"
                     | ReferenceList _  -> Some "ionide.projectExplorer.referencesList"
                     | Project _  -> Some "ionide.projectExplorer.project"
