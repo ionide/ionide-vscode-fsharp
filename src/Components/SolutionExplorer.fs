@@ -127,7 +127,11 @@ module SolutionExplorer =
         | FileList _ -> "Files"
         | Folder (n, _) -> n
         | File (_, name, _) -> name
-        | Reference (_, name, _) -> name
+        | Reference (_, name, _) ->
+            if name.ToLowerInvariant().EndsWith(".dll") then
+                name.Substring(0, name.Length - 4)
+            else
+                name
         | ProjectReference (_, name, _) -> name
 
 
