@@ -339,18 +339,19 @@ module LanguageService =
             |> Process.onError (fun e ->
                 fsacStdoutWriter (e.ToString())
                 if not isResolvedAsStarted then
-                    reject ()
+                    reject (e.ToString())
             )
             |> Process.onErrorOutput (fun n ->
                 fsacStdoutWriter (n.ToString())
                 if not isResolvedAsStarted then
-                    reject ()
+                    reject (n.ToString())
             )
             |> ignore
         )
         //startSocket ()
 
-        |> Promise.onFail (fun _ ->
+        |> Promise.onFail (fun err ->
+            log.Error("Failed to start language services. %s", err)
             if Process.isMono () then
                 "Failed to start language services. Please check if mono is in PATH"
             else
