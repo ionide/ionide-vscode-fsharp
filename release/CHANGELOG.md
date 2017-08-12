@@ -1,3 +1,9 @@
+### 2.32.1 - 12.08.2017
+* Log error details when the language service fail to start
+* Add "Open project file" command to project explorer
+* Don't show .dll extension for references in project explorer
+* Remove the files level in project explorer
+
 ### 2.32.0 - 09.08.2017
 * Add folders to project explorer
 
