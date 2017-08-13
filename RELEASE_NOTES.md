@@ -1,3 +1,6 @@
+### 2.32.2 - 14.08.2017
+* Use icons from theme in project explorer
+
 ### 2.32.1 - 12.08.2017
 * Log error details when the language service fail to start
 * Add "Open project file" command to project explorer
