@@ -13,7 +13,6 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module SolutionExplorer =
-
     type Model =
         | Workspace of Projects : Model list
         | ReferenceList of References: Model list * projectPath : string
@@ -28,6 +27,8 @@ module SolutionExplorer =
         Key : string
         Children : Dictionary<string, NodeEntry>
     }
+
+    let mutable loadedTheme: VsCodeIconTheme.Loaded option = None
 
     let rec add' (state : NodeEntry) (entry : string) index =
         let sep = "\\"
@@ -137,7 +138,11 @@ module SolutionExplorer =
         | ProjectReference (_, name, _) -> name
 
     let private createProvider (emiter : EventEmitter<Model>) : TreeDataProvider<Model> =
-
+        let plugPath =
+            try
+                (VSCode.getPluginPath "Ionide.ionide-fsharp")
+            with
+            | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp")
 
         { new TreeDataProvider<Model>
           with
@@ -179,27 +184,25 @@ module SolutionExplorer =
                     | Reference _  -> Some "ionide.projectExplorer.reference"
                     | _ -> None
                 ti.contextValue <- context
-                let plugPath =
-                    try
-                        (VSCode.getPluginPath "Ionide.ionide-fsharp")
-                    with
-                    | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp")
 
                 let p = createEmpty<TreeIconPath>
+
+                let iconFromTheme (f: VsCodeIconTheme.Loaded -> VsCodeIconTheme.ResolvedIcon) light dark =
+                    let fromTheme = loadedTheme |> Option.map f
+                    p.light <- defaultArg (fromTheme |> Option.bind (fun x -> x.light)) (plugPath + light)
+                    p.dark <- defaultArg (fromTheme |> Option.bind (fun x -> x.dark)) (plugPath + dark)
+                    Some p
+
                 let icon =
                     match node with
-                    | File _ ->
-                        p.light <- plugPath + "/images/file-code-light.svg"
-                        p.dark <- plugPath + "/images/file-code-dark.svg"
-                        Some p
-                    | Project _ ->
-                        p.light <- plugPath + "/images/project-light.svg"
-                        p.dark <- plugPath + "/images/project-dark.svg"
-                        Some p
-                    | Folder _  ->
-                        p.light <- plugPath + "/images/folder-light.svg"
-                        p.dark <- plugPath + "/images/folder-dark.svg"
-                        Some p
+                    | File (path, _, _) ->
+                        let fileName = Node.path.basename(path)
+                        iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/file-code-light.svg" "/images/file-code-dark.svg"
+                    | Project (path, _, _, _, _) ->
+                        let fileName = Node.path.basename(path)
+                        iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/project-light.svg" "/images/project-dark.svg"
+                    | Folder (name, _)  ->
+                        iconFromTheme (VsCodeIconTheme.getFolderIcon name) "/images/folder-light.svg" "/images/folder-dark.svg"
                     | Reference _ | ProjectReference _ ->
                         p.light <- plugPath + "/images/circuit-board-light.svg"
                         p.dark <- plugPath + "/images/circuit-board-dark.svg"
@@ -209,6 +212,20 @@ module SolutionExplorer =
 
                 ti
         }
+
+    let loadCurrentTheme (reloadTree: EventEmitter<Model>) = promise {
+        let configured = VsCodeIconTheme.getConfigured() |> Option.bind VsCodeIconTheme.getInfo
+        match configured with
+        | Some configured ->
+            if loadedTheme.IsNone || loadedTheme.Value.info.id <> configured.id then
+                let! loaded = VsCodeIconTheme.load configured
+                loadedTheme <- loaded
+                reloadTree.fire (unbox ())
+        | None ->
+            if loadedTheme.IsSome then
+                loadedTheme <- None
+                reloadTree.fire (unbox ())
+    }
 
     let activate () =
         let emiter = EventEmitter<Model>()
@@ -269,4 +286,8 @@ module SolutionExplorer =
         window.registerTreeDataProvider("ionide.projectExplorer", provider )
         |> ignore
 
+        workspace.onDidChangeConfiguration.Invoke(fun _ ->
+            loadCurrentTheme emiter |> ignore
+            null) |> ignore
+        loadCurrentTheme emiter |> ignore
         ()
