@@ -229,7 +229,6 @@ module SolutionExplorer =
 
     let activate () =
         let emiter = EventEmitter<Model>()
-        let fireEmiter () = emiter.fire (unbox ())
         let provider = createProvider emiter
 
         Project.projectChanged.event.Invoke(fun proj ->
