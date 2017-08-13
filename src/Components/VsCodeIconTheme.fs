@@ -44,13 +44,13 @@ module VsCodeIconTheme =
 
         Option.ofObj themeId
 
-    let private fallback fallbackFunc opt = match opt with |Some x -> Some x |None -> fallbackFunc ()
-    let private fallbackValue fallback opt = match opt with |Some x -> Some x |None -> fallback
+    let inline private fallback fallbackFunc opt = match opt with |Some x -> Some x |None -> fallbackFunc ()
+    let inline private fallbackValue fallback opt = match opt with |Some x -> Some x |None -> fallback
 
     type JsObjectAsDictionary<'a> =
         [<Emit("$0[$1]")>]
         member __.get(key: string): 'a = jsNative
-        [<Emit("($0[$1]||null)")>]
+        [<Emit("$0.hasOwnProperty($1)?$0[$1]:null")>]
         member __.tryGet(key: string): Option<'a> = jsNative
         [<Emit("$0.hasOwnProperty($1)")>]
         member __.hasOwnProperty(key: string): bool = jsNative
@@ -90,38 +90,38 @@ module VsCodeIconTheme =
 
         result
 
-    let private findByFileName (name: string) (theme: SpecificIconTheme) =
+    let inline private findByFileName (name: string) (theme: SpecificIconTheme) =
         if JS.isDefined theme.fileNames then theme.fileNames.tryGet name else None
 
-    let private findByFolderName (name: string) (theme: SpecificIconTheme) =
+    let inline private findByFolderName (name: string) (theme: SpecificIconTheme) =
         if JS.isDefined theme.folderNames then theme.folderNames.tryGet name else None
 
-    let private findByExpandedFolderName (name: string) (theme: SpecificIconTheme) =
+    let inline private findByExpandedFolderName (name: string) (theme: SpecificIconTheme) =
         if JS.isDefined theme.folderNamesExpanded then theme.folderNamesExpanded.tryGet name else None
 
-    let private findByLanguageId (languageId: string Option) (theme: SpecificIconTheme) =
-        if JS.isDefined theme.languageIds && languageId.IsSome && theme.languageIds.hasOwnProperty(languageId.Value) then
-            Some (theme.languageIds.get (languageId.Value))
+    let inline private findByLanguageId (languageId: string Option) (theme: SpecificIconTheme) =
+        if JS.isDefined theme.languageIds && languageId.IsSome then
+            theme.languageIds.tryGet (languageId.Value)
         else
             None
 
-    let private findByExtension (name: string) (theme: SpecificIconTheme) =
+    let inline private findByExtension (name: string) (theme: SpecificIconTheme) =
         if JS.isDefined theme.fileExtensions then
             let exts = getPossibleFileExtensions name
             let matching = exts |> Seq.tryFind theme.fileExtensions.hasOwnProperty
             match matching with
-            | Some matching -> Some (theme.fileExtensions.get matching)
+            | Some matching -> theme.fileExtensions.tryGet matching
             | None -> None
         else
             None
 
-    let private fileDefault (theme: SpecificIconTheme) =
+    let inline private fileDefault (theme: SpecificIconTheme) =
         if JS.isDefined theme.file then Some theme.file else None
 
-    let private folderDefault (theme: SpecificIconTheme) =
+    let inline private folderDefault (theme: SpecificIconTheme) =
         if JS.isDefined theme.folder then Some theme.folder else None
 
-    let private folderExpandedDefault (theme: SpecificIconTheme) =
+    let inline private folderExpandedDefault (theme: SpecificIconTheme) =
         if JS.isDefined theme.folderExpanded then Some theme.folderExpanded else None
 
     let private getFileIconKey (name: string) (languageId: string Option) (useDefault: bool) (theme: SpecificIconTheme) =
