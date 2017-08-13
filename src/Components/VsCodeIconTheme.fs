@@ -124,12 +124,12 @@ module VsCodeIconTheme =
     let private folderExpandedDefault (theme: SpecificIconTheme) =
         if JS.isDefined theme.folderExpanded then Some theme.folderExpanded else None
 
-    let private getFileIconKey (name: string) (languageId: string Option) (theme: SpecificIconTheme) =
+    let private getFileIconKey (name: string) (languageId: string Option) (useDefault: bool) (theme: SpecificIconTheme) =
         if JS.isDefined theme then
             findByFileName name theme
             |> fallback (fun () -> findByLanguageId languageId theme)
             |> fallback (fun () -> findByExtension name theme)
-            |> fallback (fun () -> fileDefault theme)
+            |> fallback (fun () -> if useDefault then fileDefault theme else None)
         else
             None
 
@@ -208,9 +208,9 @@ module VsCodeIconTheme =
             highContrast = loaded.theme |> getIconPath highContrastId |> Option.map (resolveLoadedPath loaded)
         }
 
-    let getFileIcon (name: string) (languageId: string option) (loaded: Loaded) =
+    let getFileIcon (name: string) (languageId: string option) (useDefault: bool) (loaded: Loaded) =
         let nameLower = name.ToLowerInvariant()
-        resolve (getFileIconKey nameLower languageId) loaded
+        resolve (getFileIconKey nameLower languageId useDefault) loaded
 
     let getFolderIcon (name: string) (loaded: Loaded) =
         let nameLower = name.ToLowerInvariant()

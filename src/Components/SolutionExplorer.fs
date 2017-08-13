@@ -191,17 +191,16 @@ module SolutionExplorer =
                     let fromTheme = loadedTheme |> Option.map f
                     p.light <- defaultArg (fromTheme |> Option.bind (fun x -> x.light)) (plugPath + light)
                     p.dark <- defaultArg (fromTheme |> Option.bind (fun x -> x.dark)) (plugPath + dark)
-                    VsCodeIconTheme.logger.Info("ICON %s", p.dark)
                     Some p
 
                 let icon =
                     match node with
                     | File (path, _, _) ->
                         let fileName = Node.path.basename(path)
-                        iconFromTheme (VsCodeIconTheme.getFileIcon fileName None) "/images/file-code-light.svg" "/images/file-code-dark.svg"
+                        iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/file-code-light.svg" "/images/file-code-dark.svg"
                     | Project (path, _, _, _, _) ->
                         let fileName = Node.path.basename(path)
-                        iconFromTheme (VsCodeIconTheme.getFileIcon fileName None) "/images/project-light.svg" "/images/project-dark.svg"
+                        iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/project-light.svg" "/images/project-dark.svg"
                     | Folder (name, _)  ->
                         iconFromTheme (VsCodeIconTheme.getFolderIcon name) "/images/folder-light.svg" "/images/folder-dark.svg"
                     | Reference _ | ProjectReference _ ->
