@@ -106,7 +106,11 @@
       },
       {
         "command": "fsharp.NewProject",
-        "title": "F#: New Project"
+        "title": "F#: New Project",
+        "icon": {
+          "light": "./images/add-light.svg",
+          "dark": "./images/add-dark.svg"
+        }
       },
       {
         "command": "fsharp.NewProjectNoFake",
@@ -336,6 +340,7 @@
       "view/title": [
         {
           "command": "fsharp.NewProject",
+          "group": "navigation",
           "when": "view == ionide.projectExplorer"
         }
       ],
