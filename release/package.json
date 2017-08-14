@@ -241,7 +241,8 @@
       "explorer": [
         {
           "id": "ionide.projectExplorer",
-          "name": "Project Explorer"
+          "name": "F# Project Explorer",
+          "when": "fsharp.project.any"
         }
       ]
     },

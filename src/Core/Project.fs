@@ -15,6 +15,7 @@ open Ionide.VSCode.Helpers
 module Project =
     let private emptyProjectsMap = Map<ProjectFilePath,Project> []
     let mutable private loadedProjects = emptyProjectsMap
+    let setAnyProjectContext = Context.cachedSetter<bool> "fsharp.project.any"
     let projectChanged = EventEmitter<Project>()
 
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files" |]
@@ -84,6 +85,7 @@ module Project =
 
     let private clearLoadedProjects () =
         loadedProjects <- emptyProjectsMap
+        setAnyProjectContext false
 
     let load (path:string) =
         let projEquals (p1 : Project) (p2 : Project) =
@@ -100,6 +102,7 @@ module Project =
                 | None -> projectChanged.fire pr.Data
                 | _ -> ()
                 loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add
+                setAnyProjectContext true
                 )
 
     let tryFindLoadedProject (path:string) =

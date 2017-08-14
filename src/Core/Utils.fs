@@ -57,9 +57,9 @@ module Option =
 [<RequireQualifiedAccess>]
 module Document =
     let (|FSharp|CSharp|VB|Other|) (document : TextDocument) =
-        if document.languageId = "fsharp" then FSharp 
+        if document.languageId = "fsharp" then FSharp
         else if document.languageId = "csharp" then CSharp
-        else if document.languageId = "vb" then VB 
+        else if document.languageId = "vb" then VB
         else Other
 
 [<RequireQualifiedAccess>]
@@ -151,3 +151,16 @@ module Event =
 
     let invoke (listener: 'T -> _) (event: Fable.Import.vscode.Event<'T>) =
         event.Invoke(unbox<System.Func<_, _>>(fun a -> listener a))
+
+module Context =
+    open Fable.Import
+
+    let set<'a> (name: string) (value: 'a) =
+        vscode.commands.executeCommand("setContext", name, value) |> ignore
+
+    let cachedSetter<'a when 'a : equality> (name: string) =
+        let mutable current: 'a option = None
+        fun (value:'a) ->
+            if current <> Some value then
+                set name value
+                current <- Some value
