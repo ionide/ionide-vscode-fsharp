@@ -172,7 +172,6 @@ module VsCodeIconTheme =
         Node.path.join(themeFileDir, path)
 
     let private parseMsJson<'a> (str: string) =
-        logger.Info("%s", str)
         let clean = Regex("//.*$", RegexOptions.Multiline).Replace(str, "")
         try
             Some (unbox (JS.JSON.parse(clean)))
