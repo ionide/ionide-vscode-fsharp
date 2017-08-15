@@ -96,6 +96,18 @@ module Forge =
     let removeProjectReferencePath ref proj =
         sprintf "remove project -n %s -p %s" ref proj |> spawnForge |> ignore
 
+    let renameFilePath oldName proj =
+        promise {
+            let fn = path.basename oldName
+            let dir = path.dirname oldName
+            let opts = createEmpty<InputBoxOptions>
+            opts.value <- Some fn
+            let! n = window.showInputBox(opts)
+            if JS.isDefined n then
+                let newName = path.join(dir, n)
+                sprintf "rename file -n %s -r %s -p %s" oldName newName proj |> spawnForge |> ignore
+        }
+
     let moveFileUp () =
         let editor = vscode.window.activeTextEditor
         match editor.document with

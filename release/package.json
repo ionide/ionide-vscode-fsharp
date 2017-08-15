@@ -229,6 +229,10 @@
         "title": "Remove file"
       },
       {
+        "command": "fsharp.explorer.renameFile",
+        "title": "Rename file"
+      },
+      {
         "command": "fsharp.explorer.addProjecRef",
         "title": "Add project reference"
       },
@@ -262,6 +266,10 @@
         },
         {
           "command": "fsharp.explorer.removeFile",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.renameFile",
           "when": "false"
         },
         {
@@ -355,6 +363,10 @@
         },
         {
           "command": "fsharp.explorer.removeFile",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file"
+        },
+        {
+          "command": "fsharp.explorer.renameFile",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file"
         },
         {

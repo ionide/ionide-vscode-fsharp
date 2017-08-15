@@ -259,6 +259,14 @@ module SolutionExplorer =
             | _ -> unbox ()
         )) |> ignore
 
+        commands.registerCommand("fsharp.explorer.renameFile", Func<obj, obj>(fun m ->
+            match unbox m with
+            | File (old, _, proj) ->
+                Forge.renameFilePath old proj
+                |> unbox
+            | _ -> unbox ()
+        )) |> ignore
+
         commands.registerCommand("fsharp.explorer.addProjecRef", Func<obj, obj>(fun m ->
             match unbox m with
             | ProjectReferencesList (_, p) ->
