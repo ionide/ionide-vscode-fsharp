@@ -1,3 +1,13 @@
+### 2.33.0 - 16.08.2017
+* Show the project view only when there are projects to see
+* Move 'Add project' to navigation commands with an icon
+* Add rename file to project explorer
+* Order and group file context menu for project explorer
+* Add move to folder command for project explorer
+* Add refresh and clear cache commands to project explorer
+* Add detection for MsBuild 15
+* Add MsBuild commands to project explorer
+
 ### 2.32.2 - 14.08.2017
 * Use icons from theme in project explorer
 
