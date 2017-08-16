@@ -18,7 +18,7 @@ module SolutionExplorer =
         | ReferenceList of References: Model list * projectPath : string
         | ProjectReferencesList of Projects : Model list * ProjectPath : string
         | Project of path: string * name: string * Files: Model list * ProjectReferencesList : Model  * ReferenceList: Model
-        | Folder of name : string * Files : Model list
+        | Folder of name : string * path: string * Files : Model list
         | File of path: string * name: string * projectPath : string
         | Reference of path: string * name: string * projectPath : string
         | ProjectReference of path: string * name: string * projectPath : string
@@ -56,7 +56,7 @@ module SolutionExplorer =
                 entry.Children
                 |> Seq.map (fun n -> toModel f pp n.Value )
                 |> Seq.toList
-            Folder(entry.Key, childs)
+            Folder(entry.Key, f, childs)
         else
             let p = (path.dirname pp) + f
             File(p, entry.Key, pp)
@@ -80,21 +80,26 @@ module SolutionExplorer =
             |> List.map (fun p -> path.relative(path.dirname proj.Project, p))
             |> buildTree proj.Project
 
-        // printfn "PROJECT MODEL: %A" files'
-
-
-
-        // let files =
-        //     proj.Files
-        //     |> List.map ( fun p ->
-        //         let n = path.relative(path.dirname proj.Project, p)
-        //         File(p, n, proj.Project))
-
-
         let refs = proj.References |> List.map (fun p -> Reference(p, path.basename p, proj.Project)) |> fun n -> ReferenceList(n, proj.Project)
         let projs = proj.References |> List.choose (fun r -> projects |> Seq.tryFind (fun pr -> pr.Output = r)) |> List.map (fun p -> ProjectReference(p.Project, path.basename(p.Project, ".fsproj"), proj.Project)) |> fun n -> ProjectReferencesList(n, proj.Project)
         let name = path.basename(proj.Project, ".fsproj")
         Project(proj.Project, name,files, projs, refs)
+
+    let getFolders model =
+        let rec loop model lst =
+            match model with
+            | Workspace fls -> fls |> List.collect (fun x -> loop x lst )
+            | Project (_,_,fls,_, _) -> fls |> List.collect (fun x -> loop x lst )
+            | Folder (_, f, fls) ->
+                fls |> List.collect (fun x -> loop x lst@[f] )
+            | _ -> []
+        let lst =
+            loop model []
+            |> List.distinct
+            |> List.map (fun n -> n.TrimStart('\\'))
+            |> List.sort
+
+        "."::lst
 
     let private getModel() =
         let projects = Project.getLoaded ()
@@ -102,7 +107,6 @@ module SolutionExplorer =
         |> Seq.toList
         |> List.map getProjectModel
         |> Workspace
-
 
     let rec private getSubmodel node =
         match node with
@@ -116,7 +120,7 @@ module SolutionExplorer =
                 ]
             | ReferenceList (refs, _) -> refs
             | ProjectReferencesList (refs, _) -> refs
-            | Folder (name,files) -> files
+            | Folder (_,_,files) -> files
             | File _ -> []
             | Reference _ -> []
             | ProjectReference _ -> []
@@ -128,7 +132,7 @@ module SolutionExplorer =
         | Project (_, name,_, _,_) -> name
         | ReferenceList _ -> "References"
         | ProjectReferencesList (refs, _) -> "Project References"
-        | Folder (n, _) -> n
+        | Folder (n,_, _) -> n
         | File (_, name, _) -> name
         | Reference (_, name, _) ->
             if name.ToLowerInvariant().EndsWith(".dll") then
@@ -201,7 +205,7 @@ module SolutionExplorer =
                     | Project (path, _, _, _, _) ->
                         let fileName = Node.path.basename(path)
                         iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/project-light.svg" "/images/project-dark.svg"
-                    | Folder (name, _)  ->
+                    | Folder (name,_, _)  ->
                         iconFromTheme (VsCodeIconTheme.getFolderIcon name) "/images/folder-light.svg" "/images/folder-dark.svg"
                     | Reference _ | ProjectReference _ ->
                         p.light <- plugPath + "/images/circuit-board-light.svg"
@@ -247,6 +251,18 @@ module SolutionExplorer =
             match unbox m with
             | File (p, _, _) ->
                 Forge.moveFileDownPath p
+                |> unbox
+            | _ -> unbox ()
+        )) |> ignore
+
+        commands.registerCommand("fsharp.explorer.moveToFolder", Func<obj, obj>(fun m ->
+            let folders =
+                getModel()
+                |> getFolders
+
+            match unbox m with
+            | File (p, _, pp) ->
+                Forge.moveFileToFolder folders p pp
                 |> unbox
             | _ -> unbox ()
         )) |> ignore

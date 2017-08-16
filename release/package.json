@@ -225,6 +225,10 @@
         "title": "Move file down"
       },
       {
+        "command": "fsharp.explorer.moveToFolder",
+        "title": "Move file to folder"
+      },
+      {
         "command": "fsharp.explorer.removeFile",
         "title": "Remove file"
       },
@@ -270,6 +274,10 @@
         },
         {
           "command": "fsharp.explorer.renameFile",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.moveToFolder",
           "when": "false"
         },
         {
@@ -362,6 +370,11 @@
           "command": "fsharp.explorer.moveDown",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
           "group": "1_navigation@2"
+        },
+        {
+          "command": "fsharp.explorer.moveToFolder",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
+          "group": "1_navigation@3"
         },
         {
           "command": "fsharp.explorer.removeFile",

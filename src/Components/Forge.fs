@@ -108,6 +108,26 @@ module Forge =
                 sprintf "rename file -n %s -r %s -p %s" oldName newName proj |> spawnForge |> ignore
         }
 
+    let moveFileToFolder (folderList : string list) file proj =
+        promise {
+            let! _ = sprintf "remove file -n %s" file |> spawnForge |> Process.toPromise
+            if folderList.Length <> 0 then
+                let opts = createEmpty<QuickPickOptions>
+                opts.placeHolder <- Some "Reference"
+                let! n = window.showQuickPick(folderList |> List.toSeq |> ResizeArray |> Case1, opts) |> Promise.map quotePath
+                if JS.isDefined n then
+                    let fn = path.basename file
+                    let projDir = path.dirname proj
+                    let newFile = path.join(projDir, n, fn )
+                    fs.rename(file, newFile, Func<_,_>(fun a ->
+                        promise {
+                            let! _ = sprintf "add file -n %s" newFile |> spawnForge |> Process.toPromise
+                            let! _ = sprintf "move file -n %s -d" newFile |> spawnForge |> Process.toPromise
+                            return ()
+                        } |> ignore
+                    ))
+        }
+
     let moveFileUp () =
         let editor = vscode.window.activeTextEditor
         match editor.document with
