@@ -355,19 +355,23 @@
       "view/item/context": [
         {
           "command": "fsharp.explorer.moveUp",
-          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file"
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
+          "group": "1_navigation@1"
         },
         {
           "command": "fsharp.explorer.moveDown",
-          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file"
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
+          "group": "1_navigation@2"
         },
         {
           "command": "fsharp.explorer.removeFile",
-          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file"
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
+          "group": "2_modification@1"
         },
         {
           "command": "fsharp.explorer.renameFile",
-          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file"
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
+          "group": "2_modification@1"
         },
         {
           "command": "fsharp.explorer.addProjecRef",
