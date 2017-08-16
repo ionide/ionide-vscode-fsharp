@@ -125,7 +125,13 @@ module Environment =
                 }
             else
                 let MSBuildPath =
-                    [ (programFilesX86 </> @"\MSBuild\14.0\Bin")
+                    [
+                      (programFilesX86 </> @"\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin")
+                      (programFilesX86 </> @"\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin")
+                      (programFilesX86 </> @"\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin")
+                      (programFilesX86 </> @"\MSBuild\15.0\Bin")
+                      (programFilesX86 </> @"\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin")
+                      (programFilesX86 </> @"\MSBuild\14.0\Bin")
                       (programFilesX86 </> @"\MSBuild\12.0\Bin")
                       (programFilesX86 </> @"\MSBuild\12.0\Bin\amd64")
                       @"c:\Windows\Microsoft.NET\Framework\v4.0.30319\"
