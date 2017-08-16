@@ -14,14 +14,14 @@ module MSBuild =
     let private outputChannel = window.createOutputChannel "msbuild"
     let private logger = ConsoleAndOutputChannelLogger(Some "msbuild", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
 
-    type MSbuildHost = 
+    type MSbuildHost =
         | MSBuildExe // .net on win, mono on non win
         | DotnetCli
 
     type private Host () =
         let mutable currentMsbuildHostType : MSbuildHost option = None
         let _onMSbuildHostTypeDidChange = vscode.EventEmitter<MSbuildHost option>()
-        
+
         member public this.onMSbuildHostTypeDidChange with get () = _onMSbuildHostTypeDidChange.event
 
         member public this.value
@@ -67,7 +67,7 @@ module MSBuild =
             | _ -> Some MSbuildHost.MSBuildExe
         }
 
-    let switchMSbuildHostType () = 
+    let switchMSbuildHostType () =
         promise {
             logger.Debug "switching msbuild host (msbuild <-> dotnet cli)"
             let! h =
@@ -130,7 +130,7 @@ module MSBuild =
             match hostPreference with
             | Some h -> Promise.lift (Some h)
             | None -> getMSbuildHostType ()
-        
+
         theMSbuildHostType
         |> Promise.bind (function None -> Promise.empty | Some h -> executeWithHost h)
 
@@ -181,6 +181,9 @@ module MSBuild =
                     | Some proj -> invokeMSBuild proj target hostOpt
         }
 
+    let buildProjectPath target path =
+        invokeMSBuild path target None
+
     let activate disposables =
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> ignore
         let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> ignore
@@ -201,7 +204,7 @@ module MSBuild =
                 logger.Info("MSBuild (.NET) found at %s", p)
                 p)
 
-        let envDotnet = 
+        let envDotnet =
             Environment.dotnet
             |> Promise.map (fun p ->
                 logger.Info("Dotnet cli (.NET Core) found at %s", p)

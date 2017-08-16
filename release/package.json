@@ -255,6 +255,22 @@
       {
         "command": "fsharp.explorer.clearCache",
         "title": "Clear project cache"
+      },
+      {
+        "command": "fsharp.explorer.msbuild.build",
+        "title": "Build"
+      },
+      {
+        "command": "fsharp.explorer.msbuild.rebuild",
+        "title": "Rebuild"
+      },
+      {
+        "command": "fsharp.explorer.msbuild.clean",
+        "title": "Clean"
+      },
+      {
+        "command": "fsharp.explorer.msbuild.pickHost",
+        "title": "Pick MsBuild Host"
       }
     ],
     "views": {
@@ -306,6 +322,22 @@
         },
         {
           "command": "fsharp.explorer.clearCache",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.build",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.rebuild",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.clean",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.pickHost",
           "when": "false"
         },
         {
@@ -377,10 +409,17 @@
         },
         {
           "command": "fsharp.explorer.refresh",
+          "group": "modificatin@1",
           "when": "view == ionide.projectExplorer"
         },
         {
           "command": "fsharp.explorer.clearCache",
+          "group": "modificatin@3",
+          "when": "view == ionide.projectExplorer"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.pickHost",
+          "group": "modificatin@2",
           "when": "view == ionide.projectExplorer"
         }
       ],
@@ -403,7 +442,7 @@
         {
           "command": "fsharp.explorer.removeFile",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
-          "group": "2_modification@1"
+          "group": "1_navigation@4"
         },
         {
           "command": "fsharp.explorer.renameFile",
@@ -420,7 +459,23 @@
         },
         {
           "command": "fsharp.explorer.openProjectFile",
-          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project"
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
+          "group": "2_modification@1"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.build",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
+          "group": "1_navigation@1"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.rebuild",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
+          "group": "1_navigation@2"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.clean",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
+          "group": "1_navigation@3"
         }
       ],
       "editor/context":[

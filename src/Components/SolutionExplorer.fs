@@ -248,6 +248,11 @@ module SolutionExplorer =
             |> unbox
         )) |> ignore
 
+        commands.registerCommand("fsharp.explorer.msbuild.pickHost", Func<obj, obj>(fun _ ->
+            MSBuild.pickMSbuildHostType ()
+            |> unbox
+        )) |> ignore
+
         commands.registerCommand("fsharp.explorer.moveUp", Func<obj, obj>(fun m ->
             match unbox m with
             | File (p, _, _) ->
@@ -315,6 +320,31 @@ module SolutionExplorer =
                 |> unbox
             | _ -> unbox ()
         )) |> ignore
+
+        commands.registerCommand("fsharp.explorer.msbuild.build", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Project (path, _, _, _, _) ->
+                MSBuild.buildProjectPath "Build" path
+                |> unbox
+            | _ -> unbox ()
+        )) |> ignore
+
+        commands.registerCommand("fsharp.explorer.msbuild.rebuild", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Project (path, _, _, _, _) ->
+                MSBuild.buildProjectPath "Rebuild" path
+                |> unbox
+            | _ -> unbox ()
+        )) |> ignore
+
+        commands.registerCommand("fsharp.explorer.msbuild.clean", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Project (path, _, _, _, _) ->
+                MSBuild.buildProjectPath "Clean" path
+                |> unbox
+            | _ -> unbox ()
+        )) |> ignore
+
 
         window.registerTreeDataProvider("ionide.projectExplorer", provider )
         |> ignore
