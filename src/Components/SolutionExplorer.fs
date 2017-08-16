@@ -239,6 +239,15 @@ module SolutionExplorer =
             emiter.fire (unbox ()) |> unbox)
         |> ignore
 
+        commands.registerCommand("fsharp.explorer.refresh", Func<obj, obj>(fun _ ->
+            emiter.fire (unbox ()) |> unbox
+        )) |> ignore
+
+        commands.registerCommand("fsharp.explorer.clearCache", Func<obj, obj>(fun _ ->
+            Project.clearCache ()
+            |> unbox
+        )) |> ignore
+
         commands.registerCommand("fsharp.explorer.moveUp", Func<obj, obj>(fun m ->
             match unbox m with
             | File (p, _, _) ->

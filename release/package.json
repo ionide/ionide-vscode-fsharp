@@ -247,6 +247,14 @@
       {
         "command": "fsharp.explorer.openProjectFile",
         "title": "Open project file"
+      },
+      {
+        "command": "fsharp.explorer.refresh",
+        "title": "Refresh Explorer"
+      },
+      {
+        "command": "fsharp.explorer.clearCache",
+        "title": "Clear project cache"
       }
     ],
     "views": {
@@ -290,6 +298,14 @@
         },
         {
           "command": "fsharp.explorer.openProjectFile",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.refreesh",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.clearCache",
           "when": "false"
         },
         {
@@ -357,6 +373,14 @@
         {
           "command": "fsharp.NewProject",
           "group": "navigation",
+          "when": "view == ionide.projectExplorer"
+        },
+        {
+          "command": "fsharp.explorer.refresh",
+          "when": "view == ionide.projectExplorer"
+        },
+        {
+          "command": "fsharp.explorer.clearCache",
           "when": "view == ionide.projectExplorer"
         }
       ],
