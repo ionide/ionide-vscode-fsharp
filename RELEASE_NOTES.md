@@ -1,3 +1,6 @@
+### 2.33.2 - 18.08.2017
+* Fix rename with apostrophe
+
 ### 2.33.1 - 17.08.2017
 * Fix typo in command name.
 
