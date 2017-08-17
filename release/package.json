@@ -317,7 +317,7 @@
           "when": "false"
         },
         {
-          "command": "fsharp.explorer.refreesh",
+          "command": "fsharp.explorer.refresh",
           "when": "false"
         },
         {
