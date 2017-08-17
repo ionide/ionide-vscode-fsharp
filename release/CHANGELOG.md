@@ -1,3 +1,6 @@
+### 2.33.1 - 17.08.2017
+* Fix typo in command name.
+
 ### 2.33.0 - 16.08.2017
 * Show the project view only when there are projects to see
 * Move 'Add project' to navigation commands with an icon
