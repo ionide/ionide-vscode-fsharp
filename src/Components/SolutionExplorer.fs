@@ -17,7 +17,7 @@ module SolutionExplorer =
         | Workspace of Projects : Model list
         | ReferenceList of References: Model list * projectPath : string
         | ProjectReferencesList of Projects : Model list * ProjectPath : string
-        | Project of path: string * name: string * Files: Model list * ProjectReferencesList : Model  * ReferenceList: Model
+        | Project of path: string * name: string * Files: Model list * ProjectReferencesList : Model  * ReferenceList: Model * isExe : bool * project : DTO.Project
         | Folder of name : string * path: string * Files : Model list
         | File of path: string * name: string * projectPath : string
         | Reference of path: string * name: string * projectPath : string
@@ -83,13 +83,13 @@ module SolutionExplorer =
         let refs = proj.References |> List.map (fun p -> Reference(p, path.basename p, proj.Project)) |> fun n -> ReferenceList(n, proj.Project)
         let projs = proj.References |> List.choose (fun r -> projects |> Seq.tryFind (fun pr -> pr.Output = r)) |> List.map (fun p -> ProjectReference(p.Project, path.basename(p.Project, ".fsproj"), proj.Project)) |> fun n -> ProjectReferencesList(n, proj.Project)
         let name = path.basename(proj.Project, ".fsproj")
-        Project(proj.Project, name,files, projs, refs)
+        Project(proj.Project, name,files, projs, refs, Project.isExeProject proj, proj)
 
     let getFolders model =
         let rec loop model lst =
             match model with
             | Workspace fls -> fls |> List.collect (fun x -> loop x lst )
-            | Project (_,_,fls,_, _) -> fls |> List.collect (fun x -> loop x lst )
+            | Project (_,_,fls,_, _, _, _) -> fls |> List.collect (fun x -> loop x lst )
             | Folder (_, f, fls) ->
                 fls |> List.collect (fun x -> loop x lst@[f] )
             | _ -> []
@@ -111,7 +111,7 @@ module SolutionExplorer =
     let rec private getSubmodel node =
         match node with
             | Workspace projects -> projects
-            | Project (_, _, files, projs, refs) ->
+            | Project (_, _, files, projs, refs, _, _) ->
                 [
                      // SHOULD REFS BE DISPLAYED AT ALL? THOSE ARE RESOLVED BY MSBUILD REFS
                     yield refs
@@ -129,7 +129,7 @@ module SolutionExplorer =
     let private getLabel node =
         match node with
         | Workspace _ -> "Workspace"
-        | Project (_, name,_, _,_) -> name
+        | Project (_, name,_, _,_, _, _) -> name
         | ReferenceList _ -> "References"
         | ProjectReferencesList (refs, _) -> "Project References"
         | Folder (n,_, _) -> n
@@ -183,7 +183,8 @@ module SolutionExplorer =
                     | File _  -> Some "ionide.projectExplorer.file"
                     | ProjectReferencesList _  -> Some "ionide.projectExplorer.projectRefList"
                     | ReferenceList _  -> Some "ionide.projectExplorer.referencesList"
-                    | Project _  -> Some "ionide.projectExplorer.project"
+                    | Project (_, _, _, _, _, false, _)  -> Some "ionide.projectExplorer.project"
+                    | Project (_, _, _, _, _, true, _)  -> Some "ionide.projectExplorer.projectExe"
                     | ProjectReference _  -> Some "ionide.projectExplorer.projRef"
                     | Reference _  -> Some "ionide.projectExplorer.reference"
                     | _ -> None
@@ -202,7 +203,7 @@ module SolutionExplorer =
                     | File (path, _, _) ->
                         let fileName = Node.path.basename(path)
                         iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/file-code-light.svg" "/images/file-code-dark.svg"
-                    | Project (path, _, _, _, _) ->
+                    | Project (path, _, _, _, _, _, _) ->
                         let fileName = Node.path.basename(path)
                         iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/project-light.svg" "/images/project-dark.svg"
                     | Folder (name,_, _)  ->
@@ -315,7 +316,7 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.openProjectFile", Func<obj, obj>(fun m ->
             match unbox m with
-            | Project (path, _, _, _, _) ->
+            | Project (path, _, _, _, _, _, _) ->
                 commands.executeCommand("vscode.open", Uri.file(path))
                 |> unbox
             | _ -> unbox ()
@@ -323,7 +324,7 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.msbuild.build", Func<obj, obj>(fun m ->
             match unbox m with
-            | Project (path, _, _, _, _) ->
+            | Project (path, _, _, _, _, _, _) ->
                 MSBuild.buildProjectPath "Build" path
                 |> unbox
             | _ -> unbox ()
@@ -331,7 +332,7 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.msbuild.rebuild", Func<obj, obj>(fun m ->
             match unbox m with
-            | Project (path, _, _, _, _) ->
+            | Project (path, _, _, _, _, _, _) ->
                 MSBuild.buildProjectPath "Rebuild" path
                 |> unbox
             | _ -> unbox ()
@@ -339,8 +340,16 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.msbuild.clean", Func<obj, obj>(fun m ->
             match unbox m with
-            | Project (path, _, _, _, _) ->
+            | Project (path, _, _, _, _, _, _) ->
                 MSBuild.buildProjectPath "Clean" path
+                |> unbox
+            | _ -> unbox ()
+        )) |> ignore
+
+        commands.registerCommand("fsharp.explorer.project.run", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Project (_, _, _, _, _, _, pr) ->
+                Debugger.buildAndRun pr
                 |> unbox
             | _ -> unbox ()
         )) |> ignore

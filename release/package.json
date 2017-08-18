@@ -269,6 +269,14 @@
         "title": "Clean"
       },
       {
+        "command": "fsharp.explorer.project.run",
+        "title": "Run"
+      },
+      {
+        "command": "fsharp.explorer.project.debug",
+        "title": "Debug"
+      },
+      {
         "command": "fsharp.explorer.msbuild.pickHost",
         "title": "Pick MsBuild Host"
       }
@@ -338,6 +346,14 @@
         },
         {
           "command": "fsharp.explorer.msbuild.pickHost",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.project.run",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.project.debug",
           "when": "false"
         },
         {
@@ -476,6 +492,36 @@
           "command": "fsharp.explorer.msbuild.clean",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
           "group": "1_navigation@3"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+          "group": "3_modification@1"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.build",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+          "group": "2_navigation@1"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.rebuild",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+          "group": "2_navigation@2"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.clean",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+          "group": "2_navigation@3"
+        },
+        {
+          "command": "fsharp.explorer.project.run",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+          "group": "1_run@1"
+        },
+        {
+          "command": "fsharp.explorer.project.debug",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+          "group": "1_run@1"
         }
       ],
       "editor/context":[

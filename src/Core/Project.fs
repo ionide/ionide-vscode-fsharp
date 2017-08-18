@@ -177,6 +177,17 @@ module Project =
             return Process.spawnWithNotification exe "mono" cmd outputChannel
         }
 
+    let private execWithDotnetWithShell cmd =
+        promise {
+            let! dotnet = Environment.dotnet
+            return Process.spawnWithShell dotnet dotnet cmd
+        }
+
+    let private execWithShell exe cmd =
+        promise {
+            return Process.spawnWithShell exe "mono" cmd
+        }
+
     let buildWithMsbuild outputChannel (project:Project) =
         promise {
             let! msbuild = Environment.msbuild
@@ -200,6 +211,16 @@ module Project =
         | _, true -> Some execDotnet
         | out, _ when out |> String.endWith ".exe" -> Some (fun args -> exec out outputChannel args)
         | _ -> None
+
+    let getLauncherWithShell  (project:Project) =
+        let execDotnet = fun args ->
+            let cmd = "run -p " + project.Project + " -- " + args
+            execWithDotnetWithShell cmd
+        match project.Output, isANetCoreAppProject project with
+        | _, true -> Some execDotnet
+        | out, _ when out |> String.endWith ".exe" -> Some (fun args -> execWithShell out args)
+        | _ -> None
+
 
     let activate =
         let w = workspace.createFileSystemWatcher("**/*.fsproj")
