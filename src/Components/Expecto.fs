@@ -49,16 +49,6 @@ module Expecto =
         let cfg = vscode.workspace.getConfiguration()
         cfg.get ("Expecto.customArgs", "")
 
-    let private isANetCoreAppProject (project:Project) =
-        let projectContent = (fs.readFileSync project.Project).ToString()
-        let netCoreTargets =
-            [ "<TargetFramework>netcoreapp"
-              "<Project Sdk=\"" ]
-
-        let findInProject (toFind:string) =
-            projectContent.IndexOf(toFind) >= 0
-
-        netCoreTargets |> Seq.exists findInProject
 
     let private getExpectoProjects () =
         Project.getLoaded ()
@@ -66,29 +56,11 @@ module Expecto =
             p.References |> List.exists ( String.endWith "Expecto.dll" )  )
         |> Seq.toList
 
-    let execWithDotnet cmd =
-        promise {
-            let! dotnet = Environment.dotnet
-            logger.Debug ("%s %s", dotnet, cmd)
-            return Process.spawnWithNotification dotnet dotnet cmd outputChannel
-        }
 
-    let exec exe cmd =
-        promise {
-            return Process.spawnWithNotification exe "mono" cmd outputChannel
-        }
 
     let private getExpectoLauncher () =
         getExpectoProjects ()
-        |> List.choose ( fun project ->
-            let execDotnet = fun args ->
-                let cmd = "run -p " + project.Project + " -- " + args
-                execWithDotnet cmd
-            match project.Output, isANetCoreAppProject project with
-            | _, true -> Some (execDotnet, project.Project)
-            | out, _ when out |> String.endWith ".exe" -> Some ((fun args -> exec out args), out)
-            | _ -> None
-        )
+        |> List.choose ( fun project -> Project.getLauncher outputChannel project |> Option.map (fun n -> n, project.Output))
 
     let getFilesToWatch () =
         let projects = Project.getLoaded () |> Seq.toArray
@@ -264,28 +236,13 @@ module Expecto =
         if getAutoshow () && not watchMode then outputChannel.show ()
         elif watchMode then statusBar.text <- "$(eye) Watch Mode - building"
 
-        let buildWithMsbuild path =
-            promise {
-                let! msbuild = Environment.msbuild
-                logger.Debug ("%s %s", msbuild, path)
-                return! Process.spawnWithNotification msbuild "" path outputChannel
-                |> Process.toPromise
-            }
 
-        let buildWithDotnet path =
-            promise {
-                let! childProcess = execWithDotnet ("build " + path)
-                return!
-                    childProcess
-                    |> Process.toPromise
-            }
 
         getExpectoProjects ()
         |> List.map(fun proj ->
-            let path = proj.Project
-            match isANetCoreAppProject proj with
-            | true -> buildWithDotnet path
-            | false -> buildWithMsbuild path
+            match Project.isANetCoreAppProject proj with
+            | true -> Project.buildWithDotnet outputChannel proj
+            | false -> Project.buildWithMsbuild outputChannel proj
         )
         |> Promise.all
         |> Promise.bind (fun codes ->

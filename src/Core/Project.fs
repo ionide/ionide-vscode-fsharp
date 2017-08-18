@@ -149,6 +149,58 @@ module Project =
         window.showInformationMessage("Cache cleared")
 
 
+    let isANetCoreAppProject (project:Project) =
+        let projectContent = (fs.readFileSync project.Project).ToString()
+        let netCoreTargets =
+            [ "<TargetFramework>netcoreapp"
+              "<Project Sdk=\"" ]
+
+        let findInProject (toFind:string) =
+            projectContent.IndexOf(toFind) >= 0
+
+        netCoreTargets |> Seq.exists findInProject
+
+    let isExeProject (project:Project) =
+        match project.Output, isANetCoreAppProject project with
+        | _, true -> true
+        | out, _ when out |> String.endWith ".exe" -> true
+        | _ -> false
+
+    let private execWithDotnet outputChannel cmd =
+        promise {
+            let! dotnet = Environment.dotnet
+            return Process.spawnWithNotification dotnet dotnet cmd outputChannel
+        }
+
+    let private exec exe outputChannel cmd =
+        promise {
+            return Process.spawnWithNotification exe "mono" cmd outputChannel
+        }
+
+    let buildWithMsbuild outputChannel (project:Project) =
+        promise {
+            let! msbuild = Environment.msbuild
+            return! Process.spawnWithNotification msbuild "" project.Project outputChannel
+            |> Process.toPromise
+        }
+
+    let buildWithDotnet outputChannel (project:Project) =
+        promise {
+            let! childProcess = execWithDotnet outputChannel ("build " + project.Project)
+            return!
+                childProcess
+                |> Process.toPromise
+        }
+
+    let getLauncher outputChannel (project:Project) =
+        let execDotnet = fun args ->
+            let cmd = "run -p " + project.Project + " -- " + args
+            execWithDotnet outputChannel cmd
+        match project.Output, isANetCoreAppProject project with
+        | _, true -> Some execDotnet
+        | out, _ when out |> String.endWith ".exe" -> Some (fun args -> exec out outputChannel args)
+        | _ -> None
+
     let activate =
         let w = workspace.createFileSystemWatcher("**/*.fsproj")
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> ) |> ignore

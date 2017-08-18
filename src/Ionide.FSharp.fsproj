@@ -66,6 +66,7 @@
     <Compile Include="Core/DTO.fs" />
     <Compile Include="Core/Utils.fs" />
     <Compile Include="Core/LanguageService.fs" />
+    <Compile Include="Core/Environment.fs" />
     <Compile Include="Core/Project.fs" />
     <Compile Include="Components/Tooltip.fs" />
     <Compile Include="Components/Autocomplete.fs" />
