@@ -19,13 +19,13 @@ GIT
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (246a26e19f1649b4ad10f2b7f7875a96d233f641)
+     (826aa0690b4a1fb536485cc2806fa73b451fcee7)
 GITHUB
   remote: fsharp/FAKE
     modules/Octokit/Octokit.fsx (291f58cc70aba6dd871cf18e66d2d88357e4f208)
       Octokit (>= 0.20)
   remote: Ionide/ionide-vscode-helpers
-    Fable.Import.Axios.fs (6e8ce2b8385bc78b070972aa603990ce6dcae361)
-    Fable.Import.VSCode.fs (6e8ce2b8385bc78b070972aa603990ce6dcae361)
-    Fable.Import.ws.fs (6e8ce2b8385bc78b070972aa603990ce6dcae361)
-    Helpers.fs (6e8ce2b8385bc78b070972aa603990ce6dcae361)
+    Fable.Import.Axios.fs (42949401319091b80cd8038524335a54491e4fe1)
+    Fable.Import.VSCode.fs (42949401319091b80cd8038524335a54491e4fe1)
+    Fable.Import.ws.fs (42949401319091b80cd8038524335a54491e4fe1)
+    Helpers.fs (42949401319091b80cd8038524335a54491e4fe1)
