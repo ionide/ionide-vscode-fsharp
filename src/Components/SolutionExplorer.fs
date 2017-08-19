@@ -324,24 +324,24 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.msbuild.build", Func<obj, obj>(fun m ->
             match unbox m with
-            | Project (path, _, _, _, _, _, _) ->
-                MSBuild.buildProjectPath "Build" path
+            | Project (path, _, _, _, _, _, pr) ->
+                MSBuild.buildProjectPath "Build" pr
                 |> unbox
             | _ -> unbox ()
         )) |> ignore
 
         commands.registerCommand("fsharp.explorer.msbuild.rebuild", Func<obj, obj>(fun m ->
             match unbox m with
-            | Project (path, _, _, _, _, _, _) ->
-                MSBuild.buildProjectPath "Rebuild" path
+            | Project (path, _, _, _, _, _, pr) ->
+                MSBuild.buildProjectPath "Rebuild" pr
                 |> unbox
             | _ -> unbox ()
         )) |> ignore
 
         commands.registerCommand("fsharp.explorer.msbuild.clean", Func<obj, obj>(fun m ->
             match unbox m with
-            | Project (path, _, _, _, _, _, _) ->
-                MSBuild.buildProjectPath "Clean" path
+            | Project (path, _, _, _, _, _, pr) ->
+                MSBuild.buildProjectPath "Clean" pr
                 |> unbox
             | _ -> unbox ()
         )) |> ignore
@@ -354,6 +354,13 @@ module SolutionExplorer =
             | _ -> unbox ()
         )) |> ignore
 
+        commands.registerCommand("fsharp.explorer.project.debug", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Project (_, _, _, _, _, _, pr) ->
+                Debugger.buildAndDebug pr
+                |> unbox
+            | _ -> unbox ()
+        )) |> ignore
 
         window.registerTreeDataProvider("ionide.projectExplorer", provider )
         |> ignore

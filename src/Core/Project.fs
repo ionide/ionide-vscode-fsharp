@@ -160,6 +160,26 @@ module Project =
 
         netCoreTargets |> Seq.exists findInProject
 
+    let isNetCoreApp (project:Project) =
+        let projectContent = (fs.readFileSync project.Project).ToString()
+        let core = "<TargetFramework>netcoreapp"
+        projectContent.IndexOf(core) >= 0
+
+    let isSDKProject (project:Project) =
+        let projectContent = (fs.readFileSync project.Project).ToString()
+        let sdk = "<Project Sdk=\""
+        projectContent.IndexOf(sdk) >= 0
+
+    let isSDKProjectPath (project:string) =
+        let projectContent = (fs.readFileSync project).ToString()
+        let sdk = "<Project Sdk=\""
+        projectContent.IndexOf(sdk) >= 0
+
+    let isPortablePdbProject (project:Project) =
+        let projectContent = (fs.readFileSync project.Project).ToString()
+        let portable = """<DebugType>portable</DebugType>"""
+        projectContent.IndexOf(portable) >= 0
+
     let isExeProject (project:Project) =
         match project.Output, isANetCoreAppProject project with
         | _, true -> true
@@ -205,7 +225,7 @@ module Project =
 
     let getLauncher outputChannel (project:Project) =
         let execDotnet = fun args ->
-            let cmd = "run -p " + project.Project + " -- " + args
+            let cmd = "run -p " + project.Project + if String.IsNullOrEmpty args then "" else " -- " + args
             execWithDotnet outputChannel cmd
         match project.Output, isANetCoreAppProject project with
         | _, true -> Some execDotnet
@@ -214,7 +234,7 @@ module Project =
 
     let getLauncherWithShell  (project:Project) =
         let execDotnet = fun args ->
-            let cmd = "run -p " + project.Project + " -- " + args
+            let cmd = "run -p " + project.Project + if String.IsNullOrEmpty args then "" else " -- " + args
             execWithDotnetWithShell cmd
         match project.Output, isANetCoreAppProject project with
         | _, true -> Some execDotnet
