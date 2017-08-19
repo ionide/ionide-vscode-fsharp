@@ -17,6 +17,7 @@ module MSBuild =
     type MSbuildHost =
         | MSBuildExe // .net on win, mono on non win
         | DotnetCli
+        | Auto
 
     type private Host () =
         let mutable currentMsbuildHostType : MSbuildHost option = None
@@ -50,7 +51,8 @@ module MSBuild =
                 if JS.isDefined chosen
                 then
                     logger.Debug("user choose host %s", chosen)
-                    hosts |> Map.tryFind chosen
+                    host.value <- hosts |> Map.tryFind chosen
+                    host.value
                 else
                     logger.Debug("user cancelled host pick")
                     None
@@ -60,11 +62,12 @@ module MSBuild =
     let loadMSBuildHostCfg () = promise {
         let cfg = vscode.workspace.getConfiguration()
         return
-            match cfg.get ("FSharp.msbuildHost", ".net") with
+            match cfg.get ("FSharp.msbuildHost", "auto") with
             | ".net" -> Some MSbuildHost.MSBuildExe
             | ".net core" -> Some MSbuildHost.DotnetCli
+            | "auto" -> Some MSbuildHost.Auto
             | "ask at first use" -> None
-            | _ -> Some MSbuildHost.MSBuildExe
+            | _ -> None
         }
 
     let switchMSbuildHostType () =
@@ -76,7 +79,7 @@ module MSBuild =
                     Some MSbuildHost.DotnetCli |> Promise.lift
                 | Some MSbuildHost.DotnetCli ->
                     Some MSbuildHost.MSBuildExe |> Promise.lift
-                | None ->
+                | Some MSbuildHost.Auto | None ->
                     logger.Debug("not yet choosen, try pick one")
                     pickMSbuildHostType ()
 
@@ -102,6 +105,11 @@ module MSBuild =
                 return ho
             }
 
+    let tryGetRightHostType (project : string) =
+        match Project.isSDKProjectPath project with
+        | true -> MSbuildHost.DotnetCli
+        | false -> MSbuildHost.MSBuildExe
+
     let invokeMSBuild project target hostPreference =
         let autoshow =
             let cfg = vscode.workspace.getConfiguration()
@@ -111,14 +119,21 @@ module MSBuild =
         let command = sprintf "%s /t:%s" safeproject target
         let executeWithHost host =
             promise {
-                let! msbuildPath =
+                let host' =
                     match host with
+                    | MSbuildHost.Auto -> tryGetRightHostType project
+                    | h -> h
+
+                let! msbuildPath =
+                    match host' with
                     | MSbuildHost.MSBuildExe -> Environment.msbuild
                     | MSbuildHost.DotnetCli -> Environment.dotnet
+                    | MSbuildHost.Auto -> Promise.lift ""
                 let cmd =
-                    match host with
+                    match host' with
                     | MSbuildHost.MSBuildExe -> command
                     | MSbuildHost.DotnetCli -> sprintf "msbuild %s" command
+                    | MSbuildHost.Auto -> ""
                 logger.Info("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
                 let _ =
                     if autoshow then outputChannel.show()
@@ -181,8 +196,18 @@ module MSBuild =
                     | Some proj -> invokeMSBuild proj target hostOpt
         }
 
-    let buildProjectPath target path =
-        invokeMSBuild path target None
+    let tryGetRightHost (project : Project) =
+        match host.value with
+        | Some h -> h
+        | None ->
+            match Project.isSDKProject project with
+            | true -> MSbuildHost.DotnetCli
+            | false -> MSbuildHost.MSBuildExe
+
+
+    let buildProjectPath target (project : Project) =
+        let host = tryGetRightHost project
+        invokeMSBuild project.Project target (Some host)
 
     let activate disposables =
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> ignore
@@ -217,7 +242,7 @@ module MSBuild =
                 logger.Info("MSBuild (.NET) activated")
             | Some MSbuildHost.DotnetCli ->
                 logger.Info("Dotnet cli (.NET Core) activated")
-            | None ->
+            | Some MSbuildHost.Auto | None ->
                 logger.Info("Active msbuild: not choosen yet") )
         |> ignore
 

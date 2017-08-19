@@ -711,12 +711,13 @@
         },
         "FSharp.msbuildHost": {
           "type": "string",
-          "default": ".net",
+          "default": "auto",
           "description": "MSBuild host",
           "enum": [
             ".net",
             ".net core",
-            "ask at first use"
+            "ask at first use",
+            "auto"
           ]
         },
         "FSharp.resolveNamespaces": {
