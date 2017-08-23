@@ -189,7 +189,7 @@ module Project =
     let private execWithDotnet outputChannel cmd =
         promise {
             let! dotnet = Environment.dotnet
-            return Process.spawnWithNotification dotnet dotnet cmd outputChannel
+            return Process.spawnWithNotification dotnet "" cmd outputChannel
         }
 
     let private exec exe outputChannel cmd =
