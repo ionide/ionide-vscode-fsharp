@@ -200,7 +200,7 @@ module Project =
     let private execWithDotnetWithShell cmd =
         promise {
             let! dotnet = Environment.dotnet
-            return Process.spawnWithShell dotnet dotnet cmd
+            return Process.spawnWithShell dotnet "" cmd
         }
 
     let private execWithShell exe cmd =
