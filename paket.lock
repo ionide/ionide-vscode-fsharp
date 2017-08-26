@@ -2,13 +2,13 @@ RESTRICTION: == net45
 NUGET
   remote: https://www.nuget.org/api/v2
     FAKE (4.63)
-    Octokit (0.24)
+    Octokit (0.25)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (2ce757e007cdcff1b9c8bc785acf8d37d5301539)
+     (8dcf6122018a9f584a59234d4e2f5639632dc580)
       build: build.cmd LocalRelease
       os: windows
-     (2ce757e007cdcff1b9c8bc785acf8d37d5301539)
+     (8dcf6122018a9f584a59234d4e2f5639632dc580)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
