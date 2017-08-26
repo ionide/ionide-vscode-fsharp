@@ -120,31 +120,31 @@ module Project =
 
     let getLoaded () = loadedProjects |> Seq.map (fun kv -> kv.Value)
 
+    let getCaches () =
+        let rec findProjs dir =
+            let files = fs.readdirSync dir
+            files
+            |> Seq.toList
+            |> List.collect(fun s' ->
+                try
+                    let s = dir + path.sep + s'
+                    if excluded |> Array.contains s' then
+                        []
+                    elif fs.statSync(s).isDirectory () then
+                        findProjs (s)
+                    else
+                       if s.EndsWith "fsac.cache" then [ s ] else []
+                with
+                | _ -> []
+            )
+
+        match workspace.rootPath with
+        | null -> []
+        | rootPath -> findProjs rootPath
+
+
     let clearCache () =
-        let cached =
-            let rec findProjs dir =
-                let files = fs.readdirSync dir
-                files
-                |> Seq.toList
-                |> List.collect(fun s' ->
-                    try
-                        let s = dir + path.sep + s'
-                        if excluded |> Array.contains s' then
-                            []
-                        elif fs.statSync(s).isDirectory () then
-                            findProjs (s)
-                        else
-                           if s.EndsWith "fsac.cache" then [ s ] else []
-                    with
-                    | _ -> []
-                )
-
-            match workspace.rootPath with
-            | null -> []
-            | rootPath -> findProjs rootPath
-
-
-
+        let cached = getCaches ()
         cached |> Seq.iter fs.unlinkSync
         window.showInformationMessage("Cache cleared")
 
