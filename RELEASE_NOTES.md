@@ -1,3 +1,8 @@
+### 2.34.0 - 27.08.2017
+* Add automatic detection of MsBuild host
+* Add `Run` command to the Project explorer
+* Add support for .Net Standard 2.0
+
 ### 2.33.2 - 18.08.2017
 * Fix rename with apostrophe
 
