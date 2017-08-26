@@ -22,6 +22,7 @@ module Debugger =
         cwd : string
         stopAtEntry: bool
         console : string
+        preLaunchTask : string
     }
 
     let buildAndRun (project : Project) =
@@ -33,11 +34,7 @@ module Debugger =
                 window.showWarningMessage "Can't start project"
                 |> ignore
             | Some l ->
-                let! cp = l ""
-                cp
-                |> Process.onOutput (fun out -> printfn "%s" (out.ToString ()) )
-                |> Process.toPromise
-                ()
+                l "" |> ignore
         }
 
     let buildAndDebug (project : Project) =
@@ -54,19 +51,25 @@ module Debugger =
                         | true -> "coreclr"
                         | false -> "clr"
 
+                    let p = path.relative(workspace.rootPath, project.Output).Replace("\\", "/")
+
                     let cfg = {
-                        name = "F# Debugging"
+                        name = "Launch"
                         ``type`` = typ
                         request = "launch"
-                        program = project.Output
+                        program = "${workspaceRoot}/" + p
                         args = [||]
-                        cwd = workspace.rootPath
-                        stopAtEntry = false
-                        console = "externalTerminal"
+                        cwd = "${workspaceRoot}"
+                        stopAtEntry = true
+                        console = "integratedTerminal"
+                        preLaunchTask = ""
                     }
                     let folder = workspace.workspaceFolders.[0]
-                    debug.startDebugging(folder, unbox cfg)
-                    |> ignore
+                    printfn "FOLDER: %A" folder
+                    printfn "CONFIGH: %A" cfg
+                    let! res = vscode.commands.executeCommand("vscode.startDebug", cfg)
+                    // let! res =  debug.startDebugging(folder, unbox cfg)
+                    printfn "DEBUGER RESULT: %A" res
 
 
         }
