@@ -354,13 +354,13 @@ module SolutionExplorer =
             | _ -> unbox ()
         )) |> ignore
 
-        commands.registerCommand("fsharp.explorer.project.debug", Func<obj, obj>(fun m ->
-            match unbox m with
-            | Project (_, _, _, _, _, _, pr) ->
-                Debugger.buildAndDebug pr
-                |> unbox
-            | _ -> unbox ()
-        )) |> ignore
+        // commands.registerCommand("fsharp.explorer.project.debug", Func<obj, obj>(fun m ->
+        //     match unbox m with
+        //     | Project (_, _, _, _, _, _, pr) ->
+        //         Debugger.buildAndDebug pr
+        //         |> unbox
+        //     | _ -> unbox ()
+        // )) |> ignore
 
         window.registerTreeDataProvider("ionide.projectExplorer", provider )
         |> ignore

@@ -517,11 +517,6 @@
           "command": "fsharp.explorer.project.run",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
           "group": "1_run@1"
-        },
-        {
-          "command": "fsharp.explorer.project.debug",
-          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
-          "group": "1_run@1"
         }
       ],
       "editor/context":[
