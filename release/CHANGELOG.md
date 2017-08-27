@@ -1,3 +1,6 @@
+### 2.34.3 - 27.08.2017
+* Update FSAC - F# 4.1 in scripts
+
 ### 2.34.2 - 27.08.2017
 * Fix .Net Core Expecto runner
 
