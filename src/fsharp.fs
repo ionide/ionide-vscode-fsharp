@@ -19,6 +19,9 @@ let activate(disposables: Disposable[]) =
     let solutionExploer = "FSharp.enableTreeView" |> Configuration.get true
 
     let init = DateTime.Now
+
+    Project.clearCacheIfOutdated ()
+
     LanguageService.start ()
     |> Promise.onSuccess (fun _ ->
         let progressOpts = createEmpty<ProgressOptions>

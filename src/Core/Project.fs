@@ -142,6 +142,14 @@ module Project =
         | null -> []
         | rootPath -> findProjs rootPath
 
+    let clearCacheIfOutdated () =
+        let cached = getCaches ()
+        cached |> Seq.iter (fun p ->
+            let stat = fs.statSync(p)
+            if stat.mtime <= DateTime(2017, 08, 27) then
+                printf "Cache outdated %s" p
+                fs.unlinkSync p
+        )
 
     let clearCache () =
         let cached = getCaches ()
@@ -245,6 +253,7 @@ module Project =
     let activate =
         let w = workspace.createFileSystemWatcher("**/*.fsproj")
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> ) |> ignore
+
 
         w.onDidCreate.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
         w.onDidChange.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
