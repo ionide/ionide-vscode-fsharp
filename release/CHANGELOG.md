@@ -1,3 +1,6 @@
+### 2.34.2 - 27.08.2017
+* Fix .Net Core Expecto runner
+
 ### 2.34.1 - 27.08.2017
 * Automatically clear old cache files
 
