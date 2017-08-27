@@ -1,3 +1,6 @@
+### 2.34.4 - 28.08.2017
+* Move CodeLenses to SignatureData - more robust formatting
+
 ### 2.34.3 - 27.08.2017
 * Update FSAC - F# 4.1 in scripts
 
