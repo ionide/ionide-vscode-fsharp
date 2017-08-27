@@ -5,10 +5,10 @@ NUGET
     Octokit (0.25)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (c2ad0fb06f74c27ed49d0aaddf8518cbcb99fc00)
+     (8ee553315fad3813a7081418267c7475e5f7857f)
       build: build.cmd LocalRelease
       os: windows
-     (c2ad0fb06f74c27ed49d0aaddf8518cbcb99fc00)
+     (8ee553315fad3813a7081418267c7475e5f7857f)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
