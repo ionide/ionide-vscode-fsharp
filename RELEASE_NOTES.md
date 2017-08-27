@@ -1,3 +1,6 @@
+### 2.34.1 - 27.08.2017
+* Automatically clear old cache files
+
 ### 2.34.0 - 27.08.2017
 * Add automatic detection of MsBuild host
 * Add `Run` command to the Project explorer
