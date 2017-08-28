@@ -75,6 +75,11 @@ module Definition =
                 else
                     result <- result + string(c)
 
+            if remainingUnicodeChars > 0 then
+                result <- result + "\\" + string(unicodeHeaderChar) + currentUnicodeChars
+            else if escaped then
+                result <- result + "\\"
+
             result
 
         let private loadRegex = Regex(@"#load\s+")
