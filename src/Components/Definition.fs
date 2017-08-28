@@ -30,6 +30,7 @@ module Definition =
         }
 
     module FromLoad =
+        /// Remove escaping from standard (non verbatim & non triple quotes) string
         let private unescapeStandardString (s: string) =
             let mutable result = ""
             let mutable escaped = false
@@ -76,28 +77,50 @@ module Definition =
 
             result
 
-        let private unescapeString (s: string) =
-            if s.StartsWith("@\"") && s.Length >= 3 then
-                s.Substring(2, s.Length - 3).Replace("\"\"", "\"")
-            else if s.StartsWith("\"\"\"") && s.EndsWith("\"\"\"") && s.Length >= 6 then
-                s.Substring(3, s.Length - 6)
-            else if s.StartsWith("\"") && s.Length >= 2 then
-                unescapeStandardString (s.Substring(1, s.Length - 2))
-            else
-                ""
+        let private loadRegex = Regex(@"#load\s+")
+        let private standardStringRegex = Regex(@"^""(((\\"")|[^""])*)""")
+        let private verbatimStringRegex = Regex(@"^@""((""""|[^""])*)""")
+        let private tripleStringRegex = Regex(@"^""""""(.*?)""""""")
 
-        let private loadRegex = Regex(@"#load\s+(.+"")")
-
-        let private tryParseLoad (line: string) =
-            let m = loadRegex.Match(line)
-            if m.Success then
-                Some (unescapeString (m.Groups.[1].Value))
+        /// Get the string starting at index in any of the string forms (standard, verbatim or triple quotes)
+        let private tryParseStringFromStart (s: string) (index: int) =
+            let s = s.Substring(index)
+            let verbatim = verbatimStringRegex.Match(s)
+            if verbatim.Success then
+                let s = verbatim.Groups.[1].Value
+                Some (s.Replace("\"\"", "\""))
             else
-                None
+                let triple = tripleStringRegex.Match(s)
+                if triple.Success then
+                    let s = triple.Groups.[1].Value
+                    Some s
+                else
+                    let standard = standardStringRegex.Match(s)
+                    if standard.Success then
+                        let s = standard.Groups.[1].Value
+                        Some (unescapeStandardString s)
+                    else
+                        None
+
+        /// Parse the content of a "#load" instruction that start somewhere before `startPoint`
+        let private tryParseLoad (line: string) (startPoint: int) =
+            let potential = seq {
+                let matches = loadRegex.Matches(line)
+                for i in [0 .. matches.Count - 1] do
+                    let m = matches.[i]
+                    if m.Index <= startPoint then
+                        yield m
+            }
+
+            match potential |> Seq.tryLast with
+            | Some m ->
+                let stringIndex = m.Index + m.Length
+                tryParseStringFromStart line stringIndex
+            | None -> None
 
         let provide (doc : TextDocument) (pos : Position) : Definition option =
             let line = doc.lineAt(pos.line)
-            match tryParseLoad line.text with
+            match tryParseLoad line.text (int(pos.character)) with
             | None -> None
             | Some filePath ->
                 let dir = path.dirname(doc.fileName)
