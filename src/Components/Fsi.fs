@@ -186,11 +186,11 @@ module Fsi =
         window.onDidChangeActiveTextEditor $ ((fun n -> if JS.isDefined n then sendCd()), (), context.subscriptions) |> ignore
         window.onDidCloseTerminal $ (handleCloseTerminal, (), context.subscriptions) |> ignore
 
-        commands.registerCommand("fsi.Start", start |> unbox<Func<obj,obj>>) |> ignore
-        commands.registerCommand("fsi.SendLine", sendLine |> unbox<Func<obj,obj>>) |> ignore
-        commands.registerCommand("fsi.SendSelection", sendSelection |> unbox<Func<obj,obj>>) |> ignore
-        commands.registerCommand("fsi.SendLastSelection", sendLastSelection |> unbox<Func<obj,obj>>) |> ignore
-        commands.registerCommand("fsi.SendFile", sendFile |> unbox<Func<obj,obj>>) |> ignore
-        commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox<Func<obj,obj>>) |> ignore
-        commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> unbox<Func<obj,obj>>) |> ignore
+        commands.registerCommand("fsi.Start", start |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendLine", sendLine |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendSelection", sendSelection |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendLastSelection", sendLastSelection |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendFile", sendFile |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
 

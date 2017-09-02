@@ -38,6 +38,6 @@ module Highlights =
 
     let activate selector (context: ExtensionContext) =
         languages.registerDocumentHighlightProvider(selector, createProvider())
-        |> ignore
+        |> context.subscriptions.Add
 
         ()

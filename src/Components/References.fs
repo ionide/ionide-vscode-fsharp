@@ -35,5 +35,5 @@ module Reference =
 
     let activate selector (context: ExtensionContext) =
         languages.registerReferenceProvider(selector, createProvider())
-        |> ignore
+        |> context.subscriptions.Add
         ()

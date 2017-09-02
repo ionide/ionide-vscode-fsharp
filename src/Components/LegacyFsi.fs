@@ -114,9 +114,9 @@ module LegacyFsi =
         }
 
     let activate (context: ExtensionContext) =
-        commands.registerCommand("fsi.Start", start |> unbox<Func<obj,obj>>) |> ignore
-        commands.registerCommand("fsi.SendLine", sendLine |> unbox<Func<obj,obj>>) |> ignore
-        commands.registerCommand("fsi.SendSelection", sendSelection |> unbox<Func<obj,obj>>) |> ignore
-        commands.registerCommand("fsi.SendFile", sendFile |> unbox<Func<obj,obj>>) |> ignore
-        commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox<Func<obj,obj>>) |> ignore
-        commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> unbox<Func<obj,obj>>) |> ignore
+        commands.registerCommand("fsi.Start", start |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendLine", sendLine |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendSelection", sendSelection |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendFile", sendFile |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add

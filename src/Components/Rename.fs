@@ -32,5 +32,5 @@ module Rename =
 
     let activate selector (context: ExtensionContext) =
         languages.registerRenameProvider(selector, createProvider())
-        |> ignore
+        |> context.subscriptions.Add
         ()

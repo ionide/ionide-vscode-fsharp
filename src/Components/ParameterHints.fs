@@ -51,6 +51,6 @@ module ParameterHints =
 
     let activate selector (context: ExtensionContext) =
         languages.registerSignatureHelpProvider(selector, createProvider(), "(", ",")
-        |> ignore
+        |> context.subscriptions.Add
 
         ()

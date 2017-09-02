@@ -67,5 +67,5 @@ module Symbols =
 
     let activate selector (context: ExtensionContext) =
         languages.registerDocumentSymbolProvider(selector, createProvider())
-        |> ignore
+        |> context.subscriptions.Add
         ()

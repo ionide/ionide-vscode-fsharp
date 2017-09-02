@@ -65,5 +65,5 @@ module WorkspaceSymbols =
 
     let activate selector (context: ExtensionContext) =
         languages.registerWorkspaceSymbolProvider(createProvider())
-        |> ignore
+        |> context.subscriptions.Add
         ()

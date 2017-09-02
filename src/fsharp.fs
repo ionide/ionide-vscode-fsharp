@@ -10,14 +10,13 @@ open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
 
 let activate (context: ExtensionContext) =
-    context.subscriptions
     let df = createEmpty<DocumentFilter>
     df.language <- Some "fsharp"
     let df' : DocumentSelector = df |> U3.Case2
 
     let legacyFsi = "FSharp.legacyFSI" |> Configuration.get false
     let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
-    let solutionExploer = "FSharp.enableTreeView" |> Configuration.get true
+    let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
 
     let init = DateTime.Now
 
@@ -38,7 +37,7 @@ let activate (context: ExtensionContext) =
                 CodeLens.activate df' context
                 Linter.activate df' context
             )
-            |> Promise.onSuccess(fun _ -> if solutionExploer then SolutionExplorer.activate ())
+            |> Promise.onSuccess(fun _ -> if solutionExplorer then SolutionExplorer.activate context)
             |> Promise.bind(fun _ -> Project.activate ())
 
 

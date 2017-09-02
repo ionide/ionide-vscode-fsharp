@@ -156,7 +156,6 @@ module CodeLens =
 
         fileOpenedHandler window.activeTextEditor
 
-
-        languages.registerCodeLensProvider(selector, createProvider()) |> ignore
+        languages.registerCodeLensProvider(selector, createProvider()) |> context.subscriptions.Add
         refresh.fire (1)
         ()

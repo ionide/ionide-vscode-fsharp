@@ -82,5 +82,5 @@ module Autocomplete =
 
     let activate selector (context: ExtensionContext) =
         languages.registerCompletionItemProvider (selector, createProvider(), ".")
-        |> ignore
+        |> context.subscriptions.Add
         ()

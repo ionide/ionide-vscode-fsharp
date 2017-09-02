@@ -232,27 +232,27 @@ module SolutionExplorer =
                 reloadTree.fire (unbox ())
     }
 
-    let activate () =
+    let activate (context: ExtensionContext) =
         let emiter = EventEmitter<Model>()
         let provider = createProvider emiter
 
         Project.projectChanged.event.Invoke(fun proj ->
             emiter.fire (unbox ()) |> unbox)
-        |> ignore
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.refresh", Func<obj, obj>(fun _ ->
             emiter.fire (unbox ()) |> unbox
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.clearCache", Func<obj, obj>(fun _ ->
             Project.clearCache ()
             |> unbox
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.msbuild.pickHost", Func<obj, obj>(fun _ ->
             MSBuild.pickMSbuildHostType ()
             |> unbox
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.moveUp", Func<obj, obj>(fun m ->
             match unbox m with
@@ -260,7 +260,7 @@ module SolutionExplorer =
                 Forge.moveFileUpPath p
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.moveDown", Func<obj, obj>(fun m ->
             match unbox m with
@@ -268,7 +268,7 @@ module SolutionExplorer =
                 Forge.moveFileDownPath p
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.moveToFolder", Func<obj, obj>(fun m ->
             let folders =
@@ -280,7 +280,7 @@ module SolutionExplorer =
                 Forge.moveFileToFolder folders p pp
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.removeFile", Func<obj, obj>(fun m ->
             match unbox m with
@@ -288,7 +288,7 @@ module SolutionExplorer =
                 Forge.removeFilePath p
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.renameFile", Func<obj, obj>(fun m ->
             match unbox m with
@@ -296,7 +296,7 @@ module SolutionExplorer =
                 Forge.renameFilePath old proj
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.addProjecRef", Func<obj, obj>(fun m ->
             match unbox m with
@@ -304,7 +304,7 @@ module SolutionExplorer =
                 Forge.addProjectReferencePath p
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.removeProjecRef", Func<obj, obj>(fun m ->
             match unbox m with
@@ -312,7 +312,7 @@ module SolutionExplorer =
                 Forge.removeProjectReferencePath path p
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.openProjectFile", Func<obj, obj>(fun m ->
             match unbox m with
@@ -320,7 +320,7 @@ module SolutionExplorer =
                 commands.executeCommand("vscode.open", Uri.file(path))
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.msbuild.build", Func<obj, obj>(fun m ->
             match unbox m with
@@ -328,7 +328,7 @@ module SolutionExplorer =
                 MSBuild.buildProjectPath "Build" pr
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.msbuild.rebuild", Func<obj, obj>(fun m ->
             match unbox m with
@@ -336,7 +336,7 @@ module SolutionExplorer =
                 MSBuild.buildProjectPath "Rebuild" pr
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.msbuild.clean", Func<obj, obj>(fun m ->
             match unbox m with
@@ -344,7 +344,7 @@ module SolutionExplorer =
                 MSBuild.buildProjectPath "Clean" pr
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.project.run", Func<obj, obj>(fun m ->
             match unbox m with
@@ -352,7 +352,7 @@ module SolutionExplorer =
                 Debugger.buildAndRun pr
                 |> unbox
             | _ -> unbox ()
-        )) |> ignore
+        )) |> context.subscriptions.Add
 
         // commands.registerCommand("fsharp.explorer.project.debug", Func<obj, obj>(fun m ->
         //     match unbox m with
@@ -360,10 +360,10 @@ module SolutionExplorer =
         //         Debugger.buildAndDebug pr
         //         |> unbox
         //     | _ -> unbox ()
-        // )) |> ignore
+        // )) |> context.subscriptions.Add
 
         window.registerTreeDataProvider("ionide.projectExplorer", provider )
-        |> ignore
+        |> context.subscriptions.Add
 
         workspace.onDidChangeConfiguration.Invoke(fun _ ->
             loadCurrentTheme emiter |> ignore

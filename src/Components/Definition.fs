@@ -150,6 +150,6 @@ module Definition =
 
     let activate selector (context: ExtensionContext) =
         languages.registerDefinitionProvider(selector, createProvider())
-        |> ignore
+        |> context.subscriptions.Add
 
         ()
