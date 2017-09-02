@@ -10,6 +10,7 @@ open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
 
 let activate(disposables: Disposable[]) =
+    printfn "Hello F#"
     let df = createEmpty<DocumentFilter>
     df.language <- Some "fsharp"
     let df' : DocumentSelector = df |> U3.Case2
@@ -76,3 +77,4 @@ let activate(disposables: Disposable[]) =
 
 let deactivate(disposables: Disposable[]) =
     LanguageService.stop ()
+    ()

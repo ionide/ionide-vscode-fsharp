@@ -806,6 +806,7 @@
     "fable-utils": "^1.0.2",
     "mocha": "*",
     "vscode": "*",
-    "webpack": "^3.5.5"
+    "webpack": "^3.5.5",
+    "webpack-node-externals": "^1.6.0"
   }
 }
