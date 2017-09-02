@@ -29,15 +29,15 @@ module.exports = {
   resolve: {
     modules: [resolve("./node_modules/")]
   },
-  externals: [nodeExternals()],
-  /*externals_: {
+  //externals: [nodeExternals()],
+  externals: {
     // Who came first the host or the plugin ?
     "vscode": "commonjs vscode",
 
     // Optional dependencies of ws
     "utf-8-validate": "commonjs utf-8-validate",
     "bufferutil": "commonjs bufferutil"
-  },*/
+  },
   module: {
     rules: [
       {
