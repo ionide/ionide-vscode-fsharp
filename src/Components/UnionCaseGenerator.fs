@@ -52,7 +52,7 @@ module UnionCaseGenerator =
 
 
 
-    let activate selector (disposables: Disposable[]) =
+    let activate selector (context: ExtensionContext) =
         languages.registerCodeActionsProvider (selector, createProvider()) |> ignore
         commands.registerCommand("fsharp.insertUnionCases",Func<obj,obj,obj,obj>(fun a b c -> insertText(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> ignore
 

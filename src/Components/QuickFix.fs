@@ -95,7 +95,7 @@ module QuickFix =
         |> Promise.bind (workspace.applyEdit)
 
 
-    let activate selector (disposables: Disposable[]) =
+    let activate selector (context: ExtensionContext) =
         languages.registerCodeActionsProvider (selector, createProvider()) |> ignore
         commands.registerCommand("fsharp.quickFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> ignore
         commands.registerCommand("fsharp.renameFix",Func<obj,obj,obj,obj>(fun a b c -> applyRenameFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> ignore

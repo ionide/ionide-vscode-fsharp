@@ -93,10 +93,10 @@ module Errors =
     //         if window.activeTextEditor.document.fileName <> file then
     //             currentDiagnostic.set(Uri.file file, errors |> Seq.map fst |> ResizeArray))
 
-    let activate (disposables: Disposable[]) =
-        workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
-        workspace.onDidSaveTextDocument $ (handlerSave , (), disposables) |> ignore
-        window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
+    let activate (context: ExtensionContext) =
+        workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
+        workspace.onDidSaveTextDocument $ (handlerSave , (), context.subscriptions) |> ignore
+        window.onDidChangeActiveTextEditor $ (handlerOpen, (), context.subscriptions) |> ignore
         //LanguageService.registerNotify handleNotification
 
         match window.visibleTextEditors |> Seq.toList with

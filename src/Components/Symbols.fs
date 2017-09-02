@@ -65,7 +65,7 @@ module Symbols =
                 } |> Case2
         }
 
-    let activate selector (disposables: Disposable[]) =
+    let activate selector (context: ExtensionContext) =
         languages.registerDocumentSymbolProvider(selector, createProvider())
         |> ignore
         ()

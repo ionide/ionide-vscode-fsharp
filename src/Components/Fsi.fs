@@ -182,9 +182,9 @@ module Fsi =
 
 
 
-    let activate (disposables: Disposable[]) =
-        window.onDidChangeActiveTextEditor $ ((fun n -> if JS.isDefined n then sendCd()), (), disposables) |> ignore
-        window.onDidCloseTerminal $ (handleCloseTerminal, (), disposables) |> ignore
+    let activate (context: ExtensionContext) =
+        window.onDidChangeActiveTextEditor $ ((fun n -> if JS.isDefined n then sendCd()), (), context.subscriptions) |> ignore
+        window.onDidCloseTerminal $ (handleCloseTerminal, (), context.subscriptions) |> ignore
 
         commands.registerCommand("fsi.Start", start |> unbox<Func<obj,obj>>) |> ignore
         commands.registerCommand("fsi.SendLine", sendLine |> unbox<Func<obj,obj>>) |> ignore

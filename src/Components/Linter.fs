@@ -80,8 +80,8 @@ module Linter =
         workspace.applyEdit edit
         |> Promise.onSuccess (fun _ -> lintDocument doc.fileName)
 
-    let activate selector (disposables: Disposable[]) =
-        refresh.event $ (handler,(), disposables) |> ignore
+    let activate selector (context: ExtensionContext) =
+        refresh.event $ (handler,(), context.subscriptions) |> ignore
         if JS.isDefined window.activeTextEditor then
             match window.activeTextEditor.document with
             | Document.FSharp -> refresh.fire window.activeTextEditor.document.fileName
