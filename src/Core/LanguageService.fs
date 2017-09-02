@@ -321,9 +321,10 @@ module LanguageService =
             let mutable isResolvedAsStarted = false
             child
             |> Process.onOutput (fun n ->
+                let buffer = unbox<Buffer.Buffer> n
                 // The `n` object is { "type":"Buffer", "data":[...bytes] }
                 // and by calling .ToString() we are decoding the buffer into a string.
-                let outputString = n.ToString()
+                let outputString = buffer.toString()
                 // Wait until FsAC sends the 'listener started' magic string until
                 // we inform the caller that it's ready to accept requests.
                 let isStartedMessage = outputString.Contains "listener started in"
@@ -337,14 +338,16 @@ module LanguageService =
                 fsacStdoutWriter outputString
             )
             |> Process.onError (fun e ->
-                fsacStdoutWriter (e.ToString())
+                let error = unbox<JS.Error> e
+                fsacStdoutWriter (error.message)
                 if not isResolvedAsStarted then
-                    reject (e.ToString())
+                    reject (error.message)
             )
             |> Process.onErrorOutput (fun n ->
-                fsacStdoutWriter (n.ToString())
+                let buffer = unbox<Buffer.Buffer> n
+                fsacStdoutWriter (buffer.toString())
                 if not isResolvedAsStarted then
-                    reject (n.ToString())
+                    reject (buffer.toString())
             )
             |> ignore
         )
