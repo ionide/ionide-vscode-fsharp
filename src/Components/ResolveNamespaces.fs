@@ -53,7 +53,7 @@ module ResolveNamespaces =
                                     return [||]
                             }
                     return res |> ResizeArray
-                } |> Case2
+                } |> U2.Case2
             }
 
     let private getLineStr (doc : TextDocument) line = doc.getText(Range(line, 0., line, 1000.)).Trim()

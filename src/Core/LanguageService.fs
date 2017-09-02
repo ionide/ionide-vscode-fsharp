@@ -7,13 +7,13 @@ open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
 open Ionide.VSCode.Helpers
-open Fable.Import.ws
+open Fable.Import.Uws
 
 open DTO
 open Ionide.VSCode.Helpers
 
 module LanguageService =
-    let ax =  Node.require.Invoke "axios" |>  unbox<Axios.AxiosStatic>
+    let ax =  Globals.require.Invoke "axios" |> unbox<Axios.AxiosStatic>
 
     let devMode = false
 
@@ -84,8 +84,8 @@ module LanguageService =
 
     let port = if devMode then "8088" else genPort ()
     let private url fsacAction requestId = (sprintf "http://127.0.0.1:%s/%s?requestId=%i" port fsacAction requestId)
-    let mutable private service : child_process_types.ChildProcess option =  None
-    let mutable private socket : WebSocket option = None
+    let mutable private service : ChildProcess.ChildProcess option =  None
+    let mutable private socket : IWebSocketClient option = None
     let private platformPathSeparator = if Process.isMono () then "/" else "\\"
     let private makeRequestId =
         let mutable requestId = 0
@@ -288,7 +288,7 @@ module LanguageService =
 
     let registerNotify (cb : 'a [] -> unit) =
         socket |> Option.iter (fun ws ->
-            ws.on_message((fun (res : string) ->
+            ws.onmessage((fun (res : string) ->
                 res
                 |> ofJson
                 |> Seq.map ofJson
@@ -301,7 +301,7 @@ module LanguageService =
     let startSocket () =
         let address = sprintf "ws://localhost:%s/notify" port
         try
-            let sck = WebSocket address
+            let sck = uws.Create address
             socket <- Some sck
         with
         | e ->
@@ -314,9 +314,9 @@ module LanguageService =
             let child =
                 if Process.isMono () then
                     let mono = "FSharp.monoPath" |> Configuration.get "mono"
-                    child_process.spawn(mono, [| path; string port|] |> ResizeArray)
+                    ChildProcess.spawn(mono, [| path; string port|] |> ResizeArray)
                 else
-                    child_process.spawn(path, [| string port|] |> ResizeArray)
+                    ChildProcess.spawn(path, [| string port|] |> ResizeArray)
 
             let mutable isResolvedAsStarted = false
             child

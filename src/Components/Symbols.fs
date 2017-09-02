@@ -62,7 +62,7 @@ module Symbols =
                     let! o = LanguageService.declarations doc.fileName (unbox doc.version)
                     let data = mapRes doc o
                     return data |> ResizeArray
-                } |> Case2
+                } |> U2.Case2
         }
 
     let activate selector (disposables: Disposable[]) =

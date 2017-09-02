@@ -38,7 +38,7 @@ module UnionCaseGenerator =
                                 return [| cmd |]
                             }
                     return res |> ResizeArray
-                } |> Case2
+                } |> U2.Case2
             }
 
     let insertText (doc : TextDocument, text : string, pos : Pos) =
@@ -48,9 +48,6 @@ module UnionCaseGenerator =
         let text = text.Replace("$1", "failwith \"Not Implemented\"")
         edit.insert(uri, position, text)
         workspace.applyEdit edit
-
-
-
 
     let activate selector (disposables: Disposable[]) =
         languages.registerCodeActionsProvider (selector, createProvider()) |> ignore

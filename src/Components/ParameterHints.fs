@@ -47,7 +47,7 @@ module ParameterHints =
                    let! res = LanguageService.methods (doc.fileName) (int pos.line + 1) (int pos.character + 1)
                    return mapResult res
 
-                } |> Case2 }
+                } |> U2.Case2 }
 
     let activate selector (disposables: Disposable[]) =
         languages.registerSignatureHelpProvider(selector, createProvider(), "(", ",")

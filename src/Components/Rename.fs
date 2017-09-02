@@ -28,7 +28,7 @@ module Rename =
                 promise {
                     let! res = LanguageService.symbolUseProject (doc.fileName) (int pos.line + 1) (int pos.character + 1)
                     return mapResult doc newName res
-                } |> Case2}
+                } |> U2.Case2}
 
     let activate selector (disposables: Disposable[]) =
         languages.registerRenameProvider(selector, createProvider())

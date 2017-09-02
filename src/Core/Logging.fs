@@ -4,6 +4,7 @@ namespace Ionide.VSCode.FSharp
 module Logging =
     open Fable.Import.Node
     open Fable.Import.vscode
+    open Ionide.VSCode.FSharp.Node.Util
     open System
 
     type Level = DEBUG|INFO|WARN|ERROR
@@ -26,7 +27,7 @@ module Logging =
         | _ -> Fable.Import.Browser.console.log (browserLogTemplate, args)
 
     let private writeOutputChannel (out: OutputChannel) level source template args =
-        let formattedMessage = util.format(template, args)
+        let formattedMessage = Util.format(template, args)
         let formattedLogLine = String.Format("[{0:HH:mm:ss} {1,-5}] {2}", DateTime.Now, string level, formattedMessage)
         out.appendLine (formattedLogLine)
 

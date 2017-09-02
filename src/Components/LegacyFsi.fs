@@ -11,7 +11,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module LegacyFsi =
-    let mutable fsiProcess : child_process_types.ChildProcess option = None
+    let mutable fsiProcess : ChildProcess.ChildProcess option = None
     let mutable fsiOutput : OutputChannel option =
         window.createOutputChannel("F# Interactive")
         |> Some
@@ -44,7 +44,7 @@ module LegacyFsi =
         fsiOutput |> Option.iter (fun outChannel -> outChannel.append msg)
         let msg' =
             try
-                let dir = path.dirname file
+                let dir = Path.dirname file
                 "\n"
                 + (sprintf "# silentCd @\"%s\" ;; " dir) + "\n"
                 + (sprintf "# %d @\"%s\" " 1 file) + "\n"
@@ -99,7 +99,7 @@ module LegacyFsi =
         promise {
             match ctn with
             | Some c ->
-                let path = path.join(workspace.rootPath, "references.fsx")
+                let path = Path.join(workspace.rootPath, "references.fsx")
                 let! td = vscode.Uri.parse ("untitled:" + path) |> workspace.openTextDocument
                 let! te = window.showTextDocument(td, ViewColumn.Three)
                 let! res = te.edit (fun e ->

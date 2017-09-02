@@ -9,10 +9,9 @@ module Environment =
     open Fable.Core.JsInterop
     open Fable.Import.vscode
     open Fable.Import.Node
-    open Fable.Import.Node.fs_types
     open Ionide.VSCode.Helpers
 
-    let isWin = ``process``.platform = "win32"
+    let isWin = Globals.``process``.platform = Base.NodeJS.Platform.Win32
 
     let private (</>) a b =
         if isWin then a + @"\" + b
@@ -20,13 +19,13 @@ module Environment =
 
     let private dirExists dir =
         try
-            fs.statSync(dir).isDirectory()
+            Fs.statSync(U2.Case1 dir).isDirectory()
         with
         | _ -> false
 
     let private fileExists file =
         try
-            fs.statSync(file).isFile()
+            Fs.statSync(U2.Case1 file).isFile()
         with
         | _ -> false
 
@@ -36,11 +35,11 @@ module Environment =
         | Some x -> x
 
     let private programFilesX86 =
-        let wow64 = ``process``.env?``PROCESSOR_ARCHITEW6432`` |> unbox<string>
-        let globalArch = ``process``.env?``PROCESSOR_ARCHITECTURE`` |> unbox<string>
+        let wow64 = Globals.``process``.env?``PROCESSOR_ARCHITEW6432`` |> unbox<string>
+        let globalArch = Globals.``process``.env?``PROCESSOR_ARCHITECTURE`` |> unbox<string>
         match wow64, globalArch with
-        | "AMD64", "AMD64" | null, "AMD64" | "x86", "AMD64" -> ``process``.env?``ProgramFiles(x86)`` |> unbox<string>
-        | _ -> ``process``.env?``ProgramFiles`` |> unbox<string>
+        | "AMD64", "AMD64" | null, "AMD64" | "x86", "AMD64" -> Globals.``process``.env?``ProgramFiles(x86)`` |> unbox<string>
+        | _ -> Globals.``process``.env?``ProgramFiles`` |> unbox<string>
         |> fun detected ->
             if detected = null then @"C:\Program Files (x86)\"
             else detected

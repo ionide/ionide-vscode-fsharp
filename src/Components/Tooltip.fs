@@ -24,7 +24,7 @@ module Tooltip =
                )
             |> String.concat "\n\n"
             |> String.trim
-            |> Case1
+            |> U2.Case1
             |> Array.singleton
 
         let mapResult (doc : TextDocument) (pos : Position) o =
@@ -36,7 +36,7 @@ module Tooltip =
                         createObj [
                             "language" ==> lang
                             "value" ==> value.Trim()
-                        ] |> Case2
+                        ] |> U2.Case2
 
                     let fsharpBlock (lines: string[]) : MarkedString =
                         lines |> String.concat "\n" |> markStr "fsharp"
@@ -50,7 +50,7 @@ module Tooltip =
                         match lines |> Array.splitAt (lines.Length - 1) with
                         | (h, [| StartsWith "Full name:" fullName |]) ->
                             [| yield fsharpBlock h
-                               yield Case1 ("_" + fullName + "_") |]
+                               yield U2.Case1 ("_" + fullName + "_") |]
                         | _ -> [| fsharpBlock lines |]
 
                     let commentContent =
@@ -73,7 +73,7 @@ module Tooltip =
                 promise {
                     let! res = LanguageService.tooltip doc.fileName (int pos.line + 1) (int pos.character + 1)
                     return mapResult doc pos res
-                } |> Case2
+                } |> U2.Case2
 
         }
 

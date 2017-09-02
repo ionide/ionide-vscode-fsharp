@@ -71,13 +71,13 @@ module Autocomplete =
                     let ln = doc.lineAt pos.line
                     let! res = LanguageService.completion (doc.fileName) ln.text (int pos.line + 1) (int pos.character + 1) setting
                     return mapCompletion doc pos res
-                } |> Case2
+                } |> U2.Case2
 
             member this.resolveCompletionItem(sug, ct) =
                 promise {
                     let! res = LanguageService.helptext sug.label
                     return mapHelptext sug res
-                } |> Case2
+                } |> U2.Case2
             }
 
     let activate selector (disposables: Disposable[]) =

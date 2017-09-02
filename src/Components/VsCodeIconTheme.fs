@@ -151,9 +151,9 @@ module VsCodeIconTheme =
     let private getIconPath (id: string option) (theme: IconTheme) =
         id |> Option.bind theme.iconDefinitions.tryGet |> Option.bind (fun x -> x.iconPath)
 
-    let private readFile path : JS.Promise<Buffer> =
+    let private readFile path : JS.Promise<Buffer.Buffer> =
         Promise.create(fun resolve reject ->
-            fs.readFile(path, fun err buffer ->
+            Fs.readFile(path, fun err buffer ->
                 if JS.isDefined err then
                     reject err
                 else
@@ -167,9 +167,9 @@ module VsCodeIconTheme =
     }
 
     let private resolveLoadedPath (loaded: Loaded) path =
-        let themeFileFullPath = Node.path.join(loaded.info.ext.extensionPath, loaded.info.path)
-        let themeFileDir = Node.path.dirname(themeFileFullPath)
-        Node.path.join(themeFileDir, path)
+        let themeFileFullPath = Path.join(loaded.info.ext.extensionPath, loaded.info.path)
+        let themeFileDir = Path.dirname(themeFileFullPath)
+        Path.join(themeFileDir, path)
 
     let private parseMsJson<'a> (str: string) =
         let clean = Regex("//.*$", RegexOptions.Multiline).Replace(str, "")
@@ -181,7 +181,7 @@ module VsCodeIconTheme =
             None
 
     let load (info: Info) =
-        let fullPath = path.join(info.ext.extensionPath, info.path)
+        let fullPath = Path.join(info.ext.extensionPath, info.path)
         logger.Debug("Loading icon theme from %s", fullPath)
         promise {
             let! fileBuffer = readFile fullPath
