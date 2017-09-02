@@ -7,7 +7,7 @@ open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
 open Ionide.VSCode.Helpers
-open Fable.Import.Uws
+open Fable.Import.ws
 
 open DTO
 open Ionide.VSCode.Helpers
@@ -85,7 +85,7 @@ module LanguageService =
     let port = if devMode then "8088" else genPort ()
     let private url fsacAction requestId = (sprintf "http://127.0.0.1:%s/%s?requestId=%i" port fsacAction requestId)
     let mutable private service : ChildProcess.ChildProcess option =  None
-    let mutable private socket : IWebSocketClient option = None
+    let mutable private socket : WebSocket option = None
     let private platformPathSeparator = if Process.isMono () then "/" else "\\"
     let private makeRequestId =
         let mutable requestId = 0
@@ -288,7 +288,7 @@ module LanguageService =
 
     let registerNotify (cb : 'a [] -> unit) =
         socket |> Option.iter (fun ws ->
-            ws.onmessage((fun (res : string) ->
+            ws.on_message((fun (res : string) ->
                 res
                 |> ofJson
                 |> Seq.map ofJson
@@ -301,7 +301,7 @@ module LanguageService =
     let startSocket () =
         let address = sprintf "ws://localhost:%s/notify" port
         try
-            let sck = uws.Create address
+            let sck = WebSocket address
             socket <- Some sck
         with
         | e ->

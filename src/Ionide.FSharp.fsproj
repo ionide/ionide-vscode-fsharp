@@ -1,8 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\paket-files\vbfox\ionide-vscode-helpers\src\Fable.Import.ws.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/Fable.Import.ws.fs</Link>
+    </Compile>
     <Compile Include="..\paket-files\vbfox\ionide-vscode-helpers\src\Fable.Import.VSCode.fs">
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.VSCode.fs</Link>

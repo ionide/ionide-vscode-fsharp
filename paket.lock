@@ -30,9 +30,6 @@ NUGET
     Fable.Import.Node (0.1.4)
       Fable.Core (>= 1.1.15) - restriction: >= netstandard1.6
       FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
-    Fable.Import.Uws (0.1)
-      Fable.Import.Node (>= 0.1) - restriction: >= netstandard1.6
-      NETStandard.Library (>= 1.6.1) - restriction: >= netstandard1.6
     FSharp.Compiler.Service (14.0.2) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.1.18) - restriction: >= netstandard1.6
       NETStandard.Library (>= 1.6.1) - restriction: >= netstandard1.6
@@ -746,9 +743,10 @@ GIT
      (826aa0690b4a1fb536485cc2806fa73b451fcee7)
 GITHUB
   remote: vbfox/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (82a732ef72bdd251e1d101186462cf5558eb27c3)
-    src/Fable.Import.VSCode.fs (82a732ef72bdd251e1d101186462cf5558eb27c3)
-    src/Helpers.fs (82a732ef72bdd251e1d101186462cf5558eb27c3)
+    src/Fable.Import.Axios.fs (f75e6ce2e933d831e50af7620bd6bb085e547830)
+    src/Fable.Import.VSCode.fs (f75e6ce2e933d831e50af7620bd6bb085e547830)
+    src/Fable.Import.ws.fs (f75e6ce2e933d831e50af7620bd6bb085e547830)
+    src/Helpers.fs (f75e6ce2e933d831e50af7620bd6bb085e547830)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2

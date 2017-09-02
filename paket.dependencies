@@ -5,7 +5,6 @@ clitool dotnet-fable prerelease
 nuget Fable.Core prerelease
 nuget Fable.Import.Node prerelease
 nuget Fable.Import.Browser
-nuget Fable.Import.Uws
 nuget FSharp.Core
 
 git https://github.com/fsharp/FsAutoComplete.git fsac14 build:"build.cmd LocalRelease", OS: windows
@@ -19,6 +18,7 @@ git https://github.com/ionide/ionide-fsgrammar.git
 github vbfox/ionide-vscode-helpers:fable_1_1 src/Fable.Import.VSCode.fs
 github vbfox/ionide-vscode-helpers:fable_1_1 src/Helpers.fs
 github vbfox/ionide-vscode-helpers:fable_1_1 src/Fable.Import.Axios.fs
+github vbfox/ionide-vscode-helpers:fable_1_1 src/Fable.Import.ws.fs
 
 group build
     source https://www.nuget.org/api/v2

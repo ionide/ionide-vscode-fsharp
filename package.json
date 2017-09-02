@@ -793,7 +793,7 @@
   "dependencies": {
     "axios": "*",
     "toml": "*",
-    "uws": "^8.14.1",
+    "ws": "^3.1.0",
     "xhr2": "*"
   },
   "devDependencies": {

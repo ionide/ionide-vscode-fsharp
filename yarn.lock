@@ -1300,10 +1300,6 @@ fable-compiler@0.6.x:
     json5 "^0.5.0"
     semver "^5.3.0"
 
-fable-core@0.6.x:
-  version "0.6.10"
-  resolved "https://registry.yarnpkg.com/fable-core/-/fable-core-0.6.10.tgz#67b09a47864a0fd69d3653b4e4486289de173b6d"
-
 fable-loader@1.0.7:
   version "1.0.7"
   resolved "https://registry.yarnpkg.com/fable-loader/-/fable-loader-1.0.7.tgz#6a3632e7072e1edfdc192bd04a03ec80c7f0ce33"
@@ -3274,6 +3270,10 @@ uid-number@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/uid-number/-/uid-number-0.0.6.tgz#0ea10e8035e8eb5b8e4449f06da1c730663baa81"
 
+ultron@~1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/ultron/-/ultron-1.1.0.tgz#b07a2e6a541a815fc6a34ccd4533baec307ca864"
+
 unique-stream@^2.0.2:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/unique-stream/-/unique-stream-2.2.1.tgz#5aa003cfbe94c5ff866c4e7d668bb1c4dbadb369"
@@ -3308,10 +3308,6 @@ util@0.10.3, util@^0.10.3:
 uuid@^3.0.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.1.0.tgz#3dd3d3e790abc24d7b0d3a034ffababe28ebbc04"
-
-uws@^8.14.1:
-  version "8.14.1"
-  resolved "https://registry.yarnpkg.com/uws/-/uws-8.14.1.tgz#de09619f305f6174d5516a9c6942cb120904b20b"
 
 vali-date@^1.0.0:
   version "1.0.0"
@@ -3506,6 +3502,13 @@ wrap-ansi@^2.0.0:
 wrappy@1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
+
+ws@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/ws/-/ws-3.1.0.tgz#8afafecdeab46d572e5397ee880739367aa2f41c"
+  dependencies:
+    safe-buffer "~5.1.0"
+    ultron "~1.1.0"
 
 xhr2@*:
   version "0.1.4"
