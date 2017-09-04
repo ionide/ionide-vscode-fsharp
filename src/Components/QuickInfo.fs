@@ -39,7 +39,7 @@ module QuickInfo =
 
     let private handle (event : TextEditorSelectionChangeEvent) =
         timer |> Option.iter(clearTimeout)
-        timer <- Some (setTimeout((fun n -> handle' event), 500.) )
+        timer <- Some (setTimeout (fun n -> handle' event |> ignore) 500.)
 
     let activate (context: ExtensionContext) =
         window.onDidChangeTextEditorSelection $ (handle, (), context.subscriptions) |> ignore

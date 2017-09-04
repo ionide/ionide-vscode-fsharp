@@ -154,7 +154,7 @@ module Expecto =
             | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
         opt.gutterIconPath <- unbox path
         opt.overviewRulerLane <- Some OverviewRulerLane.Full
-        opt.overviewRulerColor <- Some "rgba(224, 64, 6, 0.7)"
+        opt.overviewRulerColor <- Some (Case1 "rgba(224, 64, 6, 0.7)")
         window.createTextEditorDecorationType opt
 
     let passedDecorationType =
@@ -167,7 +167,7 @@ module Expecto =
             | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
         opt.gutterIconPath <- unbox path
         opt.overviewRulerLane <- Some OverviewRulerLane.Full
-        opt.overviewRulerColor <- Some "rgba(166, 215, 133, 0.7)"
+        opt.overviewRulerColor <- Some (Case1 "rgba(166, 215, 133, 0.7)")
         window.createTextEditorDecorationType opt
 
     let ignoredDecorationType =
@@ -180,7 +180,7 @@ module Expecto =
             | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
         opt.gutterIconPath <- unbox path
         opt.overviewRulerLane <- Some OverviewRulerLane.Full
-        opt.overviewRulerColor <- Some "rgba(255, 188, 64, 0.7)"
+        opt.overviewRulerColor <- Some (Case1 "rgba(255, 188, 64, 0.7)")
         window.createTextEditorDecorationType opt
 
 

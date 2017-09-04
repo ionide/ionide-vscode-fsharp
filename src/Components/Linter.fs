@@ -44,8 +44,7 @@ module Linter =
 
     let private handler filename =
         timer |> Option.iter(clearTimeout)
-        timer <- Some (setTimeout((fun _ -> lintDocument filename), 1000.))
-
+        timer <- Some (setTimeout (fun _ -> lintDocument filename) 1000.)
 
     let private createProvider () =
 

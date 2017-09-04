@@ -165,9 +165,9 @@ module SolutionExplorer =
                 let collaps =
                     match node with
                     | File _ | Reference _ | ProjectReference _ -> None
-                    | Workspace _ | Project _ -> Some 2
-                    | _ ->  Some 1
-                ti.collapsibleState <- unbox collaps
+                    | Workspace _ | Project _ -> Some TreeItemCollapsibleState.Expanded
+                    | _ ->  Some TreeItemCollapsibleState.Collapsed
+                ti.collapsibleState <- collaps
                 let command =
                     match node with
                     | File (p, _, _)  ->
