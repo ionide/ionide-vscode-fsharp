@@ -42,7 +42,7 @@ module SignatureData =
             ()
 
 
-    let activate (disposables: Disposable[]) =
-        commands.registerCommand("fsharp.generateDoc", generateDoc |> unbox<Func<obj,obj>>) |> ignore
+    let activate (context: ExtensionContext) =
+        commands.registerCommand("fsharp.generateDoc", generateDoc |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
 
         ()

@@ -33,7 +33,7 @@ module Reference =
                 } |> Case2
         }
 
-    let activate selector (disposables: Disposable[]) =
+    let activate selector (context: ExtensionContext) =
         languages.registerReferenceProvider(selector, createProvider())
-        |> ignore
+        |> context.subscriptions.Add
         ()

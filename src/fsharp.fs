@@ -9,14 +9,14 @@ open Fable.Import.vscode
 open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
 
-let activate(disposables: Disposable[]) =
+let activate (context: ExtensionContext) =
     let df = createEmpty<DocumentFilter>
     df.language <- Some "fsharp"
     let df' : DocumentSelector = df |> U3.Case2
 
     let legacyFsi = "FSharp.legacyFSI" |> Configuration.get false
     let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
-    let solutionExploer = "FSharp.enableTreeView" |> Configuration.get true
+    let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
 
     let init = DateTime.Now
 
@@ -30,14 +30,14 @@ let activate(disposables: Disposable[]) =
             let pm = createEmpty<ProgressMessage>
             pm.message <- "Loading current project"
             p.report pm
-            Errors.activate disposables
+            Errors.activate context
             |> Promise.onSuccess(fun _ ->
                 pm.message <- "Loading all projects"
                 p.report pm
-                CodeLens.activate df' disposables
-                Linter.activate df' disposables
+                CodeLens.activate df' context
+                Linter.activate df' context
             )
-            |> Promise.onSuccess(fun _ -> if solutionExploer then SolutionExplorer.activate ())
+            |> Promise.onSuccess(fun _ -> if solutionExplorer then SolutionExplorer.activate context)
             |> Promise.bind(fun _ -> Project.activate ())
 
 
@@ -48,29 +48,29 @@ let activate(disposables: Disposable[]) =
         )
         |> ignore
 
-        Tooltip.activate df' disposables
-        Autocomplete.activate df' disposables
-        ParameterHints.activate df' disposables
-        Definition.activate df' disposables
-        Reference.activate df' disposables
-        Symbols.activate df' disposables
-        Highlights.activate df' disposables
-        Rename.activate df' disposables
-        WorkspaceSymbols.activate df' disposables
-        QuickInfo.activate disposables
-        QuickFix.activate df' disposables
-        if resolve then ResolveNamespaces.activate df' disposables
-        UnionCaseGenerator.activate df' disposables
-        Help.activate disposables
-        Expecto.activate disposables
-        MSBuild.activate disposables
-        SignatureData.activate disposables
+        Tooltip.activate df' context
+        Autocomplete.activate df' context
+        ParameterHints.activate df' context
+        Definition.activate df' context
+        Reference.activate df' context
+        Symbols.activate df' context
+        Highlights.activate df' context
+        Rename.activate df' context
+        WorkspaceSymbols.activate df' context
+        QuickInfo.activate context
+        QuickFix.activate df' context
+        if resolve then ResolveNamespaces.activate df' context
+        UnionCaseGenerator.activate df' context
+        Help.activate context
+        Expecto.activate context
+        MSBuild.activate context
+        SignatureData.activate context
     )
     |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
     |> ignore
 
-    Forge.activate disposables
-    if legacyFsi then LegacyFsi.activate disposables else Fsi.activate disposables
+    Forge.activate context
+    if legacyFsi then LegacyFsi.activate context else Fsi.activate context
 
     ()
 

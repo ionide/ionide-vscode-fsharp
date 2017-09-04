@@ -30,7 +30,7 @@ module Rename =
                     return mapResult doc newName res
                 } |> Case2}
 
-    let activate selector (disposables: Disposable[]) =
+    let activate selector (context: ExtensionContext) =
         languages.registerRenameProvider(selector, createProvider())
-        |> ignore
+        |> context.subscriptions.Add
         ()

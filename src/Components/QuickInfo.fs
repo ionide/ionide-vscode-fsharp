@@ -41,6 +41,6 @@ module QuickInfo =
         timer |> Option.iter(clearTimeout)
         timer <- Some (setTimeout((fun n -> handle' event), 500.) )
 
-    let activate (disposables: Disposable[]) =
-        window.onDidChangeTextEditorSelection $ (handle, (), disposables) |> ignore
+    let activate (context: ExtensionContext) =
+        window.onDidChangeTextEditorSelection $ (handle, (), context.subscriptions) |> ignore
         ()

@@ -209,9 +209,9 @@ module MSBuild =
         let host = tryGetRightHost project
         invokeMSBuild project.Project target (Some host)
 
-    let activate disposables =
-        let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> ignore
-        let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> ignore
+    let activate (context: ExtensionContext) =
+        let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> context.subscriptions.Add
+        let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> context.subscriptions.Add
 
         /// typed msbuild cmd. Optional project and msbuild host
         let typedMsbuildCmd f projOpt hostOpt =
@@ -244,7 +244,7 @@ module MSBuild =
                 logger.Info("Dotnet cli (.NET Core) activated")
             | Some MSbuildHost.Auto | None ->
                 logger.Info("Active msbuild: not choosen yet") )
-        |> ignore
+        |> context.subscriptions.Add
 
         let reloadCfg = loadMSBuildHostCfg >> Promise.map (fun h -> host.value <- h)
 
@@ -256,7 +256,7 @@ module MSBuild =
 
         vscode.workspace.onDidChangeConfiguration
         |> Event.invoke reloadCfg
-        |> ignore
+        |> context.subscriptions.Add
 
         registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")
         registerCommand "MSBuild.rebuildCurrent" (fun _ -> buildCurrentProject "Rebuild")

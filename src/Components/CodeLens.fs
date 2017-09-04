@@ -149,14 +149,13 @@ module CodeLens =
 
         ()
 
-    let activate selector (disposables: Disposable[]) =
+    let activate selector (context: ExtensionContext) =
         refresh.event.Invoke(fun (n) -> version <- n; null) |> ignore
-        workspace.onDidChangeTextDocument $ (textChangedHandler,(), disposables) |> ignore
-        window.onDidChangeActiveTextEditor $ (fileOpenedHandler, (), disposables) |> ignore
+        workspace.onDidChangeTextDocument $ (textChangedHandler,(), context.subscriptions) |> ignore
+        window.onDidChangeActiveTextEditor $ (fileOpenedHandler, (), context.subscriptions) |> ignore
 
         fileOpenedHandler window.activeTextEditor
 
-
-        languages.registerCodeLensProvider(selector, createProvider()) |> ignore
+        languages.registerCodeLensProvider(selector, createProvider()) |> context.subscriptions.Add
         refresh.fire (1)
         ()

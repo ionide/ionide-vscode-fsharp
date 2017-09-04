@@ -148,8 +148,8 @@ module Definition =
                 } |> Case2
         }
 
-    let activate selector (disposables: Disposable[]) =
+    let activate selector (context: ExtensionContext) =
         languages.registerDefinitionProvider(selector, createProvider())
-        |> ignore
+        |> context.subscriptions.Add
 
         ()
