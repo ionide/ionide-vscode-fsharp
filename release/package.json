@@ -519,7 +519,7 @@
           "group": "1_run@1"
         }
       ],
-      "editor/context":[
+      "editor/context": [
         {
           "command": "fsharp.generateDoc",
           "group": "1_modification",
@@ -695,13 +695,13 @@
           "description": "Automatically shows Expecto output panel"
         },
         "FSharp.msbuildLocation": {
-          "type":"string",
-          "default":"",
+          "type": "string",
+          "default": "",
           "description": "Use a specific version of msbuild to build this project."
         },
         "FSharp.msbuildAutoshow": {
-          "type":"boolean",
-          "default":true,
+          "type": "boolean",
+          "default": true,
           "description": "Automatically shows Expecto output panel"
         },
         "FSharp.msbuildHost": {
@@ -716,7 +716,7 @@
           ]
         },
         "FSharp.resolveNamespaces": {
-          "type":"boolean",
+          "type": "boolean",
           "default": false,
           "description": "Enables `resolve unopened namespaces and modules` code fix. Not stable, can crash FSAC - use at your own risk."
         },
@@ -726,9 +726,32 @@
           "description": "Enables solution explorer - experimental feature."
         },
         "FSharp.excludeProjectDirectories": {
-          "type":"array",
-          "default": [".git", "paket-files"],
+          "type": "array",
+          "default": [
+            ".git",
+            "paket-files"
+          ],
           "description": "Directories in the array are excluded from project file search. Requires restart"
+        },
+        "FSharp.lineLens.enabled": {
+          "type": "string",
+          "description": "Usage mode for LineLens",
+          "enum": [
+            "never",
+            "replaceCodeLens",
+            "always"
+          ],
+          "default": "never"
+        },
+        "FSharp.lineLens.prefix": {
+          "type": "string",
+          "description": "The prefix displayed before the signature",
+          "default": "  // "
+        },
+        "FSharp.lineLens.color": {
+          "type": "string",
+          "description": "Color of the line lens, any css syntax or 'theme(...)' for a theme color.",
+          "default": "theme(editorCodeLens.foreground)"
         }
       }
     },
@@ -750,22 +773,22 @@
         "fileLocation": "absolute",
         "background": {
           "activeOnStart": true,
-          "beginsPattern":{
-              "regexp": "webpack: Compiling"
+          "beginsPattern": {
+            "regexp": "webpack: Compiling"
           },
-          "endsPattern":{
-              "regexp": "webpack: (Compiled successfully|Failed to compile)"
+          "endsPattern": {
+            "regexp": "webpack: (Compiled successfully|Failed to compile)"
           }
         },
         "pattern": {
-            "regexp": "(.*)\\((\\d+),(\\d+),(\\d+),(\\d+)\\)\\s*:\\s*(warning|error) FABLE\\s*:\\s*(.*)$",
-            "file": 1,
-            "line": 2,
-            "column": 3,
-            "endLine": 4,
-            "endColumn": 5,
-            "severity": 6,
-            "message": 7
+          "regexp": "(.*)\\((\\d+),(\\d+),(\\d+),(\\d+)\\)\\s*:\\s*(warning|error) FABLE\\s*:\\s*(.*)$",
+          "file": 1,
+          "line": 2,
+          "column": 3,
+          "endLine": 4,
+          "endColumn": 5,
+          "severity": 6,
+          "message": 7
         }
       }
     ]
@@ -785,7 +808,7 @@
     "vscode.fsharp"
   ],
   "scripts": {
-    "prebuild":"npm update",
+    "prebuild": "npm update",
     "build": "fable ../src/Ionide.FSharp.fsproj -o ../release -m commonjs --verbose"
   },
   "dependencies": {

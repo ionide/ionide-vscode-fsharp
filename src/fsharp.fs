@@ -30,6 +30,7 @@ let activate (context: ExtensionContext) =
             let pm = createEmpty<ProgressMessage>
             pm.message <- "Loading current project"
             p.report pm
+            LineLens.activate context
             Errors.activate context
             |> Promise.onSuccess(fun _ ->
                 pm.message <- "Loading all projects"
