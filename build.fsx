@@ -11,8 +11,8 @@ open Fake
 open Fake.Git
 open Fake.ProcessHelper
 open Fake.ReleaseNotesHelper
+open Fake.YarnHelper
 open Fake.ZipHelper
-
 
 
 // Git configuration (used for publishing documentation in gh-pages branch)
@@ -77,9 +77,16 @@ Target "Clean" (fun _ ->
     CopyFile "release/CHANGELOG.md" "RELEASE_NOTES.md"
 )
 
+Target "YarnInstall" <| fun () ->
+    Yarn (fun p -> { p with Command = Install Standard })
+
+Target "DotNetRestore" <| fun () ->
+    DotNetCli.Restore (fun p -> { p with WorkingDir = "src" } )
+
 Target "RunScript" (fun _ ->
-    run npmTool "install" "release"
-    run npmTool "run build" "release"
+    // Ideally we would want a production (minized) build but UglifyJS fail on PerMessageDeflate.js as it contains non-ES6 javascript.
+    // Syntax is "fable yarn-build -- -p"
+    DotNetCli.RunCommand (fun p -> { p with WorkingDir = "src" } ) "fable yarn-build"
 )
 
 Target "CopyFSAC" (fun _ ->
@@ -214,6 +221,9 @@ Target "Default" DoNothing
 Target "Build" DoNothing
 Target "Release" DoNothing
 
+"YarnInstall" ?=> "RunScript"
+"DotNetRestore" ?=> "RunScript"
+
 "Clean"
 ==> "RunScript"
 ==> "Default"
@@ -225,6 +235,9 @@ Target "Release" DoNothing
 ==> "CopyGrammar"
 ==> "CopySchemas"
 ==> "Build"
+
+"YarnInstall" ==> "Build"
+"DotNetRestore" ==> "Build"
 
 "Build"
 ==> "SetVersion"
