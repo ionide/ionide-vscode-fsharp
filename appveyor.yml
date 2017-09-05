@@ -1,6 +1,7 @@
 os: Visual Studio 2017
 
 build_script:
+  - cmd: .\build.cmd InstallVSCE
   - cmd: .\build.cmd BuildPackage
 
 test: off
