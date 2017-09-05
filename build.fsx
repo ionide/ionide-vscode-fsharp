@@ -2,7 +2,7 @@
 // FAKE build script
 // --------------------------------------------------------------------------------------
 
-#I "packages/FAKE/tools"
+#I "packages/build/FAKE/tools"
 #r "FakeLib.dll"
 open System
 open System.Diagnostics
@@ -169,7 +169,7 @@ Target "PublishToGallery" ( fun _ ->
     run vsceTool (sprintf "publish --pat %s" token) "release"
 )
 
-#load "paket-files/fsharp/FAKE/modules/Octokit/Octokit.fsx"
+#load "paket-files/build/fsharp/FAKE/modules/Octokit/Octokit.fsx"
 open Octokit
 
 

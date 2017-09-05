@@ -1,7 +1,7 @@
 @echo off
 cls
 
-.paket\paket.bootstrapper.exe 
+.paket\paket.bootstrapper.exe
 if errorlevel 1 (
   exit /b %errorlevel%
 )
@@ -11,4 +11,4 @@ if errorlevel 1 (
   exit /b %errorlevel%
 )
 
-packages\FAKE\tools\FAKE.exe build.fsx %* --nocache
+packages\build\FAKE\tools\FAKE.exe build.fsx %* --nocache
