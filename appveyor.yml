@@ -8,7 +8,6 @@ test: off
 
 cache:
   - "%LocalAppData%\\NuGet\\Cache -> paket.lock"
-  - "paket-files -> paket.lock"
   - "node_modules -> yarn.lock"
 
 artifacts:
