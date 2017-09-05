@@ -39,7 +39,7 @@ let activate (context: ExtensionContext) =
                 Linter.activate df' context
             )
             |> Promise.onSuccess(fun _ -> if solutionExplorer then SolutionExplorer.activate context)
-            |> Promise.bind(fun _ -> Project.activate context)
+            |> Promise.bind(fun parseVisibleTextEditors -> Project.activate context parseVisibleTextEditors)
 
 
         ))

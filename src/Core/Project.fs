@@ -407,7 +407,7 @@ module Project =
         | "sln" -> FSharpWorkspaceMode.Sln
         | "ionideSearch" | _ -> FSharpWorkspaceMode.IonideSearch
 
-    let activate (context: ExtensionContext) =
+    let activate (context: ExtensionContext) parseVisibleTextEditors =
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
         |> context.subscriptions.Add
 
@@ -437,6 +437,7 @@ module Project =
             projs
             |> List.ofArray
             |> Promise.executeForAll load
+            |> Promise.bind (fun _ -> parseVisibleTextEditors ())
             |> Promise.map ignore
 
         commands.registerCommand("fsharp.changeWorkspace", (fun _ ->
