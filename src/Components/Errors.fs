@@ -62,12 +62,14 @@ module Errors =
         match file with
         | Document.FSharp ->
             let path = file.fileName
-            let prom = Project.find path
-            match prom with
-            | Some p -> p
-                        |> Project.load
-                        |> Promise.bind (fun _ -> parse file)
-            | None -> parse file
+            match Project.find path with
+            | Choice1Of3 _ -> parse file
+            | Choice2Of3 () -> Promise.lift (null |> unbox)
+            | Choice3Of3 (Some p) ->
+                p
+                |> Project.load
+                |> Promise.bind (fun _ -> parse file)
+            | Choice3Of3 None -> parse file
         | _ -> Promise.lift (null |> unbox)
 
     let mutable private timer = None

@@ -41,7 +41,7 @@ module Project =
     let updateInWorkspace (path: string) state =
         loadedProjects <- loadedProjects |> Map.add (path.ToUpperInvariant ()) state
 
-    let find p =
+    let private guessFor p =
         let rec findFsProj dir =
             if fs.lstatSync(dir).isDirectory() then
                 let files = fs.readdirSync dir
@@ -145,6 +145,51 @@ module Project =
                 |> List.length
             if len > 0 then Some v else None )
 
+    let rec foldFsproj (item: WorkspacePeekFoundSolutionItem) =
+        match item.Kind with
+        | WorkspacePeekFoundSolutionItemKind.Folder folder ->
+            folder.Items |> Array.collect foldFsproj
+        | WorkspacePeekFoundSolutionItemKind.MsbuildFormat msbuild ->
+            [| item.Name, msbuild |]
+
+    let isLoadingWorkspaceComplete () =
+        //Yes, can be better with a lock/flag/etc.
+        //but the real cleanup will be moving all the loading in FSAC
+        //ref https://github.com/fsharp/FsAutoComplete/issues/192 
+        let projs =
+            match loadedWorkspace with
+            | None -> Array.empty
+            | Some (WorkspacePeekFound.Directory dir) ->
+                dir.Fsprojs
+            | Some (WorkspacePeekFound.Solution sln) ->
+                sln.Items
+                |> Array.collect foldFsproj
+                |> Array.map fst
+
+        let loadingInProgress p =
+            match tryFindInWorkspace p with
+            | None
+            | Some (ProjectLoadingState.Loading _) ->
+                true
+            | Some (ProjectLoadingState.Loaded _)
+            | Some (ProjectLoadingState.Failed _) ->
+                false
+
+        projs
+        |> Array.exists loadingInProgress
+
+    let find fsFile =
+        // First check in loaded projects
+        match tryFindLoadedProjectByFile fsFile with
+        | Some p -> Choice1Of3 p // this was easy
+        | None ->
+            if isLoadingWorkspaceComplete () then
+                // 2 load in progress, dont try to parse
+                Choice2Of3 ()
+            else
+                // 3 loading is finished, but file not found. try guess (old behaviour)
+                Choice3Of3 (guessFor fsFile)
+
     let getLoadedSolution () = loadedWorkspace
 
     let getCaches () =
@@ -183,15 +228,8 @@ module Project =
         cached |> Seq.iter fs.unlinkSync
         window.showInformationMessage("Cache cleared")
 
-    let rec foldFsproj (item: WorkspacePeekFoundSolutionItem) =
-        match item.Kind with
-        | WorkspacePeekFoundSolutionItemKind.Folder folder ->
-            folder.Items |> Array.collect foldFsproj
-        | WorkspacePeekFoundSolutionItemKind.MsbuildFormat msbuild ->
-            [| item.Name, msbuild |]
-
     let countProjectsInSln (sln: WorkspacePeekFoundSolution) =
-        sln.Items |> Array.map foldFsproj|> Array.sumBy Array.length
+        sln.Items |> Array.map foldFsproj |> Array.sumBy Array.length
 
     let pickFSACWorkspace (ws: WorkspacePeekFound list) =
         let text (x: WorkspacePeekFound) =
