@@ -38,7 +38,6 @@ let release = List.head releaseNotesData
 let msg =  release.Notes |> List.fold (fun r s -> r + s + "\n") ""
 let releaseMsg = (sprintf "Release %s\n" release.NugetVersion) + msg
 
-
 let run cmd args dir =
     if execProcess( fun info ->
         info.FileName <- cmd
@@ -83,10 +82,17 @@ Target "YarnInstall" <| fun () ->
 Target "DotNetRestore" <| fun () ->
     DotNetCli.Restore (fun p -> { p with WorkingDir = "src" } )
 
+let runFable additionalArgs =
+    let cmd = "fable webpack -- --config ../webpack.config.js " + additionalArgs
+    DotNetCli.RunCommand (fun p -> { p with WorkingDir = "src" } ) cmd
+
 Target "RunScript" (fun _ ->
     // Ideally we would want a production (minized) build but UglifyJS fail on PerMessageDeflate.js as it contains non-ES6 javascript.
-    // Syntax is "fable yarn-build -- -p"
-    DotNetCli.RunCommand (fun p -> { p with WorkingDir = "src" } ) "fable yarn-build"
+    runFable ""
+)
+
+Target "Watch" (fun _ ->
+    runFable "--watch"
 )
 
 Target "CopyFSAC" (fun _ ->
