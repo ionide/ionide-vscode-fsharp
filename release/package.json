@@ -732,6 +732,26 @@
             "paket-files"
           ],
           "description": "Directories in the array are excluded from project file search. Requires restart"
+        },
+        "FSharp.lineLens.enabled": {
+          "type": "string",
+          "description": "Usage mode for LineLens",
+          "enum": [
+            "never",
+            "replaceCodeLens",
+            "always"
+          ],
+          "default": "never"
+        },
+        "FSharp.lineLens.prefix": {
+          "type": "string",
+          "description": "The prefix displayed before the signature",
+          "default": "  // "
+        },
+        "FSharp.lineLens.color": {
+          "type": "string",
+          "description": "Color of the line lens, any css syntax or 'theme(...)' for a theme color.",
+          "default": "theme(editorCodeLens.foreground)"
         }
       }
     },

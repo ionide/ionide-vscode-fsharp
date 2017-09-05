@@ -264,7 +264,7 @@ module LanguageService =
 
     let declarations fn version=
         {DeclarationsRequest.FileName = handleUntitled fn; Version = version}
-        |> request "declarations" 0 (makeRequestId())
+        |> request<_, Result<Symbols[]>> "declarations" 0 (makeRequestId())
 
 
     let declarationsProjects () =

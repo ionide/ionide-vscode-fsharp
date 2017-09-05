@@ -47,14 +47,6 @@ module VsCodeIconTheme =
     let inline private fallback fallbackFunc opt = match opt with |Some x -> Some x |None -> fallbackFunc ()
     let inline private fallbackValue fallback opt = match opt with |Some x -> Some x |None -> fallback
 
-    type JsObjectAsDictionary<'a> =
-        [<Emit("$0[$1]")>]
-        member __.get(key: string): 'a = jsNative
-        [<Emit("$0.hasOwnProperty($1)?$0[$1]:null")>]
-        member __.tryGet(key: string): Option<'a> = jsNative
-        [<Emit("$0.hasOwnProperty($1)")>]
-        member __.hasOwnProperty(key: string): bool = jsNative
-
     type IconDefinition =
         abstract iconPath: string option with get, set
 

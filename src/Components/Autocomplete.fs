@@ -80,7 +80,7 @@ module Autocomplete =
                 } |> U2.Case2
             }
 
-    let activate selector (disposables: Disposable[]) =
+    let activate selector (context: ExtensionContext) =
         languages.registerCompletionItemProvider (selector, createProvider(), ".")
-        |> ignore
+        |> context.subscriptions.Add
         ()

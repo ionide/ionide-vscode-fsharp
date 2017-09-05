@@ -69,20 +69,74 @@ module Configuration =
 
 [<AutoOpen>]
 module Utils =
+    open Fable.Core
+
     let isNotNull o = o |> unbox <> null
+
+    type System.Collections.Generic.Dictionary<'key, 'value> with
+        [<Emit("$0.has($1) ? $0.get($1) : null")>]
+        member this.TryGet(key: 'key): 'value option = jsNative
 
 [<AutoOpen>]
 module JS =
     open Fable.Core
+    open Fable.Import.Node
 
-    [<Emit("setTimeout($0,$1)")>]
-    let setTimeout(cb, delay) : obj = failwith "JS Only"
+    /// Schedules execution of a one-time callback after delay milliseconds.
+    /// Returns a Timeout for use with `clearTimeout`.
+    [<Emit("setTimeout($0, $1)")>]
+    let setTimeout (callback: unit -> unit) (delay: float): Base.NodeJS.Timer = jsNative
 
+    /// Cancels a Timeout object created by `setTimeout`.
     [<Emit("clearTimeout($0)")>]
-    let clearTimeout(timer) : unit = failwith "JS Only"
+    let clearTimeout (timeout: Base.NodeJS.Timer): unit = jsNative
 
     [<Emit("debugger")>]
     let debugger () : unit = failwith "JS Only"
+
+    type JsObject =
+        [<Emit("$0[$1]")>]
+        member __.get<'a>(key: string): 'a = jsNative
+
+        [<Emit("$0.hasOwnProperty($1)?$0[$1]:null")>]
+        member __.tryGet<'a>(key: string): Option<'a> = jsNative
+
+        [<Emit("$0.hasOwnProperty($1)")>]
+        member __.hasOwnProperty(key: string): bool = jsNative
+
+        [<Emit("$0[$1]=$2")>]
+        member __.set<'a>(key: string, value: 'a) = jsNative
+
+        [<Emit("$0[$1]=$2")>]
+        member __.set<'a>(key: string, value: 'a option) = jsNative
+
+        [<Emit("delete $0[$1]")>]
+        member __.delete(key: string): unit = jsNative
+
+        [<Emit("{}")>]
+        static member empty: JsObject = jsNative
+
+    type JsObjectAsDictionary<'a> =
+        [<Emit("$0[$1]")>]
+        member __.get(key: string): 'a = jsNative
+
+        [<Emit("$0.hasOwnProperty($1)?$0[$1]:null")>]
+        member __.tryGet(key: string): Option<'a> = jsNative
+
+        [<Emit("$0.hasOwnProperty($1)")>]
+        member __.hasOwnProperty(key: string): bool = jsNative
+
+        [<Emit("$0[$1]=$2")>]
+        member __.set(key: string, value: 'a) = jsNative
+
+        [<Emit("$0[$1]=$2")>]
+        member __.set(key: string, value: 'a option) = jsNative
+
+        [<Emit("delete $0[$1]")>]
+        member __.delete(key: string): unit = jsNative
+
+        [<Emit("{}")>]
+        static member empty: JsObjectAsDictionary<'a> = jsNative
 
 [<AutoOpen>]
 module Patterns =

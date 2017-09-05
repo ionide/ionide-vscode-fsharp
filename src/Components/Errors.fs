@@ -13,16 +13,17 @@ open System.Text.RegularExpressions
 
 
 module Errors =
+    let private logger = ConsoleAndOutputChannelLogger(Some "Errors", Level.DEBUG, None, Some Level.DEBUG)
+
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
     let private mapResult (ev : ParseResult) =
-
         let errors =
             ev.Data.Errors
             |> Seq.distinctBy (fun error -> error.Severity, error.StartLine, error.StartColumn)
             |> Seq.choose (fun error ->
                 try
-                    if window.activeTextEditor.document.fileName |> String.startWith "\\" then None else
+                    if error.FileName |> String.startWith "\\" then None else
                     let range = CodeRange.fromError error
                     let loc = Location (Uri.file error.FileName, range |> U2.Case1)
                     let severity = if error.Severity = "Error" then 0 else 1
@@ -32,15 +33,30 @@ module Errors =
             |> ResizeArray
         ev.Data.File, errors
 
-    let private parse path text version =
-        LanguageService.parse path text version
-        |> Promise.map (fun (ev : ParseResult) ->
-            if isNotNull ev then
+    type DocumentParsedEvent = {
+        fileName: string
+        text: string
+        version: float
+        /// BEWARE: Live object, might have changed since the parsing
+        document: TextDocument
+        result: ParseResult
+    }
+
+    let private onDocumentParsedEmitter = EventEmitter<DocumentParsedEvent>()
+    let onDocumentParsed = onDocumentParsedEmitter.event;
+
+    let private parse (document : TextDocument) =
+        let fileName = document.fileName
+        let text = document.getText()
+        let version = document.version
+        LanguageService.parse document.fileName (document.getText()) document.version
+        |> Promise.map (fun (result : ParseResult) ->
+            if isNotNull result then
+                onDocumentParsedEmitter.fire { fileName = fileName; text = text; version = version; document = document; result = result }
                 // printf "CodeLens - File parsed"
                 CodeLens.refresh.fire (unbox version)
-                Linter.refresh.fire path
-                (Uri.file path, (mapResult ev |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
-
+                Linter.refresh.fire fileName
+                (Uri.file fileName, (mapResult result |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
 
     let private parseFile (file : TextDocument) =
         match file with
@@ -50,19 +66,20 @@ module Errors =
             match prom with
             | Some p -> p
                         |> Project.load
-                        |> Promise.bind (fun _ -> parse path (file.getText ()) file.version)
-            | None -> parse path (file.getText ()) file.version
+                        |> Promise.bind (fun _ -> parse file)
+            | None -> parse file
         | _ -> Promise.lift (null |> unbox)
 
     let mutable private timer = None
 
     let private handler (event : TextDocumentChangeEvent) =
         timer |> Option.iter(clearTimeout)
-        timer <- Some (setTimeout((fun _ ->
+        timer <- Some (setTimeout (fun _ ->
             match event.document with
             | Document.FSharp ->
-                parse (event.document.fileName) (event.document.getText ()) event.document.version
-            | _ -> promise { () } ), 1000.))
+                parse event.document
+                |> ignore
+            | _ -> () ) 1000.)
 
     let private handlerSave (doc : TextDocument) =
         match doc with
@@ -93,10 +110,10 @@ module Errors =
     //         if window.activeTextEditor.document.fileName <> file then
     //             currentDiagnostic.set(Uri.file file, errors |> Seq.map fst |> ResizeArray))
 
-    let activate (disposables: Disposable[]) =
-        workspace.onDidChangeTextDocument $ (handler,(), disposables) |> ignore
-        workspace.onDidSaveTextDocument $ (handlerSave , (), disposables) |> ignore
-        window.onDidChangeActiveTextEditor $ (handlerOpen, (), disposables) |> ignore
+    let activate (context: ExtensionContext) =
+        workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
+        workspace.onDidSaveTextDocument $ (handlerSave , (), context.subscriptions) |> ignore
+        window.onDidChangeActiveTextEditor $ (handlerOpen, (), context.subscriptions) |> ignore
         //LanguageService.registerNotify handleNotification
 
         match window.visibleTextEditors |> Seq.toList with

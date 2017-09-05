@@ -77,7 +77,7 @@ module Tooltip =
 
         }
 
-    let activate selector (disposables: Disposable[]) =
+    let activate selector (context: ExtensionContext) =
         languages.registerHoverProvider(selector, createProvider())
-        |> ignore
+        |> context.subscriptions.Add
         ()

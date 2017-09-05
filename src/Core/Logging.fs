@@ -89,3 +89,9 @@ module Logging =
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Warn (template, [<ParamArray>]args:obj[]) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel WARN source template args
+        /// Logs a message that should/could be seen by the user in the output channel if the promise fail.
+        /// The templates may use node util.format placeholders: %s, %d, %j, %%
+        /// https://nodejs.org/api/util.html#util_util_format_format
+        member this.ErrorOnFailed text (p: Fable.Import.JS.Promise<_>) =
+            p.catch(Func<obj,unit>(fun err -> this.Error(text + ": %O", err)))
+            |> ignore

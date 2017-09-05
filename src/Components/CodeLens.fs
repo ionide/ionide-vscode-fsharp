@@ -22,42 +22,47 @@ module CodeLens =
         let newHeight = change.text.ToCharArray() |> Seq.sumBy (fun n -> if n = '\n' then 1 else 0)
         newHeight - oldHeight
 
+    let formatSignature (sign : SignatureData) : string =
+        let formatType = function
+            | Contains "->" t -> sprintf "(%s)" t
+            | t -> t
+
+        let args =
+            sign.Parameters
+            |> List.map (fun group ->
+                group
+                |> List.map (fun p -> formatType p.Type)
+                |> String.concat " * "
+            )
+            |> String.concat " -> "
+
+        if String.IsNullOrEmpty args then sign.OutputType else args + " -> " + sign.OutputType
+
+    let interestingSymbolPositions (symbols: Symbols[]): DTO.Range[] =
+        symbols |> Array.collect(fun syms ->
+            let interestingNested = syms.Nested |> Array.choose (fun sym ->
+                if sym.GlyphChar <> "Fc"
+                   && sym.GlyphChar <> "M"
+                   && sym.GlyphChar <> "F"
+                   && sym.GlyphChar <> "P"
+                   || sym.IsAbstract
+                   || sym.EnclosingEntity = "I"  // interface
+                   || sym.EnclosingEntity = "R"  // record
+                   || sym.EnclosingEntity = "D"  // DU
+                   || sym.EnclosingEntity = "En" // enum
+                   || sym.EnclosingEntity = "E"  // exception
+                then None
+                else Some sym.BodyRange)
+
+            if syms.Declaration.GlyphChar <> "Fc" then
+                interestingNested
+            else
+                interestingNested |> Array.append [|syms.Declaration.BodyRange|])
+
     let private createProvider () =
         let symbolsToCodeLens (doc : TextDocument) (symbols: Symbols[]) : CodeLens[] =
-             symbols |> Array.collect (fun syms ->
-                let range = CodeRange.fromDTO syms.Declaration.BodyRange
-                let codeLens = CodeLens range
-
-                let codeLenses =  syms.Nested |> Array.choose (fun sym ->
-                    if sym.GlyphChar <> "Fc"
-                       && sym.GlyphChar <> "M"
-                       && sym.GlyphChar <> "F"
-                       && sym.GlyphChar <> "P"
-                       || sym.IsAbstract
-                       || sym.EnclosingEntity = "I"  // interface
-                       || sym.EnclosingEntity = "R"  // record
-                       || sym.EnclosingEntity = "D"  // DU
-                       || sym.EnclosingEntity = "En" // enum
-                       || sym.EnclosingEntity = "E"  // exception
-                    then None
-                    else Some (CodeLens (CodeRange.fromDTO sym.BodyRange)))
-
-                if syms.Declaration.GlyphChar <> "Fc" then codeLenses
-                else
-                    codeLenses |> Array.append [|codeLens|])
-
-        let formatSignature (sign : SignatureData) : string =
-            let args =
-                sign.Parameters
-                |> List.map (fun group ->
-                    group |> List.map (fun p ->
-                        p.Type
-                    )
-                    |> String.concat " * "
-                )
-                |> String.concat " -> "
-
-            if String.IsNullOrEmpty args then sign.OutputType else args + " -> " + sign.OutputType
+            interestingSymbolPositions symbols
+                |> Array.map (CodeRange.fromDTO >> CodeLens)
 
         { new CodeLensProvider with
             member __.provideCodeLenses(doc, _) =
@@ -136,8 +141,6 @@ module CodeLens =
             refresh.fire(-1)
         ()
 
-
-
     let private fileOpenedHandler (event : TextEditor) =
         if isNotNull event then
             match event.document with
@@ -149,14 +152,13 @@ module CodeLens =
 
         ()
 
-    let activate selector (disposables: Disposable[]) =
+    let activate selector (context: ExtensionContext) =
         refresh.event.Invoke(fun (n) -> version <- n; null) |> ignore
-        workspace.onDidChangeTextDocument $ (textChangedHandler,(), disposables) |> ignore
-        window.onDidChangeActiveTextEditor $ (fileOpenedHandler, (), disposables) |> ignore
+        workspace.onDidChangeTextDocument $ (textChangedHandler,(), context.subscriptions) |> ignore
+        window.onDidChangeActiveTextEditor $ (fileOpenedHandler, (), context.subscriptions) |> ignore
 
         fileOpenedHandler window.activeTextEditor
 
-
-        languages.registerCodeLensProvider(selector, createProvider()) |> ignore
+        languages.registerCodeLensProvider(selector, createProvider()) |> context.subscriptions.Add
         refresh.fire (1)
         ()

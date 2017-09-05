@@ -33,9 +33,9 @@ module Help =
         } |> ignore
 
 
-    let activate (disposables: Disposable[]) =
+    let activate (context: ExtensionContext) =
         let registerCommand com (f: unit-> _) =
             vscode.commands.registerCommand(com, unbox<Func<obj,obj>> f)
-            |> ignore
+            |> context.subscriptions.Add
 
         registerCommand "FSharp.getHelp" getHelp

@@ -384,12 +384,10 @@ module Expecto =
         statusBar.text <- "$(eye) Watch Mode Off"
         watcherEnabled <- false
 
-
-
-    let activate disposables =
+    let activate (context: ExtensionContext) =
         let registerCommand com (f: unit-> _) =
             vscode.commands.registerCommand(com, unbox<Func<obj,obj>> f)
-            |> ignore
+            |> context.subscriptions.Add
 
         registerCommand "Expecto.run" (fun _ -> runAll false)
         registerCommand "Expecto.runSingle" runSingle
@@ -398,7 +396,6 @@ module Expecto =
         registerCommand "Expecto.startWatchMode" startWatchMode
         registerCommand "Expecto.stopWatchMode" stopWatchMode
         registerCommand "Expecto.watchMode" (fun _ -> outputChannel.show () )
-
 
         statusBar.text <- "$(eye) Watch Mode Off"
         statusBar.tooltip <- "Expecto continuous testing"
@@ -410,7 +407,8 @@ module Expecto =
             else
                 statusBar.show()
             unbox ()
-        ) |> ignore
+        ) |> context.subscriptions.Add
 
-        let _ = vscode.window.onDidChangeActiveTextEditor $ setDecorations
+        vscode.window.onDidChangeActiveTextEditor.Invoke(unbox setDecorations)
+        |> context.subscriptions.Add
         ()
