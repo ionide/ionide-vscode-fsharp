@@ -58,8 +58,7 @@ let platformTool tool path =
 let npmTool =
     platformTool "npm"  "npm.cmd"
 
-let vsceTool =
-    platformTool "vsce" "vsce.cmd"
+let vsceTool = lazy (platformTool "vsce" "vsce.cmd")
 
 
 let releaseBin      = "release/bin"
@@ -166,7 +165,7 @@ Target "SetVersion" (fun _ ->
 
 Target "BuildPackage" ( fun _ ->
     killProcess "vsce"
-    run vsceTool "package" "release"
+    run vsceTool.Value "package" "release"
     !! "release/*.vsix"
     |> Seq.iter(MoveFile "./temp/")
 )
@@ -179,7 +178,7 @@ Target "PublishToGallery" ( fun _ ->
         | _ -> getUserPassword "VSCE Token: "
 
     killProcess "vsce"
-    run vsceTool (sprintf "publish --pat %s" token) "release"
+    run vsceTool.Value (sprintf "publish --pat %s" token) "release"
 )
 
 #load "paket-files/build/fsharp/FAKE/modules/Octokit/Octokit.fsx"
