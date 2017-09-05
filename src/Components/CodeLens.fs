@@ -22,32 +22,21 @@ module CodeLens =
         let newHeight = change.text.ToCharArray() |> Seq.sumBy (fun n -> if n = '\n' then 1 else 0)
         newHeight - oldHeight
 
-    let formatSignature (sign : string) : string =
-        let sign =
-            match sign with
-            | StartsWith "val" _
-            | StartsWith "member" _
-            | StartsWith "abstract" _
-            | StartsWith "static" _
-            | StartsWith "override" _ -> sign
-            | _ ->
-                match sign.IndexOf "(" with
-                | i when i > 0 ->
-                    sign.Substring(0, i) + ":" + sign.Substring(i+1)
-                | _ -> sign
+    let formatSignature (sign : SignatureData) : string =
+        let formatType = function
+            | Contains "->" t -> sprintf "(%s)" t
+            | t -> t
 
-        let sign = if sign.Contains ":" then sign.Split(':').[1 ..] |> String.concat ":" else sign
-        let parms = sign.Split([|"->"|], StringSplitOptions.RemoveEmptyEntries)
-        parms
-        |> Seq.map (function
-            | Contains "(requires" p -> p
-            | Contains "*" p ->
-                p.Split '*' |> Seq.map (fun z -> if z.Contains ":" then z.Split(':').[1] else z) |> String.concat "* "
-            | Contains ":" p ->
-                p.Split(':').[1]
-            | p -> p)
-        |> Seq.map String.trim
-        |> String.concat " -> "
+        let args =
+            sign.Parameters
+            |> List.map (fun group ->
+                group
+                |> List.map (fun p -> formatType p.Type)
+                |> String.concat " * "
+            )
+            |> String.concat " -> "
+
+        if String.IsNullOrEmpty args then sign.OutputType else args + " -> " + sign.OutputType
 
     let interestingSymbolPositions (symbols: Symbols[]): DTO.Range[] =
         symbols |> Array.collect(fun syms ->
