@@ -166,7 +166,7 @@ module DecorationUpdate =
 
     let private getSignature (fileName: string) (range: DTO.Range) = promise {
         let! signaturesResult =
-            LanguageService.signature
+            LanguageService.signatureData
                 fileName
                 range.StartLine
                 range.StartColumn
