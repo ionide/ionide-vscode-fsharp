@@ -2,13 +2,11 @@
   "scripts": {
     "build": "webpack"
   },
-  "dependencies": {
+  "devDependencies": {
     "axios": "*",
     "toml": "*",
     "ws": "^3.1.0",
-    "xhr2": "*"
-  },
-  "devDependencies": {
+    "xhr2": "*",
     "babel-core": "6.26.0",
     "babel-loader": "7.1.2",
     "babel-plugin-transform-runtime": "6.23.0",
