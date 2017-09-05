@@ -116,11 +116,11 @@ module Environment =
                 ]
 
                 promise {
-                    let! [msbuild; xbuild] = Promise.all (tools |> List.map tryGetTool) |> Promise.map Seq.toList
-                    match msbuild, xbuild with
-                    | Some m, _ -> return m
-                    | _, Some x -> return x
-                    | _, _ -> return "xbuild" // at this point nothing really matters because we don't have a sane default at all :(
+                    let! tools = Promise.all (tools |> List.map tryGetTool) |> Promise.map Seq.toList
+                    match tools with
+                    | [Some m; _] -> return m
+                    | [_; Some x] -> return x
+                    | _ -> return "xbuild" // at this point nothing really matters because we don't have a sane default at all :(
                 }
             else
                 let MSBuildPath =

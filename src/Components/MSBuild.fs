@@ -250,8 +250,7 @@ module MSBuild =
 
         [envMsbuild; envDotnet]
         |> Promise.all
-        |> Promise.map Seq.toList
-        |> Promise.bind (fun [_msbuild; _dotnet] -> reloadCfg ())
+        |> Promise.bind (fun _ -> reloadCfg ())
         |> ignore
 
         vscode.workspace.onDidChangeConfiguration

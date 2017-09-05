@@ -147,7 +147,7 @@ module Project =
         cached |> Seq.iter (fun p ->
             let stat = Fs.statSync(U2.Case1 p)
             if stat.mtime <= DateTime(2017, 08, 27) then
-                printf "Cache outdated %s" p
+                printfn "Cache outdated %s" p
                 Fs.unlinkSync (U2.Case1 p)
         )
 
