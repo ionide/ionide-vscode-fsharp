@@ -285,14 +285,14 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "unionCaseGenerator" 0 (makeRequestId())
 
-
+    [<PassGenerics>]
     let registerNotify (cb : 'a [] -> unit) =
         socket |> Option.iter (fun ws ->
             ws.on_message((fun (res : string) ->
                 res
                 |> ofJson
                 |> Seq.map ofJson
-                |> Seq.where (fun n -> unbox n?Kind <>  "info" && unbox n?Kind <> "error")
+                |> Seq.where (fun n -> unbox n?Kind <> "info" && unbox n?Kind <> "error")
                 |> Seq.toArray
                 |> cb
                 ) |> unbox) |> ignore
