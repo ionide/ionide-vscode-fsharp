@@ -1,17 +1,17 @@
 STORAGE: NONE
 NUGET
   remote: https://www.nuget.org/api/v2
-    dotnet-fable (1.2.0-beta-005) - clitool: true
+    dotnet-fable (1.2) - clitool: true
       Dotnet.ProjInfo (>= 0.7.4) - restriction: >= netcoreapp2.0
-      Fable.Compiler (>= 1.2.0-beta-0015) - restriction: >= netcoreapp2.0
-      Fable.Core (>= 1.2.0-beta-003) - restriction: >= netcoreapp2.0
+      Fable.Compiler (>= 1.2) - restriction: >= netcoreapp2.0
+      Fable.Core (>= 1.2) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.2.3) - restriction: >= netcoreapp2.0
       Microsoft.NETCore.App (>= 2.0) - restriction: >= netcoreapp2.0
     Dotnet.ProjInfo (0.7.4) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.1.17) - restriction: >= netstandard1.6
       NETStandard.Library (>= 1.6.1) - restriction: >= netstandard1.6
-    Fable.Compiler (1.2.0-beta-0015) - restriction: >= netcoreapp2.0
-      Fable.Core (>= 1.2.0-beta-003) - restriction: >= netstandard1.6
+    Fable.Compiler (1.2) - restriction: >= netcoreapp2.0
+      Fable.Core (>= 1.2) - restriction: >= netstandard1.6
       FSharp.Compiler.Service (>= 14.0.2) - restriction: >= netstandard1.6
       FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
       NETStandard.Library (>= 1.6.1) - restriction: >= netstandard1.6
@@ -20,14 +20,14 @@ NUGET
       System.Reflection.Metadata (>= 1.5) - restriction: >= netstandard1.6
       System.Runtime.Loader (>= 4.3) - restriction: >= netstandard1.6
       System.ValueTuple (>= 4.4) - restriction: >= netstandard1.6
-    Fable.Core (1.2.0-beta-003)
+    Fable.Core (1.2)
       FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
       NETStandard.Library (>= 1.6.1) - restriction: >= netstandard1.6
       System.ValueTuple (>= 4.4) - restriction: >= netstandard1.6
     Fable.Import.Browser (0.1)
       Fable.Core (>= 1.0.8) - restriction: >= netstandard1.6
       FSharp.Core (>= 4.2.1) - restriction: >= netstandard1.6
-    Fable.Import.Node (0.1.4)
+    Fable.Import.Node (0.1.5)
       Fable.Core (>= 1.1.15) - restriction: >= netstandard1.6
       FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
     FSharp.Compiler.Service (14.0.2) - restriction: >= netcoreapp2.0
@@ -743,10 +743,10 @@ GIT
      (826aa0690b4a1fb536485cc2806fa73b451fcee7)
 GITHUB
   remote: vbfox/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (f75e6ce2e933d831e50af7620bd6bb085e547830)
-    src/Fable.Import.VSCode.fs (f75e6ce2e933d831e50af7620bd6bb085e547830)
-    src/Fable.Import.ws.fs (f75e6ce2e933d831e50af7620bd6bb085e547830)
-    src/Helpers.fs (f75e6ce2e933d831e50af7620bd6bb085e547830)
+    src/Fable.Import.Axios.fs (14d62e4fe5b95937bad51a480a303be6bcf60155)
+    src/Fable.Import.VSCode.fs (14d62e4fe5b95937bad51a480a303be6bcf60155)
+    src/Fable.Import.ws.fs (14d62e4fe5b95937bad51a480a303be6bcf60155)
+    src/Helpers.fs (14d62e4fe5b95937bad51a480a303be6bcf60155)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2
@@ -1249,5 +1249,5 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< net45) (>= netstandard1.0) (< netstandard1.3) (< monoandroid) (< win8) (< wp8) (< wpa81)) (&& (< net45) (>= netstandard1.3) (< monotouch) (< xamarintvos) (< xamarinwatchos) (< xamarinios) (< xamarinmac) (< win8) (< wpa81)) (>= dnxcore50)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (2b028cb33738ed3d35a79730bd792c24d48a0f31)
+    modules/Octokit/Octokit.fsx (0bde6564e7a9218200cee8c74b71d67fbe66fe51)
       Octokit (>= 0.20)

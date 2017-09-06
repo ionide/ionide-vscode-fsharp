@@ -1,9 +1,9 @@
 source https://www.nuget.org/api/v2
 storage:none
 
-clitool dotnet-fable prerelease
-nuget Fable.Core prerelease
-nuget Fable.Import.Node prerelease
+clitool dotnet-fable
+nuget Fable.Core
+nuget Fable.Import.Node
 nuget Fable.Import.Browser
 nuget FSharp.Core
 
