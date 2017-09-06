@@ -224,11 +224,12 @@ module Forge =
                     if JS.isDefined ref && JS.isDefined edit then
                         sprintf "remove project -n %s -p %s" ref edit |> spawnForge |> ignore }
 
+    let private logger = ConsoleAndOutputChannelLogger(Some "Forge", Level.DEBUG, None, Some Level.DEBUG)
 
     let newProject () =
         promise {
             if Fs.existsSync (U2.Case1 templateLocation) then
-                let f = (Fs.readFileSync templateLocation).ToString()
+                let f = (Fs.readFileSync templateLocation).toString()
                 let file : TemplateFile = f |> JS.JSON.parse |> unbox
 
                 let n =
@@ -271,7 +272,7 @@ module Forge =
     let newProjectNoFake () =
         promise {
             if Fs.existsSync (U2.Case1 templateLocation) then
-                let f = (Fs.readFileSync templateLocation).ToString()
+                let f = (Fs.readFileSync templateLocation).toString()
                 let file : TemplateFile = f |> JS.JSON.parse |> unbox
 
                 let n =

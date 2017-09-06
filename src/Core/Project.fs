@@ -158,7 +158,7 @@ module Project =
 
 
     let isANetCoreAppProject (project:Project) =
-        let projectContent = (Fs.readFileSync project.Project).ToString()
+        let projectContent = (Fs.readFileSync project.Project).toString()
         let netCoreTargets =
             [ "<TargetFramework>netcoreapp"
               "<Project Sdk=\"" ]
@@ -169,22 +169,22 @@ module Project =
         netCoreTargets |> Seq.exists findInProject
 
     let isNetCoreApp (project:Project) =
-        let projectContent = (Fs.readFileSync project.Project).ToString()
+        let projectContent = (Fs.readFileSync project.Project).toString()
         let core = "<TargetFramework>netcoreapp"
         projectContent.IndexOf(core) >= 0
 
     let isSDKProject (project:Project) =
-        let projectContent = (Fs.readFileSync project.Project).ToString()
+        let projectContent = (Fs.readFileSync project.Project).toString()
         let sdk = "<Project Sdk=\""
         projectContent.IndexOf(sdk) >= 0
 
     let isSDKProjectPath (project:string) =
-        let projectContent = (Fs.readFileSync project).ToString()
+        let projectContent = (Fs.readFileSync project).toString()
         let sdk = "<Project Sdk=\""
         projectContent.IndexOf(sdk) >= 0
 
     let isPortablePdbProject (project:Project) =
-        let projectContent = (Fs.readFileSync project.Project).ToString()
+        let projectContent = (Fs.readFileSync project.Project).toString()
         let portable = """<DebugType>portable</DebugType>"""
         projectContent.IndexOf(portable) >= 0
 

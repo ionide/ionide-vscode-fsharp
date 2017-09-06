@@ -280,7 +280,7 @@ module Expecto =
                         let! childProcess = executor args
                         return!
                             childProcess
-                            |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
+                            |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.toString () )
                             |> Process.toPromise
                     })
                 |> Promise.all
@@ -314,7 +314,7 @@ module Expecto =
                         let! childProcess = executor "--list-tests"
                         return!
                             childProcess
-                            |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
+                            |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.toString () )
                             |> Process.toPromise
                             |> Promise.map (fun res -> res, exe)
                     })

@@ -16,9 +16,9 @@ module LegacyFsi =
         window.createOutputChannel("F# Interactive")
         |> Some
 
-    let private handle (data : obj) =
+    let private handle (data : Buffer.Buffer) =
         if isNotNull data then
-            let response = data.ToString().Replace("\\","\\\\")
+            let response = data.toString().Replace("\\","\\\\")
             fsiOutput |> Option.iter (fun outChannel -> outChannel.append response |> ignore)
 
     let private start () =
