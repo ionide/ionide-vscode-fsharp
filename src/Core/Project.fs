@@ -155,7 +155,7 @@ module Project =
     let isLoadingWorkspaceComplete () =
         //Yes, can be better with a lock/flag/etc.
         //but the real cleanup will be moving all the loading in FSAC
-        //ref https://github.com/fsharp/FsAutoComplete/issues/192 
+        //ref https://github.com/fsharp/FsAutoComplete/issues/192
         let projs =
             match loadedWorkspace with
             | None -> Array.empty
@@ -237,7 +237,7 @@ module Project =
             | WorkspacePeekFound.Directory dir ->
                 sprintf "[DIR] %s     (%i projects)" dir.Directory dir.Fsprojs.Length
             | WorkspacePeekFound.Solution sln ->
-                let relativeSln = path.relative (workspace.rootPath, sln.Path)
+                let relativeSln = Path.relative (workspace.rootPath, sln.Path)
                 sprintf "[SLN] %s     (%i projects)" relativeSln (countProjectsInSln sln)
         match ws |> List.map (fun x -> (text x), x) with
         | [] ->
@@ -247,9 +247,9 @@ module Project =
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Place"
                 let chooseFrom = projects |> List.map fst |> ResizeArray
-                let! chosen = window.showQuickPick(chooseFrom |> Case1, opts)
+                let! chosen = window.showQuickPick(chooseFrom |> U2.Case1, opts)
                 return if JS.isDefined chosen
-                       then projects |> Map.ofList |> Map.tryFind chosen 
+                       then projects |> Map.ofList |> Map.tryFind chosen
                        else None
             }
 
