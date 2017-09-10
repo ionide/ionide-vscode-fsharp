@@ -401,7 +401,7 @@ module Expecto =
         statusBar.tooltip <- "Expecto continuous testing"
         statusBar.command <- "Expecto.watchMode"
 
-        Project.projectChanged.event.Invoke (fun proj ->
+        Project.workspaceChanged.event.Invoke (fun proj ->
             if getExpectoProjects() |> List.isEmpty then
                 statusBar.hide()
             else

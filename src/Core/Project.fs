@@ -11,16 +11,37 @@ open Ionide.VSCode.Helpers
 open DTO
 open Ionide.VSCode.Helpers
 
-[<ReflectedDefinition>]
 module Project =
-    let private emptyProjectsMap = Map<ProjectFilePath,Project> []
+
+    [<RequireQualifiedAccess>]
+    type ProjectLoadingState =
+        | Loading of path: string
+        | Loaded of proj: Project
+        | Failed of path: string * error: string
+
+    [<RequireQualifiedAccess>]
+    type FSharpWorkspaceMode =
+        | Directory // prefer the directory
+        | Sln // prefer sln, if any, otherwise directory
+        | IonideSearch // old behaviour, like directory but search is ionide's side
+
+    let private emptyProjectsMap : Map<ProjectFilePath,ProjectLoadingState> = Map.empty
     let mutable private loadedProjects = emptyProjectsMap
+    let mutable private loadedWorkspace : WorkspacePeekFound option = None
     let setAnyProjectContext = Context.cachedSetter<bool> "fsharp.project.any"
-    let projectChanged = EventEmitter<Project>()
+    let workspaceChanged = EventEmitter<WorkspacePeekFound>()
 
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files" |]
+    let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
 
-    let find p =
+    let getInWorkspace () =
+        loadedProjects |> Map.toList |> List.map snd
+    let tryFindInWorkspace (path:string) =
+        loadedProjects |> Map.tryFind (path.ToUpperInvariant ())
+    let updateInWorkspace (path: string) state =
+        loadedProjects <- loadedProjects |> Map.add (path.ToUpperInvariant ()) state
+
+    let private guessFor p =
         let rec findFsProj dir =
             if Fs.lstatSync(U2.Case1 dir).isDirectory() then
                 let files = Fs.readdirSync (U2.Case1 dir)
@@ -41,7 +62,7 @@ module Project =
 
         p |> Path.dirname |> findFsProj
 
-    let findAll () =
+    let private findAll () =
         let rec findProjs dir =
             let files = Fs.readdirSync (U2.Case1 dir)
             files
@@ -88,39 +109,91 @@ module Project =
         setAnyProjectContext false
 
     let load (path:string) =
-        let projEquals (p1 : Project) (p2 : Project) =
-            p1.Project.ToUpperInvariant() = p2.Project.ToUpperInvariant() &&
-            List.forall2 (=) p1.Files p2.Files &&
-            List.forall2 (=) p1.References p2.References
+        updateInWorkspace path (ProjectLoadingState.Loading path)
+
+        let loaded (pr:ProjectResult) =
+            if isNotNull pr then
+                Some (pr.Data.Project, (ProjectLoadingState.Loaded pr.Data))
+            else
+                None
+        let failed (b: obj) =
+            let (msg: string), (err: ErrorData) = unbox b
+            Some (path, (ProjectLoadingState.Failed (path, msg)))
 
         LanguageService.project path
-        |> Promise.onSuccess (fun (pr:ProjectResult) ->
-            if isNotNull pr then
-                match loadedProjects.TryFind (pr.Data.Project.ToUpperInvariant ()) with
-                | Some existing when not (projEquals existing pr.Data)  ->
-                    projectChanged.fire pr.Data
-                | None -> projectChanged.fire pr.Data
-                | _ -> ()
-                loadedProjects <- (pr.Data.Project.ToUpperInvariant (), pr.Data) |> loadedProjects.Add
+        |> Promise.either (loaded >> Promise.lift) (failed >> Promise.lift)
+        |> Promise.map (fun proj ->
+            match proj with
+            | Some (path, state) ->
+                updateInWorkspace path state
+                loadedWorkspace |> Option.iter (workspaceChanged.fire)
                 setAnyProjectContext true
-                )
+            | None ->
+                () )
 
-    let tryFindLoadedProject (path:string) =
-         loadedProjects.TryFind (path.ToUpperInvariant ())
+    let private chooseLoaded = function ProjectLoadingState.Loaded p -> Some p | _ -> None
+
+    let getLoaded = getInWorkspace >> List.choose chooseLoaded
+    let tryFindLoadedProject = tryFindInWorkspace >> Option.bind chooseLoaded
 
     let tryFindLoadedProjectByFile (filePath:string) =
-        loadedProjects
-        |> Seq.choose (fun kvp ->
+        getLoaded ()
+        |> List.tryPick (fun v ->
             let len =
-                kvp.Value.Files
+                v.Files
                 |> List.filter (fun f -> (f.ToUpperInvariant ()) = (filePath.ToUpperInvariant ()))
                 |> List.length
-            if len > 0 then Some kvp.Value else None )
-        |> Seq.tryHead
+            if len > 0 then Some v else None )
 
-    let getLoaded () = loadedProjects |> Seq.map (fun kv -> kv.Value)
+    let rec foldFsproj (item: WorkspacePeekFoundSolutionItem) =
+        match item.Kind with
+        | WorkspacePeekFoundSolutionItemKind.Folder folder ->
+            folder.Items |> Array.collect foldFsproj
+        | WorkspacePeekFoundSolutionItemKind.MsbuildFormat msbuild ->
+            [| item.Name, msbuild |]
+
+    let isLoadingWorkspaceComplete () =
+        //Yes, can be better with a lock/flag/etc.
+        //but the real cleanup will be moving all the loading in FSAC
+        //ref https://github.com/fsharp/FsAutoComplete/issues/192 
+        let projs =
+            match loadedWorkspace with
+            | None -> Array.empty
+            | Some (WorkspacePeekFound.Directory dir) ->
+                dir.Fsprojs
+            | Some (WorkspacePeekFound.Solution sln) ->
+                sln.Items
+                |> Array.collect foldFsproj
+                |> Array.map fst
+
+        let loadingInProgress p =
+            match tryFindInWorkspace p with
+            | None
+            | Some (ProjectLoadingState.Loading _) ->
+                true
+            | Some (ProjectLoadingState.Loaded _)
+            | Some (ProjectLoadingState.Failed _) ->
+                false
+
+        projs
+        |> Array.exists loadingInProgress
+
+    let find fsFile =
+        // First check in loaded projects
+        match tryFindLoadedProjectByFile fsFile with
+        | Some p -> Choice1Of3 p // this was easy
+        | None ->
+            if isLoadingWorkspaceComplete () then
+                // 2 load in progress, dont try to parse
+                Choice2Of3 ()
+            else
+                // 3 loading is finished, but file not found. try guess (old behaviour)
+                Choice3Of3 (guessFor fsFile)
+
+    let getLoadedSolution () = loadedWorkspace
 
     let getCaches () =
+
         let rec findProjs dir =
             let files = Fs.readdirSync (U2.Case1 dir)
             files
@@ -150,12 +223,35 @@ module Project =
                 printfn "Cache outdated %s" p
                 Fs.unlinkSync (U2.Case1 p)
         )
-
     let clearCache () =
         let cached = getCaches ()
         cached |> Seq.iter (U2.Case1 >> Fs.unlinkSync)
         window.showInformationMessage("Cache cleared")
 
+    let countProjectsInSln (sln: WorkspacePeekFoundSolution) =
+        sln.Items |> Array.map foldFsproj |> Array.sumBy Array.length
+
+    let pickFSACWorkspace (ws: WorkspacePeekFound list) =
+        let text (x: WorkspacePeekFound) =
+            match x with
+            | WorkspacePeekFound.Directory dir ->
+                sprintf "[DIR] %s     (%i projects)" dir.Directory dir.Fsprojs.Length
+            | WorkspacePeekFound.Solution sln ->
+                let relativeSln = path.relative (workspace.rootPath, sln.Path)
+                sprintf "[SLN] %s     (%i projects)" relativeSln (countProjectsInSln sln)
+        match ws |> List.map (fun x -> (text x), x) with
+        | [] ->
+            None |> Promise.lift
+        | projects ->
+            promise {
+                let opts = createEmpty<QuickPickOptions>
+                opts.placeHolder <- Some "Place"
+                let chooseFrom = projects |> List.map fst |> ResizeArray
+                let! chosen = window.showQuickPick(chooseFrom |> Case1, opts)
+                return if JS.isDefined chosen
+                       then projects |> Map.ofList |> Map.tryFind chosen 
+                       else None
+            }
 
     let isANetCoreAppProject (project:Project) =
         let projectContent = (Fs.readFileSync project.Project).toString()
@@ -249,12 +345,110 @@ module Project =
         | out, _ when out |> String.endWith ".exe" -> Some (fun args -> execWithShell out args)
         | _ -> None
 
+    let private getWorkspaceForModeIonideSearch () =
+        promise {
+            let fsprojs = findAll ()
+            let wdir =
+                { WorkspacePeekFoundDirectory.Directory = vscode.workspace.rootPath
+                  Fsprojs = fsprojs |> Array.ofList }
+            return WorkspacePeekFound.Directory wdir
+        }
 
-    let activate =
-        let w = workspace.createFileSystemWatcher("**/*.fsproj")
-        commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> ) |> ignore
+    let private workspacePeek () = promise {
+        let! ws = LanguageService.workspacePeek (vscode.workspace.rootPath) deepLevel (excluded |> List.ofArray)
+        return
+            ws.Found
+            |> Array.sortBy (fun x ->
+                match x with
+                | WorkspacePeekFound.Solution sln -> countProjectsInSln sln
+                | WorkspacePeekFound.Directory _ -> -1)
+           |> Array.rev
+           |> List.ofArray
+        }
 
+    let private getWorkspaceForMode mode =
+        match mode with
+        | FSharpWorkspaceMode.Sln ->
+            // prefer the sln, load directly the first one, otherwise ask
+            promise {
+                let! ws = workspacePeek ()
+                let slns =
+                    ws
+                    |> List.choose (fun x -> match x with WorkspacePeekFound.Solution _ -> Some x | _ -> None)
 
+                let! choosen =
+                    match slns with
+                    | [] ->
+                        ws
+                        |> List.tryPick (fun x -> match x with WorkspacePeekFound.Directory _ -> Some x | _ -> None)
+                        |> Promise.lift
+                    | [ sln ] ->
+                        Promise.lift (Some sln)
+                    | _ ->
+                        pickFSACWorkspace ws
+                return choosen
+            }
+        | FSharpWorkspaceMode.Directory ->
+            // prefer the directory, like old behaviour (none) but search is done fsac side
+            promise {
+                let! ws = workspacePeek ()
+                return
+                    ws
+                    |> List.tryPick (fun x -> match x with WorkspacePeekFound.Directory _ -> Some x | _ -> None)
+             }
+        | FSharpWorkspaceMode.IonideSearch | _ ->
+            // old behaviour, initialize all fsproj found (vscode side)
+            getWorkspaceForModeIonideSearch ()
+            |> Promise.map Some
+
+    let getWorkspaceModeFromConfig () =
+        match "FSharp.workspaceMode" |> Configuration.get "sln" with
+        | "directory" -> FSharpWorkspaceMode.Directory
+        | "sln" -> FSharpWorkspaceMode.Sln
+        | "ionideSearch" | _ -> FSharpWorkspaceMode.IonideSearch
+
+    let activate (context: ExtensionContext) parseVisibleTextEditors =
+        commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
+        |> context.subscriptions.Add
+
+        let w = vscode.workspace.createFileSystemWatcher("**/*.fsproj")
         w.onDidCreate.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
         w.onDidChange.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
-        clearLoadedProjects >> findAll >> (Promise.executeForAll load)
+
+        let initWorkspace x =
+            clearLoadedProjects ()
+            loadedWorkspace <- Some x
+            workspaceChanged.fire x
+            let projs =
+                match x with
+                | WorkspacePeekFound.Directory dir ->
+                    dir.Fsprojs
+                | WorkspacePeekFound.Solution sln ->
+                    sln.Items
+                    |> Array.collect foldFsproj
+                    |> Array.map fst
+            match x with
+            | WorkspacePeekFound.Solution _
+            | WorkspacePeekFound.Directory _ when not(projs |> Array.isEmpty) ->
+                setAnyProjectContext true
+                ()
+            | WorkspacePeekFound.Directory _ ->
+                ()
+            projs
+            |> List.ofArray
+            |> Promise.executeForAll load
+            |> Promise.bind (fun _ -> parseVisibleTextEditors ())
+            |> Promise.map ignore
+
+        commands.registerCommand("fsharp.changeWorkspace", (fun _ ->
+            workspacePeek ()
+            |> Promise.bind pickFSACWorkspace
+            |> Promise.bind (function Some w -> initWorkspace w | None -> Promise.empty )
+            |> box
+            ))
+        |> context.subscriptions.Add
+
+        getWorkspaceModeFromConfig ()
+        |> getWorkspaceForMode
+        |> Promise.bind (function Some x -> Promise.lift x | None -> getWorkspaceForModeIonideSearch ())
+        |> Promise.bind initWorkspace

@@ -161,6 +161,10 @@
         "title": "F#: Clear Cache"
       },
       {
+        "command": "fsharp.changeWorkspace",
+        "title": "F#: Change Workspace or Solution"
+      },
+      {
         "command": "Expecto.run",
         "title": "Expecto: Run"
       },
@@ -231,6 +235,14 @@
       {
         "command": "fsharp.explorer.removeFile",
         "title": "Remove file"
+      },
+      {
+        "command": "fsharp.explorer.showProjectLoadFailedInfo",
+        "title": "Show info about failed project loading"
+      },
+      {
+        "command": "fsharp.explorer.showProjectStatus",
+        "title": "Show project status"
       },
       {
         "command": "fsharp.explorer.renameFile",
@@ -466,6 +478,14 @@
           "group": "2_modification@1"
         },
         {
+          "command": "fsharp.explorer.showProjectLoadFailedInfo",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectLoadFailed"
+        },
+        {
+          "command": "fsharp.explorer.showProjectStatus",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectLoading"
+        },
+        {
           "command": "fsharp.explorer.addProjecRef",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectRefList"
         },
@@ -477,6 +497,11 @@
           "command": "fsharp.explorer.openProjectFile",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
           "group": "2_modification@1"
+        },
+        {
+          "command": "fsharp.explorer.showProjectStatus",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
+          "group": "2_modification@2"
         },
         {
           "command": "fsharp.explorer.msbuild.build",
@@ -497,6 +522,11 @@
           "command": "fsharp.explorer.openProjectFile",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
           "group": "3_modification@1"
+        },
+        {
+          "command": "fsharp.explorer.showProjectStatus",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+          "group": "3_modification@2"
         },
         {
           "command": "fsharp.explorer.msbuild.build",
@@ -597,6 +627,21 @@
       "type": "object",
       "title": "FSharp configuration",
       "properties": {
+        "FSharp.workspaceMode": {
+          "type": "string",
+          "default": "sln",
+          "description": "Choose the workspace mode",
+          "enum": [
+            "sln",
+            "directory",
+            "ionideSearch"
+          ]
+        },
+        "FSharp.workspaceModePeekDeepLevel": {
+          "type": "integer",
+          "default": 2,
+          "description": "The deep level of directory hierarchy when searching for sln/projects"
+        },
         "FSharp.logLanguageServiceRequests": {
           "type": "string",
           "default": "output",
@@ -797,6 +842,7 @@
     "workspaceContains:**/*.fs",
     "workspaceContains:**/*.fsx",
     "workspaceContains:**/*.fsproj",
+    "workspaceContains:**/*.sln",
     "onLanguage:fsharp",
     "onCommand:fsi.Start",
     "onCommand:fsharp.NewProject",

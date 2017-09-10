@@ -62,12 +62,14 @@ module Errors =
         match file with
         | Document.FSharp ->
             let path = file.fileName
-            let prom = Project.find path
-            match prom with
-            | Some p -> p
-                        |> Project.load
-                        |> Promise.bind (fun _ -> parse file)
-            | None -> parse file
+            match Project.find path with
+            | Choice1Of3 _ -> parse file
+            | Choice2Of3 () -> Promise.lift (null |> unbox)
+            | Choice3Of3 (Some p) ->
+                p
+                |> Project.load
+                |> Promise.bind (fun _ -> parse file)
+            | Choice3Of3 None -> parse file
         | _ -> Promise.lift (null |> unbox)
 
     let mutable private timer = None
@@ -110,12 +112,7 @@ module Errors =
     //         if window.activeTextEditor.document.fileName <> file then
     //             currentDiagnostic.set(Uri.file file, errors |> Seq.map fst |> ResizeArray))
 
-    let activate (context: ExtensionContext) =
-        workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
-        workspace.onDidSaveTextDocument $ (handlerSave , (), context.subscriptions) |> ignore
-        window.onDidChangeActiveTextEditor $ (handlerOpen, (), context.subscriptions) |> ignore
-        //LanguageService.registerNotify handleNotification
-
+    let parseVisibleTextEditors () =
         match window.visibleTextEditors |> Seq.toList with
         | [] -> Promise.lift (null |> unbox)
         | [x] -> parseFile x.document
@@ -126,4 +123,10 @@ module Errors =
                (parseFile x.document )
             |> Promise.onSuccess (fun _ -> handlerSave x.document |> ignore)
 
+    let activate (context: ExtensionContext) =
+        workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
+        workspace.onDidSaveTextDocument $ (handlerSave , (), context.subscriptions) |> ignore
+        window.onDidChangeActiveTextEditor $ (handlerOpen, (), context.subscriptions) |> ignore
+        //LanguageService.registerNotify handleNotification
+        Promise.lift parseVisibleTextEditors
 
