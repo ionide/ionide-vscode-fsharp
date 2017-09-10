@@ -46,7 +46,7 @@ module MSBuild =
             let hostsLabels = hosts |> Map.toList |> List.map fst |> ResizeArray
             let opts = createEmpty<QuickPickOptions>
             opts.placeHolder <- Some "The msbuild host to use"
-            let! chosen = window.showQuickPick(hostsLabels |> Case1, opts)
+            let! chosen = window.showQuickPick(hostsLabels |> U2.Case1, opts)
             return
                 if JS.isDefined chosen
                 then
@@ -176,7 +176,7 @@ module MSBuild =
             promise {
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some placeHolder
-                let! chosen = window.showQuickPick(projects |> Case1, opts)
+                let! chosen = window.showQuickPick(projects |> U2.Case1, opts)
                 logger.Debug("user chose project %s", chosen)
                 return if JS.isDefined chosen
                        then Some chosen
@@ -250,8 +250,7 @@ module MSBuild =
 
         [envMsbuild; envDotnet]
         |> Promise.all
-        |> Promise.map Seq.toList
-        |> Promise.bind (fun [_msbuild; _dotnet] -> reloadCfg ())
+        |> Promise.bind (fun _ -> reloadCfg ())
         |> ignore
 
         vscode.workspace.onDidChangeConfiguration

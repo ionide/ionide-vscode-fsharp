@@ -30,7 +30,7 @@ module Reference =
                 promise {
                     let! res = LanguageService.symbolUseProject (doc.fileName) (int pos.line + 1) (int pos.character + 1)
                     return mapResult doc res
-                } |> Case2
+                } |> U2.Case2
         }
 
     let activate selector (context: ExtensionContext) =

@@ -85,11 +85,11 @@ module JS =
     /// Schedules execution of a one-time callback after delay milliseconds.
     /// Returns a Timeout for use with `clearTimeout`.
     [<Emit("setTimeout($0, $1)")>]
-    let setTimeout (callback: unit -> unit) (delay: float): NodeJS.Timer = jsNative
+    let setTimeout (callback: unit -> unit) (delay: float): Base.NodeJS.Timer = jsNative
 
     /// Cancels a Timeout object created by `setTimeout`.
     [<Emit("clearTimeout($0)")>]
-    let clearTimeout (timeout: NodeJS.Timer): unit = jsNative
+    let clearTimeout (timeout: Base.NodeJS.Timer): unit = jsNative
 
     [<Emit("debugger")>]
     let debugger () : unit = failwith "JS Only"

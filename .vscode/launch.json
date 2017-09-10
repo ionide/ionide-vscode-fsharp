@@ -4,7 +4,16 @@
 	"configurations": [
 		{
             "preLaunchTask": "Default",
-			"name": "Launch Extension",
+			"name": "Build and Launch Extension",
+			"type": "extensionHost",
+			"runtimeExecutable": "${execPath}",
+			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
+			"stopOnEntry": false,
+			"request": "launch",
+			"sourceMaps": false
+		},
+		{
+			"name": "Launch Only",
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],

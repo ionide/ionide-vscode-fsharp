@@ -24,11 +24,11 @@ module Fsi =
         let file,dir =
             if  JS.isDefined editor then
                 let file = editor.document.fileName
-                let dir = path.dirname file
+                let dir = Path.dirname file
                 file,dir
             else
                 let dir = workspace.rootPath
-                path.join(dir, "tmp.fsx"), dir
+                Path.join(dir, "tmp.fsx"), dir
         let msg1 = sprintf "# silentCd @\"%s\";;\n" dir
         let msg2 = (sprintf "# %d @\"%s\" \n" 1 file)
 
@@ -165,7 +165,7 @@ module Fsi =
         promise {
             match ctn with
             | Some c ->
-                let path = path.join(workspace.rootPath, "references.fsx")
+                let path = Path.join(workspace.rootPath, "references.fsx")
                 let! td = vscode.Uri.parse ("untitled:" + path) |> workspace.openTextDocument
                 let! te = window.showTextDocument(td, ViewColumn.Three)
                 let! res = te.edit (fun e ->

@@ -20,7 +20,7 @@ module Definition =
                 let length = range.``end``.character - range.start.character
                 loc.uri <- Uri.file o.Data.File
                 loc.range <- CodeRange.fromDeclaration o.Data length
-                loc |> Case1 |> Some
+                loc |> U2.Case1 |> Some
             else
                 None
 
@@ -128,9 +128,9 @@ module Definition =
             match tryParseLoad line.text (int(pos.character)) with
             | None -> None
             | Some filePath ->
-                let dir = path.dirname(doc.fileName)
-                let absolute = path.resolve(dir, filePath)
-                Location(Uri.file absolute, Case2 (Position(0., 0.))) |> Case1 |> Some
+                let dir = Path.dirname(doc.fileName)
+                let absolute = Path.resolve(dir, filePath)
+                Location(Uri.file absolute, U2.Case2 (Position(0., 0.))) |> U2.Case1 |> Some
 
     let private createProvider () =
         { new DefinitionProvider
@@ -145,7 +145,7 @@ module Definition =
                             match FromLoad.provide doc pos with
                             | Some def -> def
                             | None -> unbox None
-                } |> Case2
+                } |> U2.Case2
         }
 
     let activate selector (context: ExtensionContext) =

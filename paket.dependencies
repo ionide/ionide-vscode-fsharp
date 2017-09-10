@@ -1,5 +1,11 @@
-framework: net45
-source https://nuget.org/api/v2
+source https://www.nuget.org/api/v2
+storage:none
+
+clitool dotnet-fable
+nuget Fable.Core
+nuget Fable.Import.Node
+nuget Fable.Import.Browser
+nuget FSharp.Core
 
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd LocalRelease", OS: windows
 git https://github.com/fsharp-editing/Forge.git 1f87695d813ee521b50c671ed430184b01a25b81 build:"build.cmd Build", OS: windows
@@ -9,10 +15,13 @@ git https://github.com/fsharp-editing/Forge.git 1f87695d813ee521b50c671ed430184b
 
 git https://github.com/ionide/ionide-fsgrammar.git
 
-nuget FAKE
+github vbfox/ionide-vscode-helpers:fable_1_1 src/Fable.Import.VSCode.fs
+github vbfox/ionide-vscode-helpers:fable_1_1 src/Helpers.fs
+github vbfox/ionide-vscode-helpers:fable_1_1 src/Fable.Import.Axios.fs
+github vbfox/ionide-vscode-helpers:fable_1_1 src/Fable.Import.ws.fs
 
-github fsharp/FAKE modules/Octokit/Octokit.fsx
-github Ionide/ionide-vscode-helpers Fable.Import.VSCode.fs
-github Ionide/ionide-vscode-helpers Helpers.fs
-github Ionide/ionide-vscode-helpers Fable.Import.Axios.fs
-github Ionide/ionide-vscode-helpers Fable.Import.ws.fs
+group build
+    source https://www.nuget.org/api/v2
+
+    github fsharp/FAKE modules/Octokit/Octokit.fsx
+    nuget Fake

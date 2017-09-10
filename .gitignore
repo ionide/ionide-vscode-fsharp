@@ -71,3 +71,4 @@ release-preview.cmd
 paket-files
 issueList.md
 release/package-lock\.json
+*.vsix

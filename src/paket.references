@@ -1,3 +1,10 @@
+dotnet-fable
+
+FSharp.Core
+Fable.Core
+Fable.Import.Node
+Fable.Import.Browser
+
 File: Fable.Import.VSCode.fs
 File: Helpers.fs
 File: Fable.Import.Axios.fs

@@ -81,7 +81,7 @@ module QuickFix =
                     getNewKeywordSuggestions
                     fixUnused
                     upercaseDU
-                |] |> Array.collect (fun f -> f doc diagnostics) |> ResizeArray |> Case1
+                |] |> Array.collect (fun f -> f doc diagnostics) |> ResizeArray |> U2.Case1
             }
 
     let applyQuickFix(doc : TextDocument, range : vscode.Range, suggestion : string) =

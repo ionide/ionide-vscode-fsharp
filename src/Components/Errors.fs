@@ -25,7 +25,7 @@ module Errors =
                 try
                     if error.FileName |> String.startWith "\\" then None else
                     let range = CodeRange.fromError error
-                    let loc = Location (Uri.file error.FileName, range |> Case1)
+                    let loc = Location (Uri.file error.FileName, range |> U2.Case1)
                     let severity = if error.Severity = "Error" then 0 else 1
                     (Diagnostic(range, error.Message, unbox severity), error.FileName) |> Some
                 with

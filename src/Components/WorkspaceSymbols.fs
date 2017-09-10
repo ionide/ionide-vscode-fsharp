@@ -27,7 +27,7 @@ module WorkspaceSymbols =
             | _   -> 0 |> unbox
 
         let relative f =
-            path.relative (workspace.rootPath, f)
+            Path.relative (workspace.rootPath, f)
 
         let mapRes o =
              if isNotNull o then
@@ -60,7 +60,7 @@ module WorkspaceSymbols =
                 promise {
                     let! o = LanguageService.declarationsProjects ()
                     return mapRes o |> ResizeArray
-                } |> Case2
+                } |> U2.Case2
         }
 
     let activate selector (context: ExtensionContext) =

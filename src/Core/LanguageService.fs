@@ -13,7 +13,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module LanguageService =
-    let ax =  Node.require.Invoke "axios" |>  unbox<Axios.AxiosStatic>
+    let ax =  Globals.require.Invoke "axios" |> unbox<Axios.AxiosStatic>
 
     let devMode = false
 
@@ -84,7 +84,7 @@ module LanguageService =
 
     let port = if devMode then "8088" else genPort ()
     let private url fsacAction requestId = (sprintf "http://127.0.0.1:%s/%s?requestId=%i" port fsacAction requestId)
-    let mutable private service : child_process_types.ChildProcess option =  None
+    let mutable private service : ChildProcess.ChildProcess option =  None
     let mutable private socket : WebSocket option = None
     let private platformPathSeparator = if Process.isMono () then "/" else "\\"
     let private makeRequestId =
@@ -224,9 +224,9 @@ module LanguageService =
             | s ->
                 log.Error("error during parsing of ProjectResult, invalid %j", f)
                 f |> unbox
-                
+
         let parse (res: ProjectResult) =
-            let info = res.Data.Info |> parseInfo 
+            let info = res.Data.Info |> parseInfo
             { res with Data = { res.Data with Info = info }}
 
         {ProjectRequest.FileName = s}
@@ -317,7 +317,7 @@ module LanguageService =
         |> request "unionCaseGenerator" 0 (makeRequestId())
 
     let workspacePeek dir deep excludedDirs =
-        let rec mapItem (f: WorkspacePeekFoundSolutionItem) : WorkspacePeekFoundSolutionItem option = 
+        let rec mapItem (f: WorkspacePeekFoundSolutionItem) : WorkspacePeekFoundSolutionItem option =
             let mapItemKind (i: obj) : WorkspacePeekFoundSolutionItemKind option =
                 let data = i?Data
                 match i?Kind |> unbox with
@@ -333,7 +333,7 @@ module LanguageService =
                     None
             match mapItemKind f.Kind with
             | Some kind ->
-                Some 
+                Some
                    { WorkspacePeekFoundSolutionItem.Guid = f.Guid
                      Name = f.Name
                      Kind = kind }
@@ -358,13 +358,14 @@ module LanguageService =
         |> request "workspacePeek" 0 (makeRequestId())
         |> Promise.map (fun res -> parse (res?Data |> unbox))
 
+    [<PassGenerics>]
     let registerNotify (cb : 'a [] -> unit) =
         socket |> Option.iter (fun ws ->
             ws.on_message((fun (res : string) ->
                 res
                 |> ofJson
                 |> Seq.map ofJson
-                |> Seq.where (fun n -> unbox n?Kind <>  "info" && unbox n?Kind <> "error")
+                |> Seq.where (fun n -> unbox n?Kind <> "info" && unbox n?Kind <> "error")
                 |> Seq.toArray
                 |> cb
                 ) |> unbox) |> ignore
@@ -386,16 +387,14 @@ module LanguageService =
             let child =
                 if Process.isMono () then
                     let mono = "FSharp.monoPath" |> Configuration.get "mono"
-                    child_process.spawn(mono, [| path; string port|] |> ResizeArray)
+                    ChildProcess.spawn(mono, [| path; string port|] |> ResizeArray)
                 else
-                    child_process.spawn(path, [| string port|] |> ResizeArray)
+                    ChildProcess.spawn(path, [| string port|] |> ResizeArray)
 
             let mutable isResolvedAsStarted = false
             child
-            |> Process.onOutput (fun n ->
-                // The `n` object is { "type":"Buffer", "data":[...bytes] }
-                // and by calling .ToString() we are decoding the buffer into a string.
-                let outputString = n.ToString()
+            |> Process.onOutput (fun buffer ->
+                let outputString = buffer.toString()
                 // Wait until FsAC sends the 'listener started' magic string until
                 // we inform the caller that it's ready to accept requests.
                 let isStartedMessage = outputString.Contains "listener started in"
@@ -409,14 +408,16 @@ module LanguageService =
                 fsacStdoutWriter outputString
             )
             |> Process.onError (fun e ->
-                fsacStdoutWriter (e.ToString())
+                let error = unbox<JS.Error> e
+                fsacStdoutWriter (error.message)
                 if not isResolvedAsStarted then
-                    reject (e.ToString())
+                    reject (error.message)
             )
             |> Process.onErrorOutput (fun n ->
-                fsacStdoutWriter (n.ToString())
+                let buffer = unbox<Buffer.Buffer> n
+                fsacStdoutWriter (buffer.toString())
                 if not isResolvedAsStarted then
-                    reject (n.ToString())
+                    reject (buffer.toString())
             )
             |> ignore
         )

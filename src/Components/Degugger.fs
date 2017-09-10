@@ -51,7 +51,7 @@ module Debugger =
                         | true -> "coreclr"
                         | false -> "clr"
 
-                    let p = path.relative(workspace.rootPath, project.Output).Replace("\\", "/")
+                    let p = Path.relative(workspace.rootPath, project.Output).Replace("\\", "/")
 
                     let cfg = {
                         name = "Launch"

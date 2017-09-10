@@ -55,7 +55,7 @@ module SolutionExplorer =
                 add' item entry (endIndex + 1)
 
     let rec toModel folder pp (entry : NodeEntry)  =
-        let f = (folder + path.sep + entry.Key)
+        let f = (folder + Path.sep + entry.Key)
         if entry.Children.Count > 0 then
             let childs =
                 entry.Children
@@ -63,7 +63,7 @@ module SolutionExplorer =
                 |> Seq.toList
             Folder(entry.Key, f, childs)
         else
-            let p = (path.dirname pp) + f
+            let p = (Path.dirname pp) + f
             File(p, entry.Key, pp)
 
 
@@ -84,22 +84,33 @@ module SolutionExplorer =
 
         let files =
             proj.Files
-            |> List.map (fun p -> path.relative(path.dirname proj.Project, p))
+            |> List.map (fun p -> Path.relative(Path.dirname proj.Project, p))
             |> buildTree proj.Project
 
-        let refs = proj.References |> List.map (fun p -> Reference(p, path.basename p, proj.Project)) |> fun n -> ReferenceList(n, proj.Project)
-        let projs = proj.References |> List.choose (fun r -> projects |> Array.tryFind (fun pr -> pr.Output = r)) |> List.map (fun p -> ProjectReference(p.Project, path.basename(p.Project, ".fsproj"), proj.Project)) |> fun n -> ProjectReferencesList(n, proj.Project)
-        let name = path.basename(proj.Project, ".fsproj")
+        let refs =
+            proj.References
+            |> List.map (fun p -> Reference(p,Path.basename p, proj.Project))
+            |> fun n -> ReferenceList(n, proj.Project)
+
+        let projs =
+            proj.References
+            |> List.choose (fun r ->
+                projects
+                |> Array.tryFind (fun pr -> pr.Output = r))
+            |> List.map (fun p -> ProjectReference(p.Project, Path.basename(p.Project, ".fsproj"), proj.Project))
+            |> fun n -> ProjectReferencesList(n, proj.Project)
+
+        let name = Path.basename(proj.Project, ".fsproj")
         Project(proj.Project, name,files, projs, refs, Project.isExeProject proj, proj)
 
     let private getProjectModelByState proj =
         match proj with
         | Project.ProjectLoadingState.Loading p ->
-            Model.ProjectLoading (p, path.basename p)
+            Model.ProjectLoading (p, Path.basename p)
         | Project.ProjectLoadingState.Loaded proj ->
             getProjectModel proj
         | Project.ProjectLoadingState.Failed (p, err) ->
-            Model.ProjectFailedToLoad (p, path.basename p, err)
+            Model.ProjectFailedToLoad (p, Path.basename p, err)
 
     let getFolders model =
         let rec loop model lst =
@@ -121,7 +132,7 @@ module SolutionExplorer =
         let getProjItem projPath =
             match Project.tryFindInWorkspace projPath with
             | None ->
-                Model.ProjectNotLoaded (projPath, (path.basename projPath))
+                Model.ProjectNotLoaded (projPath, (Path.basename projPath))
             | Some p ->
                 getProjectModelByState p
         let rec getItem (item: WorkspacePeekFoundSolutionItem) =
@@ -129,14 +140,14 @@ module SolutionExplorer =
             | WorkspacePeekFoundSolutionItemKind.Folder folder ->
                 let files =
                     folder.Files
-                    |> Array.map (fun f -> Model.File (f,path.basename(f),""))
+                    |> Array.map (fun f -> Model.File (f,Path.basename(f),""))
                 let items = folder.Items |> Array.map getItem
                 Model.WorkspaceFolder (item.Name, (Seq.append files items |> List.ofSeq))
             | MsbuildFormat proj ->
                 getProjItem item.Name
         match ws with
         | WorkspacePeekFound.Solution sln ->
-            let s = Solution (sln.Path, (path.basename sln.Path), (sln.Items |> Array.map getItem |> List.ofArray))
+            let s = Solution (sln.Path, (Path.basename sln.Path), (sln.Items |> Array.map getItem |> List.ofArray))
             Workspace [s]
         | WorkspacePeekFound.Directory dir ->
             Workspace (dir.Fsprojs |> Array.map getProjItem |> List.ofArray)
@@ -279,10 +290,10 @@ module SolutionExplorer =
                 let icon =
                     match node with
                     | File (path, _, _) ->
-                        let fileName = Node.path.basename(path)
+                        let fileName = Path.basename(path)
                         iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/file-code-light.svg" "/images/file-code-dark.svg"
                     | Project (path, _, _, _, _, _, _) | Solution (path, _, _)  ->
-                        let fileName = Node.path.basename(path)
+                        let fileName = Path.basename(path)
                         iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/project-light.svg" "/images/project-dark.svg"
                     | Folder (name,_, _) | WorkspaceFolder (name, _)  ->
                         iconFromTheme (VsCodeIconTheme.getFolderIcon name) "/images/folder-light.svg" "/images/folder-dark.svg"
@@ -443,7 +454,7 @@ module SolutionExplorer =
                   member this.provideTextDocumentContent (uri: Uri) =
                       match uri.path with
                       | "/projects/status" ->
-                          let q = querystring.parse(uri.query)
+                          let q = Querystring.parse(uri.query)
                           let path : string = q?path |> unbox
                           match Project.tryFindInWorkspace path with
                           | None ->

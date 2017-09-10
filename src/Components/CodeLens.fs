@@ -115,7 +115,7 @@ module CodeLens =
                     return ResizeArray d
                 }
                 // |> Promise.catch (fun _ -> Promise.lift <| ResizeArray())
-                |> Case2
+                |> U2.Case2
 
             member __.resolveCodeLens(codeLens, _) =
                 promise {
@@ -129,7 +129,7 @@ module CodeLens =
                     codeLens.command <- cmd
                     return codeLens
 
-                } |> Case2
+                } |> U2.Case2
 
             member __.onDidChangeCodeLenses = unbox refresh.event
         }

@@ -852,21 +852,5 @@
   ],
   "extensionDependencies": [
     "vscode.fsharp"
-  ],
-  "scripts": {
-    "prebuild": "npm update",
-    "build": "fable ../src/Ionide.FSharp.fsproj -o ../release -m commonjs --verbose"
-  },
-  "dependencies": {
-    "axios": "*",
-    "fable-core": "0.6.x",
-    "toml": "*",
-    "ws": "*",
-    "xhr2": "*"
-  },
-  "devDependencies": {
-    "fable-compiler": "0.6.x",
-    "mocha": "*",
-    "vscode": "*"
-  }
+  ]
 }

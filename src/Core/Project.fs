@@ -43,8 +43,8 @@ module Project =
 
     let private guessFor p =
         let rec findFsProj dir =
-            if fs.lstatSync(dir).isDirectory() then
-                let files = fs.readdirSync dir
+            if Fs.lstatSync(U2.Case1 dir).isDirectory() then
+                let files = Fs.readdirSync (U2.Case1 dir)
                 let projfile = files |> Seq.tryFind(fun s -> s.EndsWith(".fsproj"))
                 match projfile with
                 | None ->
@@ -52,27 +52,27 @@ module Project =
                     match projfile with
                     | None ->
                         try
-                            let parent = if dir.LastIndexOf(path.sep) > 0 then dir.Substring(0, dir.LastIndexOf path.sep) else ""
+                            let parent = if dir.LastIndexOf(Path.sep) > 0 then dir.Substring(0, dir.LastIndexOf Path.sep) else ""
                             if System.String.IsNullOrEmpty parent then None else findFsProj parent
                         with
                         | _ -> None
-                    | Some p -> dir + path.sep + p |> Some
-                | Some p -> dir + path.sep + p |> Some
+                    | Some p -> dir + Path.sep + p |> Some
+                | Some p -> dir + Path.sep + p |> Some
             else None
 
-        p |> path.dirname |> findFsProj
+        p |> Path.dirname |> findFsProj
 
     let private findAll () =
         let rec findProjs dir =
-            let files = fs.readdirSync dir
+            let files = Fs.readdirSync (U2.Case1 dir)
             files
             |> Seq.toList
             |> List.collect(fun s' ->
                 try
-                    let s = dir + path.sep + s'
+                    let s = dir + Path.sep + s'
                     if excluded |> Array.contains s' then
                         []
-                    elif fs.statSync(s).isDirectory () then
+                    elif Fs.statSync(U2.Case1 s).isDirectory () then
                         findProjs (s)
                     else
                        if s.EndsWith ".fsproj" then [ s ] else []
@@ -86,14 +86,14 @@ module Project =
 
     let getAll () =
         let rec findProjs dir =
-            let files = fs.readdirSync dir
+            let files = Fs.readdirSync (U2.Case1 dir)
             files
             |> Seq.toList
             |> List.collect(fun s' ->
                 try
-                    let s = dir + path.sep + s'
+                    let s = dir + Path.sep + s'
                     if excluded |> Array.contains s' then []
-                    elif fs.statSync(s).isDirectory () then findProjs (s)
+                    elif Fs.statSync(U2.Case1 s).isDirectory () then findProjs (s)
                     elif s.EndsWith ".fsproj" || s.EndsWith ".csproj" || s.EndsWith ".vbproj" then [ s ]
                     else []
                 with
@@ -155,7 +155,7 @@ module Project =
     let isLoadingWorkspaceComplete () =
         //Yes, can be better with a lock/flag/etc.
         //but the real cleanup will be moving all the loading in FSAC
-        //ref https://github.com/fsharp/FsAutoComplete/issues/192 
+        //ref https://github.com/fsharp/FsAutoComplete/issues/192
         let projs =
             match loadedWorkspace with
             | None -> Array.empty
@@ -195,15 +195,15 @@ module Project =
     let getCaches () =
 
         let rec findProjs dir =
-            let files = fs.readdirSync dir
+            let files = Fs.readdirSync (U2.Case1 dir)
             files
             |> Seq.toList
             |> List.collect(fun s' ->
                 try
-                    let s = dir + path.sep + s'
+                    let s = dir + Path.sep + s'
                     if excluded |> Array.contains s' then
                         []
-                    elif fs.statSync(s).isDirectory () then
+                    elif Fs.statSync(U2.Case1 s).isDirectory () then
                         findProjs (s)
                     else
                        if s.EndsWith "fsac.cache" then [ s ] else []
@@ -218,14 +218,14 @@ module Project =
     let clearCacheIfOutdated () =
         let cached = getCaches ()
         cached |> Seq.iter (fun p ->
-            let stat = fs.statSync(p)
+            let stat = Fs.statSync(U2.Case1 p)
             if stat.mtime <= DateTime(2017, 08, 27) then
-                printf "Cache outdated %s" p
-                fs.unlinkSync p
+                printfn "Cache outdated %s" p
+                Fs.unlinkSync (U2.Case1 p)
         )
     let clearCache () =
         let cached = getCaches ()
-        cached |> Seq.iter fs.unlinkSync
+        cached |> Seq.iter (U2.Case1 >> Fs.unlinkSync)
         window.showInformationMessage("Cache cleared")
 
     let countProjectsInSln (sln: WorkspacePeekFoundSolution) =
@@ -237,7 +237,7 @@ module Project =
             | WorkspacePeekFound.Directory dir ->
                 sprintf "[DIR] %s     (%i projects)" dir.Directory dir.Fsprojs.Length
             | WorkspacePeekFound.Solution sln ->
-                let relativeSln = path.relative (workspace.rootPath, sln.Path)
+                let relativeSln = Path.relative (workspace.rootPath, sln.Path)
                 sprintf "[SLN] %s     (%i projects)" relativeSln (countProjectsInSln sln)
         match ws |> List.map (fun x -> (text x), x) with
         | [] ->
@@ -247,14 +247,14 @@ module Project =
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Place"
                 let chooseFrom = projects |> List.map fst |> ResizeArray
-                let! chosen = window.showQuickPick(chooseFrom |> Case1, opts)
+                let! chosen = window.showQuickPick(chooseFrom |> U2.Case1, opts)
                 return if JS.isDefined chosen
-                       then projects |> Map.ofList |> Map.tryFind chosen 
+                       then projects |> Map.ofList |> Map.tryFind chosen
                        else None
             }
 
     let isANetCoreAppProject (project:Project) =
-        let projectContent = (fs.readFileSync project.Project).ToString()
+        let projectContent = (Fs.readFileSync project.Project).toString()
         let netCoreTargets =
             [ "<TargetFramework>netcoreapp"
               "<Project Sdk=\"" ]
@@ -265,22 +265,22 @@ module Project =
         netCoreTargets |> Seq.exists findInProject
 
     let isNetCoreApp (project:Project) =
-        let projectContent = (fs.readFileSync project.Project).ToString()
+        let projectContent = (Fs.readFileSync project.Project).toString()
         let core = "<TargetFramework>netcoreapp"
         projectContent.IndexOf(core) >= 0
 
     let isSDKProject (project:Project) =
-        let projectContent = (fs.readFileSync project.Project).ToString()
+        let projectContent = (Fs.readFileSync project.Project).toString()
         let sdk = "<Project Sdk=\""
         projectContent.IndexOf(sdk) >= 0
 
     let isSDKProjectPath (project:string) =
-        let projectContent = (fs.readFileSync project).ToString()
+        let projectContent = (Fs.readFileSync project).toString()
         let sdk = "<Project Sdk=\""
         projectContent.IndexOf(sdk) >= 0
 
     let isPortablePdbProject (project:Project) =
-        let projectContent = (fs.readFileSync project.Project).ToString()
+        let projectContent = (Fs.readFileSync project.Project).toString()
         let portable = """<DebugType>portable</DebugType>"""
         projectContent.IndexOf(portable) >= 0
 
@@ -427,13 +427,13 @@ module Project =
                     sln.Items
                     |> Array.collect foldFsproj
                     |> Array.map fst
+
             match x with
             | WorkspacePeekFound.Solution _
             | WorkspacePeekFound.Directory _ when not(projs |> Array.isEmpty) ->
                 setAnyProjectContext true
-                ()
-            | WorkspacePeekFound.Directory _ ->
-                ()
+            | _ -> ()
+
             projs
             |> List.ofArray
             |> Promise.executeForAll load

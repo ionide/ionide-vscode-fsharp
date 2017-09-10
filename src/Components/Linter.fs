@@ -19,7 +19,7 @@ module Linter =
 
     let private diagnosticFromLintWarning file (warning : Lint) =
         let range = CodeRange.fromDTO warning.Range
-        let loc = Location (Uri.file file, range |> Case1)
+        let loc = Location (Uri.file file, range |> U2.Case1)
         Diagnostic(range, "Lint: " + warning.Info, DiagnosticSeverity.Information), file
 
     let private mapResult file (ev : LintResult) =
@@ -69,7 +69,7 @@ module Linter =
                             cmd.arguments <- Some ([| doc |> unbox; d.range |> unbox; suggestion.ToText |> unbox; |] |> ResizeArray)
                             cmd)
                         |> Seq.toArray
-                res |> ResizeArray |> Case1
+                res |> ResizeArray |> U2.Case1
             }
 
     let private applyQuickFix(doc : TextDocument, range : vscode.Range, suggestion : string) =

@@ -154,7 +154,7 @@ module Expecto =
             | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
         opt.gutterIconPath <- unbox path
         opt.overviewRulerLane <- Some OverviewRulerLane.Full
-        opt.overviewRulerColor <- Some (Case1 "rgba(224, 64, 6, 0.7)")
+        opt.overviewRulerColor <- Some (U2.Case1 "rgba(224, 64, 6, 0.7)")
         window.createTextEditorDecorationType opt
 
     let passedDecorationType =
@@ -167,7 +167,7 @@ module Expecto =
             | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
         opt.gutterIconPath <- unbox path
         opt.overviewRulerLane <- Some OverviewRulerLane.Full
-        opt.overviewRulerColor <- Some (Case1 "rgba(166, 215, 133, 0.7)")
+        opt.overviewRulerColor <- Some (U2.Case1 "rgba(166, 215, 133, 0.7)")
         window.createTextEditorDecorationType opt
 
     let ignoredDecorationType =
@@ -180,7 +180,7 @@ module Expecto =
             | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/images/" + file |> Uri.file
         opt.gutterIconPath <- unbox path
         opt.overviewRulerLane <- Some OverviewRulerLane.Full
-        opt.overviewRulerColor <- Some (Case1 "rgba(255, 188, 64, 0.7)")
+        opt.overviewRulerColor <- Some (U2.Case1 "rgba(255, 188, 64, 0.7)")
         window.createTextEditorDecorationType opt
 
 
@@ -218,13 +218,13 @@ module Expecto =
             match te.document with
             | Document.FSharp ->
                 let fld = failed te.document.fileName
-                te.setDecorations(failedDecorationType, Case1 fld)
+                te.setDecorations(failedDecorationType, U2.Case1 fld)
 
                 let psd = passed te.document.fileName
-                te.setDecorations(passedDecorationType, Case1 psd)
+                te.setDecorations(passedDecorationType, U2.Case1 psd)
 
                 let ign = ignored te.document.fileName
-                te.setDecorations(ignoredDecorationType, Case1 ign)
+                te.setDecorations(ignoredDecorationType, U2.Case1 ign)
             | _ -> ()
         )
 
@@ -280,7 +280,7 @@ module Expecto =
                         let! childProcess = executor args
                         return!
                             childProcess
-                            |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
+                            |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.toString () )
                             |> Process.toPromise
                     })
                 |> Promise.all
@@ -314,7 +314,7 @@ module Expecto =
                         let! childProcess = executor "--list-tests"
                         return!
                             childProcess
-                            |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.ToString () )
+                            |> Process.onOutput (fun out -> lastOutput.[exe] <- lastOutput.[exe] + out.toString () )
                             |> Process.toPromise
                             |> Promise.map (fun res -> res, exe)
                     })
@@ -336,7 +336,7 @@ module Expecto =
         |> Promise.map (Seq.map (getTestList) >> Seq.distinct >> Seq.filter ((<>) "") >> ResizeArray)
 
     let private runSingle () =
-        window.showQuickPick (Case2 (getTestCases() ))
+        window.showQuickPick (U2.Case2 (getTestCases() ))
         |> Promise.bind(fun n ->
             if JS.isDefined n then
                 (sprintf "--run \"%s\"" n) |> runExpecto false
@@ -345,7 +345,7 @@ module Expecto =
         )
 
     let private runList () =
-        window.showQuickPick (Case2 (getTestLists() ))
+        window.showQuickPick (U2.Case2 (getTestLists() ))
         |> Promise.bind(fun n ->
             if JS.isDefined n then
                 (sprintf "--filter \"%s\" --summary-location" n) |> runExpecto false

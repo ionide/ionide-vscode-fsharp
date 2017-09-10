@@ -2,7 +2,7 @@
 // FAKE build script
 // --------------------------------------------------------------------------------------
 
-#I "packages/FAKE/tools"
+#I "packages/build/FAKE/tools"
 #r "FakeLib.dll"
 open System
 open System.Diagnostics
@@ -11,8 +11,8 @@ open Fake
 open Fake.Git
 open Fake.ProcessHelper
 open Fake.ReleaseNotesHelper
+open Fake.YarnHelper
 open Fake.ZipHelper
-
 
 
 // Git configuration (used for publishing documentation in gh-pages branch)
@@ -38,7 +38,6 @@ let release = List.head releaseNotesData
 let msg =  release.Notes |> List.fold (fun r s -> r + s + "\n") ""
 let releaseMsg = (sprintf "Release %s\n" release.NugetVersion) + msg
 
-
 let run cmd args dir =
     if execProcess( fun info ->
         info.FileName <- cmd
@@ -59,8 +58,7 @@ let platformTool tool path =
 let npmTool =
     platformTool "npm"  "npm.cmd"
 
-let vsceTool =
-    platformTool "vsce" "vsce.cmd"
+let vsceTool = lazy (platformTool "vsce" "vsce.cmd")
 
 
 let releaseBin      = "release/bin"
@@ -77,9 +75,23 @@ Target "Clean" (fun _ ->
     CopyFile "release/CHANGELOG.md" "RELEASE_NOTES.md"
 )
 
+Target "YarnInstall" <| fun () ->
+    Yarn (fun p -> { p with Command = Install Standard })
+
+Target "DotNetRestore" <| fun () ->
+    DotNetCli.Restore (fun p -> { p with WorkingDir = "src" } )
+
+let runFable additionalArgs =
+    let cmd = "fable webpack -- --config ../webpack.config.js " + additionalArgs
+    DotNetCli.RunCommand (fun p -> { p with WorkingDir = "src" } ) cmd
+
 Target "RunScript" (fun _ ->
-    run npmTool "install" "release"
-    run npmTool "run build" "release"
+    // Ideally we would want a production (minized) build but UglifyJS fail on PerMessageDeflate.js as it contains non-ES6 javascript.
+    runFable ""
+)
+
+Target "Watch" (fun _ ->
+    runFable "--watch"
 )
 
 Target "CopyFSAC" (fun _ ->
@@ -153,7 +165,7 @@ Target "SetVersion" (fun _ ->
 
 Target "BuildPackage" ( fun _ ->
     killProcess "vsce"
-    run vsceTool "package" "release"
+    run vsceTool.Value "package" "release"
     !! "release/*.vsix"
     |> Seq.iter(MoveFile "./temp/")
 )
@@ -166,10 +178,10 @@ Target "PublishToGallery" ( fun _ ->
         | _ -> getUserPassword "VSCE Token: "
 
     killProcess "vsce"
-    run vsceTool (sprintf "publish --pat %s" token) "release"
+    run vsceTool.Value (sprintf "publish --pat %s" token) "release"
 )
 
-#load "paket-files/fsharp/FAKE/modules/Octokit/Octokit.fsx"
+#load "paket-files/build/fsharp/FAKE/modules/Octokit/Octokit.fsx"
 open Octokit
 
 
@@ -214,6 +226,9 @@ Target "Default" DoNothing
 Target "Build" DoNothing
 Target "Release" DoNothing
 
+"YarnInstall" ?=> "RunScript"
+"DotNetRestore" ?=> "RunScript"
+
 "Clean"
 ==> "RunScript"
 ==> "Default"
@@ -225,6 +240,9 @@ Target "Release" DoNothing
 ==> "CopyGrammar"
 ==> "CopySchemas"
 ==> "Build"
+
+"YarnInstall" ==> "Build"
+"DotNetRestore" ==> "Build"
 
 "Build"
 ==> "SetVersion"

@@ -77,3 +77,4 @@ let activate (context: ExtensionContext) =
 
 let deactivate(disposables: Disposable[]) =
     LanguageService.stop ()
+    ()

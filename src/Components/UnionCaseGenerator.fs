@@ -38,7 +38,7 @@ module UnionCaseGenerator =
                                 return [| cmd |]
                             }
                     return res |> ResizeArray
-                } |> Case2
+                } |> U2.Case2
             }
 
     let insertText (doc : TextDocument, text : string, pos : Pos) =
@@ -49,12 +49,8 @@ module UnionCaseGenerator =
         edit.insert(uri, position, text)
         workspace.applyEdit edit
 
-
-
-
     let activate selector (context: ExtensionContext) =
         languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
         commands.registerCommand("fsharp.insertUnionCases",Func<obj,obj,obj,obj>(fun a b c -> insertText(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add
-
 
         ()
