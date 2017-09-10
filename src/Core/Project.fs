@@ -427,13 +427,13 @@ module Project =
                     sln.Items
                     |> Array.collect foldFsproj
                     |> Array.map fst
+
             match x with
             | WorkspacePeekFound.Solution _
             | WorkspacePeekFound.Directory _ when not(projs |> Array.isEmpty) ->
                 setAnyProjectContext true
-                ()
-            | WorkspacePeekFound.Directory _ ->
-                ()
+            | _ -> ()
+
             projs
             |> List.ofArray
             |> Promise.executeForAll load
