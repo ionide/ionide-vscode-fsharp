@@ -133,7 +133,7 @@ module SolutionExplorer =
                 let items = folder.Items |> Array.map getItem
                 Model.WorkspaceFolder (item.Name, (Seq.append files items |> List.ofSeq))
             | MsbuildFormat proj ->
-                getProjItem item.Name 
+                getProjItem item.Name
         match ws with
         | WorkspacePeekFound.Solution sln ->
             let s = Solution (sln.Path, (path.basename sln.Path), (sln.Items |> Array.map getItem |> List.ofArray))
@@ -281,10 +281,10 @@ module SolutionExplorer =
                     | File (path, _, _) ->
                         let fileName = Node.path.basename(path)
                         iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/file-code-light.svg" "/images/file-code-dark.svg"
-                    | Project (path, _, _, _, _, _, _) ->
+                    | Project (path, _, _, _, _, _, _) | Solution (path, _, _)  ->
                         let fileName = Node.path.basename(path)
                         iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/project-light.svg" "/images/project-dark.svg"
-                    | Folder (name,_, _)  ->
+                    | Folder (name,_, _) | WorkspaceFolder (name, _)  ->
                         iconFromTheme (VsCodeIconTheme.getFolderIcon name) "/images/folder-light.svg" "/images/folder-dark.svg"
                     | Reference _ | ProjectReference _ ->
                         p.light <- plugPath + "/images/circuit-board-light.svg"
