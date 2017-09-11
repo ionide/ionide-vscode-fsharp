@@ -742,11 +742,11 @@ GIT
   remote: https://github.com/ionide/ionide-fsgrammar.git
      (826aa0690b4a1fb536485cc2806fa73b451fcee7)
 GITHUB
-  remote: vbfox/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (fbf28ad37f20846b7a5ce23b6cea485a4602136f)
-    src/Fable.Import.VSCode.fs (fbf28ad37f20846b7a5ce23b6cea485a4602136f)
-    src/Fable.Import.ws.fs (fbf28ad37f20846b7a5ce23b6cea485a4602136f)
-    src/Helpers.fs (fbf28ad37f20846b7a5ce23b6cea485a4602136f)
+  remote: ionide/ionide-vscode-helpers
+    src/Fable.Import.Axios.fs (87fd2b0e2fb6e5b909fc607f7239f73abd8dcd07)
+    src/Fable.Import.VSCode.fs (87fd2b0e2fb6e5b909fc607f7239f73abd8dcd07)
+    src/Fable.Import.ws.fs (87fd2b0e2fb6e5b909fc607f7239f73abd8dcd07)
+    src/Helpers.fs (87fd2b0e2fb6e5b909fc607f7239f73abd8dcd07)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2

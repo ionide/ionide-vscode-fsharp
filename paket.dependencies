@@ -15,10 +15,10 @@ git https://github.com/fsharp-editing/Forge.git 1f87695d813ee521b50c671ed430184b
 
 git https://github.com/ionide/ionide-fsgrammar.git
 
-github vbfox/ionide-vscode-helpers:fable_1_1 src/Fable.Import.VSCode.fs
-github vbfox/ionide-vscode-helpers:fable_1_1 src/Helpers.fs
-github vbfox/ionide-vscode-helpers:fable_1_1 src/Fable.Import.Axios.fs
-github vbfox/ionide-vscode-helpers:fable_1_1 src/Fable.Import.ws.fs
+github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
+github ionide/ionide-vscode-helpers src/Helpers.fs
+github ionide/ionide-vscode-helpers src/Fable.Import.Axios.fs
+github ionide/ionide-vscode-helpers src/Fable.Import.ws.fs
 
 group build
     source https://www.nuget.org/api/v2
