@@ -3,7 +3,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-            "preLaunchTask": "Default",
+            "preLaunchTask": "Build",
 			"name": "Build and Launch Extension",
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
