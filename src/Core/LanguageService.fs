@@ -394,7 +394,10 @@ module LanguageService =
                         spawnLogged mono [ yield path; yield! args ]
                     else
                         spawnLogged path args
-                fsac ["--mode"; "http"; "--port"; port]
+                fsac
+                  [ "--mode"; "http"
+                    "--port"; port
+                    sprintf "--hostPID=%i" (int Globals.``process``.pid) ]
 
             let mutable isResolvedAsStarted = false
             child
