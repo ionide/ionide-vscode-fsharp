@@ -1,3 +1,6 @@
+### 3.1.0 - 13.09.2017
+* Add MsBuild commands for solution node in project explorer
+
 ### 3.0.0 - 13.09.2017
 * Go-to for #load
 * LineLenses (inlined CodeLenses replacement)
