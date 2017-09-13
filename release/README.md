@@ -37,37 +37,44 @@ Add **MSBUILD_PATH** environment variable which points to the home of **Microsof
 If you use [chocolatey](https://chocolatey.org/), you can install all the pre-requisites easily:
 
 ```batch
-choco install windows-sdk-8.0 -y
 choco install visualfsharptools -y
 choco install microsoft-build-tools --version 14.0.25420.1 -y
 choco install visualstudiocode -y
 ```
 
+* Recommended: `dontet` CLI >= 2.0
+
 ### Mono
 
-* Required: Mono >= 3.10
-* Recommended: Mono >= 4.0.2
+* Required: Mono >= 4.8
+* Recommended: Mono >= 5.2
+* Recommended: `dontet` CLI >= 2.0
 
 ## Features
 
-- Better syntax highlighting
+- Syntax highlighting
 - Auto completions
-- Error highlighting and error list
+- Error highlighting, error list, and quick fixes based on errors
 - Tooltips
-- Go to Declaration
-- Show symbols in file
+- Method parameter hints
+- Go to Definition
+- Peak Definition
+- Find all references
 - Highlighting usages
-
-## How to contribute
-
-0. Install nodejs. (On Windows via [chocolaty](https://chocolatey.org/packages/nodejs) this is `C:\> choco install nodejs`)
-1. Run `npm install -g vsce` to install **vsce** globally.
-2. Fork the repo to your GitHub account, then clone locally.
-3. Run `build.cmd Build` (or `build.sh Build`). If you have not done so already you may need to configure a GitHub SSH key.
-4. Open folder in VSCode `code .`
-5. Make changes
-6. Press `F5` to build plugin and start experimental instance of VSCode
-7. Make PR ;)
+- Rename
+- Show symbols in file
+- Find symbol in workspace
+- Show signature in status bar
+- Show signature as CodeLens / LineLens
+- Go to MSDN help
+- Add `open NAMESPACE` for symbol
+- Match case generator
+- Integration with F# Interactive
+- Integration with Forge (Project scaffolding and modification)
+- Integration with FSharpLint (additional hints and quick fixes)
+- Integration with Expecto (lightweight F# test runner)
+- Integration with MsBuild (Build, Rebuild, Clean project)
+- Solution / project explorer
 
 ## How to get logs for debugging / issue reporting
 
@@ -82,6 +89,22 @@ choco install visualstudiocode -y
   ```
 2. Open the Output Panel and switch to the `F# Language Service` Channel
 3. Or Toggle Developer Tools (`Help |> Toggle Developer Tools`) and open the console tab
+
+### How to contribute
+
+*Imposter syndrome disclaimer*: I want your help. No really, I do.
+
+There might be a little voice inside that tells you you're not ready; that you need to do one more tutorial, or learn another framework, or write a few more blog posts before you can help me with this project.
+
+I assure you, that's not the case.
+
+This project has some clear Contribution Guidelines and expectations that you can [read here]((https://github.com/ionide/ionide-vscode-fsharp/blob/master/CONTRIBUTING.md).
+
+The contribution guidelines outline the process that you'll need to follow to get a patch merged. By making expectations and process explicit, I hope it will make it easier for you to contribute.
+
+And you don't just have to write code. You can help out by writing documentation, tests, or even by giving feedback about this work. (And yes, that includes giving feedback about the contribution guidelines.)
+
+Thank you for contributing!
 
 
 ## Contributing and copyright

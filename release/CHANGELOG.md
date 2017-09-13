@@ -1,3 +1,9 @@
+### 3.0.0 - 13.09.2017
+* Go-to for #load
+* LineLenses (inlined CodeLenses replacement)
+* `Sln` support
+* Forge 2.0 support
+
 ### 2.34.4 - 28.08.2017
 * Move CodeLenses to SignatureData - more robust formatting
 
