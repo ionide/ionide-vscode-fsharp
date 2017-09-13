@@ -525,6 +525,30 @@ module SolutionExplorer =
             | _ -> unbox ()
         )) |> context.subscriptions.Add
 
+        commands.registerCommand("fsharp.explorer.solution.build", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Solution (path, _, _) ->
+                MSBuild.buildSolution "Build" path
+                |> unbox
+            | _ -> unbox ()
+        )) |> context.subscriptions.Add
+
+        commands.registerCommand("fsharp.explorer.solution.rebuild", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Solution (path, _, _) ->
+                MSBuild.buildSolution "Rebuild" path
+                |> unbox
+            | _ -> unbox ()
+        )) |> context.subscriptions.Add
+
+        commands.registerCommand("fsharp.explorer.solution.clean", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Solution (path, _, _) ->
+                MSBuild.buildSolution "Clean" path
+                |> unbox
+            | _ -> unbox ()
+        )) |> context.subscriptions.Add
+
         commands.registerCommand("fsharp.explorer.project.run", Func<obj, obj>(fun m ->
             match unbox m with
             | Project (_, _, _, _, _, _, pr) ->

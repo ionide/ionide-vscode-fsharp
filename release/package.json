@@ -281,6 +281,18 @@
         "title": "Clean"
       },
       {
+        "command": "fsharp.explorer.solution.build",
+        "title": "Build"
+      },
+      {
+        "command": "fsharp.explorer.solution.rebuild",
+        "title": "Rebuild"
+      },
+      {
+        "command": "fsharp.explorer.solution.clean",
+        "title": "Clean"
+      },
+      {
         "command": "fsharp.explorer.project.run",
         "title": "Run"
       },
@@ -354,6 +366,18 @@
         },
         {
           "command": "fsharp.explorer.msbuild.clean",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.solution.build",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.solution.rebuild",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.solution.clean",
           "when": "false"
         },
         {
@@ -516,6 +540,21 @@
         {
           "command": "fsharp.explorer.msbuild.clean",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
+          "group": "1_navigation@3"
+        },
+        {
+          "command": "fsharp.explorer.solution.build",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.solution",
+          "group": "1_navigation@1"
+        },
+        {
+          "command": "fsharp.explorer.solution.rebuild",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.solution",
+          "group": "1_navigation@2"
+        },
+        {
+          "command": "fsharp.explorer.solution.clean",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.solution",
           "group": "1_navigation@3"
         },
         {

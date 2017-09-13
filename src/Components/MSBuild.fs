@@ -209,6 +209,18 @@ module MSBuild =
         let host = tryGetRightHost project
         invokeMSBuild project.Project target (Some host)
 
+    let buildSolution target sln =
+        match host.value with
+        | Some h -> invokeMSBuild sln target (Some h)
+        | None ->
+            pickMSbuildHostType ()
+            |> Promise.bind (fun host ->
+            match host with
+            | Some h -> invokeMSBuild sln target (Some h)
+            | None ->
+                window.showWarningMessage "Host needs to be chosen for solution build"
+            )
+
     let activate (context: ExtensionContext) =
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> context.subscriptions.Add
         let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> context.subscriptions.Add
