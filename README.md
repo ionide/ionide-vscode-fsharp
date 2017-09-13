@@ -70,6 +70,7 @@ choco install visualstudiocode -y
 - Add `open NAMESPACE` for symbol
 - Match case generator
 - Go to #load reference
+- Generate comment for the symbol
 - Integration with F# Interactive
 - Integration with Forge (Project scaffolding and modification)
 - Integration with FSharpLint (additional hints and quick fixes)
