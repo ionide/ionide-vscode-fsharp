@@ -102,22 +102,28 @@ Target "CopyFSAC" (fun _ ->
     |> CopyFiles releaseBin
 )
 
-let releaseBinForge = "release/bin_forge"
-let forgeBin = "paket-files/github.com/fsharp-editing/Forge/temp/bin"
-let forgeExe = forgeBin </> "Forge.exe"
-let posixDll = forgeBin </> "Mono.Posix.dll"
-let nettDll = forgeBin </> "Nett.dll"
+let releaseForge = "release/bin_forge"
+let releaseBinForge = "release/bin_forge/bin"
+
+let forgeBin = "paket-files/github.com/fsharp-editing/Forge/temp/Bin/*.dll"
+let forgeExe = "paket-files/github.com/fsharp-editing/Forge/temp/Forge.exe"
+let forgeConfig = "paket-files/github.com/fsharp-editing/Forge/temp/Forge.exe.config"
+
 
 Target "CopyForge" (fun _ ->
     ensureDirectory releaseBinForge
+    ensureDirectory releaseForge
+
     CleanDir releaseBinForge
     checkFileExists forgeExe
-    checkFileExists posixDll
-    checkFileExists nettDll
     !! forgeExe
-    ++ posixDll
-    ++ nettDll
+    ++ forgeConfig
+    |> CopyFiles releaseForge
+
+    !! forgeBin
     |> CopyFiles releaseBinForge
+
+
 )
 
 let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammar"

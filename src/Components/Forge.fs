@@ -28,9 +28,9 @@ module Forge =
         | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "bin_forge" </> "Forge.exe"
     let private templateLocation =
         try
-            (VSCode.getPluginPath "Ionide.ionide-fsharp") </> "templates" </> "templates.json"
+            (VSCode.getPluginPath "Ionide.ionide-fsharp") </> "bin_forge" </> "templates" </> "templates.json"
         with
-        | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "templates" </> "templates.json"
+        | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "bin_forge" </> "templates" </> "templates.json"
 
     let outputChannel = window.createOutputChannel "Forge"
 
@@ -255,7 +255,7 @@ module Forge =
                             let! name =  window.showInputBox(opts)
                             if JS.isDefined dir && JS.isDefined name then
                                 if name <> "" then
-                                    sprintf "new project -n %s -t %s --folder %s" name template.label dir |> spawnForge |> ignore
+                                    sprintf "new project -n %s -t %s --folder %s --vscode" name template.label dir |> spawnForge |> ignore
 
                                     window.showInformationMessage "Project created"
                                     |> ignore
@@ -296,7 +296,7 @@ module Forge =
                         opts.prompt <- Some "Project name"
                         let! name =  window.showInputBox(opts)
                         if JS.isDefined dir && JS.isDefined name then
-                            sprintf "new project -n %s -t %s --folder %s --no-fake" name template.label dir |> spawnForge |> ignore
+                            sprintf "new project -n %s -t %s --folder %s --no-fake --vscode" name template.label dir |> spawnForge |> ignore
 
                             window.showInformationMessage "Project created"
                             |> ignore

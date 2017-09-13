@@ -8,10 +8,10 @@ nuget Fable.Import.Browser
 nuget FSharp.Core
 
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd LocalRelease", OS: windows
-git https://github.com/fsharp-editing/Forge.git 1f87695d813ee521b50c671ed430184b01a25b81 build:"build.cmd Build", OS: windows
+git https://github.com/fsharp-editing/Forge.git master build:"build.cmd Build", OS: windows
 
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.sh LocalRelease", OS: mono
-git https://github.com/fsharp-editing/Forge.git 1f87695d813ee521b50c671ed430184b01a25b81 build:"build.sh Build", OS: mono
+git https://github.com/fsharp-editing/Forge.git master build:"build.sh Build", OS: mono
 
 git https://github.com/ionide/ionide-fsgrammar.git
 
