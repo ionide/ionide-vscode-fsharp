@@ -42,13 +42,13 @@ choco install microsoft-build-tools --version 14.0.25420.1 -y
 choco install visualstudiocode -y
 ```
 
-* Recommended: `dontet` CLI >= 2.0
+* Recommended: .NET Core Sdk (`dotnet` CLI) >= 2.0
 
 ### Mono
 
 * Required: Mono >= 4.8
 * Recommended: Mono >= 5.2
-* Recommended: `dontet` CLI >= 2.0
+* Recommended: .NET Core Sdk (`dotnet` CLI) >= 2.0
 
 ## Features
 
