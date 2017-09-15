@@ -210,7 +210,7 @@ module LanguageService =
                 Promise.lift (null |> unbox)
           )
 
-    let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
+    let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
     let project s =
         let parseInfo (f: obj) =
