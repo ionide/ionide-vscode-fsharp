@@ -245,6 +245,10 @@
         "title": "Show project status"
       },
       {
+        "command": "fsharp.explorer.setLaunchSettings",
+        "title": "Set as startup project"
+      },
+      {
         "command": "fsharp.explorer.renameFile",
         "title": "Rename file"
       },
@@ -568,6 +572,11 @@
           "group": "3_modification@2"
         },
         {
+          "command": "fsharp.explorer.setLaunchSettings",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+          "group": "3_modification@3"
+        },
+        {
           "command": "fsharp.explorer.msbuild.build",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
           "group": "2_navigation@1"
@@ -586,6 +595,11 @@
           "command": "fsharp.explorer.project.run",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
           "group": "1_run@1"
+        },
+        {
+          "command": "fsharp.explorer.project.debug",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+          "group": "1_run@2"
         }
       ],
       "editor/context": [

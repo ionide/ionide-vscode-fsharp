@@ -743,10 +743,10 @@ GIT
      (826aa0690b4a1fb536485cc2806fa73b451fcee7)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (87fd2b0e2fb6e5b909fc607f7239f73abd8dcd07)
-    src/Fable.Import.VSCode.fs (87fd2b0e2fb6e5b909fc607f7239f73abd8dcd07)
-    src/Fable.Import.ws.fs (87fd2b0e2fb6e5b909fc607f7239f73abd8dcd07)
-    src/Helpers.fs (87fd2b0e2fb6e5b909fc607f7239f73abd8dcd07)
+    src/Fable.Import.Axios.fs (381544e5fc0c30ec2ad9663a1b5222fc0aee2f6a)
+    src/Fable.Import.VSCode.fs (381544e5fc0c30ec2ad9663a1b5222fc0aee2f6a)
+    src/Fable.Import.ws.fs (381544e5fc0c30ec2ad9663a1b5222fc0aee2f6a)
+    src/Helpers.fs (381544e5fc0c30ec2ad9663a1b5222fc0aee2f6a)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2
