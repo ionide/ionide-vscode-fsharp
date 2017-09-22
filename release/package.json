@@ -831,11 +831,6 @@
           "type": "string",
           "description": "The prefix displayed before the signature",
           "default": "  // "
-        },
-        "FSharp.lineLens.color": {
-          "type": "string",
-          "description": "Color of the line lens, any css syntax or 'theme(...)' for a theme color.",
-          "default": "theme(editorCodeLens.foreground)"
         }
       }
     },
@@ -882,7 +877,8 @@
         "description": "Foreground color for F# LineLenses",
         "defaults": {
           "dark": "#525252",
-          "light": "#C2C2C2"
+          "light": "#C2C2C2",
+          "highContrast": "#A2E2A2"
         }
       }
     ]

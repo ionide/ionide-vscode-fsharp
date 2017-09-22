@@ -33,25 +33,16 @@ module LineLensConfig =
     type LineLensConfig = {
         enabled: EnabledMode
         codeLensEnabled: bool
-        color: U2<string, ThemeColor>
         prefix: string
     }
 
     let defaultConfig = {
         enabled = ReplaceCodeLens
         codeLensEnabled = true
-        color = "editorCodeLens.foreground" |> ThemeColor |> U2.Case2
         prefix = " //  "
     }
 
     let private themeRegex = Regex("\s*theme\((.+)\)\s*")
-
-    let private parseColor (color: string) =
-        let m = themeRegex.Match(color)
-        if m.Success then
-            U2.Case2 (ThemeColor (m.Groups.[1].Value))
-        else
-            U2.Case1 color
 
     let getConfig () =
         let cfg = workspace.getConfiguration()
@@ -62,7 +53,6 @@ module LineLensConfig =
             enabled = cfg.get("FSharp.lineLens.enabled", "replacecodelens") |> parseEnabledMode
             codeLensEnabled = codeLensEnabled
             prefix = cfg.get("FSharp.lineLens.prefix", defaultConfig.prefix)
-            color = cfg.get("FSharp.lineLens.color", "theme(editorCodeLens.foreground)") |> parseColor
         }
 
     let isEnabled conf =
@@ -135,7 +125,7 @@ module LineLensDecorations =
     let create range text =
         // What we add after the range
         let attachment = createEmpty<ThemableDecorationAttachmentRenderOptions>
-        attachment.color <- Some config.color
+        attachment.color <- Some (U2.Case2 (ThemeColor "fsharp.linelens"))
         attachment.contentText <- Some text
 
         // Theme for the range
