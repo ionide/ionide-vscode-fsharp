@@ -875,6 +875,16 @@
           "message": 7
         }
       }
+    ],
+    "colors": [
+      {
+        "id": "fsharp.linelens",
+        "description": "Foreground color for F# LineLenses",
+        "defaults": {
+          "dark": "#525252",
+          "light": "#C2C2C2"
+        }
+      }
     ]
   },
   "activationEvents": [
