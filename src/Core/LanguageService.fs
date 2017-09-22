@@ -385,19 +385,11 @@ module LanguageService =
     let start' path =
         Promise.create (fun resolve reject ->
             let child =
-                let spawnLogged path (args: string list) =
-                    fsacStdoutWriter (sprintf "Running: %s %s\n" path (args |> String.concat " "))
-                    ChildProcess.spawn(path, args |> ResizeArray)
-                let fsac args =
-                    if Process.isMono () then
-                        let mono = "FSharp.monoPath" |> Configuration.get "mono"
-                        spawnLogged mono [ yield path; yield! args ]
-                    else
-                        spawnLogged path args
-                fsac
-                  [ "--mode"; "http"
-                    "--port"; port
-                    sprintf "--hostPID=%i" (int Globals.``process``.pid) ]
+                if Process.isMono () then
+                    let mono = "FSharp.monoPath" |> Configuration.get "mono"
+                    ChildProcess.spawn(mono, [| path; string port|] |> ResizeArray)
+                else
+                    ChildProcess.spawn(path, [| string port|] |> ResizeArray)
 
             let mutable isResolvedAsStarted = false
             child
@@ -444,9 +436,9 @@ module LanguageService =
     let start () =
          let path =
             try
-                (VSCode.getPluginPath "Ionide.ionide-fsharp") + "/bin/fsautocomplete.exe"
+                (VSCode.getPluginPath "Ionide.ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
             with
-            | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/fsautocomplete.exe"
+            | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/FsAutoComplete.Suave.exe"
 
          if devMode then Promise.empty else start' path
 
