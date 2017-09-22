@@ -48,7 +48,7 @@ choco install visualstudiocode -y
 
 * Required: Mono >= 4.8
 * Recommended: Mono >= 5.2
-* Recommended: `dontet` CLI >= 2.0
+* Recommended: `dotnet` CLI >= 2.0
 
 ## Features
 
