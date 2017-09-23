@@ -18,25 +18,23 @@ module LaunchJsonVersion2 =
         { name: string
           ``type``: string
           request: string
-          preLaunchTask: string
+          preLaunchTask: string option
           program: string
           args: string array
           cwd: string
           console: string
-          stopAtEntry: bool
-          internalConsoleOptions: string }
+          stopAtEntry: bool }
 
     let createRequestLaunch () =
         { RequestLaunch.name = ".NET Core Launch (console)"
           ``type`` = "coreclr"
           request = "launch"
-          preLaunchTask = "build"
+          preLaunchTask = Some "build"
           program = "${workspaceRoot}/bin/Debug/{targetFramework}/{projectName}.dll"
           args = [| |]
           cwd = "${workspaceRoot}"
-          console = "internalConsole"
-          stopAtEntry = false
-          internalConsoleOptions = "openOnSessionStart" }
+          console = "externalTerminal"
+          stopAtEntry = false }
 
     type [<Pojo>] RequestAttach =
         { name: string
@@ -84,24 +82,29 @@ module Debugger =
         match project.Info with
         | ProjectResponseInfo.DotnetSdk dotnetSdk ->
             match dotnetSdk.TargetFrameworkIdentifier with
-            | ".NETCoreApp" -> "coreclr"
-            | _ -> "clr"
-        | ProjectResponseInfo.Verbose -> "clr"
-        | ProjectResponseInfo.ProjectJson -> "coreclr"
+            | ".NETCoreApp" -> Some "coreclr"
+            | _ -> Some "clr"
+        | ProjectResponseInfo.Verbose ->
+            if Environment.isWin then None else Some "mono"
+        | ProjectResponseInfo.ProjectJson -> Some "coreclr"
 
     let buildAndDebug (project : Project) =
         promise {
             //TODO check if portablepdb, require info from FSAC
 
             let cfg = LaunchJsonVersion2.createRequestLaunch ()
+            match debuggerRuntime project with
+            | None ->
+                window.showWarningMessage "Can't start debugger"
+                |> ignore
+            | Some rntm ->
+                cfg |> setProgramPath project
+                cfg?``type`` <- rntm
+                cfg?preLaunchTask <- None
 
-            cfg |> setProgramPath project
-            cfg?``type`` <- debuggerRuntime project
-
-            let folder = workspace.workspaceFolders.[0]
-            printfn "FOLDER: %A" folder
-            printfn "CONFIGH: %A" cfg
-            let! res = vscode.commands.executeCommand("vscode.startDebug", cfg)
-            // let! res =  debug.startDebugging(folder, unbox cfg)
-            printfn "DEBUGER RESULT: %A" res
+                let folder = workspace.workspaceFolders.[0]
+                let! _ = MSBuild.buildProjectPath "Build" project
+                // let! res = vscode.commands.executeCommand("vscode.startDebug", cfg)
+                let! res =  debug.startDebugging(folder, unbox cfg)
+                return ()
         }

@@ -270,9 +270,9 @@ module Project =
         projectContent.IndexOf(core) >= 0
 
     let isSDKProject (project:Project) =
-        let projectContent = (Fs.readFileSync project.Project).toString()
-        let sdk = "<Project Sdk=\""
-        projectContent.IndexOf(sdk) >= 0
+        match project.Info with
+        | ProjectResponseInfo.DotnetSdk _ -> true
+        |  _ -> false
 
     let isSDKProjectPath (project:string) =
         let projectContent = (Fs.readFileSync project).toString()
