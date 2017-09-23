@@ -487,10 +487,60 @@ module SolutionExplorer =
             | _ ->
                 Promise.empty
 
+        let runDebug m =
+            match m with
+            | Model.Project (path, name, _, _, _, _, proj) ->
+                proj |> Debugger.buildAndDebug
+            | _ ->
+                Promise.empty
+
+        let setLaunchSettingsCommand m =
+
+            let findCoreclrLaunch debuggerRuntime cfg : LaunchJsonVersion2.RequestLaunch option =
+                match unbox cfg?``type``, unbox cfg?request with
+                | debuggerRuntime, "launch" -> Some (cfg |> unbox)
+                | _ -> None
+
+            match m with
+            | Model.Project (path, name, _, _, _, _, proj) ->
+                promise {
+                    let launchConfig = workspace.getConfiguration("launch")
+                    do! LaunchJsonVersion2.assertVersion2 launchConfig
+                    let configurations : ResizeArray<obj> =
+                        match launchConfig.get("configurations") with
+                        | Some x -> x
+                        | None -> ResizeArray<_>()
+
+                    let launchRequestCfg =
+                        let debuggerRuntime = Debugger.debuggerRuntime proj
+                        // create or update right launch setting
+                        match configurations :> seq<_> |> Seq.tryPick (findCoreclrLaunch debuggerRuntime) with
+                        | Some cfg -> cfg
+                        | None -> 
+                            //TODO is possibile to programmatically run the "Add Configuration" for .net console?
+                            let cfg = LaunchJsonVersion2.createRequestLaunch ()
+                            cfg?``type`` <- Debugger.debuggerRuntime proj
+                            configurations.Add(cfg)
+                            cfg
+
+                    launchRequestCfg |> Debugger.setProgramPath proj 
+
+                    do! launchConfig.update("configurations", configurations, false)
+                }
+            | _ ->
+                Promise.empty
+
+
         commands.registerCommand("fsharp.explorer.showProjectLoadFailedInfo", (unbox >> projectStatusCommand >> box))
         |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.showProjectStatus", (unbox >> projectStatusCommand >> box))
+        |> context.subscriptions.Add
+
+        commands.registerCommand("fsharp.explorer.setLaunchSettings", (unbox >> setLaunchSettingsCommand >> box))
+        |> context.subscriptions.Add
+
+        commands.registerCommand("fsharp.explorer.project.debug", (unbox >> runDebug >> box))
         |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.openProjectFile", Func<obj, obj>(fun m ->
@@ -556,14 +606,6 @@ module SolutionExplorer =
                 |> unbox
             | _ -> unbox ()
         )) |> context.subscriptions.Add
-
-        // commands.registerCommand("fsharp.explorer.project.debug", Func<obj, obj>(fun m ->
-        //     match unbox m with
-        //     | Project (_, _, _, _, _, _, pr) ->
-        //         Debugger.buildAndDebug pr
-        //         |> unbox
-        //     | _ -> unbox ()
-        // )) |> context.subscriptions.Add
 
         workspace.onDidChangeConfiguration.Invoke(fun _ ->
             loadCurrentTheme emiter |> ignore

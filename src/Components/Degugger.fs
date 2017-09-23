@@ -11,19 +11,52 @@ open Fable.Import.Node
 open Ionide.VSCode.Helpers
 open DTO
 
-module Debugger =
+[<RequireQualifiedAccess>]
+module LaunchJsonVersion2 =
 
-    type DebuggerConfig = {
-        name : string
-        ``type`` : string
-        request : string
-        program: string
-        args : string []
-        cwd : string
-        stopAtEntry: bool
-        console : string
-        preLaunchTask : string
-    }
+    type [<Pojo>] RequestLaunch =
+        { name: string
+          ``type``: string
+          request: string
+          preLaunchTask: string
+          program: string
+          args: string array
+          cwd: string
+          console: string
+          stopAtEntry: bool
+          internalConsoleOptions: string }
+
+    let createRequestLaunch () =
+        { RequestLaunch.name = ".NET Core Launch (console)"
+          ``type`` = "coreclr"
+          request = "launch"
+          preLaunchTask = "build"
+          program = "${workspaceRoot}/bin/Debug/{targetFramework}/{projectName}.dll"
+          args = [| |]
+          cwd = "${workspaceRoot}"
+          console = "internalConsole"
+          stopAtEntry = false
+          internalConsoleOptions = "openOnSessionStart" }
+
+    type [<Pojo>] RequestAttach =
+        { name: string
+          ``type``: string
+          request: string
+          processId: string }
+
+    let createAttachLaunch () =
+        { RequestAttach.name = ".NET Core Attach"
+          ``type`` = "coreclr"
+          request = "attach"
+          processId = "${command:pickProcess}" }
+
+    let assertVersion2 (cfg: WorkspaceConfiguration) =
+        promise {
+            do! cfg.update("version", "0.2.0", false)
+            do! cfg.update("configurations", ResizeArray<obj>(), false)
+        }
+
+module Debugger =
 
     let buildAndRun (project : Project) =
         promise {
@@ -37,39 +70,38 @@ module Debugger =
                 l "" |> ignore
         }
 
+    let setProgramPath project (cfg: LaunchJsonVersion2.RequestLaunch) =
+        let relativeOutPath = Path.relative(workspace.rootPath, project.Output).Replace("\\", "/")
+        let programPath = sprintf "${workspaceRoot}/%s" relativeOutPath
+
+        // WORKAROUND the project.Output is the obj assembly, instead of bin assembly
+        // ref https://github.com/fsharp/FsAutoComplete/issues/218
+        let programPath = programPath.Replace("/obj/", "/bin/")
+
+        cfg?program <- programPath
+
+    let debuggerRuntime project =
+        match project.Info with
+        | ProjectResponseInfo.DotnetSdk dotnetSdk ->
+            match dotnetSdk.TargetFrameworkIdentifier with
+            | ".NETCoreApp" -> "coreclr"
+            | _ -> "clr"
+        | ProjectResponseInfo.Verbose -> "clr"
+        | ProjectResponseInfo.ProjectJson -> "coreclr"
+
     let buildAndDebug (project : Project) =
         promise {
-            let! _ = MSBuild.buildProjectPath "Build" project
-            match Project.isSDKProject project with
-            | false -> window.showWarningMessage "Can't debug non-SDK project" |> ignore
-            | true ->
-                match Project.isPortablePdbProject project with
-                | false -> window.showWarningMessage "Debugger requires PortablePdb DebugType" |> ignore
-                | true ->
-                    let typ =
-                        match Project.isNetCoreApp project with
-                        | true -> "coreclr"
-                        | false -> "clr"
+            //TODO check if portablepdb, require info from FSAC
 
-                    let p = Path.relative(workspace.rootPath, project.Output).Replace("\\", "/")
+            let cfg = LaunchJsonVersion2.createRequestLaunch ()
 
-                    let cfg = {
-                        name = "Launch"
-                        ``type`` = typ
-                        request = "launch"
-                        program = "${workspaceRoot}/" + p
-                        args = [||]
-                        cwd = "${workspaceRoot}"
-                        stopAtEntry = true
-                        console = "integratedTerminal"
-                        preLaunchTask = ""
-                    }
-                    let folder = workspace.workspaceFolders.[0]
-                    printfn "FOLDER: %A" folder
-                    printfn "CONFIGH: %A" cfg
-                    let! res = vscode.commands.executeCommand("vscode.startDebug", cfg)
-                    // let! res =  debug.startDebugging(folder, unbox cfg)
-                    printfn "DEBUGER RESULT: %A" res
+            cfg |> setProgramPath project
+            cfg?``type`` <- debuggerRuntime project
 
-
+            let folder = workspace.workspaceFolders.[0]
+            printfn "FOLDER: %A" folder
+            printfn "CONFIGH: %A" cfg
+            let! res = vscode.commands.executeCommand("vscode.startDebug", cfg)
+            // let! res =  debug.startDebugging(folder, unbox cfg)
+            printfn "DEBUGER RESULT: %A" res
         }
