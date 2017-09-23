@@ -516,14 +516,14 @@ module SolutionExplorer =
                         // create or update right launch setting
                         match configurations :> seq<_> |> Seq.tryPick (findCoreclrLaunch debuggerRuntime) with
                         | Some cfg -> cfg
-                        | None -> 
+                        | None ->
                             //TODO is possibile to programmatically run the "Add Configuration" for .net console?
                             let cfg = LaunchJsonVersion2.createRequestLaunch ()
                             cfg?``type`` <- Debugger.debuggerRuntime proj
                             configurations.Add(cfg)
                             cfg
 
-                    launchRequestCfg |> Debugger.setProgramPath proj 
+                    launchRequestCfg |> Debugger.setProgramPath proj
 
                     do! launchConfig.update("configurations", configurations, false)
                 }
@@ -537,8 +537,8 @@ module SolutionExplorer =
         commands.registerCommand("fsharp.explorer.showProjectStatus", (unbox >> projectStatusCommand >> box))
         |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.setLaunchSettings", (unbox >> setLaunchSettingsCommand >> box))
-        |> context.subscriptions.Add
+        // commands.registerCommand("fsharp.explorer.setLaunchSettings", (unbox >> setLaunchSettingsCommand >> box))
+        // |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.project.debug", (unbox >> runDebug >> box))
         |> context.subscriptions.Add
