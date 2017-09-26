@@ -1,3 +1,10 @@
+### 3.2.0 - 26.09.2017
+* Add run and debug default project commands
+* Enable `resolve namespace or module` by default
+* Fix parsing signature files
+* Linelens colors
+* Update to latest FSAC
+
 ### 3.1.0 - 13.09.2017
 * Add MsBuild commands for solution node in project explorer
 
