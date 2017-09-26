@@ -82,7 +82,7 @@ Target "DotNetRestore" <| fun () ->
     DotNetCli.Restore (fun p -> { p with WorkingDir = "src" } )
 
 let runFable additionalArgs =
-    let cmd = "fable webpack -- --config ../webpack.config.js " + additionalArgs
+    let cmd = "fable webpack -- --config webpack.config.js " + additionalArgs
     DotNetCli.RunCommand (fun p -> { p with WorkingDir = "src" } ) cmd
 
 Target "RunScript" (fun _ ->
