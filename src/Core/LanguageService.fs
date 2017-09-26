@@ -247,7 +247,7 @@ module LanguageService =
           ParseRequest.Lines = lines
           ParseRequest.IsAsync = true
           ParseRequest.Version = int version }
-        |> request "parse" 0 (makeRequestId())
+        |> request "parse" 1 (makeRequestId())
 
     let helptext s =
         {HelptextRequest.Symbol = s}
