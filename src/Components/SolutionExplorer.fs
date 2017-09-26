@@ -607,6 +607,14 @@ module SolutionExplorer =
             | _ -> unbox ()
         )) |> context.subscriptions.Add
 
+        commands.registerCommand("fsharp.explorer.project.setDefault", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Project (_, _, _, _, _, _, pr) ->
+                Debugger.setDefaultProject pr
+                |> unbox
+            | _ -> unbox ()
+        )) |> context.subscriptions.Add
+
         workspace.onDidChangeConfiguration.Invoke(fun _ ->
             loadCurrentTheme emiter |> ignore
             null) |> ignore

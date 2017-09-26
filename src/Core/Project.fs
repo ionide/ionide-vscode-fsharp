@@ -269,6 +269,11 @@ module Project =
         let core = "<TargetFramework>netcoreapp"
         projectContent.IndexOf(core) >= 0
 
+    let isNetCoreApp2 (project:Project) =
+        let projectContent = (Fs.readFileSync project.Project).toString()
+        let core = "<TargetFramework>netcoreapp2"
+        projectContent.IndexOf(core) >= 0
+
     let isSDKProject (project:Project) =
         match project.Info with
         | ProjectResponseInfo.DotnetSdk _ -> true

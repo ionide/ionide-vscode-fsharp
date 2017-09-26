@@ -66,6 +66,7 @@ let activate (context: ExtensionContext) =
         Expecto.activate context
         MSBuild.activate context
         SignatureData.activate context
+        Debugger.activate context
     )
     |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
     |> ignore
