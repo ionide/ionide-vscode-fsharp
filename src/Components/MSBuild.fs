@@ -254,7 +254,9 @@ module MSBuild =
                 logger.Info("MSBuild (.NET) activated")
             | Some MSbuildHost.DotnetCli ->
                 logger.Info("Dotnet cli (.NET Core) activated")
-            | Some MSbuildHost.Auto | None ->
+            | Some MSbuildHost.Auto ->
+                logger.Info("Automatic msbuild detection")
+            | None ->
                 logger.Info("Active msbuild: not choosen yet") )
         |> context.subscriptions.Add
 
