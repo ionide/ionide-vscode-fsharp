@@ -76,9 +76,6 @@ module Debugger =
         // ref https://github.com/fsharp/FsAutoComplete/issues/218
         let programPath = programPath.Replace("/obj/", "/bin/")
 
-        // WORKAROUND - FSAC reports always net core apps as 1.0
-        let programPath = if Project.isNetCoreApp2 project then programPath.Replace("/netcoreapp1.0/", "/netcoreapp2.0/") else programPath
-
         cfg?program <- programPath
 
     let debuggerRuntime project =
@@ -128,19 +125,28 @@ module Debugger =
                     | Project.ProjectLoadingState.Loaded x -> Some x
                     | _ -> None
                 )
-            let picks =
-                projects
-                |> List.map (fun p ->
-                    createObj [
-                        "data" ==> p
-                        "label" ==> p.Project
-                    ])
-                |> ResizeArray
 
-            let! proj = window.showQuickPick(unbox<U2<ResizeArray<QuickPickItem>, _>> picks)
-            let project = unbox<Project> (proj?data)
-            setDefaultProject project
-            return project
+            if projects.Length = 0 then
+                return None
+            elif projects.Length = 1 then
+                return Some projects.Head
+            else
+                let picks =
+                    projects
+                    |> List.map (fun p ->
+                        createObj [
+                            "data" ==> p
+                            "label" ==> p.Project
+                        ])
+                    |> ResizeArray
+
+                let! proj = window.showQuickPick(unbox<U2<ResizeArray<QuickPickItem>, _>> picks)
+                if JS.isDefined proj then
+                    let project = unbox<Project> (proj?data)
+                    setDefaultProject project
+                    return Some project
+                else
+                    return None
         }
 
 
@@ -148,29 +154,20 @@ module Debugger =
         match startup with
         | None ->
             chooseDefaultProject ()
-            |> Promise.bind buildAndRun
+            |> Promise.map (Option.map (buildAndRun) >> ignore)
         | Some p -> buildAndRun p
 
     let buildAndDebugDefault () =
         match startup with
         | None ->
             chooseDefaultProject ()
-            |> Promise.bind buildAndDebug
+            |> Promise.map (Option.map (buildAndDebug) >> ignore)
         | Some p -> buildAndDebug p
 
     let activate (c : ExtensionContext) =
         commands.registerCommand("fsharp.runDefaultProject", (buildAndRunDefault) |> unbox<Func<obj,obj>> ) |> c.subscriptions.Add
         commands.registerCommand("fsharp.debugDefaultProject", (buildAndDebugDefault) |> unbox<Func<obj,obj>> ) |> c.subscriptions.Add
         commands.registerCommand("fsharp.chooseDefaultProject", (chooseDefaultProject) |> unbox<Func<obj,obj>> ) |> c.subscriptions.Add
-
-        // commands.registerCommand("fsharp.getDefaultProjectPath", Func<obj, obj>(fun m ->
-        //     match unbox m with
-        //     | Project (path, _, _, _, _, _, pr) ->
-        //         MSBuild.buildProjectPath "Build" pr
-        //         |> unbox
-        //     | _ -> unbox ()
-        // )) |> c.subscriptions.Add
-
 
         context <- Some c
         startup <- c.workspaceState.get<Project> "defaultProject"
