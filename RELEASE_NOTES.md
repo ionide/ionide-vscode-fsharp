@@ -1,3 +1,6 @@
+### 3.2.1 - 27.09.2017
+* Add `Add Project to solution` command
+
 ### 3.2.0 - 26.09.2017
 * Add run and debug default project commands
 * Enable `resolve namespace or module` by default
