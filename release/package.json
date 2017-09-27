@@ -321,6 +321,10 @@
       {
         "command": "fsharp.chooseDefaultProject",
         "title": "F#: Choose Default Project"
+      },
+      {
+        "command": "fsharp.explorer.solution.addProject",
+        "title": "Add project"
       }
     ],
     "views": {
@@ -412,6 +416,10 @@
         },
         {
           "command": "fsharp.explorer.project.setDefault",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.solution.addProject",
           "when": "false"
         },
         {
@@ -593,6 +601,11 @@
           "command": "fsharp.explorer.solution.clean",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.solution",
           "group": "1_navigation@3"
+        },
+        {
+          "command": "fsharp.explorer.solution.addProject",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.solution",
+          "group": "2_modification@1"
         },
         {
           "command": "fsharp.explorer.openProjectFile",

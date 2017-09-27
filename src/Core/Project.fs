@@ -295,13 +295,13 @@ module Project =
         | out, _ when out |> String.endWith ".exe" -> true
         | _ -> false
 
-    let private execWithDotnet outputChannel cmd =
+    let execWithDotnet outputChannel cmd =
         promise {
             let! dotnet = Environment.dotnet
             return Process.spawnWithNotification dotnet "" cmd outputChannel
         }
 
-    let private exec exe outputChannel cmd =
+    let exec exe outputChannel cmd =
         promise {
             return Process.spawnWithNotification exe "mono" cmd outputChannel
         }

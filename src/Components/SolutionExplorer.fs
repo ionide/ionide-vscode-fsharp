@@ -615,6 +615,25 @@ module SolutionExplorer =
             | _ -> unbox ()
         )) |> context.subscriptions.Add
 
+        commands.registerCommand("fsharp.explorer.solution.addProject", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Solution (_,name, _) ->
+                promise {
+                    let projects = Project.getAll ()
+                    // let addedProject = Project.getLoaded () |> List.map (fun p -> p.Project)
+                    // let toAdd = projects |> List.where (fun n -> addedProject |> List.contains n |> not) |> ResizeArray
+                    if projects.Length = 0 then
+                        window.showInformationMessage "No projects in workspace that can be added to the solution"
+                    else
+                        let projs = projects |> ResizeArray
+                        let! proj = window.showQuickPick (unbox projs)
+                        if JS.isDefined proj then
+                            Project.execWithDotnet MSBuild.outputChannel (sprintf "sln %s add %s" name proj)
+                }
+                |> unbox
+            | _ -> unbox ()
+        )) |> context.subscriptions.Add
+
         workspace.onDidChangeConfiguration.Invoke(fun _ ->
             loadCurrentTheme emiter |> ignore
             null) |> ignore

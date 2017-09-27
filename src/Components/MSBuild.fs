@@ -11,7 +11,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module MSBuild =
-    let private outputChannel = window.createOutputChannel "msbuild"
+    let outputChannel = window.createOutputChannel "msbuild"
     let private logger = ConsoleAndOutputChannelLogger(Some "msbuild", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
 
     type MSbuildHost =
