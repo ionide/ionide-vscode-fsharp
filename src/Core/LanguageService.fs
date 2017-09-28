@@ -395,7 +395,8 @@ module LanguageService =
                     else
                         spawnLogged path args
                 fsac
-                  [ "--mode"; "http"
+                  [ "--debug"
+                    "--mode"; "http"
                     "--port"; port
                     sprintf "--hostPID=%i" (int Globals.``process``.pid) ]
 
