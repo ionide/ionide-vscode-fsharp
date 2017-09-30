@@ -189,7 +189,7 @@ module CodeOutline =
             let args =
                 createObj [
                     "lineNumber" ==> line - 1
-                    "at" ==> "top"
+                    "at" ==> "center"
                 ]
 
             vscode.commands.executeCommand("revealLine", args)
