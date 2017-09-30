@@ -143,13 +143,17 @@ module CodeOutline =
                     getSubmodel node |> ResizeArray
                 else
                     let doc = window.activeTextEditor
-                    match doc.document with
-                    | Document.FSharp ->
-                        promise {
-                            let! x = getRoot doc.document
-                            return if isNotNull x then x |> List.singleton |> ResizeArray else unbox (ResizeArray ())
-                        } |> unbox
-                    | _ ->  ResizeArray ()
+                    if JS.isDefined doc
+                    then
+                        match doc.document with
+                        | Document.FSharp ->
+                            promise {
+                                let! x = getRoot doc.document
+                                return if isNotNull x then x |> List.singleton |> ResizeArray else unbox (ResizeArray ())
+                            } |> unbox
+                        | _ ->  ResizeArray ()
+                    else ResizeArray ()
+
 
             member this.getTreeItem(node) =
                 let ti = createEmpty<TreeItem>
