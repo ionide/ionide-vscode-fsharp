@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   id="svg4036"
+   version="1.1"
+   viewBox="0 0 4.2333333 4.2333335"
+   height="16"
+   width="16">
+  <defs
+     id="defs4030" />
+  <metadata
+     id="metadata4033">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(0,-292.76665)"
+     id="layer1">
+    <g
+       transform="translate(-2.4269153,-4.8561732)"
+       id="g4056">
+      <polygon
+         transform="matrix(0.26458333,0,0,0.26458333,-8.6855845,291.80199)"
+         style="fill:#2d2d30"
+         points="49,35 50.586,35 53.586,38 54.414,38 58,34.414 58,33.586 55.914,31.5 58,29.414 58,28.586 55,25.586 53.586,27 51.414,27 52.414,26 48.414,22 47.586,22 42,27.586 42,28.414 46,32.414 48.414,30 49,30 "
+         id="polygon282" />
+      <polygon
+         transform="matrix(0.26458333,0,0,0.26458333,-8.6855845,291.80199)"
+         style="fill:#e8ab53"
+         points="43,28 46,31 48,29 50,29 50,34 53,34 52,35 54,37 57,34 55,32 53.998,33.002 51,33 51,29 53,29 52,30 54,32 57,29 55,27 54,28 49,28 51,26 48,23 "
+         id="polygon284" />
+    </g>
+  </g>
+</svg>

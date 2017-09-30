@@ -53,9 +53,9 @@ module Errors =
         |> Promise.map (fun (result : ParseResult) ->
             if isNotNull result then
                 onDocumentParsedEmitter.fire { fileName = fileName; text = text; version = version; document = document; result = result }
-                // printf "CodeLens - File parsed"
                 CodeLens.refresh.fire (unbox version)
                 Linter.refresh.fire fileName
+                CodeOutline.refresh.fire (unbox ())
                 (Uri.file fileName, (mapResult result |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
 
     let private parseFile (file : TextDocument) =

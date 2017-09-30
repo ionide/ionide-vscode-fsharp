@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   height="20"
+   width="20"
+   version="1.1"
+   id="svg4726"
+   viewBox="0 0 20 20">
+  <metadata
+     id="metadata4742">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs4740" />
+  <style
+     id="style4728">.icon-canvas-transparent{opacity:0;fill:#252526}.icon-vs-out{fill:#252526}.icon-vs-bg{fill:#c5c5c5}.icon-vs-fg{fill:#2b282e}.icon-vs-action-blue{fill:#75beff}</style>
+  <g
+     transform="translate(2,-2)"
+     id="g4744">
+    <path
+       class="icon-canvas-transparent"
+       d="M 16,20 0,20 0,4 16,4 16,20 Z"
+       id="canvas"
+       style="opacity:0;fill:#252526" />
+    <path
+       class="icon-vs-out"
+       d="M 2.879,18 1,16.121 1,7.879 2.879,6 13.121,6 15,7.879 15,16.121 13.121,18 2.879,18 Z"
+       id="outline"
+       style="fill:#252526" />
+    <path
+       class="icon-vs-fg"
+       d="M 12.293,8 3.707,8 3,8.707 3,15.293 3.707,16 12.293,16 13,15.293 13,8.707 12.293,8 Z M 11,14 l -6,0 0,-1 6,0 0,1 z m 0,-3 -6,0 0,-1 6,0 0,1 z"
+       id="iconFg"
+       style="fill:#2b282e" />
+    <g
+       id="iconBg"
+       transform="translate(0,4)">
+      <path
+         class="icon-vs-bg"
+         d="M 12.707,13 3.293,13 2,11.707 2,4.293 3.293,3 12.707,3 14,4.293 14,11.707 12.707,13 Z m -9,-1 8.586,0 L 13,11.293 13,4.707 12.293,4 3.707,4 3,4.707 3,11.293 3.707,12 Z"
+         id="path4734"
+         style="fill:#c5c5c5" />
+      <path
+         class="icon-vs-action-blue"
+         d="m 11,7 -6,0 0,-1 6,0 0,1 z m 0,2 -6,0 0,1 6,0 0,-1 z"
+         id="path4736"
+         style="fill:#75beff" />
+    </g>
+  </g>
+</svg>

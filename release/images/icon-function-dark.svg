@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   id="svg4080"
+   version="1.1"
+   viewBox="0 0 4.2333333 4.2333335"
+   height="16"
+   width="16">
+  <defs
+     id="defs4074" />
+  <metadata
+     id="metadata4077">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(0,-292.76664)"
+     id="layer1">
+    <g
+       transform="translate(-2.7025298,-14.259153)"
+       id="g4110">
+      <polygon
+         transform="matrix(0.26458333,0,0,0.26458333,2.8348215,301.20496)"
+         style="fill:#2d2d30"
+         points="13,32.691 13,27.309 7.791,24 7.209,24 2,27.309 2,32.691 7.209,36 7.791,36 "
+         id="polygon304" />
+      <polygon
+         transform="matrix(0.26458333,0,0,0.26458333,2.8348215,301.20496)"
+         style="fill:#b180d7"
+         points="7.5,25 3,27.857 3,32.143 7.5,35 12,32.143 12,27.857 "
+         id="polygon306" />
+      <polygon
+         transform="matrix(0.26458333,0,0,0.26458333,2.8348215,301.20496)"
+         style="fill:#b180d7"
+         points="7,33.498 4,31.593 4,28.777 7,30.684 "
+         id="polygon308" />
+      <polygon
+         transform="matrix(0.26458333,0,0,0.26458333,2.8348215,301.20496)"
+         style="fill:#b180d7"
+         points="4.642,28 7.5,26.186 10.358,28 7.5,29.814 "
+         id="polygon310" />
+      <polygon
+         transform="matrix(0.26458333,0,0,0.26458333,2.8348215,301.20496)"
+         style="fill:#b180d7"
+         points="11,31.593 8,33.498 8,30.684 11,28.777 "
+         id="polygon312" />
+      <polygon
+         transform="matrix(0.26458333,0,0,0.26458333,2.8348215,301.20496)"
+         style="fill:#2b282e"
+         points="10.358,28 7.5,29.814 4.642,28 7.5,26.186 "
+         id="polygon314" />
+      <polygon
+         transform="matrix(0.26458333,0,0,0.26458333,2.8348215,301.20496)"
+         style="fill:#2b282e"
+         points="4,28.777 7,30.684 7,33.498 4,31.593 "
+         id="polygon316" />
+      <polygon
+         transform="matrix(0.26458333,0,0,0.26458333,2.8348215,301.20496)"
+         style="fill:#2b282e"
+         points="8,33.498 8,30.684 11,28.777 11,31.593 "
+         id="polygon318" />
+    </g>
+  </g>
+</svg>

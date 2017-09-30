@@ -17,6 +17,7 @@ let activate (context: ExtensionContext) =
     let legacyFsi = "FSharp.legacyFSI" |> Configuration.get false
     let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
+    let codeOutline = "FSharp.codeOutline" |> Configuration.get true
 
     let init = DateTime.Now
 
@@ -37,6 +38,8 @@ let activate (context: ExtensionContext) =
                 p.report pm
                 CodeLens.activate df' context
                 Linter.activate df' context
+                if codeOutline then CodeOutline.activate context
+
             )
             |> Promise.onSuccess(fun _ -> if solutionExplorer then SolutionExplorer.activate context)
             |> Promise.bind(fun parseVisibleTextEditors -> Project.activate context parseVisibleTextEditors)

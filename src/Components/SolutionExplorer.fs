@@ -13,6 +13,8 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module SolutionExplorer =
+
+
     type Model =
         | Workspace of Projects : Model list
         | Solution of path: string * name: string * items: Model list
