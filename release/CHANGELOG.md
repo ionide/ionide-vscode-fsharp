@@ -1,3 +1,6 @@
+### 3.3.0 - 30.09.2017
+* Add Code Outline panel
+
 ### 3.2.1 - 27.09.2017
 * Add `Add Project to solution` command
 
