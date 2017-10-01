@@ -194,7 +194,8 @@ module DecorationUpdate =
             logger.Debug("Found existing decorations in cache for '%s' @%d", fileName, version)
             return Some info
         | None when document.version = version ->
-            let! declarationsResult = LanguageService.declarations fileName (unbox version)
+            let text = document.getText()
+            let! declarationsResult = LanguageService.declarations fileName text (unbox version)
             if document.version = version && isNotNull declarationsResult then
                 let! signatures = declarationsResultToSignatures declarationsResult fileName
                 let info = state.documents |> Documents.getOrAdd fileName

@@ -293,8 +293,9 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "signatureData" 0 (makeRequestId())
 
-    let declarations fn version=
-        {DeclarationsRequest.FileName = handleUntitled fn; Version = version}
+    let declarations fn (text : string) version=
+        let lines = text.Replace("\uFEFF", "").Split('\n')
+        {DeclarationsRequest.FileName = handleUntitled fn; Lines = lines; Version = version}
         |> request<_, Result<Symbols[]>> "declarations" 0 (makeRequestId())
 
 

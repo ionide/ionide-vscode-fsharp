@@ -113,8 +113,8 @@ module CodeOutline =
 
     let getRoot (doc : TextDocument) =
         promise {
-
-            let! o = LanguageService.declarations doc.fileName (unbox doc.version)
+            let text = doc.getText()
+            let! o = LanguageService.declarations doc.fileName text (unbox doc.version)
             if isNotNull o then
                 return o.Data |> map
             else
