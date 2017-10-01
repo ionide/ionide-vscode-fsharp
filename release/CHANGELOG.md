@@ -1,3 +1,6 @@
+### 3.3.3 - 01.10.2017
+* Make CodeLenses (and finding declarations faster)
+
 ### 3.3.2 - 30.09.2017
 * Show symbol in the center of the screen when using Code Outline navigation
 * Fix Code Outline startup if no editors opened
