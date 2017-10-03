@@ -546,11 +546,20 @@ module SolutionExplorer =
         |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.openProjectFile", Func<obj, obj>(fun m ->
-            match unbox m with
-            | Project (path, _, _, _, _, _, _) ->
+            let pathOpt =
+                match unbox m with
+                | ProjectNotLoaded (path, _) -> Some path
+                | ProjectLoading (path, _) -> Some path
+                | ProjectFailedToLoad (path, _, _) -> Some path
+                | Project (path, _, _, _, _, _, _) -> Some path
+                | _ -> None
+
+            match pathOpt with
+            | Some path ->
                 commands.executeCommand("vscode.open", Uri.file(path))
                 |> unbox
-            | _ -> unbox ()
+            | None -> unbox ()
+
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.msbuild.build", Func<obj, obj>(fun m ->

@@ -553,11 +553,23 @@
           "group": "2_modification@1"
         },
         {
+          "command": "fsharp.explorer.openProjectFile",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectNotLoaded"
+        },
+        {
           "command": "fsharp.explorer.showProjectLoadFailedInfo",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectLoadFailed"
         },
         {
+          "command": "fsharp.explorer.openProjectFile",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectLoadFailed"
+        },
+        {
           "command": "fsharp.explorer.showProjectStatus",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectLoading"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectLoading"
         },
         {
