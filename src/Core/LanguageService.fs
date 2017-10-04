@@ -392,7 +392,7 @@ module LanguageService =
                 let fsac args =
                     if Process.isMono () then
                         let mono = "FSharp.monoPath" |> Configuration.get "mono"
-                        spawnLogged mono [ yield path; yield! args ]
+                        spawnLogged mono [ yield "--debug"; yield path; yield! args ]
                     else
                         spawnLogged path args
                 fsac
