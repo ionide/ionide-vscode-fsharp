@@ -1,3 +1,6 @@
+### 3.3.4 - 04.10.2017
+* Update FSAC - faster parsing
+
 ### 3.3.3 - 01.10.2017
 * Make CodeLenses (and finding declarations faster)
 
