@@ -40,7 +40,6 @@
     <Compile Include="Components/CodeOutline.fs" />
     <Compile Include="Components/Fsi.fs" />
     <Compile Include="Components/LegacyFsi.fs" />
-    <Compile Include="Components/QuickInfo.fs" />
     <Compile Include="Components/Forge.fs" />
     <Compile Include="Components/Linter.fs" />
     <Compile Include="Components/CodeLens.fs" />
@@ -49,6 +48,7 @@
     <Compile Include="Components/UnionCaseGenerator.fs" />
     <Compile Include="Components/Errors.fs" />
     <Compile Include="Components/LineLens.fs" />
+    <Compile Include="Components/QuickInfo.fs" />
     <Compile Include="Components/Expecto.fs" />
     <Compile Include="Components/MSBuild.fs" />
     <Compile Include="Components/Help.fs" />

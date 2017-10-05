@@ -138,6 +138,8 @@ module JS =
         [<Emit("{}")>]
         static member empty: JsObjectAsDictionary<'a> = jsNative
 
+    let inline undefined<'a> = unbox<'a> ()
+
 [<AutoOpen>]
 module Patterns =
     let (|StartsWith|_|) (pat: string) (str: string)  =
