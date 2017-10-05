@@ -1,3 +1,6 @@
+### 3.4.0 - 05.10.2017
+* Initial support for MacOS TouchBar icons
+
 ### 3.3.4 - 04.10.2017
 * Update FSAC - faster parsing
 
