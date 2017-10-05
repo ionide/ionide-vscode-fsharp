@@ -634,12 +634,12 @@ module SolutionExplorer =
                     // let addedProject = Project.getLoaded () |> List.map (fun p -> p.Project)
                     // let toAdd = projects |> List.where (fun n -> addedProject |> List.contains n |> not) |> ResizeArray
                     if projects.Length = 0 then
-                        window.showInformationMessage "No projects in workspace that can be added to the solution"
+                        window.showInformationMessage "No projects in workspace that can be added to the solution" |> ignore
                     else
                         let projs = projects |> ResizeArray
                         let! proj = window.showQuickPick (unbox projs)
                         if JS.isDefined proj then
-                            Project.execWithDotnet MSBuild.outputChannel (sprintf "sln %s add %s" name proj)
+                            Project.execWithDotnet MSBuild.outputChannel (sprintf "sln %s add %s" name proj) |> ignore
                 }
                 |> unbox
             | _ -> unbox ()
