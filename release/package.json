@@ -676,27 +676,27 @@
       "touchBar": [
         {
           "command": "fsharp.debugDefaultProject",
-          "group": "debug",
+          "group": "fsharp",
           "when": "fsharp.project.any"
         },
         {
           "command": "fsharp.runDefaultProject",
-          "group": "debug",
+          "group": "fsharp",
           "when": "fsharp.project.any"
         },
         {
           "command": "fsharp.NewProject",
-          "group": "project",
+          "group": "fsharp",
           "when": "fsharp.project.any"
         },
         {
           "command": "fsi.Start",
-          "group": "fsi",
+          "group": "fsharp",
           "when": "fsharp.project.any || editorLangId == 'fsharp'"
         },
         {
           "command": "fsi.SendFile",
-          "group": "fsi",
+          "group": "fsharp",
           "when": "editorLangId == 'fsharp'"
         }
       ]
