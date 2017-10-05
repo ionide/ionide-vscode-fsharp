@@ -92,7 +92,7 @@ choco install visualstudiocode -y
 2. Open the Output Panel and switch to the `F# Language Service` Channel
 3. Or Toggle Developer Tools (`Help |> Toggle Developer Tools`) and open the console tab
 
-### How to contribute
+## How to contribute
 
 *Imposter syndrome disclaimer*: I want your help. No really, I do.
 
