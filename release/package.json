@@ -677,22 +677,22 @@
         {
           "command": "fsharp.debugDefaultProject",
           "group": "debug",
-          "when": "editorLangId == 'fsharp'"
+          "when": "fsharp.project.any"
         },
         {
           "command": "fsharp.runDefaultProject",
           "group": "debug",
-          "when": "editorLangId == 'fsharp'"
+          "when": "fsharp.project.any"
         },
         {
           "command": "fsharp.NewProject",
           "group": "project",
-          "when": "editorLangId == 'fsharp'"
+          "when": "fsharp.project.any"
         },
         {
           "command": "fsi.Start",
           "group": "fsi",
-          "when": "editorLangId == 'fsharp'"
+          "when": "fsharp.project.any || editorLangId == 'fsharp'"
         },
         {
           "command": "fsi.SendFile",
