@@ -672,6 +672,33 @@
           "group": "1_modification",
           "when": "editorTextFocus && editorLangId == 'fsharp'"
         }
+      ],
+      "touchBar": [
+        {
+          "command": "fsharp.debugDefaultProject",
+          "group": "fsharp",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "fsharp.runDefaultProject",
+          "group": "fsharp",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "fsharp.NewProject",
+          "group": "fsharp",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "fsi.Start",
+          "group": "fsharp",
+          "when": "fsharp.project.any || editorLangId == 'fsharp'"
+        },
+        {
+          "command": "fsi.SendFile",
+          "group": "fsharp",
+          "when": "editorLangId == 'fsharp'"
+        }
       ]
     },
     "outputChannels": [
