@@ -1,4 +1,4 @@
-namespace Ionide.VSCode.FSharp
+module Ionide.VSCode.FSharp.QuickInfo
 
 open System
 open Fable.Core
@@ -10,37 +10,66 @@ open Fable.Import.Node
 open DTO
 open Ionide.VSCode.Helpers
 
+let private logger = ConsoleAndOutputChannelLogger(Some "QuickInfo", Level.DEBUG, None, Some Level.DEBUG)
 
-module QuickInfo =
-    let mutable private item : StatusBarItem option = None
+let mutable private item : StatusBarItem option = None
+let hideItem () = item |> Option.iter (fun n -> n.hide ())
 
-    let private handle' (event : TextEditorSelectionChangeEvent) =
-        promise {
-            if JS.isDefined event.textEditor?document then
-                let doc = event.textEditor.document
-                match doc with
-                | Document.FSharp ->
-                    let pos = event.selections.[0].active
-                    let! o = LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-                    if isNotNull o then
-                        let res = (o.Data |> Array.collect id).[0].Signature
-                        if JS.isDefined res then
-                            let t = res.Split('\n').[0]
-                            item |> Option.iter (fun n -> n.hide ())
-                            let i = window.createStatusBarItem (1 |> unbox, -1.)
-                            i.text <- t
-                            i.tooltip <- res
-                            i.show ()
-                            item <- Some i
-                | _ -> ()
-        }
+let showItem (text: string) tooltip =
+    item.Value.text <- text
+    item.Value.tooltip <- tooltip
+    item.Value.show()
 
-    let mutable private timer = None
+let private getCurrentOverloadSignature (textEditor : TextEditor) (selections: ResizeArray<Selection>) = promise {
+    if JS.isDefined textEditor?document then
+        let doc = textEditor.document
+        match doc with
+        | Document.FSharp ->
+            let pos = selections.[0].active
+            let! o = LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+            if isNotNull o then
+                let signature = (o.Data |> Array.collect id).[0]
+                if JS.isDefined signature.Signature then
+                    return Some signature
+                else
+                    return None
+            else
+                return None
+        | _ -> return None
+    else
+        return None
+}
 
-    let private handle (event : TextEditorSelectionChangeEvent) =
-        timer |> Option.iter(clearTimeout)
-        timer <- Some (setTimeout (fun n -> handle' event |> ignore) 500.)
+let private handle' (event : TextEditorSelectionChangeEvent) =
+    promise {
+        logger.Debug("Changed")
+        let! signature = getCurrentOverloadSignature event.textEditor event.selections
+        logger.Debug("Signature", signature)
+        match signature with
+        | Some signature ->
+            let t = signature.Signature.Split('\n').[0]
+            showItem t signature.Signature
+        | _ ->
+            hideItem()
+    }
 
-    let activate (context: ExtensionContext) =
-        window.onDidChangeTextEditorSelection $ (handle, (), context.subscriptions) |> ignore
-        ()
+let mutable private timer = None
+let clearTimer () = timer |> Option.iter(clearTimeout)
+
+let private selectionChanged (event : TextEditorSelectionChangeEvent) =
+    clearTimer()
+    timer <- Some (setTimeout (fun n -> handle' event |> ignore) 500.)
+
+let private documentClosed (document: TextDocument) =
+    clearTimer()
+    hideItem()
+
+let activate (context: ExtensionContext) =
+    logger.Debug("Activating")
+    item <- Some (window.createStatusBarItem ())
+    context.subscriptions.Add(item.Value)
+
+    context.subscriptions.Add(window.onDidChangeTextEditorSelection.Invoke(unbox selectionChanged))
+    context.subscriptions.Add(workspace.onDidCloseTextDocument.Invoke(unbox documentClosed))
+
+    logger.Debug("Activated")
