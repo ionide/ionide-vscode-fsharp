@@ -676,17 +676,17 @@
       "touchBar": [
         {
           "command": "fsharp.debugDefaultProject",
-          "group": "fsharp.project",
+          "group": "debug",
           "when": "editorLangId == 'fsharp'"
         },
         {
           "command": "fsharp.runDefaultProject",
-          "group": "fsharp.project",
+          "group": "debug",
           "when": "editorLangId == 'fsharp'"
         },
         {
           "command": "fsharp.NewProject",
-          "group": "fsharp.project",
+          "group": "project",
           "when": "editorLangId == 'fsharp'"
         },
         {
