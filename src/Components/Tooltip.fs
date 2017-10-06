@@ -12,21 +12,6 @@ open Ionide.VSCode.Helpers
 
 module Tooltip =
     let private createProvider () =
-        let createCommentBlock (comment: string) : MarkedString[] =
-            comment.Split '\n'
-            |> Array.filter(String.IsNullOrWhiteSpace>>not)
-            |> Array.mapi (fun i line ->
-                let v =
-                    if i = 0 && not (String.IsNullOrWhiteSpace line)
-                    then "\n" + line.Trim()
-                    else line.Trim()
-                Markdown.replaceXml v
-               )
-            |> String.concat "\n\n"
-            |> String.trim
-            |> U2.Case1
-            |> Array.singleton
-
         let mapResult (doc : TextDocument) (pos : Position) o =
             let range = doc.getWordRangeAtPosition pos
             if isNotNull o then
@@ -36,7 +21,7 @@ module Tooltip =
                         createObj [
                             "language" ==> lang
                             "value" ==> value.Trim()
-                        ] |> U2.Case2
+                        ] |> U3.Case3
 
                     let fsharpBlock (lines: string[]) : MarkedString =
                         lines |> String.concat "\n" |> markStr "fsharp"
@@ -50,14 +35,14 @@ module Tooltip =
                         match lines |> Array.splitAt (lines.Length - 1) with
                         | (h, [| StartsWith "Full name:" fullName |]) ->
                             [| yield fsharpBlock h
-                               yield U2.Case1 ("_" + fullName + "_") |]
+                               yield U3.Case2 ("_" + fullName + "_") |]
                         | _ -> [| fsharpBlock lines |]
 
                     let commentContent =
                         res.Comment
-                        |> String.replace "&lt;" "<"
-                        |> String.replace "&gt;" ">"
-                        |> createCommentBlock
+                        |> Markdown.createCommentBlock
+                        |> U3.Case1
+                        |> Array.singleton
                     let result = createEmpty<Hover>
                     result.range <- range
                     result.contents <- Array.append sigContent commentContent |> ResizeArray
