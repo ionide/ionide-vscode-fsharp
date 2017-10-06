@@ -20,9 +20,9 @@ module ParameterHints =
                 let sigs = o.Data.Overloads |> Array.choose (fun c ->
                     try
                         let tip = c.Tip.[0].[0]
-                        let signature = SignatureInformation (tip.Signature, tip.Comment)
+                        let signature = SignatureInformation (tip.Signature, U2.Case1 tip.Comment)
                         c.Parameters |> Array.iter (fun p ->
-                            let parameter = ParameterInformation (p.Name, p.CanonicalTypeTextForSorting)
+                            let parameter = ParameterInformation (p.Name, U2.Case1 p.CanonicalTypeTextForSorting)
                             signature.parameters.Add (parameter )
                             |> ignore
                         )

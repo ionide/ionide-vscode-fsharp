@@ -1,5 +1,6 @@
 namespace Ionide.VSCode.FSharp
 
+open System
 open Fable.Import.vscode
 
 [<RequireQualifiedAccess>]
@@ -188,6 +189,23 @@ module Markdown =
         |> List.fold (fun (res: string) pat ->
              res.Replace(pat, "")
         ) res
+
+    let createCommentBlock (comment: string) : MarkdownString =
+        comment
+        |> String.replace "&lt;" "<"
+        |> String.replace "&gt;" ">"
+        |> (fun v -> v.Split '\n')
+        |> Array.filter(String.IsNullOrWhiteSpace>>not)
+        |> Array.mapi (fun i line ->
+            let v =
+                if i = 0 && not (String.IsNullOrWhiteSpace line)
+                then "\n" + line.Trim()
+                else line.Trim()
+            replaceXml v
+            )
+        |> String.concat "\n\n"
+        |> String.trim
+        |> (fun v -> MarkdownString (v))
 
 module Promise =
     open Fable.Import.JS

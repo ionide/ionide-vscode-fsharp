@@ -58,7 +58,7 @@ module Autocomplete =
         let mapHelptext (sug : CompletionItem) (o : HelptextResult) =
             if isNotNull o then
                 let res = (o.Data.Overloads |> Array.collect id).[0]
-                sug.documentation <- Markdown.replaceXml res.Comment
+                sug.documentation <- res.Comment |> Markdown.createCommentBlock |> U2.Case2
                 sug.detail <- res.Signature
             sug
 
