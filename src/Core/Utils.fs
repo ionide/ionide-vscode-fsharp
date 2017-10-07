@@ -165,22 +165,35 @@ module Array =
 
 module Markdown =
     open System.Text.RegularExpressions
+
+    // reference: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/xml-documentation
+    // TODO: support <exception> and <seealso>
     let private replacePatterns =
         let r pat = Regex(pat, RegexOptions.Compiled ||| RegexOptions.IgnoreCase)
-        [ r"<c>(((?!<c>)(?!<\/c>).)*)<\/c>", sprintf "`%s`" ]
+        let code = Array.item 0 >> sprintf "`%s`"
+        let returns = Array.item 0 >> sprintf "returns %s"
+        let param (s: string[]) = sprintf "`%s` - %s"(s.[0].Substring(1, s.[0].Length - 2)) s.[1]
+        [ r"<c>((?:(?!<c>)(?!<\/c>).)*)<\/c>", code
+          r"""<see\s+cref=(?:'[^']*'|"[^"]*")>((?:(?!<\/see>).)*)<\/see>""", code
+          r"""<param\s+name=('[^']*'|"[^"]*")>((?:(?!<\/param>).)*)<\/param>""", param
+          r"""<typeparam\s+name=('[^']*'|"[^"]*")>((?:(?!<\/typeparam>).)*)<\/typeparam>""", param
+          r"<returns>((?:(?!<\/returns>).)*)<\/returns>", returns
+        ]
 
     let private removePatterns =
-        [ "<summary>"; "</summary>"; "<para>"; "</para>" ]
+        [ "<summary>"; "</summary>"; "<para>"; "</para>"; "<remarks>"; "</remarks>" ]       
 
     /// Replaces XML tags with Markdown equivalents.
     let replaceXml (str: string) : string =
         let res =
             replacePatterns
-            |> List.fold (fun res (regex: Regex, formatter: string -> string) ->
+            |> List.fold (fun res (regex: Regex, formatter: string[] -> string) ->
                 // repeat replacing with same pattern to handle nested tags, like `<c>..<c>..</c>..</c>`
                 let rec loop res : string =
                     match regex.Match res with
-                    | m when m.Success -> loop <| res.Replace(m.Groups.[0].Value, formatter (m.Groups.[1].Value))
+                    | m when m.Success ->
+                        let captures = m.Groups |> Seq.cast<Group> |> Seq.skip 1 |> Seq.map (fun g -> g.Value) |> Seq.toArray
+                        loop <| res.Replace(m.Groups.[0].Value, formatter captures)
                     | _ -> res
                 loop res
             ) str
@@ -194,6 +207,9 @@ module Markdown =
         comment
         |> String.replace "&lt;" "<"
         |> String.replace "&gt;" ">"
+        |> String.replace "&quot;" "\""
+        |> String.replace "&apos;" "'"
+        |> String.replace "&amp;" "&"
         |> (fun v -> v.Split '\n')
         |> Array.filter(String.IsNullOrWhiteSpace>>not)
         |> Array.mapi (fun i line ->
