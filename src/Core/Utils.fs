@@ -173,18 +173,18 @@ module Markdown =
         let code = Array.item 0 >> sprintf "`%s`"
         let returns = Array.item 0 >> sprintf "returns %s"
         let param (s: string[]) = sprintf "`%s` - %s"(s.[0].Substring(1, s.[0].Length - 2)) s.[1]
-        [ r"<c>((?:(?!<c>)(?!<\/c>).)*)<\/c>", code
-          r"""<see\s+cref=(?:'[^']*'|"[^"]*")>((?:(?!<\/see>).)*)<\/see>""", code
-          r"""<param\s+name=('[^']*'|"[^"]*")>((?:(?!<\/param>).)*)<\/param>""", param
-          r"""<typeparam\s+name=('[^']*'|"[^"]*")>((?:(?!<\/typeparam>).)*)<\/typeparam>""", param
-          r"<returns>((?:(?!<\/returns>).)*)<\/returns>", returns
+        [ r"<c>((?:(?!<c>)(?!<\/c>)[\s\S])*)<\/c>", code
+          r"""<see\s+cref=(?:'[^']*'|"[^"]*")>((?:(?!<\/see>)[\s\S])*)<\/see>""", code
+          r"""<param\s+name=('[^']*'|"[^"]*")>((?:(?!<\/param>)[\s\S])*)<\/param>""", param
+          r"""<typeparam\s+name=('[^']*'|"[^"]*")>((?:(?!<\/typeparam>)[\s\S])*)<\/typeparam>""", param
+          r"<returns>((?:(?!<\/returns>)[\s\S])*)<\/returns>", returns
         ]
 
     let private removePatterns =
         [ "<summary>"; "</summary>"; "<para>"; "</para>"; "<remarks>"; "</remarks>" ]       
 
     /// Replaces XML tags with Markdown equivalents.
-    let replaceXml (str: string) : string =
+    let private replaceXml (str: string) : string =
         let res =
             replacePatterns
             |> List.fold (fun res (regex: Regex, formatter: string[] -> string) ->
@@ -192,8 +192,13 @@ module Markdown =
                 let rec loop res : string =
                     match regex.Match res with
                     | m when m.Success ->
-                        let captures = m.Groups |> Seq.cast<Group> |> Seq.skip 1 |> Seq.map (fun g -> g.Value) |> Seq.toArray
-                        loop <| res.Replace(m.Groups.[0].Value, formatter captures)
+                        let [| firstGroup |], otherGroups = 
+                            m.Groups 
+                            |> Seq.cast<Group>
+                            |> Seq.map (fun g -> g.Value)
+                            |> Seq.toArray
+                            |> Array.splitAt 1
+                        loop <| res.Replace(firstGroup, formatter otherGroups)
                     | _ -> res
                 loop res
             ) str
@@ -210,18 +215,12 @@ module Markdown =
         |> String.replace "&quot;" "\""
         |> String.replace "&apos;" "'"
         |> String.replace "&amp;" "&"
-        |> (fun v -> v.Split '\n')
-        |> Array.filter(String.IsNullOrWhiteSpace>>not)
-        |> Array.mapi (fun i line ->
-            let v =
-                if i = 0 && not (String.IsNullOrWhiteSpace line)
-                then "\n" + line.Trim()
-                else line.Trim()
-            replaceXml v
-            )
+        |> replaceXml
+        |> String.split [|'\n'|]
+        |> Array.filter (not << String.IsNullOrWhiteSpace)
+        |> Array.map String.trim
         |> String.concat "\n\n"
-        |> String.trim
-        |> (fun v -> MarkdownString (v))
+        |> (fun v -> MarkdownString v)
 
 module Promise =
     open Fable.Import.JS
