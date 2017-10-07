@@ -166,27 +166,38 @@ module Array =
 module Markdown =
     open System.Text.RegularExpressions
 
-    // reference: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/xml-documentation
-    // TODO: support <exception> and <seealso>
-    let private replacePatterns =
+    let private stringReplacePatterns = 
+        [ "&lt;", "<"
+          "&gt;", ">"
+          "&quot;", "\""
+          "&apos;", "'"
+          "&amp;", "&"
+          "<summary>", ""
+          "</summary>", ""
+          "<para>", ""
+          "</para>", ""
+          "<remarks>", ""
+          "</remarks>", "" ]
+
+    let private regexReplacePatterns =
         let r pat = Regex(pat, RegexOptions.Compiled ||| RegexOptions.IgnoreCase)
         let code = Array.item 0 >> sprintf "`%s`"
         let returns = Array.item 0 >> sprintf "returns %s"
-        let param (s: string[]) = sprintf "`%s` - %s"(s.[0].Substring(1, s.[0].Length - 2)) s.[1]
+        let param (s: string[]) = sprintf "%s: %s"(s.[0].Substring(1, s.[0].Length - 2)) s.[1]
         [ r"<c>((?:(?!<c>)(?!<\/c>)[\s\S])*)<\/c>", code
           r"""<see\s+cref=(?:'[^']*'|"[^"]*")>((?:(?!<\/see>)[\s\S])*)<\/see>""", code
           r"""<param\s+name=('[^']*'|"[^"]*")>((?:(?!<\/param>)[\s\S])*)<\/param>""", param
           r"""<typeparam\s+name=('[^']*'|"[^"]*")>((?:(?!<\/typeparam>)[\s\S])*)<\/typeparam>""", param
+          r"""<exception\s+cref=('[^']*'|"[^"]*")>((?:(?!<\/exception>)[\s\S])*)<\/exception>""", param
           r"<returns>((?:(?!<\/returns>)[\s\S])*)<\/returns>", returns
         ]
 
-    let private removePatterns =
-        [ "<summary>"; "</summary>"; "<para>"; "</para>"; "<remarks>"; "</remarks>" ]       
-
     /// Replaces XML tags with Markdown equivalents.
+    /// List of standard tags: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/xml-documentation
     let private replaceXml (str: string) : string =
+
         let res =
-            replacePatterns
+            regexReplacePatterns
             |> List.fold (fun res (regex: Regex, formatter: string[] -> string) ->
                 // repeat replacing with same pattern to handle nested tags, like `<c>..<c>..</c>..</c>`
                 let rec loop res : string =
@@ -203,18 +214,13 @@ module Markdown =
                 loop res
             ) str
 
-        removePatterns
-        |> List.fold (fun (res: string) pat ->
-             res.Replace(pat, "")
+        stringReplacePatterns
+        |> List.fold (fun (res: string) (oldValue, newValue) -> 
+            res.Replace(oldValue, newValue)
         ) res
 
     let createCommentBlock (comment: string) : MarkdownString =
         comment
-        |> String.replace "&lt;" "<"
-        |> String.replace "&gt;" ">"
-        |> String.replace "&quot;" "\""
-        |> String.replace "&apos;" "'"
-        |> String.replace "&amp;" "&"
         |> replaceXml
         |> String.split [|'\n'|]
         |> Array.filter (not << String.IsNullOrWhiteSpace)
