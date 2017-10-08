@@ -74,14 +74,22 @@ module Errors =
 
     let mutable private timer = None
 
+    let timeout (lines : float) =
+        if lines < 200. then 10.
+        elif lines < 1000. then 100.
+        elif lines < 2000. then 200.
+        else 500.
+
     let private handler (event : TextDocumentChangeEvent) =
+        let t = timeout event.document.lineCount
         timer |> Option.iter(clearTimeout)
         timer <- Some (setTimeout (fun _ ->
+
             match event.document with
             | Document.FSharp ->
                 parse event.document
                 |> ignore
-            | _ -> () ) 1000.)
+            | _ -> () ) t)
 
     let private handlerSave (doc : TextDocument) =
         match doc with
@@ -124,9 +132,12 @@ module Errors =
             |> Promise.onSuccess (fun _ -> handlerSave x.document |> ignore)
 
     let activate (context: ExtensionContext) =
+        printfn
         workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
         workspace.onDidSaveTextDocument $ (handlerSave , (), context.subscriptions) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), context.subscriptions) |> ignore
         //LanguageService.registerNotify handleNotification
         Promise.lift parseVisibleTextEditors
+
+
 
