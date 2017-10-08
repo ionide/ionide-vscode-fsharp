@@ -1,3 +1,6 @@
+### 3.5.1 - 08.10.2017
+* Fix autocomplete problem
+
 ### 3.5.0 - 08.10.2017
 * QuickInfo UX fixes
 * Fix autocomplete helptext and tooltips rendering
