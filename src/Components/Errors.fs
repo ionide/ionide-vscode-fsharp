@@ -132,7 +132,6 @@ module Errors =
             |> Promise.onSuccess (fun _ -> handlerSave x.document |> ignore)
 
     let activate (context: ExtensionContext) =
-        printfn
         workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
         workspace.onDidSaveTextDocument $ (handlerSave , (), context.subscriptions) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), context.subscriptions) |> ignore
