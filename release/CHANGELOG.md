@@ -1,3 +1,9 @@
+### 3.5.0 - 08.10.2017
+* QuickInfo UX fixes
+* Fix autocomplete helptext and tooltips rendering
+* Update FSAC - cancellation of requests
+* Make file parsing delay depend on file size
+
 ### 3.4.0 - 05.10.2017
 * Initial support for MacOS TouchBar icons
 
