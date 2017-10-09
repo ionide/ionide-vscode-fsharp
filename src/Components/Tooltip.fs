@@ -35,7 +35,7 @@ module Tooltip =
                         match lines |> Array.splitAt (lines.Length - 1) with
                         | (h, [| StartsWith "Full name:" fullName |]) ->
                             [| yield fsharpBlock h
-                               yield U3.Case2 ("_" + fullName + "_") |]
+                               yield U3.Case1 (MarkdownString("*").appendText(fullName).appendMarkdown("*")) |]
                         | _ -> [| fsharpBlock lines |]
 
                     let commentContent =
