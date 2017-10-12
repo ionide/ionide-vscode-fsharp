@@ -58,13 +58,6 @@ module Forge =
             if path.Contains " " then "\"" + path + "\"" else path
         else
             path
-
-    let onFsFileCreateHandler (uri : Uri) =
-        if "FSharp.automaticProjectModification" |> Configuration.get false then sprintf "add file -n %s" uri.fsPath |> spawnForge |> ignore
-
-    let onFsFileRemovedHandler (uri : Uri) =
-        if "FSharp.automaticProjectModification" |> Configuration.get false then sprintf "remove file -n %s" uri.fsPath |> spawnForge |> ignore
-
     let moveFileUpPath path =
         sprintf "move file -n %s -u" path |> spawnForge |> ignore
 
@@ -73,6 +66,12 @@ module Forge =
 
     let removeFilePath path =
         sprintf "remove file -n %s" path |> spawnForge |> ignore
+
+    let addFileAbove fromFile path =
+        sprintf "add file -n %s --above %s" path fromFile |> spawnForge |> ignore
+
+    let addFileBelow fromFile path =
+        sprintf "add file -n %s --below %s" path fromFile |> spawnForge |> ignore
 
     let addReferencePath path =
         promise {
@@ -318,8 +317,6 @@ module Forge =
     let activate (context: ExtensionContext) =
         let watcher = workspace.createFileSystemWatcher ("**/*.fs")
 
-        watcher.onDidCreate $ (onFsFileCreateHandler, null, context.subscriptions) |> ignore
-        watcher.onDidDelete $ (onFsFileRemovedHandler, null, context.subscriptions) |> ignore
         commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox<Func<obj,obj>> ) |> context.subscriptions.Add
         commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsharp.NewProject", newProject |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
