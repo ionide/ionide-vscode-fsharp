@@ -316,11 +316,11 @@ module SolutionExplorer =
             if loadedTheme.IsNone || loadedTheme.Value.info.id <> configured.id then
                 let! loaded = VsCodeIconTheme.load configured
                 loadedTheme <- loaded
-                reloadTree.fire (unbox ())
+                reloadTree.fire (undefined)
         | None ->
             if loadedTheme.IsSome then
                 loadedTheme <- None
-                reloadTree.fire (unbox ())
+                reloadTree.fire (undefined)
     }
 
     let activate (context: ExtensionContext) =
@@ -329,11 +329,11 @@ module SolutionExplorer =
         let provider = createProvider emiter
 
         Project.workspaceChanged.event.Invoke(fun _ ->
-            emiter.fire (unbox ()) |> unbox)
+            emiter.fire (undefined) |> unbox)
         |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.refresh", Func<obj, obj>(fun _ ->
-            emiter.fire (unbox ()) |> unbox
+            emiter.fire (undefined) |> unbox
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.clearCache", Func<obj, obj>(fun _ ->
@@ -351,7 +351,7 @@ module SolutionExplorer =
             | File (p, _, _) ->
                 Forge.moveFileUpPath p
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.moveDown", Func<obj, obj>(fun m ->
@@ -359,7 +359,7 @@ module SolutionExplorer =
             | File (p, _, _) ->
                 Forge.moveFileDownPath p
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.moveToFolder", Func<obj, obj>(fun m ->
@@ -371,7 +371,7 @@ module SolutionExplorer =
             | File (p, _, pp) ->
                 Forge.moveFileToFolder folders p pp
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.removeFile", Func<obj, obj>(fun m ->
@@ -379,7 +379,7 @@ module SolutionExplorer =
             | File (p, _, _) ->
                 Forge.removeFilePath p
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.renameFile", Func<obj, obj>(fun m ->
@@ -387,7 +387,7 @@ module SolutionExplorer =
             | File (old, _, proj) ->
                 Forge.renameFilePath old proj
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.addAbove", Func<obj, obj>(fun m ->
@@ -407,7 +407,7 @@ module SolutionExplorer =
                         Forge.addFileAbove from proj file'
                 )
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.addBelow", Func<obj, obj>(fun m ->
@@ -427,7 +427,7 @@ module SolutionExplorer =
                         Forge.addFileBelow from proj file'
                 )
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.addFile", Func<obj, obj>(fun m ->
@@ -446,7 +446,7 @@ module SolutionExplorer =
                         Forge.addFile proj file'
                 )
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
 
@@ -455,7 +455,7 @@ module SolutionExplorer =
             | ProjectReferencesList (_, p) ->
                 Forge.addProjectReferencePath p
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.removeProjecRef", Func<obj, obj>(fun m ->
@@ -463,7 +463,7 @@ module SolutionExplorer =
             | ProjectReference (path, _, p) ->
                 Forge.removeProjectReferencePath path p
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         window.registerTreeDataProvider("ionide.projectExplorer", provider )
@@ -618,7 +618,7 @@ module SolutionExplorer =
             | Some path ->
                 commands.executeCommand("vscode.open", Uri.file(path))
                 |> unbox
-            | None -> unbox ()
+            | None -> undefined
 
         )) |> context.subscriptions.Add
 
@@ -627,7 +627,7 @@ module SolutionExplorer =
             | Project (path, _, _, _, _, _, pr) ->
                 MSBuild.buildProjectPath "Build" pr
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.msbuild.rebuild", Func<obj, obj>(fun m ->
@@ -635,7 +635,7 @@ module SolutionExplorer =
             | Project (path, _, _, _, _, _, pr) ->
                 MSBuild.buildProjectPath "Rebuild" pr
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.msbuild.clean", Func<obj, obj>(fun m ->
@@ -643,7 +643,7 @@ module SolutionExplorer =
             | Project (path, _, _, _, _, _, pr) ->
                 MSBuild.buildProjectPath "Clean" pr
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.solution.build", Func<obj, obj>(fun m ->
@@ -651,7 +651,7 @@ module SolutionExplorer =
             | Solution (path, _, _) ->
                 MSBuild.buildSolution "Build" path
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.solution.rebuild", Func<obj, obj>(fun m ->
@@ -659,7 +659,7 @@ module SolutionExplorer =
             | Solution (path, _, _) ->
                 MSBuild.buildSolution "Rebuild" path
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.solution.clean", Func<obj, obj>(fun m ->
@@ -667,7 +667,7 @@ module SolutionExplorer =
             | Solution (path, _, _) ->
                 MSBuild.buildSolution "Clean" path
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.project.run", Func<obj, obj>(fun m ->
@@ -675,7 +675,7 @@ module SolutionExplorer =
             | Project (_, _, _, _, _, _, pr) ->
                 Debugger.buildAndRun pr
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.project.setDefault", Func<obj, obj>(fun m ->
@@ -683,7 +683,7 @@ module SolutionExplorer =
             | Project (_, _, _, _, _, _, pr) ->
                 Debugger.setDefaultProject pr
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.solution.addProject", Func<obj, obj>(fun m ->
@@ -702,7 +702,7 @@ module SolutionExplorer =
                             Project.execWithDotnet MSBuild.outputChannel (sprintf "sln %s add %s" name proj) |> ignore
                 }
                 |> unbox
-            | _ -> unbox ()
+            | _ -> undefined
         )) |> context.subscriptions.Add
 
         workspace.onDidChangeConfiguration.Invoke(fun _ ->

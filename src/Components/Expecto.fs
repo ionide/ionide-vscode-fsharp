@@ -406,7 +406,7 @@ module Expecto =
                 statusBar.hide()
             else
                 statusBar.show()
-            unbox ()
+            undefined
         ) |> context.subscriptions.Add
 
         vscode.window.onDidChangeActiveTextEditor.Invoke(unbox setDecorations)

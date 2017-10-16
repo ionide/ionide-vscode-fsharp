@@ -55,7 +55,7 @@ module Errors =
                 onDocumentParsedEmitter.fire { fileName = fileName; text = text; version = version; document = document; result = result }
                 CodeLens.refresh.fire (unbox version)
                 Linter.refresh.fire fileName
-                CodeOutline.refresh.fire (unbox ())
+                CodeOutline.refresh.fire (undefined)
                 (Uri.file fileName, (mapResult result |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
 
     let private parseFile (file : TextDocument) =
