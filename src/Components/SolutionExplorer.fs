@@ -38,7 +38,7 @@ module SolutionExplorer =
     let mutable loadedTheme: VsCodeIconTheme.Loaded option = None
 
     let rec add' (state : NodeEntry) (entry : string) index =
-        let sep = "\\"
+        let sep = Path.sep
 
         if index >= entry.Length then
             state
@@ -389,6 +389,66 @@ module SolutionExplorer =
                 |> unbox
             | _ -> unbox ()
         )) |> context.subscriptions.Add
+
+        commands.registerCommand("fsharp.explorer.addAbove", Func<obj, obj>(fun m ->
+            match unbox m with
+            | File (from, name, proj) ->
+                let opts = createEmpty<InputBoxOptions>
+                opts.placeHolder <- Some "new.fs"
+                opts.prompt <- Some "New file name, relative to project file"
+                opts.value <- Some "new.fs"
+                window.showInputBox(opts)
+                |> Promise.map (fun file ->
+                    if JS.isDefined file then
+                        let file' = Path.join(proj |> Path.dirname, file)
+                        let from = Path.relative(proj |> Path.dirname, from)
+                        let proj = Path.relative(workspace.rootPath, proj)
+                        Fs.appendFileSync( file', "") |> unbox
+                        Forge.addFileAbove from proj file'
+                )
+                |> unbox
+            | _ -> unbox ()
+        )) |> context.subscriptions.Add
+
+        commands.registerCommand("fsharp.explorer.addBelow", Func<obj, obj>(fun m ->
+            match unbox m with
+            | File (from, name, proj) ->
+                let opts = createEmpty<InputBoxOptions>
+                opts.placeHolder <- Some "new.fs"
+                opts.prompt <- Some "New file name, relative to project file"
+                opts.value <- Some "new.fs"
+                window.showInputBox(opts)
+                |> Promise.map (fun file ->
+                    if JS.isDefined file then
+                        let file' = Path.join(proj |> Path.dirname, file)
+                        let from = Path.relative(proj |> Path.dirname, from)
+                        let proj = Path.relative(workspace.rootPath, proj)
+                        Fs.appendFileSync( file', "") |> unbox
+                        Forge.addFileBelow from proj file'
+                )
+                |> unbox
+            | _ -> unbox ()
+        )) |> context.subscriptions.Add
+
+        commands.registerCommand("fsharp.explorer.addFile", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Project (proj, name, _,_,_,_,_) ->
+                let opts = createEmpty<InputBoxOptions>
+                opts.placeHolder <- Some "new.fs"
+                opts.prompt <- Some "New file name, relative to opened directory"
+                opts.value <- Some "new.fs"
+                window.showInputBox(opts)
+                |> Promise.map (fun file ->
+                    if JS.isDefined file then
+                        let file' = Path.join(Path.dirname proj, file)
+                        let proj = Path.relative(workspace.rootPath, proj)
+                        Fs.appendFileSync( file', "") |> unbox
+                        Forge.addFile proj file'
+                )
+                |> unbox
+            | _ -> unbox ()
+        )) |> context.subscriptions.Add
+
 
         commands.registerCommand("fsharp.explorer.addProjecRef", Func<obj, obj>(fun m ->
             match unbox m with

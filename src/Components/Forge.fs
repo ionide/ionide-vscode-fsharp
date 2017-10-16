@@ -67,11 +67,14 @@ module Forge =
     let removeFilePath path =
         sprintf "remove file -n %s" path |> spawnForge |> ignore
 
-    let addFileAbove fromFile path =
-        sprintf "add file -n %s --above %s" path fromFile |> spawnForge |> ignore
+    let addFileAbove fromFile project path  =
+        sprintf "add file -p %s -n %s --above %s"  project path fromFile |> spawnForge |> ignore
 
-    let addFileBelow fromFile path =
-        sprintf "add file -n %s --below %s" path fromFile |> spawnForge |> ignore
+    let addFileBelow fromFile project path =
+        sprintf "add file -p %s -n %s --below %s" project path fromFile |> spawnForge |> ignore
+
+    let addFile project path =
+        sprintf "add file -p %s -n %s" project path  |> spawnForge |> ignore
 
     let addReferencePath path =
         promise {

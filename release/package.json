@@ -237,6 +237,18 @@
         "title": "Remove file"
       },
       {
+        "command": "fsharp.explorer.addAbove",
+        "title": "Add file above"
+      },
+      {
+        "command": "fsharp.explorer.addBelow",
+        "title": "Add file below"
+      },
+      {
+        "command": "fsharp.explorer.addFile",
+        "title": "Add file"
+      },
+      {
         "command": "fsharp.explorer.showProjectLoadFailedInfo",
         "title": "Show info about failed project loading"
       },
@@ -361,6 +373,18 @@
         },
         {
           "command": "fsharp.explorer.moveToFolder",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.addAbove",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.addBelow",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.addFile",
           "when": "false"
         },
         {
@@ -553,6 +577,16 @@
           "group": "2_modification@1"
         },
         {
+          "command": "fsharp.explorer.addAbove",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
+          "group": "3_add@1"
+        },
+        {
+          "command": "fsharp.explorer.addBelow",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
+          "group": "3_add@2"
+        },
+        {
           "command": "fsharp.explorer.openProjectFile",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectNotLoaded"
         },
@@ -583,12 +617,17 @@
         {
           "command": "fsharp.explorer.openProjectFile",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
-          "group": "2_modification@1"
+          "group": "3_derails@1"
         },
         {
           "command": "fsharp.explorer.showProjectStatus",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
-          "group": "2_modification@2"
+          "group": "3_details@2"
+        },
+        {
+          "command": "fsharp.explorer.addFile",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
+          "group": "2_modifications@2"
         },
         {
           "command": "fsharp.explorer.msbuild.build",
@@ -626,14 +665,19 @@
           "group": "2_modification@1"
         },
         {
+          "command": "fsharp.explorer.addFile",
+          "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+          "group": "3_modifications@2"
+        },
+        {
           "command": "fsharp.explorer.openProjectFile",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
-          "group": "3_modification@1"
+          "group": "4_detail@1"
         },
         {
           "command": "fsharp.explorer.showProjectStatus",
           "when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
-          "group": "3_modification@2"
+          "group": "4_detail@2"
         },
         {
           "command": "fsharp.explorer.msbuild.build",
