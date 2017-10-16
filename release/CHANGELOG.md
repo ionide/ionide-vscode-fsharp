@@ -1,3 +1,7 @@
+### 3.6.0 - 16.10.2017
+* Remove automatic project modification
+* Add `add file (above/below)` commands for project explorer
+
 ### 3.5.1 - 08.10.2017
 * Fix autocomplete problem
 
