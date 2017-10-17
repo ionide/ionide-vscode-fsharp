@@ -20,7 +20,7 @@ module private StatusDisplay =
         item.Value.show()
 
     let activate (context: ExtensionContext) =
-        item <- Some (window.createStatusBarItem ())
+        item <- Some (window.createStatusBarItem (unbox 1, -10. ))
         context.subscriptions.Add(item.Value)
 
     let private getOverloadSignature (textEditor : TextEditor) (selections: ResizeArray<Selection>) = promise {
