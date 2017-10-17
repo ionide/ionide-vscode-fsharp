@@ -1,3 +1,8 @@
+### 3.7.0 - 17.10.2017
+* Fix creating project notifications
+* Add restore commands to project explorer
+* Makes go-to-symbol in workspace faster
+
 ### 3.6.0 - 16.10.2017
 * Remove automatic project modification
 * Add `add file (above/below)` commands for project explorer
