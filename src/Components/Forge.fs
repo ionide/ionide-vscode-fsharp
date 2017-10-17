@@ -257,9 +257,14 @@ module Forge =
                             let! name =  window.showInputBox(opts)
                             if JS.isDefined dir && JS.isDefined name then
                                 if name <> "" then
-                                    sprintf "new project -n %s -t %s --folder %s --vscode" name template.label dir |> spawnForge |> ignore
-
-                                    window.showInformationMessage "Project created"
+                                    let msg = window.setStatusBarMessage "Creating project..."
+                                    sprintf "new project -n %s -t %s --folder %s" name template.label dir
+                                    |> spawnForge
+                                    |> Process.toPromise
+                                    |> Promise.bind (fun _ ->
+                                        msg.dispose() |> ignore
+                                        window.showInformationMessage "Project created"
+                                    )
                                     |> ignore
                                 else
                                     window.showErrorMessage "Invalid project name." |> ignore
@@ -298,9 +303,14 @@ module Forge =
                         opts.prompt <- Some "Project name"
                         let! name =  window.showInputBox(opts)
                         if JS.isDefined dir && JS.isDefined name then
-                            sprintf "new project -n %s -t %s --folder %s --no-fake --vscode" name template.label dir |> spawnForge |> ignore
-
-                            window.showInformationMessage "Project created"
+                            let msg = window.setStatusBarMessage "Creating project..."
+                            sprintf "new project -n %s -t %s --folder %s --no-fake" name template.label dir
+                            |> spawnForge
+                            |> Process.toPromise
+                            |> Promise.bind (fun _ ->
+                                msg.dispose() |> ignore
+                                window.showInformationMessage "Project created"
+                            )
                             |> ignore
                 else
                     window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command" |> ignore
@@ -310,8 +320,15 @@ module Forge =
 
     let newProjectScaffold () =
         promise {
-            sprintf "new scaffold" |> spawnForge |> ignore
-            window.showInformationMessage "Project created" |> ignore
+            let msg = window.setStatusBarMessage "Creating project..."
+            sprintf "new scaffold"
+            |> spawnForge
+            |> Process.toPromise
+            |> Promise.bind (fun _ ->
+                msg.dispose() |> ignore
+                window.showInformationMessage "Project created"
+            )
+            |> ignore
 
         }
 
