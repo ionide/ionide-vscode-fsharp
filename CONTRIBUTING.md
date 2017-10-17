@@ -2,13 +2,34 @@
 
 ## Prerequisites
 
-- [Visual Studio Code][vscode] 🙄
+- [Visual Studio Code][vscode] 
 - [Mono][mono]
 - [.Net Core 2.0][dotnet]
 - [Node.js][nodejs]
 - [Yarn][yarn]
 
 ## Building
+
+Fork from the github interface https://github.com/ionide/ionide-vscode-fsharp
+ - if you don't use a certificate for commiting to github:
+```bash
+git clone https://github.com/YOUR_GITHUB_USER/ionide-vscode-fsharp.git
+```
+ - if you use a certificate for github authentication:
+```bash
+git clone git@github.com:YOUR_GITHUB_USER/ionide-vscode-fsharp.git
+```
+
+### First time build:
+```bash
+cd ionide-vscode-fsharp
+yarn install
+dotnet restore
+cd src
+dotnet restore
+cd ..
+./build.sh  # or build.cmd if your OS is Windows
+```
 
 Everything is done via `build.cmd` \ `build.sh`.
 
