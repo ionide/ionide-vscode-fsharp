@@ -204,10 +204,21 @@ module MSBuild =
             | true -> MSbuildHost.DotnetCli
             | false -> MSbuildHost.MSBuildExe
 
+    let tryGetRightHost' (project : string) =
+        match host.value with
+        | Some h -> h
+        | None ->
+            match Project.isSDKProjectPath project with
+            | true -> MSbuildHost.DotnetCli
+            | false -> MSbuildHost.MSBuildExe
 
     let buildProjectPath target (project : Project) =
         let host = tryGetRightHost project
         invokeMSBuild project.Project target (Some host)
+
+    let buildProjectWithoutParseData target (path : string) =
+        let host = tryGetRightHost' path
+        invokeMSBuild path target (Some host)
 
     let buildSolution target sln =
         match host.value with

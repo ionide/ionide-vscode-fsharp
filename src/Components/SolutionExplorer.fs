@@ -24,6 +24,7 @@ module SolutionExplorer =
         | ProjectNotLoaded of path: string * name: string
         | ProjectLoading of path: string * name: string
         | ProjectFailedToLoad of path: string * name: string * error: string
+        | ProjectNotRestored of path: string * name: string * error: string
         | Project of path: string * name: string * Files: Model list * ProjectReferencesList : Model  * ReferenceList: Model * isExe : bool * project : DTO.Project
         | Folder of name : string * path: string * Files : Model list
         | File of path: string * name: string * projectPath : string
@@ -113,6 +114,8 @@ module SolutionExplorer =
             getProjectModel proj
         | Project.ProjectLoadingState.Failed (p, err) ->
             Model.ProjectFailedToLoad (p, Path.basename p, err)
+        | Project.ProjectLoadingState.NotRestored (p, err) ->
+            Model.ProjectNotRestored (p, Path.basename p, err)
 
     let getFolders model =
         let rec loop model lst =
@@ -166,6 +169,7 @@ module SolutionExplorer =
         | ProjectNotLoaded _ -> []
         | ProjectLoading _ -> []
         | ProjectFailedToLoad _ -> []
+        | ProjectNotRestored _ -> []
         | Project (_, _, files, projs, refs, _, _) ->
             [
                  // SHOULD REFS BE DISPLAYED AT ALL? THOSE ARE RESOLVED BY MSBUILD REFS
@@ -188,6 +192,7 @@ module SolutionExplorer =
         | ProjectNotLoaded (_, name) -> sprintf "%s (not loaded yet)" name
         | ProjectLoading (_, name) -> sprintf "%s (loading..)" name
         | ProjectFailedToLoad (_, name, _) -> sprintf "%s (load failed)" name
+        | ProjectNotRestored (_, name, _) -> sprintf "%s (not restored)" name
         | Project (_, name,_, _,_, _, _) -> name
         | ReferenceList _ -> "References"
         | ProjectReferencesList (refs, _) -> "Project References"
@@ -230,7 +235,7 @@ module SolutionExplorer =
                     match node with
                     | File _ | Reference _ | ProjectReference _ ->
                         vscode.TreeItemCollapsibleState.None
-                    | ProjectFailedToLoad _ | ProjectLoading _ | ProjectNotLoaded _
+                    | ProjectFailedToLoad _ | ProjectLoading _ | ProjectNotLoaded _ | ProjectNotRestored _
                     | Workspace _ | Solution _ ->
                         vscode.TreeItemCollapsibleState.Expanded
                     | WorkspaceFolder (_, items) ->
@@ -240,6 +245,7 @@ module SolutionExplorer =
                             | ProjectLoading _ -> true
                             | Project _ -> true
                             | ProjectFailedToLoad _ -> true
+                            | ProjectNotRestored _ -> true
                             | _ -> false
                         // expand workspace folder if contains a project
                         if items |> List.exists isProj then
@@ -275,6 +281,7 @@ module SolutionExplorer =
                     | ProjectFailedToLoad _ -> "projectLoadFailed"
                     | ProjectLoading _ -> "projectLoading"
                     | ProjectNotLoaded _ -> "projectNotLoaded"
+                    | ProjectNotRestored _ -> "projectNotRestored"
                     | Solution _ -> "solution"
                     | Workspace _ -> "workspace"
                     | WorkspaceFolder _ -> "workspaceFolder"
@@ -525,6 +532,8 @@ module SolutionExplorer =
                               viewLoading path
                           | Some (Project.ProjectLoadingState.Loaded proj) ->
                               viewParsed proj
+                          | Some (Project.ProjectLoadingState.NotRestored (path,error)) ->
+                              viewFailed path error
                           | Some (Project.ProjectLoadingState.Failed (path, error)) ->
                               viewFailed path error
                       | _ ->
@@ -541,6 +550,8 @@ module SolutionExplorer =
                 vscode.commands.executeCommand("vscode.previewHtml", projectStatusUri path, vscode.ViewColumn.One, (sprintf "Project %s status" name))
             match m with
             | ProjectFailedToLoad (path, name, _) ->
+                showStatus path name
+            | ProjectNotRestored (path, name, _) ->
                 showStatus path name
             | Model.ProjectLoading (path, name) ->
                 showStatus path name
@@ -611,6 +622,7 @@ module SolutionExplorer =
                 | ProjectNotLoaded (path, _) -> Some path
                 | ProjectLoading (path, _) -> Some path
                 | ProjectFailedToLoad (path, _, _) -> Some path
+                | ProjectNotRestored (path, _, _) -> Some path
                 | Project (path, _, _, _, _, _, _) -> Some path
                 | _ -> None
 
@@ -646,6 +658,17 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
+        commands.registerCommand("fsharp.explorer.msbuild.restore", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Project (path, _, _, _, _, _, pr) ->
+                MSBuild.buildProjectPath "Restore" pr
+                |> unbox
+            | ProjectNotRestored (path, _, _) ->
+                MSBuild.buildProjectWithoutParseData "Restore" path
+                |> unbox
+            | _ -> undefined
+        )) |> context.subscriptions.Add
+
         commands.registerCommand("fsharp.explorer.solution.build", Func<obj, obj>(fun m ->
             match unbox m with
             | Solution (path, _, _) ->
@@ -666,6 +689,14 @@ module SolutionExplorer =
             match unbox m with
             | Solution (path, _, _) ->
                 MSBuild.buildSolution "Clean" path
+                |> unbox
+            | _ -> undefined
+        )) |> context.subscriptions.Add
+
+        commands.registerCommand("fsharp.explorer.solution.restore", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Solution (path, _, _) ->
+                MSBuild.buildSolution "Restore" path
                 |> unbox
             | _ -> undefined
         )) |> context.subscriptions.Add

@@ -18,6 +18,7 @@ module Project =
         | Loading of path: string
         | Loaded of proj: Project
         | Failed of path: string * error: string
+        | NotRestored of path: string * error: string
 
     [<RequireQualifiedAccess>]
     type FSharpWorkspaceMode =
@@ -118,7 +119,11 @@ module Project =
                 None
         let failed (b: obj) =
             let (msg: string), (err: ErrorData) = unbox b
-            Some (path, (ProjectLoadingState.Failed (path, msg)))
+            match err with
+            | ErrorData.ProjectNotRestored d ->
+                Some (path, ProjectLoadingState.NotRestored (path, msg) )
+            | _ ->
+                Some (path, (ProjectLoadingState.Failed (path, msg)))
 
         LanguageService.project path
         |> Promise.either (loaded >> Promise.lift) (failed >> Promise.lift)
@@ -172,7 +177,8 @@ module Project =
             | Some (ProjectLoadingState.Loading _) ->
                 true
             | Some (ProjectLoadingState.Loaded _)
-            | Some (ProjectLoadingState.Failed _) ->
+            | Some (ProjectLoadingState.Failed _)
+            | Some (ProjectLoadingState.NotRestored _) ->
                 false
 
         projs
@@ -411,6 +417,8 @@ module Project =
         | "directory" -> FSharpWorkspaceMode.Directory
         | "sln" -> FSharpWorkspaceMode.Sln
         | "ionideSearch" | _ -> FSharpWorkspaceMode.IonideSearch
+
+
 
     let activate (context: ExtensionContext) parseVisibleTextEditors =
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
