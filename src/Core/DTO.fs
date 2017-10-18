@@ -267,6 +267,24 @@ module DTO =
        | GenericError
        | ProjectNotRestored of ErrorDataTypes.ProjectNotRestoredData
 
+
+    type UnusedDeclarations = {
+        Declarations : Range []
+    }
+
+    type UnusedOpens = {
+        Declarations : Range []
+    }
+
+    type SimplifiedNameData = {
+        RelativeName : string
+        UnnecessaryRange: Range
+    }
+
+    type SimplifiedName = {
+        Names: SimplifiedNameData []
+    }
+
     type Result<'T> = {Kind : string; Data : 'T}
     type CompilerLocationResult = Result<CompilerLocation>
     type HelptextResult = Result<Helptext>

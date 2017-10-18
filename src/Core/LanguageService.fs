@@ -359,6 +359,18 @@ module LanguageService =
         |> request "workspacePeek" 0 (makeRequestId())
         |> Promise.map (fun res -> parse (res?Data |> unbox))
 
+    let unusedDeclarations s =
+        {ProjectRequest.FileName = s}
+        |> request "unusedDeclarations" 0 (makeRequestId())
+
+    let unusedOpens s =
+        {ProjectRequest.FileName = s}
+        |> request "unusedOpens" 0 (makeRequestId())
+
+    let simplifiedNames s =
+        {ProjectRequest.FileName = s}
+        |> request "simplifiedNames" 0 (makeRequestId())
+
     [<PassGenerics>]
     let registerNotify (cb : 'a [] -> unit) =
         socket |> Option.iter (fun ws ->
