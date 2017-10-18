@@ -921,6 +921,11 @@
           "default": true,
           "description": "Enables integration with FSharpLinter (additional warnings)"
         },
+        "FSharp.unusedOpensAnalyzer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables detection of unused opens"
+        },
         "FSharp.fsiExtraParameters": {
           "type": "array",
           "default": [],

@@ -301,4 +301,7 @@ module DTO =
     type UnionCaseGeneratorResult = Result<UnionCaseGenerator>
     type SignatureDataResult = Result<SignatureData>
     type WorkspacePeekResult = Result<WorkspacePeek>
+    type UnusedOpensResult = Result<UnusedOpens>
+    type UnusedDeclarationsResult = Result<UnusedDeclarations>
+    type SimplifiedNameResult = Result<SimplifiedName>
 
