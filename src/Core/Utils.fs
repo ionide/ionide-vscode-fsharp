@@ -14,6 +14,13 @@ module CodeRange =
                    float range.EndLine - 1.,
                    float range.EndColumn - 1.)
 
+    let fromSimplifiedNameRange (range: DTO.Range) : CodeRange =
+        CodeRange (float range.StartLine - 1.,
+                   float range.StartColumn - 2.,
+                   float range.EndLine - 1.,
+                   float range.EndColumn - 2.)
+
+
     /// Converts Declaration DTO of a specific `length` to VS Code Range.
     let fromDeclaration (decl: DTO.Declaration) (length: float) : CodeRange =
         CodeRange (float decl.Line - 1.,
@@ -166,7 +173,7 @@ module Array =
 module Markdown =
     open System.Text.RegularExpressions
 
-    let private stringReplacePatterns = 
+    let private stringReplacePatterns =
         [ "&lt;", "<"
           "&gt;", ">"
           "&quot;", "\""
@@ -203,8 +210,8 @@ module Markdown =
                 let rec loop res : string =
                     match regex.Match res with
                     | m when m.Success ->
-                        let [| firstGroup |], otherGroups = 
-                            m.Groups 
+                        let [| firstGroup |], otherGroups =
+                            m.Groups
                             |> Seq.cast<Group>
                             |> Seq.map (fun g -> g.Value)
                             |> Seq.toArray
@@ -215,7 +222,7 @@ module Markdown =
             ) str
 
         stringReplacePatterns
-        |> List.fold (fun (res: string) (oldValue, newValue) -> 
+        |> List.fold (fun (res: string) (oldValue, newValue) ->
             res.Replace(oldValue, newValue)
         ) res
 

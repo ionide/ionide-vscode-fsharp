@@ -19,9 +19,7 @@ let activate (context: ExtensionContext) =
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
     let codeOutline = "FSharp.codeOutline" |> Configuration.get true
 
-    let init = DateTime.Now
-
-    Project.clearCacheIfOutdated ()
+    let init = System.DateTime.Now
 
     LanguageService.start ()
     |> Promise.onSuccess (fun _ ->
@@ -39,6 +37,8 @@ let activate (context: ExtensionContext) =
                 CodeLens.activate df' context
                 Linter.activate df' context
                 UnusedOpens.activate df' context
+                UnusedDeclarations.activate df' context
+                SimplifyName.activate df' context
                 if codeOutline then CodeOutline.activate context
 
             )

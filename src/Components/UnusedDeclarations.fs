@@ -10,18 +10,17 @@ open Fable.Import.Node
 open DTO
 open Ionide.VSCode.Helpers
 
-module UnusedOpens =
+module UnusedDeclarations =
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
     let refresh = EventEmitter<string>()
-
-    let private isAnalyzerEnabled () = "FSharp.unusedOpensAnalyzer" |> Configuration.get true
+    let private isAnalyzerEnabled () = "FSharp.unusedDeclarationsAnalyzer" |> Configuration.get true
 
     let private diagnosticFromRange file (warning : Range) =
         let range = CodeRange.fromDTO warning
         let loc = Location (Uri.file file, range |> U2.Case1)
-        Diagnostic(range, "Unused open statement", DiagnosticSeverity.Information), file
+        Diagnostic(range, "This value is unused", DiagnosticSeverity.Information), file
 
-    let private mapResult file (ev : UnusedOpensResult) =
+    let private mapResult file (ev : UnusedDeclarationsResult) =
         if isNotNull ev then
             ev.Data.Declarations
             |> Seq.map (diagnosticFromRange file)
@@ -31,8 +30,8 @@ module UnusedOpens =
 
     let private analyzeDocument path =
         if isAnalyzerEnabled () then
-            LanguageService.unusedOpens path
-            |> Promise.onSuccess (fun (ev : UnusedOpensResult) ->
+            LanguageService.unusedDeclarations path
+            |> Promise.onSuccess (fun (ev : UnusedDeclarationsResult) ->
                 if isNotNull ev then
                     (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
             |> ignore
@@ -46,18 +45,23 @@ module UnusedOpens =
           with
             member this.provideCodeActions(doc, range, context, ct) =
                 let diagnostics = context.diagnostics
-                let diagnostic = diagnostics |> Seq.tryFind (fun d -> d.message.Contains "Unused open statement")
+                let diagnostic = diagnostics |> Seq.tryFind (fun d -> d.message.Contains "This value is unused")
                 let res =
                     match diagnostic with
                     | None -> [||]
                     | Some d ->
-                        let line = doc.lineAt d.range.start.line
+                        let txt = doc.getText range
                         let cmd = createEmpty<Command>
-                        cmd.title <- "Remove unused open"
-                        cmd.command <- "fsharp.unusedOpenFix"
+                        cmd.title <- sprintf "Replace with _"
+                        cmd.command <- "fsharp.unusedDeclarationsFix"
+                        cmd.arguments <- Some ([| doc |> unbox; d.range |> unbox; "_" |> unbox |] |> ResizeArray)
+                        let cmd2 = createEmpty<Command>
+                        cmd2.title <- sprintf "Prefix with _"
+                        cmd2.command <- "fsharp.unusedDeclarationsFix"
+                        cmd2.arguments <- Some ([| doc |> unbox; d.range |> unbox; ("_" + txt)  |> unbox |] |> ResizeArray)
 
-                        cmd.arguments <- Some ([| doc |> unbox; line.range |> unbox; |] |> ResizeArray)
-                        [|cmd |]
+
+                        [|cmd; cmd2 |]
                 res |> ResizeArray |> U2.Case1
             }
 
@@ -76,4 +80,4 @@ module UnusedOpens =
             | _ -> ()
 
         languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.unusedOpenFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.unusedDeclarationsFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add

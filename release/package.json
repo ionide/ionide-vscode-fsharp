@@ -926,6 +926,16 @@
           "default": true,
           "description": "Enables detection of unused opens"
         },
+        "FSharp.unusedDeclarationsAnalyzer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables detection of unused declarations"
+        },
+        "FSharp.simplifyNameAnalyzer": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enables detection of symbols usages that can be simplified"
+        },
         "FSharp.fsiExtraParameters": {
           "type": "array",
           "default": [],

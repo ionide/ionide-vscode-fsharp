@@ -79,7 +79,6 @@ module QuickFix =
                 [|
                     getSuggestions
                     getNewKeywordSuggestions
-                    fixUnused
                     upercaseDU
                 |] |> Array.collect (fun f -> f doc diagnostics) |> ResizeArray |> U2.Case1
             }
