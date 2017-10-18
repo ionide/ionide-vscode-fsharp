@@ -19,7 +19,7 @@ let activate (context: ExtensionContext) =
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
     let codeOutline = "FSharp.codeOutline" |> Configuration.get true
 
-    let init = System.DateTime.Now
+    let init = DateTime.Now
 
     LanguageService.start ()
     |> Promise.onSuccess (fun _ ->

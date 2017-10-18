@@ -1,3 +1,8 @@
+### 3.8.0 - 17.10.2017
+* Add unused opens analyzer
+* Add unused declarations analyzer
+* Add simplify name analyzer
+
 ### 3.7.0 - 17.10.2017
 * Fix creating project notifications
 * Add restore commands to project explorer
