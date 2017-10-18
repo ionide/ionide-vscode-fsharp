@@ -42,6 +42,7 @@
     <Compile Include="Components/LegacyFsi.fs" />
     <Compile Include="Components/Forge.fs" />
     <Compile Include="Components/Linter.fs" />
+    <Compile Include="Components/UnusedOpens.fs" />
     <Compile Include="Components/CodeLens.fs" />
     <Compile Include="Components/QuickFix.fs" />
     <Compile Include="Components/ResolveNamespaces.fs" />

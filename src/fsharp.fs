@@ -38,6 +38,7 @@ let activate (context: ExtensionContext) =
                 p.report pm
                 CodeLens.activate df' context
                 Linter.activate df' context
+                UnusedOpens.activate df' context
                 if codeOutline then CodeOutline.activate context
 
             )

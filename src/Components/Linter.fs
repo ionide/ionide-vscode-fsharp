@@ -40,11 +40,8 @@ module Linter =
                     (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
             |> ignore
 
-    let mutable private timer = None
-
     let private handler filename =
-        timer |> Option.iter(clearTimeout)
-        timer <- Some (setTimeout (fun _ -> lintDocument filename) 1000.)
+        lintDocument filename
 
     let private createProvider () =
 
