@@ -10,20 +10,18 @@ open Fable.Import.Node
 open DTO
 open Ionide.VSCode.Helpers
 
-module UnusedOpens =
+module SimplifyName =
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
     let refresh = EventEmitter<string>()
+    let private isAnalyzerEnabled () = "FSharp.simplifyNameAnalyzer" |> Configuration.get true
 
-    let private isAnalyzerEnabled () = "FSharp.unusedOpensAnalyzer" |> Configuration.get true
+    let private diagnosticFromRange file (data : SimplifiedNameData) =
+        let range = CodeRange.fromSimplifiedNameRange data.UnnecessaryRange
+        Diagnostic(range, "This qualifier is redundant", DiagnosticSeverity.Information), file
 
-    let private diagnosticFromRange file (warning : Range) =
-        let range = CodeRange.fromDTO warning
-        let loc = Location (Uri.file file, range |> U2.Case1)
-        Diagnostic(range, "Unused open statement", DiagnosticSeverity.Information), file
-
-    let private mapResult file (ev : UnusedOpensResult) =
+    let private mapResult file (ev : SimplifiedNameResult) =
         if isNotNull ev then
-            ev.Data.Declarations
+            ev.Data.Names
             |> Seq.map (diagnosticFromRange file)
             |> ResizeArray
         else
@@ -31,8 +29,8 @@ module UnusedOpens =
 
     let private analyzeDocument path =
         if isAnalyzerEnabled () then
-            LanguageService.unusedOpens path
-            |> Promise.onSuccess (fun (ev : UnusedOpensResult) ->
+            LanguageService.simplifiedNames path
+            |> Promise.onSuccess (fun (ev : SimplifiedNameResult) ->
                 if isNotNull ev then
                     (Uri.file path, mapResult path ev |> Seq.map fst |> ResizeArray) |> currentDiagnostic.set)
             |> ignore
@@ -44,19 +42,18 @@ module UnusedOpens =
 
         { new CodeActionProvider
           with
-            member this.provideCodeActions(doc, range, context, ct) =
+            member __.provideCodeActions(doc, range, context, ct) =
                 let diagnostics = context.diagnostics
-                let diagnostic = diagnostics |> Seq.tryFind (fun d -> d.message.Contains "Unused open statement")
+                let diagnostic = diagnostics |> Seq.tryFind (fun d -> d.message.Contains "This qualifier is redundant")
                 let res =
                     match diagnostic with
                     | None -> [||]
                     | Some d ->
-                        let line = doc.lineAt d.range.start.line
                         let cmd = createEmpty<Command>
-                        cmd.title <- "Remove unused open"
-                        cmd.command <- "fsharp.unusedOpenFix"
+                        cmd.title <- "Remove redundant qualifier"
+                        cmd.command <- "fsharp.simplifyNameFix"
 
-                        cmd.arguments <- Some ([| doc |> unbox; line.range |> unbox; |] |> ResizeArray)
+                        cmd.arguments <- Some ([| doc |> unbox; d.range |> unbox; |] |> ResizeArray)
                         [|cmd |]
                 res |> ResizeArray |> U2.Case1
             }
@@ -76,4 +73,4 @@ module UnusedOpens =
             | _ -> ()
 
         languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.unusedOpenFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.simplifyNameFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add

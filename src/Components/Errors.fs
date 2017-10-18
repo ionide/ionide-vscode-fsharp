@@ -56,6 +56,8 @@ module Errors =
                 CodeLens.refresh.fire (unbox version)
                 Linter.refresh.fire fileName
                 UnusedOpens.refresh.fire fileName
+                UnusedDeclarations.refresh.fire fileName
+                SimplifyName.refresh.fire fileName
                 CodeOutline.refresh.fire (undefined)
                 (Uri.file fileName, (mapResult result |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
 
