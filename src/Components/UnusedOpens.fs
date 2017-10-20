@@ -60,8 +60,15 @@ module UnusedOpens =
                 res |> ResizeArray |> U2.Case1
             }
 
-    let private applyQuickFix(doc : TextDocument) =
-        commands.executeCommand("editor.action.deleteLines")
+    let private applyQuickFix(doc : TextDocument, range: vscode.Range) =
+        let previousLine = doc.lineAt (float range.start.line - 1.)
+        let currentLine = doc.lineAt (float range.start.line)
+        // The range to remove goes from the end of previous line to the end of the current line.
+        let editRange = vscode.Range(float range.start.line - 1., float previousLine.text.Length, float range.``end``.line, float currentLine.text.Length)
+        let edit = WorkspaceEdit()
+        let uri = Uri.file doc.fileName
+        edit.replace(uri, editRange, "")
+        workspace.applyEdit edit
         |> Promise.onSuccess (fun _ -> analyzeDocument doc.fileName)
 
     let activate selector (context: ExtensionContext) =
@@ -72,4 +79,4 @@ module UnusedOpens =
             | _ -> ()
 
         languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.unusedOpenFix",Func<obj,obj>(unbox >> applyQuickFix >> unbox)) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.unusedOpenFix",Func<obj,obj,obj>(fun a b -> applyQuickFix(a |> unbox, b |> unbox) |> unbox )) |> context.subscriptions.Add
