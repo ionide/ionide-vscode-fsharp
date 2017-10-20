@@ -18,7 +18,6 @@ module UnusedOpens =
 
     let private diagnosticFromRange file (warning : Range) =
         let range = CodeRange.fromDTO warning
-        let loc = Location (Uri.file file, range |> U2.Case1)
         Diagnostic(range, "Unused open statement", DiagnosticSeverity.Information), file
 
     let private mapResult file (ev : UnusedOpensResult) =
@@ -61,10 +60,14 @@ module UnusedOpens =
                 res |> ResizeArray |> U2.Case1
             }
 
-    let private applyQuickFix(doc : TextDocument, range : vscode.Range, suggestion : string) =
+    let private applyQuickFix(doc : TextDocument, range: vscode.Range) =
+        let previousLine = doc.lineAt (float range.start.line - 1.)
+        let currentLine = doc.lineAt (float range.start.line)
+        // The range to remove goes from the end of previous line to the end of the current line.
+        let editRange = vscode.Range(float range.start.line - 1., float previousLine.text.Length, float range.``end``.line, float currentLine.text.Length)
         let edit = WorkspaceEdit()
         let uri = Uri.file doc.fileName
-        edit.replace(uri, range, suggestion)
+        edit.replace(uri, editRange, "")
         workspace.applyEdit edit
         |> Promise.onSuccess (fun _ -> analyzeDocument doc.fileName)
 
@@ -76,4 +79,4 @@ module UnusedOpens =
             | _ -> ()
 
         languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.unusedOpenFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.unusedOpenFix",Func<obj,obj,obj>(fun a b -> applyQuickFix(a |> unbox, b |> unbox) |> unbox )) |> context.subscriptions.Add
