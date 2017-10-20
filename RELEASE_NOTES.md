@@ -1,3 +1,6 @@
+### 3.8.1 - 20.10.2017
+* Fix unused opens analyzer
+
 ### 3.8.0 - 17.10.2017
 * Add unused opens analyzer
 * Add unused declarations analyzer
