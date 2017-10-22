@@ -1,3 +1,7 @@
+### 3.8.2 - 23.10.2017
+* Delete the current line where `Unused Open`'s quick fix is applied
+* Fix crashed caused by project file including file not existing on disk
+
 ### 3.8.1 - 20.10.2017
 * Fix unused opens analyzer
 
