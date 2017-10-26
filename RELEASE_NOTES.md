@@ -1,3 +1,6 @@
+### 3.8.3 - 26.10.2017
+* Update Forge version
+
 ### 3.8.2 - 23.10.2017
 * Delete the current line where `Unused Open`'s quick fix is applied
 * Fix crashed caused by project file including file not existing on disk
