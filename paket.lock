@@ -7,9 +7,8 @@ NUGET
       Fable.Core (>= 1.2.4) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.2.3) - restriction: >= netcoreapp2.0
       Microsoft.NETCore.App (>= 2.0) - restriction: >= netcoreapp2.0
-    Dotnet.ProjInfo (0.7.4) - restriction: >= netcoreapp2.0
-      FSharp.Core (>= 4.1.17) - restriction: && (< net45) (>= netstandard1.6)
-      NETStandard.Library (>= 1.6.1) - restriction: && (< net45) (>= netstandard1.6)
+    Dotnet.ProjInfo (0.8) - restriction: >= netcoreapp2.0
+      FSharp.Core (>= 4.2.3) - restriction: && (< net45) (>= netstandard2.0)
     Fable.Compiler (1.2.4) - restriction: >= netcoreapp2.0
       Fable.Core (>= 1.2.4) - restriction: >= netstandard1.6
       FSharp.Compiler.Service (>= 14.0.2) - restriction: >= netstandard1.6
@@ -734,10 +733,10 @@ GIT
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
-     (29573a519cbd2e2f9b4546635c858ec06162d9aa)
+     (174f32a30a2ba48ddaf9faf1caf9119ccd4b6515)
       build: build.cmd Build
       os: windows
-     (29573a519cbd2e2f9b4546635c858ec06162d9aa)
+     (174f32a30a2ba48ddaf9faf1caf9119ccd4b6515)
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
@@ -1250,5 +1249,5 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (&& (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (< portable-net45+win8+wp8+wpa81)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (ddf45441759a2a7bc528b3b4c6f9a1edc7bd9f55)
+    modules/Octokit/Octokit.fsx (838f43e1e6ac18014b2515799fe7fa0e23186fbc)
       Octokit (>= 0.20)
