@@ -421,22 +421,17 @@ module LanguageService =
             log.Error(sprintf "notification /%s initialization error: %s" notificationEvent e.Message)
             None
 
-    let start' path =
+    let start' fsacExe (fsacArgs : string list) =
         Promise.create (fun resolve reject ->
             let child =
                 let spawnLogged path (args: string list) =
                     fsacStdoutWriter (sprintf "Running: %s %s\n" path (args |> String.concat " "))
                     ChildProcess.spawn(path, args |> ResizeArray)
-                let fsac args =
-                    if Process.isMono () then
-                        let mono = "FSharp.monoPath" |> Configuration.get "mono"
-                        spawnLogged mono [ yield path; yield! args ]
-                    else
-                        spawnLogged path args
-                fsac
-                  [ "--mode"; "http"
-                    "--port"; port
-                    sprintf "--hostPID=%i" (int Globals.``process``.pid) ]
+                spawnLogged fsacExe
+                  [ yield! fsacArgs
+                    yield! ["--mode"; "http"]
+                    yield! ["--port"; port]
+                    yield sprintf "--hostPID=%i" (int Globals.``process``.pid) ]
 
             let mutable isResolvedAsStarted = false
             child
@@ -477,15 +472,36 @@ module LanguageService =
             |> vscode.window.showErrorMessage
             |> ignore)
 
+    type [<RequireQualifiedAccess>] FSACTargetRuntime = NET | NetcoreFdd
+
+    let startFSAC () =
+         let fsacTargetRuntime =
+            match "FSharp.fsacRuntime" |> Configuration.get "net" with
+            | "netcore" -> FSACTargetRuntime.NetcoreFdd
+            | "net" | _ -> FSACTargetRuntime.NET
+
+         let ionidePluginPath =
+            try
+                (VSCode.getPluginPath "Ionide.ionide-fsharp")
+            with
+            | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp")
+
+         match fsacTargetRuntime with
+         | FSACTargetRuntime.NET ->
+             let path = ionidePluginPath + "/bin/fsautocomplete.exe"
+             let fsacExe, fsacArgs =
+                if Process.isMono () then
+                    let mono = "FSharp.monoPath" |> Configuration.get "mono"
+                    mono, [ yield path ]
+                else
+                    path, []
+             start' fsacExe fsacArgs
+         | FSACTargetRuntime.NetcoreFdd ->
+             let path = ionidePluginPath + "/bin_netcore/fsautocomplete.dll"
+             start' "dotnet" [ path ]
 
     let start () =
-         let path =
-            try
-                (VSCode.getPluginPath "Ionide.ionide-fsharp") + "/bin/fsautocomplete.exe"
-            with
-            | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/fsautocomplete.exe"
-
-         let startByDevMode = if devMode then Promise.empty else start' path
+         let startByDevMode = if devMode then Promise.empty else startFSAC ()
          startByDevMode
          |> Promise.onSuccess (fun _ ->
             socketNotify <- startSocket "notify" )

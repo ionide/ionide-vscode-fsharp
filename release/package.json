@@ -965,6 +965,15 @@
 			"type": "object",
 			"title": "FSharp configuration",
 			"properties": {
+				"FSharp.fsacRuntime": {
+					"type": "string",
+					"default": "net",
+					"description": "Choose the runtime of FsAutocomplete (FSAC). Require restart",
+					"enum": [
+						"net",
+						"netcore"
+					]
+				},
 				"FSharp.workspaceMode": {
 					"type": "string",
 					"default": "sln",

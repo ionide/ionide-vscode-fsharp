@@ -72,3 +72,4 @@ paket-files
 issueList.md
 release/package-lock\.json
 *.vsix
+/release/bin_netcore/

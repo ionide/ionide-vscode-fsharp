@@ -64,6 +64,8 @@ let vsceTool = lazy (platformTool "vsce" "vsce.cmd")
 let releaseBin      = "release/bin"
 let fsacBin         = "paket-files/github.com/fsharp/FsAutoComplete/bin/release"
 
+let releaseBinNetcore = releaseBin + "_netcore" 
+let fsacBinNetcore = fsacBin + "_netcore"
 
 // --------------------------------------------------------------------------------------
 // Build the Generator project and run it
@@ -101,6 +103,14 @@ Target "CopyFSAC" (fun _ ->
 
     !! (fsacBin + "/*")
     |> CopyFiles releaseBin
+)
+
+Target "CopyFSACNetcore" (fun _ ->
+    ensureDirectory releaseBinNetcore
+    CleanDir releaseBinNetcore
+
+    !! (fsacBinNetcore + "/*")
+    |> CopyFiles releaseBinNetcore
 )
 
 let releaseForge = "release/bin_forge"
@@ -243,6 +253,7 @@ Target "Release" DoNothing
 "Clean"
 ==> "RunScript"
 ==> "CopyFSAC"
+==> "CopyFSACNetcore"
 ==> "CopyForge"
 ==> "CopyGrammar"
 ==> "CopySchemas"
