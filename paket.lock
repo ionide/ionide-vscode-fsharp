@@ -7,7 +7,7 @@ NUGET
       Fable.Core (>= 1.2.4) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.2.3) - restriction: >= netcoreapp2.0
       Microsoft.NETCore.App (>= 2.0) - restriction: >= netcoreapp2.0
-    Dotnet.ProjInfo (0.8) - restriction: >= netcoreapp2.0
+    Dotnet.ProjInfo (0.9) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.2.3) - restriction: && (< net45) (>= netstandard2.0)
     Fable.Compiler (1.2.4) - restriction: >= netcoreapp2.0
       Fable.Core (>= 1.2.4) - restriction: >= netstandard1.6
@@ -23,7 +23,7 @@ NUGET
       FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
       NETStandard.Library (>= 1.6.1) - restriction: >= netstandard1.6
       System.ValueTuple (>= 4.4) - restriction: >= netstandard1.6
-    Fable.Import.Browser (0.1.1)
+    Fable.Import.Browser (0.1.2)
       Fable.Core (>= 1.1.15) - restriction: >= netstandard1.6
       FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
       NETStandard.Library (>= 1.6.1) - restriction: >= netstandard1.6
@@ -726,17 +726,17 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: && (< monotouch) (< net46) (>= netstandard1.3) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (6309c7ab78421f47c45155e559d8de099c9526d8)
+     (4de1566d2195f772004a6077adc6bf0046e3a9db)
       build: build.cmd LocalRelease
       os: windows
-     (6309c7ab78421f47c45155e559d8de099c9526d8)
+     (4de1566d2195f772004a6077adc6bf0046e3a9db)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
-     (174f32a30a2ba48ddaf9faf1caf9119ccd4b6515)
+     (ac8e1922846819fc807d59257846675f8ffee3f7)
       build: build.cmd Build
       os: windows
-     (174f32a30a2ba48ddaf9faf1caf9119ccd4b6515)
+     (ac8e1922846819fc807d59257846675f8ffee3f7)
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
