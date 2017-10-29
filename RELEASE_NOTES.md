@@ -1,3 +1,6 @@
+### 3.9.0 - 29.10.2017
+* Add nicer tooltips - formatted signature, more styling, assembly.
+
 ### 3.8.4 - 27.10.2017
 * Update FSAC - Fix find all usages
 
