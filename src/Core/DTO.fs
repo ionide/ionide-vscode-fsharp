@@ -15,6 +15,12 @@ module DTO =
         Comment: string
     }
 
+    type TooltipSignature = {
+        Signature: string
+        Comment: string
+        Footer: string
+    }
+
     type Error = {
         /// 1-indexed first line of the error block
         StartLine : int
@@ -290,7 +296,7 @@ module DTO =
     type HelptextResult = Result<Helptext>
     type CompletionResult = Result<Completion[]>
     type SymbolUseResult = Result<SymbolUses>
-    type TooltipResult = Result<OverloadSignature[][]>
+    type TooltipResult = Result<TooltipSignature[][]>
     type ParseResult = Result<ErrorResp>
     type FindDeclarationResult = Result<Declaration>
     type MethodResult = Result<Method>
