@@ -3,10 +3,7 @@ namespace Ionide.VSCode.FSharp
 open System
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
-open System.Text.RegularExpressions
 open DTO
 open Ionide.VSCode.Helpers
 
@@ -42,10 +39,15 @@ module Tooltip =
                         res.Comment
                         |> Markdown.createCommentBlock
                         |> U3.Case1
-                        |> Array.singleton
+                    let footerContent =
+                        res.Footer
+                        |> String.split [|'\n' |]
+                        |> Array.filter (not << String.IsNullOrWhiteSpace)
+                        |> Array.map (fun n -> U3.Case1 (MarkdownString("*").appendText(n).appendMarkdown("*")))
+
                     let result = createEmpty<Hover>
                     result.range <- range
-                    result.contents <- Array.append sigContent commentContent |> ResizeArray
+                    result.contents <- Array.append sigContent [| yield commentContent; yield! footerContent |] |> ResizeArray
                     result
                 else
                     createEmpty<Hover>

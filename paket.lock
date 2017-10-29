@@ -726,10 +726,10 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: && (< monotouch) (< net46) (>= netstandard1.3) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (4de1566d2195f772004a6077adc6bf0046e3a9db)
+     (1cbb294e560730b51e8c4dca30ccb829a2b8712e)
       build: build.cmd LocalRelease
       os: windows
-     (4de1566d2195f772004a6077adc6bf0046e3a9db)
+     (1cbb294e560730b51e8c4dca30ccb829a2b8712e)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
@@ -740,7 +740,7 @@ GIT
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (7a24912ecdc886e4d973d6d3ab8df20a0feeda76)
+     (9aa4b1055e3173225bc0d4b4e48542c2450beb99)
 GITHUB
   remote: ionide/ionide-vscode-helpers
     src/Fable.Import.Axios.fs (bbc00708d6222fd0f9aa6f11c22b3a7dc7c90944)
@@ -1249,5 +1249,5 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (&& (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (< portable-net45+win8+wp8+wpa81)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (838f43e1e6ac18014b2515799fe7fa0e23186fbc)
+    modules/Octokit/Octokit.fsx (0341a2e614eb2a7f34607cec914eb0ed83ce9add)
       Octokit (>= 0.20)
