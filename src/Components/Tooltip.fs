@@ -42,6 +42,7 @@ module Tooltip =
                     let footerContent =
                         res.Footer
                         |> String.split [|'\n' |]
+                        |> Array.filter (not << String.IsNullOrWhiteSpace)
                         |> Array.map (fun n -> U3.Case1 (MarkdownString("*").appendText(n).appendMarkdown("*")))
 
                     let result = createEmpty<Hover>
@@ -62,8 +63,6 @@ module Tooltip =
                 } |> U2.Case2
 
         }
-
-    Async.AwaitEvent
 
     let activate selector (context: ExtensionContext) =
         languages.registerHoverProvider(selector, createProvider())
