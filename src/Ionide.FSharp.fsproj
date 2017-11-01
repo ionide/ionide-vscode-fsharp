@@ -40,7 +40,6 @@
     <Compile Include="Components/SignatureData.fs" />
     <Compile Include="Components/CodeOutline.fs" />
     <Compile Include="Components/Fsi.fs" />
-    <Compile Include="Components/LegacyFsi.fs" />
     <Compile Include="Components/Forge.fs" />
     <Compile Include="Components/Linter.fs" />
     <Compile Include="Components/UnusedOpens.fs" />

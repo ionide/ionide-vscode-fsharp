@@ -14,7 +14,6 @@ let activate (context: ExtensionContext) =
     df.language <- Some "fsharp"
     let df' : DocumentSelector = df |> U3.Case2
 
-    let legacyFsi = "FSharp.legacyFSI" |> Configuration.get false
     let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
     let codeOutline = "FSharp.codeOutline" |> Configuration.get true
@@ -76,7 +75,7 @@ let activate (context: ExtensionContext) =
     |> ignore
 
     Forge.activate context
-    if legacyFsi then LegacyFsi.activate context else Fsi.activate context
+    Fsi.activate context
 
     ()
 

@@ -940,11 +940,6 @@
 					"default": [],
 					"description": "Allows to pass extra parameters to FSI process"
 				},
-				"FSharp.legacyFSI": {
-					"type": "boolean",
-					"default": false,
-					"description": "Allows to use legacy (read-only) version of FSI. Requires restart"
-				},
 				"FSharp.saveOnSendLastSelection": {
 					"type": "boolean",
 					"default": false,
