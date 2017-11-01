@@ -3,7 +3,6 @@ namespace Ionide.VSCode.FSharp
 open System
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
 
@@ -87,12 +86,12 @@ module Fsi =
             |> List.iter (fun x -> fp.sendText(x,false))
 
             lastSelectionSent <- Some msg)
-        |> Promise.onFail (fun error ->
+        |> Promise.onFail (fun _ ->
             window.showErrorMessage "Failed to send text to FSI" |> ignore)
 
     let private sendLine () =
         let editor = window.activeTextEditor
-        let file = editor.document.fileName
+        let _ = editor.document.fileName
         let pos = editor.selection.start
         let line = editor.document.lineAt pos
         send line.text
@@ -102,7 +101,7 @@ module Fsi =
 
     let private sendSelection () =
         let editor = window.activeTextEditor
-        let file = editor.document.fileName
+        let _ = editor.document.fileName
 
         if editor.selection.isEmpty then
             sendLine ()
@@ -166,9 +165,9 @@ module Fsi =
             match ctn with
             | Some c ->
                 let path = Path.join(workspace.rootPath, "references.fsx")
-                let! td = vscode.Uri.parse ("untitled:" + path) |> workspace.openTextDocument
+                let! td = Uri.parse ("untitled:" + path) |> workspace.openTextDocument
                 let! te = window.showTextDocument(td, ViewColumn.Three)
-                let! res = te.edit (fun e ->
+                let! _ = te.edit (fun e ->
                     let p = Position(0.,0.)
                     let ctn = c |> String.concat "\n"
                     e.insert(p,ctn))
@@ -178,6 +177,25 @@ module Fsi =
             | None ->
                 return ()
         }
+
+    let sendReferencesForProject project =
+        project.References  |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not )  |> referenceAssemblies |> Promise.suppress |> ignore
+
+    let generateProjectReferencesForProject project =
+        let ctn =
+            [|
+                yield! project.References |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not ) |> List.map (sprintf "#r @\"%s\"")
+                yield! project.Files |> List.map (sprintf "#load @\"%s\"")
+            |]
+        promise {
+            let path = Path.join(workspace.rootPath, "references.fsx")
+            let! td = Uri.parse ("untitled:" + path) |> workspace.openTextDocument
+            let! te = window.showTextDocument(td, ViewColumn.Three)
+            let! _ = te.edit (fun e ->
+                let p = Position(0.,0.)
+                let ctn = ctn |> String.concat "\n"
+                e.insert(p,ctn))
+            return () }
 
 
 

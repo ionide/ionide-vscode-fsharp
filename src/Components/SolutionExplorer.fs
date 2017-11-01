@@ -717,6 +717,22 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
+        commands.registerCommand("fsharp.explorer.project.generateFSI", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Project (_, _, _, _, _, _, pr) ->
+                Fsi.generateProjectReferencesForProject pr
+                |> unbox
+            | _ -> undefined
+        )) |> context.subscriptions.Add
+
+        commands.registerCommand("fsharp.explorer.project.sendFSI", Func<obj, obj>(fun m ->
+            match unbox m with
+            | Project (_, _, _, _, _, _, pr) ->
+                Fsi.sendReferencesForProject pr
+                |> unbox
+            | _ -> undefined
+        )) |> context.subscriptions.Add
+
         commands.registerCommand("fsharp.explorer.solution.addProject", Func<obj, obj>(fun m ->
             match unbox m with
             | Solution (_,name, _) ->

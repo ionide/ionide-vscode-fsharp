@@ -325,6 +325,14 @@
 				"title": "Set as startup project"
 			},
 			{
+				"command": "fsharp.explorer.project.sendFSI",
+				"title": "Send references for FSI"
+			},
+			{
+				"command": "fsharp.explorer.project.generateFSI",
+				"title": "Generate references for FSI"
+			},
+			{
 				"command": "fsharp.explorer.msbuild.pickHost",
 				"title": "Pick MsBuild Host"
 			},
@@ -461,6 +469,14 @@
 				},
 				{
 					"command": "fsharp.explorer.project.setDefault",
+					"when": "false"
+				},
+				{
+					"command": "fsharp.explorer.project.sendFSI",
+					"when": "false"
+				},
+				{
+					"command": "fsharp.explorer.project.generateFSI",
 					"when": "false"
 				},
 				{
@@ -640,17 +656,27 @@
 				{
 					"command": "fsharp.explorer.openProjectFile",
 					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
-					"group": "3_derails@1"
+					"group": "4_derails@1"
 				},
 				{
 					"command": "fsharp.explorer.showProjectStatus",
 					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
-					"group": "3_details@2"
+					"group": "4_details@2"
 				},
 				{
 					"command": "fsharp.explorer.addFile",
 					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
 					"group": "2_modifications@2"
+				},
+				{
+					"command": "fsharp.explorer.project.generateFSI",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
+					"group": "3_fsi@1"
+				},
+				{
+					"command": "fsharp.explorer.project.sendFSI",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
+					"group": "3_fsi@2"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.build",
@@ -708,14 +734,24 @@
 					"group": "3_modifications@2"
 				},
 				{
+					"command": "fsharp.explorer.project.generateFSI",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+					"group": "4_fsi@1"
+				},
+				{
+					"command": "fsharp.explorer.project.sendFSI",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+					"group": "4_fsi@2"
+				},
+				{
 					"command": "fsharp.explorer.openProjectFile",
 					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
-					"group": "4_detail@1"
+					"group": "5_detail@1"
 				},
 				{
 					"command": "fsharp.explorer.showProjectStatus",
 					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
-					"group": "4_detail@2"
+					"group": "5_detail@2"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.build",
