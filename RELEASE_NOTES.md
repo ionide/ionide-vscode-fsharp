@@ -1,3 +1,7 @@
+### 3.10.0 - 01.11.2017
+* Remove legacy (readonly) FSI
+* Add generate/send references for FSI to project explorer
+
 ### 3.9.0 - 29.10.2017
 * Add nicer tooltips - formatted signature, more styling, assembly.
 
