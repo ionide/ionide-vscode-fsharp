@@ -5,7 +5,6 @@ clitool dotnet-fable
 nuget Fable.Core
 nuget Fable.Import.Node
 nuget Fable.Import.Browser
-nuget FSharp.Core
 
 git https://github.com/fsharp/FsAutoComplete.git nicer_tooltips build:"build.cmd LocalRelease", OS: windows
 git https://github.com/fsharp-editing/Forge.git master build:"build.cmd Build", OS: windows
