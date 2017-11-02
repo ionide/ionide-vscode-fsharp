@@ -154,13 +154,13 @@ module CodeOutline =
                         | _ ->  ResizeArray ()
                     else ResizeArray ()
 
-
             member this.getTreeItem(node) =
                 let ti = createEmpty<TreeItem>
                 ti.label <- getLabel node
                 ti.collapsibleState <-
                     match node with
-                    | TopLevelNamespace _ | Type _ -> Some TreeItemCollapsibleState.Expanded
+                    | TopLevelNamespace _ -> Some TreeItemCollapsibleState.Expanded
+                    | Type _ -> Some TreeItemCollapsibleState.Collapsed
                     | _ -> None
                 ti.iconPath <- getIcon node
                 ti.contextValue <- Some "fsharp.codeOutline.item"
@@ -196,7 +196,9 @@ module CodeOutline =
             |> unbox
         )) |> context.subscriptions.Add
 
+        commands.registerCommand("ionide.codeOutline.collapseAll", Func<obj, obj>(fun _ ->
+            refresh.fire undefined |> unbox
+        )) |> context.subscriptions.Add
+
         window.registerTreeDataProvider("ionide.codeOutline", createProvider () )
         |> context.subscriptions.Add
-
-

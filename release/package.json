@@ -113,6 +113,14 @@
 				}
 			},
 			{
+				"command": "ionide.codeOutline.collapseAll",
+				"title": "Collapse all",
+				"icon": {
+					"light": "./images/collapse-all-light.svg",
+					"dark": "./images/collapse-all-dark.svg"
+				}
+			},
+			{
 				"command": "fsharp.NewProjectNoFake",
 				"title": "F#: New Project (Without FAKE)"
 			},
@@ -579,6 +587,11 @@
 					"command": "fsharp.chooseDefaultProject",
 					"group": "modificatin@2",
 					"when": "view == ionide.projectExplorer"
+				},
+				{
+					"command": "ionide.codeOutline.collapseAll",
+					"group": "navigation@1",
+					"when": "view == ionide.codeOutline"
 				}
 			],
 			"view/item/context": [
