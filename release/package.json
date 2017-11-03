@@ -334,7 +334,7 @@
 			},
 			{
 				"command": "fsharp.explorer.msbuild.pickHost",
-				"title": "Pick MsBuild Host"
+				"title": "F#: Pick MsBuild Host"
 			},
 			{
 				"command": "fsharp.runDefaultProject",
@@ -561,23 +561,28 @@
 					"when": "view == ionide.projectExplorer"
 				},
 				{
-					"command": "fsharp.explorer.refresh",
-					"group": "modificatin@1",
-					"when": "view == ionide.projectExplorer"
-				},
-				{
-					"command": "fsharp.explorer.clearCache",
-					"group": "modificatin@3",
+					"command": "fsharp.changeWorkspace",
+					"group": "modification@1",
 					"when": "view == ionide.projectExplorer"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.pickHost",
-					"group": "modificatin@2",
+					"group": "modification@2",
 					"when": "view == ionide.projectExplorer"
 				},
 				{
 					"command": "fsharp.chooseDefaultProject",
-					"group": "modificatin@2",
+					"group": "modification@3",
+					"when": "view == ionide.projectExplorer"
+				},
+				{
+					"command": "fsharp.explorer.refresh",
+					"group": "modification@4",
+					"when": "view == ionide.projectExplorer"
+				},
+				{
+					"command": "fsharp.explorer.clearCache",
+					"group": "modification@5",
 					"when": "view == ionide.projectExplorer"
 				}
 			],
