@@ -1,3 +1,7 @@
+### 3.11.0 - 03.11.2017
+* Add go-to-type-definition provider
+* Small UI fixes in commands in project explorer
+
 ### 3.10.1 - 02.11.2017
 * Update FSAC (nightly FCS)
 * Fix simplify name opens analyzer - false positives on the values
