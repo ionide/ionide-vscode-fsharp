@@ -32,6 +32,7 @@
     <Compile Include="Components/Autocomplete.fs" />
     <Compile Include="Components/ParameterHints.fs" />
     <Compile Include="Components/Definition.fs" />
+    <Compile Include="Components/TypeDefinition.fs" />
     <Compile Include="Components/References.fs" />
     <Compile Include="Components/Highlights.fs" />
     <Compile Include="Components/Symbols.fs" />
