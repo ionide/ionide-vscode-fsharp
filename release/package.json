@@ -492,6 +492,10 @@
 					"when": "false"
 				},
 				{
+					"command": "ionide.codeOutline.collapseAll",
+					"when": "false"
+				},
+				{
 					"command": "fsi.SendLine",
 					"when": "editorLangId == 'fsharp'"
 				},
