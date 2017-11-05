@@ -94,51 +94,30 @@ module Errors =
                 |> ignore
             | _ -> () ) t)
 
-    let private handlerSave (doc : TextDocument) =
-        match doc with
-        | Document.FSharp ->
-            promise {
-                let! (res : ParseResult) = LanguageService.parseProjects doc.fileName
-                if isNotNull res then
-                    let (_,mapped) = res |> mapResult
-                    currentDiagnostic.clear ()
-                    mapped
-                    |> Seq.groupBy snd
-                    |> Seq.iter (fun (fn, errors) ->
-                        let errs = errors |> Seq.map fst |> ResizeArray
-                        currentDiagnostic.set(Uri.file fn, errs) )
-            }
-        | _ -> Promise.empty
-
     let private handlerOpen (event : TextEditor) =
         if JS.isDefined event then
             parseFile event.document
         else
             Promise.lift ()
 
-    // let private handleNotification res =
-    //     res
-    //     |> Array.map mapResult
-    //     |> Array.iter (fun (file, errors) ->
-    //         if window.activeTextEditor.document.fileName <> file then
-    //             currentDiagnostic.set(Uri.file file, errors |> Seq.map fst |> ResizeArray))
+    let private handleNotification res =
+        printfn "NOTIFY: %A" res
+        let (file, errors) = mapResult res
+        if window.activeTextEditor.document.fileName <> file then
+            currentDiagnostic.set(Uri.file file, errors |> Seq.map fst |> ResizeArray)
 
     let parseVisibleTextEditors () =
         match window.visibleTextEditors |> Seq.toList with
         | [] -> Promise.lift (null |> unbox)
         | [x] -> parseFile x.document
-                 |> Promise.onSuccess (fun _ -> handlerSave x.document |> ignore)
         | x::tail ->
-            tail
-            |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document ) )
-               (parseFile x.document )
-            |> Promise.onSuccess (fun _ -> handlerSave x.document |> ignore)
+            tail |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document )) (parseFile x.document )
+
 
     let activate (context: ExtensionContext) =
         workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
-        workspace.onDidSaveTextDocument $ (handlerSave , (), context.subscriptions) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), context.subscriptions) |> ignore
-        //LanguageService.registerNotify handleNotification
+        LanguageService.registerNotify handleNotification
         Promise.lift parseVisibleTextEditors
 
 

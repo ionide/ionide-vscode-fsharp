@@ -233,14 +233,6 @@ module LanguageService =
         |> requestCanFail "project" 0 (makeRequestId())
         |> Promise.map (parse)
 
-    let parseProjects s =
-        {ProjectRequest.FileName = s}
-        |> request "parseProjects" 0 (makeRequestId())
-
-    let parseProjectsInBackground s =
-        {ProjectRequest.FileName = s}
-        |> request "parseProjectsInBackground" 0 (makeRequestId())
-
     let parse path (text : string) (version : float) =
         let lines = text.Replace("\uFEFF", "").Split('\n')
         { ParseRequest.FileName = handleUntitled path
@@ -376,15 +368,12 @@ module LanguageService =
         |> request "simplifiedNames" 0 (makeRequestId())
 
     [<PassGenerics>]
-    let registerNotify (cb : 'a [] -> unit) =
+    let registerNotify (cb : 'a -> unit) =
         socket |> Option.iter (fun ws ->
             ws.on_message((fun (res : string) ->
-                res
-                |> ofJson
-                |> Seq.map ofJson
-                |> Seq.where (fun n -> unbox n?Kind <> "info" && unbox n?Kind <> "error")
-                |> Seq.toArray
-                |> cb
+                printfn "WebSocket message: %s" res
+                let n = ofJson res
+                if unbox n?Kind <> "info" && unbox n?Kind <> "error" then cb n
                 ) |> unbox) |> ignore
             ())
 
@@ -446,8 +435,7 @@ module LanguageService =
             )
             |> ignore
         )
-        //startSocket ()
-
+        |> Promise.onSuccess (fun _ -> startSocket ())
         |> Promise.onFail (fun err ->
             log.Error("Failed to start language services. %s", err)
             if Process.isMono () then

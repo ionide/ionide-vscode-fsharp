@@ -722,10 +722,10 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: && (< monotouch) (< net46) (>= netstandard1.3) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (1672a5d7659b1f40ed4d18521e383b072ab64358)
+     (c8d7ff244ba7856691f12b45282a9ade41825b16)
       build: build.cmd LocalRelease
       os: windows
-     (1672a5d7659b1f40ed4d18521e383b072ab64358)
+     (c8d7ff244ba7856691f12b45282a9ade41825b16)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
@@ -739,10 +739,10 @@ GIT
      (9aa4b1055e3173225bc0d4b4e48542c2450beb99)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (a1e4612f55d20ac40b13a3cabd25ea6173afe0f5)
-    src/Fable.Import.VSCode.fs (a1e4612f55d20ac40b13a3cabd25ea6173afe0f5)
-    src/Fable.Import.ws.fs (a1e4612f55d20ac40b13a3cabd25ea6173afe0f5)
-    src/Helpers.fs (a1e4612f55d20ac40b13a3cabd25ea6173afe0f5)
+    src/Fable.Import.Axios.fs (0d42cf3c346f814f6519d89228996661b2b9fd41)
+    src/Fable.Import.VSCode.fs (0d42cf3c346f814f6519d89228996661b2b9fd41)
+    src/Fable.Import.ws.fs (0d42cf3c346f814f6519d89228996661b2b9fd41)
+    src/Helpers.fs (0d42cf3c346f814f6519d89228996661b2b9fd41)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2
