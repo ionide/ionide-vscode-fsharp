@@ -122,7 +122,11 @@
 			},
 			{
 				"command": "fsharp.NewProjectNoFake",
-				"title": "F#: New Project (Without FAKE)"
+				"title": "F#: New Project (Without FAKE)",
+				"icon": {
+					"light": "./images/add-light.svg",
+					"dark": "./images/add-dark.svg"
+				}
 			},
 			{
 				"command": "fsharp.NewProjectScaffold",
@@ -560,16 +564,13 @@
 				{
 					"command": "fsharp.NewProject",
 					"group": "navigation@1",
-					"when": "view == ionide.projectExplorer"
-				},
-				{
-					"command": "fsharp.runDefaultProject",
-					"group": "navigation@2",
+					"alt": "fsharp.NewProjectNoFake",
 					"when": "view == ionide.projectExplorer"
 				},
 				{
 					"command": "fsharp.debugDefaultProject",
-					"group": "navigation@3",
+					"group": "navigation@2",
+					"alt": "fsharp.runDefaultProject",
 					"when": "view == ionide.projectExplorer"
 				},
 				{
