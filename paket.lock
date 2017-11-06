@@ -722,10 +722,10 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: && (< monotouch) (< net46) (>= netstandard1.3) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (c8d7ff244ba7856691f12b45282a9ade41825b16)
+     (6e913308ec175bad191ad17c116fc747fd5bc20b)
       build: build.cmd LocalRelease
       os: windows
-     (c8d7ff244ba7856691f12b45282a9ade41825b16)
+     (6e913308ec175bad191ad17c116fc747fd5bc20b)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
@@ -798,7 +798,7 @@ NUGET
       System.Threading.Timer (>= 4.3) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard1.2) (< netstandard1.3) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.3) (< netstandard1.4) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.4) (< netstandard1.5) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.5) (< netstandard1.6)) (&& (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (>= uap10.0) (< uap10.1))
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard1.2) (< netstandard1.3) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.3) (< netstandard1.4) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.4) (< netstandard1.5) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.5) (< netstandard1.6)) (&& (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< net45) (>= netstandard1.1) (< portable-net451+win81+wpa81)) (&& (>= net46) (< netstandard1.4)) (&& (>= netstandard1.0) (< portable-net45+win8+wpa81)) (&& (>= uap10.0) (< uap10.1))
       System.Xml.XDocument (>= 4.3) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard1.2) (< netstandard1.3) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.3) (< netstandard1.4) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.4) (< netstandard1.5) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.5) (< netstandard1.6)) (&& (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< net45) (>= netstandard1.1) (< portable-net451+win81+wpa81)) (&& (>= netstandard1.0) (< portable-net45+win8+wpa81)) (&& (>= uap10.0) (< uap10.1))
-    Octokit (0.27)
+    Octokit (0.28)
       NETStandard.Library (>= 1.6.1) - restriction: && (< net45) (>= netstandard1.1)
     runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.2) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard1.3) (< netstandard1.4) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard1.6)) (&& (< monoandroid) (< net45) (>= netstandard1.4) (< netstandard1.5) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.4) (>= netstandard1.6)) (&& (< monoandroid) (< net45) (>= netstandard1.5) (< netstandard1.6)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard1.6)) (&& (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< net45) (>= net46) (< netstandard1.4)) (&& (< net45) (>= netstandard1.6) (< portable-net451+win81+wpa81)) (&& (>= netstandard1.6) (>= uap10.0)) (&& (>= uap10.0) (< uap10.1))
     runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.2) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard1.3) (< netstandard1.4) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard1.6)) (&& (< monoandroid) (< net45) (>= netstandard1.4) (< netstandard1.5) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.4) (>= netstandard1.6)) (&& (< monoandroid) (< net45) (>= netstandard1.5) (< netstandard1.6)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard1.6)) (&& (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< net45) (>= net46) (< netstandard1.4)) (&& (< net45) (>= netstandard1.6) (< portable-net451+win81+wpa81)) (&& (>= netstandard1.6) (>= uap10.0)) (&& (>= uap10.0) (< uap10.1))

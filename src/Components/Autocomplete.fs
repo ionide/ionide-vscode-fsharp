@@ -13,6 +13,7 @@ open Ionide.VSCode.Helpers
 
 module Autocomplete =
 
+
     let private createProvider () =
         let provider = createEmpty<CompletionItemProvider>
 
@@ -43,12 +44,15 @@ module Autocomplete =
                     if prevChar = '.' && c.GlyphChar = "K" then
                         None
                     else
-                        let range = doc.getWordRangeAtPosition pos
-                        let length = if JS.isDefined range then range.``end``.character - range.start.character else 0.
                         let result = createEmpty<CompletionItem>
                         result.kind <- c.GlyphChar |> convertToKind |> unbox
-                        result.label <- c.Name
                         result.insertText <- c.ReplacementText
+                        result.sortText <- c.Name
+                        if JS.isDefined c.NamespaceToOpen then
+                            result.label <- sprintf "%s (open %s)" c.Name c.NamespaceToOpen
+                        else
+                            result.label <- c.Name
+
                         Some result)
 
                 |> ResizeArray
@@ -60,22 +64,28 @@ module Autocomplete =
                 let res = (o.Data.Overloads |> Array.collect id).[0]
                 sug.documentation <- res.Comment |> Markdown.createCommentBlock |> U2.Case2
                 sug.detail <- res.Signature
+                if JS.isDefined o.Data.AdditionalEdit then
+                    let l = o.Data.AdditionalEdit.Line - 1
+                    let c = o.Data.AdditionalEdit.Column
+                    let t = sprintf "%sopen %s\n" (String.replicate c " ") o.Data.AdditionalEdit.Text
+                    let range = Range(float l, 0., float l, float t.Length)
+                    sug.additionalTextEdits <- [| TextEdit(range, t ) |]
             sug
-
 
         { new CompletionItemProvider
           with
-            member this.provideCompletionItems(doc, pos, ct) =
+            member __.provideCompletionItems(doc, pos, _) =
                 promise {
                     let setting = "FSharp.keywordsAutocomplete" |> Configuration.get true
+                    let external = true
                     let ln = doc.lineAt pos.line
-                    let! res = LanguageService.completion (doc.fileName) ln.text (int pos.line + 1) (int pos.character + 1) setting
+                    let! res = LanguageService.completion (doc.fileName) ln.text (int pos.line + 1) (int pos.character + 1) setting external
                     return mapCompletion doc pos res
                 } |> U2.Case2
 
-            member this.resolveCompletionItem(sug, ct) =
+            member __.resolveCompletionItem(sug, _) =
                 promise {
-                    let! res = LanguageService.helptext sug.label
+                    let! res = LanguageService.helptext sug.sortText
                     return mapHelptext sug res
                 } |> U2.Case2
             }
