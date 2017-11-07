@@ -1,3 +1,8 @@
+### 3.12.0 - 07.11.2017
+* Use non-blocking notifications to get solution wide errors
+* Collapsing / expending for code outline
+* Add autocomplete for external (unopen namespaces/modules) symbols
+
 ### 3.11.0 - 03.11.2017
 * Add go-to-type-definition provider
 * Small UI fixes in commands in project explorer
