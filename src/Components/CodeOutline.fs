@@ -14,6 +14,11 @@ open Ionide.VSCode.Helpers
 
 module CodeOutline =
 
+    type CollapseMode =
+        | CollapseAll
+        | ExpandAll
+        | Default
+
     type Model =
         | TopLevelNamespace of name : string * entries : Model list
         | Type of name : string * typ : string * range : Range * entries : Model list
@@ -26,7 +31,8 @@ module CodeOutline =
     }
 
     let refresh = EventEmitter<Model> ()
-
+    let mutable private collapseMode = Default
+    let mutable private currentDocument : string option = None
 
     let private getIconPath light dark =
         let plugPath =
@@ -145,6 +151,16 @@ module CodeOutline =
                     let doc = window.activeTextEditor
                     if JS.isDefined doc
                     then
+                        // Detect if active file has changed to reset collapseMode to Default
+                        match currentDocument with
+                        | None ->
+                            collapseMode <- Default
+                            currentDocument <- Some doc.document.uri.path
+                        | Some path ->
+                            if path <> doc.document.uri.path then
+                                currentDocument <- Some doc.document.uri.path
+                                collapseMode <- Default
+
                         match doc.document with
                         | Document.FSharp ->
                             promise {
@@ -158,13 +174,25 @@ module CodeOutline =
                 let ti = createEmpty<TreeItem>
                 ti.label <- getLabel node
                 ti.collapsibleState <-
-                    match node with
-                    | TopLevelNamespace _ -> Some TreeItemCollapsibleState.Expanded
-                    | Type (_, typ, _, _) ->
-                        match typ with
-                        | "N" -> Some TreeItemCollapsibleState.Expanded
-                        | _ -> Some TreeItemCollapsibleState.Collapsed
-                    | _ -> None
+                    match collapseMode with
+                    | Default ->
+                        match node with
+                        | TopLevelNamespace _ -> Some TreeItemCollapsibleState.Expanded
+                        | Type (_, typ, _, _) ->
+                            match typ with
+                            | "N" -> Some TreeItemCollapsibleState.Expanded
+                            | _ -> Some TreeItemCollapsibleState.Collapsed
+                        | _ -> None
+                    | CollapseAll ->
+                        match node with
+                        | TopLevelNamespace _ -> Some TreeItemCollapsibleState.Expanded
+                        | Type _ -> Some TreeItemCollapsibleState.Collapsed
+                        | _ -> None
+                    | ExpandAll ->
+                        match node with
+                        | TopLevelNamespace _ | Type _ -> Some TreeItemCollapsibleState.Expanded
+                        | _ -> None
+
                 ti.iconPath <- getIcon node
                 ti.contextValue <- Some "fsharp.codeOutline.item"
 
@@ -174,10 +202,7 @@ module CodeOutline =
                 c.arguments <- Some (ResizeArray [| unbox node|])
                 ti.command <- Some c
 
-
                 ti
-
-
         }
 
     let activate (context: ExtensionContext) =
@@ -186,8 +211,6 @@ module CodeOutline =
                 match unbox<Model> n with
                 | TopLevelNamespace _ -> 1
                 | Type (_,_, r, _) | Function (_,_, r) -> r.StartLine
-
-
 
             let args =
                 createObj [
@@ -200,6 +223,17 @@ module CodeOutline =
         )) |> context.subscriptions.Add
 
         commands.registerCommand("ionide.codeOutline.collapseAll", Func<obj, obj>(fun _ ->
+            collapseMode <- CollapseAll
+            refresh.fire undefined |> unbox
+        )) |> context.subscriptions.Add
+
+        commands.registerCommand("ionide.codeOutline.expandAll", Func<obj, obj>(fun _ ->
+            collapseMode <- ExpandAll
+            refresh.fire undefined |> unbox
+        )) |> context.subscriptions.Add
+
+        commands.registerCommand("ionide.codeOutline.collapseDefault", Func<obj, obj>(fun _ ->
+            collapseMode <- Default
             refresh.fire undefined |> unbox
         )) |> context.subscriptions.Add
 

@@ -121,6 +121,22 @@
 				}
 			},
 			{
+				"command": "ionide.codeOutline.expandAll",
+				"title": "Expand all",
+				"icon": {
+					"light": "./images/expand-all-light.svg",
+					"dark": "./images/expand-all-dark.svg"
+				}
+			},
+			{
+				"command": "ionide.codeOutline.collapseDefault",
+				"title": "Collapse to default state",
+				"icon": {
+					"light": "./images/refresh-light.svg",
+					"dark": "./images/refresh-dark.svg"
+				}
+			},
+			{
 				"command": "fsharp.NewProjectNoFake",
 				"title": "F#: New Project (Without FAKE)",
 				"icon": {
@@ -500,6 +516,14 @@
 					"when": "false"
 				},
 				{
+					"command": "ionide.codeOutline.expandAll",
+					"when": "false"
+				},
+				{
+					"command": "ionide.codeOutline.collapseDefault",
+					"when": "false"
+				},
+				{
 					"command": "fsi.SendLine",
 					"when": "editorLangId == 'fsharp'"
 				},
@@ -599,8 +623,14 @@
 					"when": "view == ionide.projectExplorer"
 				},
 				{
-					"command": "ionide.codeOutline.collapseAll",
+					"command": "ionide.codeOutline.collapseDefault",
 					"group": "navigation@1",
+					"when": "view == ionide.codeOutline"
+				},
+				{
+					"command": "ionide.codeOutline.collapseAll",
+					"alt": "ionide.codeOutline.expandAll",
+					"group": "navigation@2",
 					"when": "view == ionide.codeOutline"
 				}
 			],
