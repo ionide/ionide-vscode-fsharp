@@ -1,3 +1,6 @@
+### 3.12.1 - 08.11.2017
+* Fix inserting open statements in autocomplete, make sure it's insert instead of replace.
+
 ### 3.12.0 - 07.11.2017
 * Use non-blocking notifications to get solution wide errors
 * Collapsing / expending for code outline
