@@ -68,8 +68,9 @@ module Autocomplete =
                     let l = o.Data.AdditionalEdit.Line - 1
                     let c = o.Data.AdditionalEdit.Column
                     let t = sprintf "%sopen %s\n" (String.replicate c " ") o.Data.AdditionalEdit.Text
-                    let range = Range(float l, 0., float l, float t.Length)
-                    sug.additionalTextEdits <- [| TextEdit(range, t ) |]
+                    let p = Position(float l, 0.)
+                    let te = TextEdit.insert(p, t)
+                    sug.additionalTextEdits <- [| te |]
             sug
 
         { new CompletionItemProvider
