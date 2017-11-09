@@ -371,9 +371,9 @@ module LanguageService =
     let registerNotify (cb : 'a -> unit) =
         socket |> Option.iter (fun ws ->
             ws.on_message((fun (res : string) ->
-                printfn "WebSocket message: %s" res
-                let n = ofJson res
-                if unbox n?Kind <> "info" && unbox n?Kind <> "error" then cb n
+                log.Debug(sprintf "WebSocket message: '%s'" res)
+                let n = res |> JS.JSON.parse
+                if unbox n?Kind <> "info" && unbox n?Kind <> "error" then cb (n |> unbox)
                 ) |> unbox) |> ignore
             ())
 
@@ -382,6 +382,7 @@ module LanguageService =
         try
             let sck = WebSocket address
             socket <- Some sck
+            log.Info("notify started")
         with
         | e ->
             socket <- None
