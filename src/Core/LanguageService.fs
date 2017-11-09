@@ -435,7 +435,6 @@ module LanguageService =
             )
             |> ignore
         )
-        |> Promise.onSuccess (fun _ -> startSocket ())
         |> Promise.onFail (fun err ->
             log.Error("Failed to start language services. %s", err)
             if Process.isMono () then
@@ -453,7 +452,9 @@ module LanguageService =
             with
             | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/fsautocomplete.exe"
 
-         if devMode then Promise.empty else start' path
+         let startByDevMode = if devMode then Promise.empty else start' path
+         startByDevMode
+         |> Promise.onSuccess (fun _ -> startSocket ())
 
     let stop () =
         service |> Option.iter (fun n -> n.kill "SIGKILL")
