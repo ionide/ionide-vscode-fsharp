@@ -136,6 +136,8 @@ module LanguageService =
                 ErrorData.GenericError
             | ErrorCodes.ProjectNotRestored ->
                 ErrorData.ProjectNotRestored (err?AdditionalData |> unbox)
+            | ErrorCodes.ProjectParsingFailed ->
+                ErrorData.ProjectParsingFailed (err?AdditionalData |> unbox)
             | unknown ->
                 //todo log not recognized for Debug
                 ErrorData.GenericError
@@ -355,6 +357,10 @@ module LanguageService =
         |> request "workspacePeek" 0 (makeRequestId())
         |> Promise.map (fun res -> parse (res?Data |> unbox))
 
+    let workspaceLoad projects =
+        { WorkspaceLoadRequest.Files = projects |> List.toArray }
+        |> request "workspaceLoad" 0 (makeRequestId())
+
     let unusedDeclarations s =
         {ProjectRequest.FileName = s}
         |> request "unusedDeclarations" 0 (makeRequestId())
@@ -368,20 +374,28 @@ module LanguageService =
         |> request "simplifiedNames" 0 (makeRequestId())
 
     [<PassGenerics>]
-    let registerNotify (cb : 'a -> unit) =
+    let registerNotifyAll (cb : 'a -> unit) =
         socket |> Option.iter (fun ws ->
             ws.on_message((fun (res : string) ->
-                printfn "WebSocket message: %s" res
-                let n = ofJson res
-                if unbox n?Kind <> "info" && unbox n?Kind <> "error" then cb n
+                log.Debug(sprintf "WebSocket message: '%s'" res)
+                let n = res |> JS.JSON.parse
+                cb (n |> unbox)
                 ) |> unbox) |> ignore
             ())
+
+    [<PassGenerics>]
+    let registerNotify (cb : 'a -> unit) =
+        registerNotifyAll (fun n ->
+                if unbox n?Kind <> "info" && unbox n?Kind <> "error" then
+                    cb (n |> unbox)
+            )
 
     let startSocket () =
         let address = sprintf "ws://localhost:%s/notify" port
         try
             let sck = WebSocket address
             socket <- Some sck
+            log.Info("notify started")
         with
         | e ->
             socket <- None

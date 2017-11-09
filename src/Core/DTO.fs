@@ -9,6 +9,7 @@ module DTO =
     type PositionRequest = {FileName : string; Line : int; Column : int; Filter : string}
     type CompletionRequest = {FileName : string; SourceLine : string; Line : int; Column : int; Filter : string; IncludeKeywords : bool; IncludeExternal: bool}
     type WorkspacePeekRequest = {Directory: string; Deep: int; ExcludedDirs: string[] }
+    type WorkspaceLoadRequest = { Files: string[] }
 
     type OverloadSignature = {
         Signature: string
@@ -162,6 +163,10 @@ module DTO =
     type SourceFilePath = string
     type ProjectReferencePath = string
 
+    type ProjectLoading = {
+        Project: ProjectFilePath
+    }
+
     [<RequireQualifiedAccess>]
     type ProjectResponseInfo =
       | DotnetSdk of ProjectResponseInfoDotnetSdk
@@ -272,14 +277,17 @@ module DTO =
     type ErrorCodes =
        | GenericError = 1
        | ProjectNotRestored = 100
+       | ProjectParsingFailed = 101
 
     module ErrorDataTypes =
         type ProjectNotRestoredData = { Project: ProjectFilePath }
+        type ProjectParsingFailedData = { Project: ProjectFilePath }
 
     [<RequireQualifiedAccess>]
     type ErrorData =
        | GenericError
        | ProjectNotRestored of ErrorDataTypes.ProjectNotRestoredData
+       | ProjectParsingFailed of ErrorDataTypes.ProjectParsingFailedData
 
     type UnusedDeclaration = {
         Range: Range
@@ -315,6 +323,7 @@ module DTO =
     type DeclarationResult = Result<Symbols[]>
     type LintResult = Result<Lint[]>
     type ProjectResult = Result<Project>
+    type ProjectLoadingResult = Result<ProjectLoading>
     type ResolveNamespaceResult = Result<ResolveNamespace>
     type UnionCaseGeneratorResult = Result<UnionCaseGenerator>
     type SignatureDataResult = Result<SignatureData>
