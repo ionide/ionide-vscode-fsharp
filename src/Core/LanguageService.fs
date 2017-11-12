@@ -371,9 +371,9 @@ module LanguageService =
     let registerNotify (cb : 'a -> unit) =
         socket |> Option.iter (fun ws ->
             ws.on_message((fun (res : string) ->
-                printfn "WebSocket message: %s" res
-                let n = ofJson res
-                if unbox n?Kind <> "info" && unbox n?Kind <> "error" then cb n
+                log.Debug(sprintf "WebSocket message: '%s'" res)
+                let n = res |> JS.JSON.parse
+                if unbox n?Kind <> "info" && unbox n?Kind <> "error" then cb (n |> unbox)
                 ) |> unbox) |> ignore
             ())
 
@@ -382,6 +382,7 @@ module LanguageService =
         try
             let sck = WebSocket address
             socket <- Some sck
+            log.Info("notify started")
         with
         | e ->
             socket <- None
@@ -435,7 +436,6 @@ module LanguageService =
             )
             |> ignore
         )
-        |> Promise.onSuccess (fun _ -> startSocket ())
         |> Promise.onFail (fun err ->
             log.Error("Failed to start language services. %s", err)
             if Process.isMono () then
@@ -453,7 +453,9 @@ module LanguageService =
             with
             | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/fsautocomplete.exe"
 
-         if devMode then Promise.empty else start' path
+         let startByDevMode = if devMode then Promise.empty else start' path
+         startByDevMode
+         |> Promise.onSuccess (fun _ -> startSocket ())
 
     let stop () =
         service |> Option.iter (fun n -> n.kill "SIGKILL")
