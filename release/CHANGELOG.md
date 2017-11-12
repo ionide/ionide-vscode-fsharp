@@ -1,3 +1,6 @@
+### 3.12.2 - 12.11.2017
+* Add MsBuild commands for solution to command palette
+
 ### 3.12.1 - 08.11.2017
 * Fix inserting open statements in autocomplete, make sure it's insert instead of replace.
 
