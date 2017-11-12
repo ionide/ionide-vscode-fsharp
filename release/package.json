@@ -249,6 +249,19 @@
 				"title": "MSBuild: Switch host type"
 			},
 			{
+				"command": "MSBuild.buildCurrentSolution",
+				"title": "MSBuild: Build current solution"
+			},
+			{
+				"command": "MSBuild.rebuildCurrentSolution",
+				"title": "MSBuild: Rebuild current solution"
+			},
+			{
+				"command": "MSBuild.cleanCurrentSolution",
+				"title": "MSBuild: Clean current solution"
+
+			},
+			{
 				"command": "fsharp.explorer.moveUp",
 				"title": "Move file up"
 			},
@@ -936,6 +949,11 @@
 				"command": "MSBuild.buildCurrent",
 				"key": "ctrl+alt+b",
 				"when": "editorFocus && editorLangId == 'fsharp'"
+			},
+			{
+				"command": "MSBuild.buildCurrentSolution",
+				"key": "ctrl+alt+shift+b",
+				"when": "fsharp.project.any"
 			}
 		],
 		"configurationDefaults": {

@@ -232,6 +232,18 @@ module MSBuild =
                 window.showWarningMessage "Host needs to be chosen for solution build"
             )
 
+    let buildCurrentSolution target =
+        match Project.getLoadedSolution () with
+        | Some (Solution e) ->
+            buildSolution target e.Path
+            |> ignore
+        | Some _ ->
+            window.showWarningMessage "Solution not loaded - plugin in directory mode"
+            |> ignore
+        | None ->
+            window.showWarningMessage "Solution not loaded"
+            |> ignore
+
     let activate (context: ExtensionContext) =
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> context.subscriptions.Add
         let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> context.subscriptions.Add
@@ -285,6 +297,10 @@ module MSBuild =
         registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")
         registerCommand "MSBuild.rebuildCurrent" (fun _ -> buildCurrentProject "Rebuild")
         registerCommand "MSBuild.cleanCurrent" (fun _ -> buildCurrentProject "Clean")
+
+        registerCommand "MSBuild.buildCurrentSolution" (fun _ -> buildCurrentSolution "Build")
+        registerCommand "MSBuild.rebuildCurrentSolution" (fun _ -> buildCurrentSolution "Rebuild")
+        registerCommand "MSBuild.cleanCurrentSolution" (fun _ -> buildCurrentSolution "Clean")
 
         registerCommand2 "MSBuild.buildSelected" (typedMsbuildCmd (buildProject "Build"))
         registerCommand2 "MSBuild.rebuildSelected" (typedMsbuildCmd (buildProject "Rebuild"))
