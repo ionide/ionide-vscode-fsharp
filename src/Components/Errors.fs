@@ -103,7 +103,11 @@ module Errors =
     let private handleNotification res =
         printfn "NOTIFY: %A" res
         let (file, errors) = mapResult res
-        if window.activeTextEditor.document.fileName <> file then
+        let notActive =
+            match unbox window.activeTextEditor with
+            | None -> true
+            | Some (e: TextEditor) -> e.document.fileName <> file
+        if notActive then
             currentDiagnostic.set(Uri.file file, errors |> Seq.map fst |> ResizeArray)
 
     let parseVisibleTextEditors () =
