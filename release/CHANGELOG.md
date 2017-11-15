@@ -1,3 +1,6 @@
+### 3.12.4 - 16.11.2017
+* Handle object name in members for unused declarations
+
 ### 3.12.3 - 16.11.2017
 * Update FSAC - Fix position of inserted open declarations
 
