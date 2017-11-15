@@ -15,10 +15,13 @@ module UnusedDeclarations =
     let refresh = EventEmitter<string>()
     let private isAnalyzerEnabled () = "FSharp.unusedDeclarationsAnalyzer" |> Configuration.get true
 
-    let private diagnosticFromRange file (warning : Range) =
-        let range = CodeRange.fromDTO warning
+    let private diagnosticFromRange file (warning : UnusedDeclaration) =
+        let range = CodeRange.fromDTO warning.Range
         let loc = Location (Uri.file file, range |> U2.Case1)
-        Diagnostic(range, "This value is unused", DiagnosticSeverity.Information), file
+        let d = Diagnostic(range, "This value is unused", DiagnosticSeverity.Information)
+        let code = if warning.IsThisMember then 1. else 0.
+        d.code <- U2.Case2 code
+        d, file
 
     let private mapResult file (ev : UnusedDeclarationsResult) =
         if isNotNull ev then
@@ -43,7 +46,7 @@ module UnusedDeclarations =
 
         { new CodeActionProvider
           with
-            member this.provideCodeActions(doc, range, context, ct) =
+            member __.provideCodeActions(doc, range, context, _) =
                 let diagnostics = context.diagnostics
                 let diagnostic = diagnostics |> Seq.tryFind (fun d -> d.message.Contains "This value is unused")
                 let res =
@@ -52,9 +55,10 @@ module UnusedDeclarations =
                     | Some d ->
                         let txt = doc.getText range
                         let cmd = createEmpty<Command>
-                        cmd.title <- sprintf "Replace with _"
+                        let replacer = if d.code = unbox 1. then "__" else "_"
+                        cmd.title <- sprintf "Replace with %s" replacer
                         cmd.command <- "fsharp.unusedDeclarationsFix"
-                        cmd.arguments <- Some ([| doc |> unbox; d.range |> unbox; "_" |> unbox |] |> ResizeArray)
+                        cmd.arguments <- Some ([| doc |> unbox; d.range |> unbox; replacer |> unbox |] |> ResizeArray)
                         let cmd2 = createEmpty<Command>
                         cmd2.title <- sprintf "Prefix with _"
                         cmd2.command <- "fsharp.unusedDeclarationsFix"

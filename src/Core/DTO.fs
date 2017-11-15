@@ -281,9 +281,13 @@ module DTO =
        | GenericError
        | ProjectNotRestored of ErrorDataTypes.ProjectNotRestoredData
 
+    type UnusedDeclaration = {
+        Range: Range
+        IsThisMember: bool
+    }
 
     type UnusedDeclarations = {
-        Declarations : Range []
+        Declarations : UnusedDeclaration []
     }
 
     type UnusedOpens = {
