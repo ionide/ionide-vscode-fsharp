@@ -1,3 +1,6 @@
+### 3.12.3 - 16.11.2017
+* Update FSAC - Fix position of inserted open declarations
+
 ### 3.12.2 - 12.11.2017
 * Add MsBuild commands for solution to command palette
 
