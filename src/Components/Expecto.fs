@@ -301,7 +301,7 @@ module Expecto =
                         Promise.empty)
             else Promise.empty)
 
-    let private runAll watchMode = runExpecto watchMode "--summary-location"
+    let private runAll watchMode = runExpecto watchMode ""
 
     let private getTestCases () =
         buildExpectoProjects false
@@ -348,7 +348,7 @@ module Expecto =
         window.showQuickPick (U2.Case2 (getTestLists() ))
         |> Promise.bind(fun n ->
             if JS.isDefined n then
-                (sprintf "--filter \"%s\" --summary-location" n) |> runExpecto false
+                (sprintf "--filter \"%s\"" n) |> runExpecto false
             else
                 Promise.empty
         )
@@ -357,7 +357,7 @@ module Expecto =
         getFailed ()
         |> Seq.map fst
         |> String.concat " "
-        |> sprintf "--run %s --summary-location"
+        |> sprintf "--run %s"
         |> runExpecto false
 
     let private onFileChanged (uri : Uri) =

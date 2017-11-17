@@ -1074,7 +1074,7 @@
 				},
 				"Expecto.customArgs": {
 					"type": "string",
-					"default": "",
+					"default": "--summary-location",
 					"description": "Run Expecto tests with additional custom arguments"
 				},
 				"Expecto.autoshow": {
