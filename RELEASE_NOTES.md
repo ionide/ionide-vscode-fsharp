@@ -1,3 +1,6 @@
+### 3.12.5 - 17.11.2017
+* Update FSAC - small performance fixes and one critical crash error handling
+
 ### 3.12.4 - 16.11.2017
 * Handle object name in members for unused declarations
 
