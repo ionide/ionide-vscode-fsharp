@@ -421,31 +421,22 @@ module Project =
 
 
     let handleProjectParsedNotification res =
-        let loading (pr: ProjectLoadingResult) =
-            Some (false, pr.Data.Project, (ProjectLoadingState.Loading pr.Data.Project))
-        let loaded (pr: ProjectResult) =
-            Some (true, pr.Data.Project, (ProjectLoadingState.Loaded pr.Data))
-        let failed (b: obj) =
-            let (msg: string), (err: ErrorData) = unbox b
-            match err with
-            | ErrorData.ProjectNotRestored d ->
-                Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
-            | ErrorData.ProjectParsingFailed d ->
-                Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
-            | _ ->
-                None
+        let projStatus =
+            match res with
+            | Choice1Of3 (pr: ProjectResult) ->
+                Some (true, pr.Data.Project, (ProjectLoadingState.Loaded pr.Data))
+            | Choice2Of3 (pr: ProjectLoadingResult) ->
+                Some (false, pr.Data.Project, (ProjectLoadingState.Loading pr.Data.Project))
+            | Choice3Of3 (msg, err) ->
+                match err with
+                | ErrorData.ProjectNotRestored d ->
+                    Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
+                | ErrorData.ProjectParsingFailed d ->
+                    Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
+                | _ ->
+                    None
 
-        let proj =
-            if (res?Kind |> unbox) = "project" then
-                loaded (unbox res)
-            elif (res?Kind |> unbox) = "projectLoading" then
-                loading (unbox res)
-            elif (res?Kind |> unbox) = "error" then
-                failed (res?Data |> LanguageService.parseError)
-            else
-                None
-
-        match proj with
+        match projStatus with
         | Some (isDone, path, state) ->
             updateInWorkspace path state
             loadedWorkspace |> Option.iter (workspaceChanged.fire)
@@ -461,7 +452,7 @@ module Project =
         w.onDidCreate.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
         w.onDidChange.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
 
-        LanguageService.registerNotifyAll handleProjectParsedNotification
+        LanguageService.registerNotifyWorkspace handleProjectParsedNotification
 
         let initWorkspace x =
             clearLoadedProjects ()
