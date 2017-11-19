@@ -48,7 +48,7 @@ module String =
         match str with
         | null -> null
         | _ -> str.Replace (oldVal, newVal)
-    let split seperator (s : string) = s.Split seperator
+    let split separator (s : string) = s.Split separator
 
     let endWith ending (s : string) = s.EndsWith ending
 
