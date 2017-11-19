@@ -86,6 +86,7 @@ let activate (context: ExtensionContext) : Api =
 
     Forge.activate context
     Fsi.activate context
+    ScriptRunner.activate context
 
     { ProjectLoadedEvent = Project.projectLoaded.event
       BuildProject = MSBuild.buildProjectPath "Build"

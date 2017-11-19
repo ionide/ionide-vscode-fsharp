@@ -86,7 +86,12 @@
 			},
 			{
 				"command": "fsi.SendFile",
-				"title": "FSI: Send File"
+				"title": "FSI: Send File",
+				"icon":
+				{
+					"light": "./images/send-light.svg",
+					"dark": "./images/send-dark.svg"
+				}
 			},
 			{
 				"command": "fsi.SendProjectReferences",
@@ -95,6 +100,15 @@
 			{
 				"command": "fsi.GenerateProjectReferences",
 				"title": "FSI: Generate script file with references from project"
+			},
+			{
+				"command": "fsharp.scriptrunner.run",
+				"title": "F#: Run script",
+				"icon":
+				{
+					"light": "./images/run-light.svg",
+					"dark": "./images/run-dark.svg"
+				}
 			},
 			{
 				"command": "fsharp.MoveFileUp",
@@ -561,6 +575,10 @@
 					"when": "editorLangId == 'fsharp'"
 				},
 				{
+					"command": "fsharp.scriptrunner.run",
+					"when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'"
+				},
+				{
 					"command": "fsharp.MoveFileUp",
 					"when": "editorLangId == 'fsharp'"
 				},
@@ -862,6 +880,18 @@
 					"when": "editorTextFocus && editorLangId == 'fsharp'"
 				}
 			],
+			"editor/title": [
+				{
+				  "command": "fsi.SendFile",
+				  "when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'",
+				  "group": "navigation"
+				},
+				{
+					"command": "fsharp.scriptrunner.run",
+					"when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'",
+					"group": "navigation"
+				  }
+			  ],
 			"touchBar": [
 				{
 					"command": "fsharp.debugDefaultProject",
