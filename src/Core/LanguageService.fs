@@ -403,8 +403,12 @@ module LanguageService =
                 res?Data |> parseError |> Choice3Of3 |> cb
             | _ ->
                 ()
-        socketNotifyWorkspace
-        |> Option.iter (registerNotifyAll onMessage) 
+
+        match socketNotifyWorkspace with
+        | None -> false
+        | Some ws ->
+            ws |> registerNotifyAll onMessage
+            true
 
     let private startSocket notificationEvent =
         let address = sprintf "ws://localhost:%s/%s" port notificationEvent
