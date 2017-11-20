@@ -26,6 +26,11 @@ module Project =
         | Sln // prefer sln, if any, otherwise directory
         | IonideSearch // old behaviour, like directory but search is ionide's side
 
+    [<RequireQualifiedAccess>]
+    type FSharpWorkspaceLoader =
+        | Projects // send to FSAC multiple "project" command
+        | WorkspaceLoad // send to FSAC the workspaceLoad and use notifications
+
     let private emptyProjectsMap : Map<ProjectFilePath,ProjectLoadingState> = Map.empty
     let mutable private loadedProjects = emptyProjectsMap
     let mutable private loadedWorkspace : WorkspacePeekFound option = None
@@ -418,7 +423,34 @@ module Project =
         | "sln" -> FSharpWorkspaceMode.Sln
         | "ionideSearch" | _ -> FSharpWorkspaceMode.IonideSearch
 
+    let getWorkspaceLoaderFromConfig () =
+        match "FSharp.workspaceLoader" |> Configuration.get "projects" with
+        | "workspaceLoad" -> FSharpWorkspaceLoader.WorkspaceLoad
+        | "projects" | _ -> FSharpWorkspaceLoader.Projects
 
+    let handleProjectParsedNotification res =
+        let projStatus =
+            match res with
+            | Choice1Of3 (pr: ProjectResult) ->
+                Some (true, pr.Data.Project, (ProjectLoadingState.Loaded pr.Data))
+            | Choice2Of3 (pr: ProjectLoadingResult) ->
+                Some (false, pr.Data.Project, (ProjectLoadingState.Loading pr.Data.Project))
+            | Choice3Of3 (msg, err) ->
+                match err with
+                | ErrorData.ProjectNotRestored d ->
+                    Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
+                | ErrorData.ProjectParsingFailed d ->
+                    Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
+                | _ ->
+                    None
+
+        match projStatus with
+        | Some (isDone, path, state) ->
+            updateInWorkspace path state
+            loadedWorkspace |> Option.iter (workspaceChanged.fire)
+            if isDone then setAnyProjectContext true
+        | None ->
+            ()
 
     let activate (context: ExtensionContext) parseVisibleTextEditors =
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
@@ -427,6 +459,8 @@ module Project =
         let w = vscode.workspace.createFileSystemWatcher("**/*.fsproj")
         w.onDidCreate.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
         w.onDidChange.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
+
+        let workspaceNotificationAvaiable = LanguageService.registerNotifyWorkspace handleProjectParsedNotification
 
         let initWorkspace x =
             clearLoadedProjects ()
@@ -447,9 +481,26 @@ module Project =
                 setAnyProjectContext true
             | _ -> ()
 
+            let loadProjects =
+                let loader =
+                   match workspaceNotificationAvaiable, getWorkspaceLoaderFromConfig () with
+                   | false, FSharpWorkspaceLoader.Projects ->
+                        FSharpWorkspaceLoader.Projects
+                   | false, FSharpWorkspaceLoader.WorkspaceLoad ->
+                        // workspaceLoad require notification, but registration failed => warning
+                        // fallback to projects
+                        FSharpWorkspaceLoader.Projects
+                   | true, loaderType -> loaderType
+
+                match loader with
+                | FSharpWorkspaceLoader.Projects ->
+                    Promise.executeForAll load
+                | FSharpWorkspaceLoader.WorkspaceLoad ->
+                    LanguageService.workspaceLoad
+
             projs
             |> List.ofArray
-            |> Promise.executeForAll load
+            |> loadProjects
             |> Promise.bind (fun _ -> parseVisibleTextEditors ())
             |> Promise.map ignore
 

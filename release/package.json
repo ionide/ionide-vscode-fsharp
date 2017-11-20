@@ -975,6 +975,15 @@
 						"ionideSearch"
 					]
 				},
+				"FSharp.workspaceLoader": {
+					"type": "string",
+					"default": "projects",
+					"description": "Choose the FSAC workspace loader",
+					"enum": [
+						"projects",
+						"workspaceLoad"
+					]
+				},
 				"FSharp.workspaceModePeekDeepLevel": {
 					"type": "integer",
 					"default": 2,

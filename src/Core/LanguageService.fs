@@ -85,7 +85,8 @@ module LanguageService =
     let port = if devMode then "8088" else genPort ()
     let private url fsacAction requestId = (sprintf "http://127.0.0.1:%s/%s?requestId=%i" port fsacAction requestId)
     let mutable private service : ChildProcess.ChildProcess option =  None
-    let mutable private socket : WebSocket option = None
+    let mutable private socketNotify : WebSocket option = None
+    let mutable private socketNotifyWorkspace : WebSocket option = None
     let private platformPathSeparator = if Process.isMono () then "/" else "\\"
     let private makeRequestId =
         let mutable requestId = 0
@@ -136,6 +137,8 @@ module LanguageService =
                 ErrorData.GenericError
             | ErrorCodes.ProjectNotRestored ->
                 ErrorData.ProjectNotRestored (err?AdditionalData |> unbox)
+            | ErrorCodes.ProjectParsingFailed ->
+                ErrorData.ProjectParsingFailed (err?AdditionalData |> unbox)
             | unknown ->
                 //todo log not recognized for Debug
                 ErrorData.GenericError
@@ -355,6 +358,10 @@ module LanguageService =
         |> request "workspacePeek" 0 (makeRequestId())
         |> Promise.map (fun res -> parse (res?Data |> unbox))
 
+    let workspaceLoad projects =
+        { WorkspaceLoadRequest.Files = projects |> List.toArray }
+        |> request "workspaceLoad" 0 (makeRequestId())
+
     let unusedDeclarations s =
         {ProjectRequest.FileName = s}
         |> request "unusedDeclarations" 0 (makeRequestId())
@@ -368,25 +375,51 @@ module LanguageService =
         |> request "simplifiedNames" 0 (makeRequestId())
 
     [<PassGenerics>]
-    let registerNotify (cb : 'a -> unit) =
-        socket |> Option.iter (fun ws ->
-            ws.on_message((fun (res : string) ->
-                printfn "WebSocket message: %s" res
-                let n = ofJson res
-                if unbox n?Kind <> "info" && unbox n?Kind <> "error" then cb n
-                ) |> unbox) |> ignore
-            ())
+    let private registerNotifyAll (cb : 'a -> unit) (ws: WebSocket) =
+        ws.on_message((fun (res : string) ->
+            log.Debug(sprintf "WebSocket message: '%s'" res)
+            let n = res |> JS.JSON.parse
+            cb (n |> unbox)
+            ) |> unbox) |> ignore
+        ()
 
-    let startSocket () =
-        let address = sprintf "ws://localhost:%s/notify" port
+    [<PassGenerics>]
+    let registerNotify (cb : ParseResult -> unit) =
+        let onParseResult n =
+            if unbox n?Kind = "errors" then
+                n |> unbox |> cb
+        socketNotify
+        |> Option.iter (registerNotifyAll onParseResult)
+
+    [<PassGenerics>]
+    let registerNotifyWorkspace (cb : _ -> unit) =
+        let onMessage res =
+            match res?Kind |> unbox with
+            | "project" ->
+                res |> unbox<ProjectResult> |> Choice1Of3 |> cb
+            | "projectLoading" ->
+                res |> unbox<ProjectLoadingResult> |> Choice2Of3 |> cb
+            | "error" ->
+                res?Data |> parseError |> Choice3Of3 |> cb
+            | _ ->
+                ()
+
+        match socketNotifyWorkspace with
+        | None -> false
+        | Some ws ->
+            ws |> registerNotifyAll onMessage
+            true
+
+    let private startSocket notificationEvent =
+        let address = sprintf "ws://localhost:%s/%s" port notificationEvent
         try
             let sck = WebSocket address
-            socket <- Some sck
+            log.Info(sprintf "listening notification on /%s started" notificationEvent)
+            Some sck
         with
         | e ->
-            socket <- None
-            log.Error("Initializing notify error: %s", e.Message)
-
+            log.Error(sprintf "notification /%s initialization error: %s" notificationEvent e.Message)
+            None
 
     let start' path =
         Promise.create (fun resolve reject ->
@@ -435,7 +468,6 @@ module LanguageService =
             )
             |> ignore
         )
-        |> Promise.onSuccess (fun _ -> startSocket ())
         |> Promise.onFail (fun err ->
             log.Error("Failed to start language services. %s", err)
             if Process.isMono () then
@@ -453,7 +485,12 @@ module LanguageService =
             with
             | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") + "/bin/fsautocomplete.exe"
 
-         if devMode then Promise.empty else start' path
+         let startByDevMode = if devMode then Promise.empty else start' path
+         startByDevMode
+         |> Promise.onSuccess (fun _ ->
+            socketNotify <- startSocket "notify" )
+         |> Promise.onSuccess (fun _ ->
+            socketNotifyWorkspace <- startSocket "notifyWorkspace" )
 
     let stop () =
         service |> Option.iter (fun n -> n.kill "SIGKILL")
