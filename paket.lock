@@ -722,17 +722,17 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: && (< monotouch) (< net46) (>= netstandard1.3) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (c0a222454289a041546098c690c23d061e39f21c)
+     (2d9fa8259c34244e87107df7316113c96063f645)
       build: build.cmd LocalRelease
       os: windows
-     (c0a222454289a041546098c690c23d061e39f21c)
+     (2d9fa8259c34244e87107df7316113c96063f645)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
-     (ac8e1922846819fc807d59257846675f8ffee3f7)
+     (dd4a3a8ea20514b0174d310e5a52f09916395ec4)
       build: build.cmd Build
       os: windows
-     (ac8e1922846819fc807d59257846675f8ffee3f7)
+     (dd4a3a8ea20514b0174d310e5a52f09916395ec4)
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git

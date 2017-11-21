@@ -11,7 +11,6 @@ open DTO
 open Ionide.VSCode.Helpers
 open System.Text.RegularExpressions
 
-
 module Errors =
     let private logger = ConsoleAndOutputChannelLogger(Some "Errors", Level.DEBUG, None, Some Level.DEBUG)
 
@@ -97,8 +96,21 @@ module Errors =
     let private handlerOpen (event : TextEditor) =
         if JS.isDefined event then
             parseFile event.document
+            |> Promise.bind (fun n ->
+                LanguageService.projectsInBackground event.document.fileName
+            )
         else
             Promise.lift ()
+
+    let private handlerSave (event : TextDocument) =
+        if JS.isDefined event then
+            parseFile event
+            |> Promise.bind (fun n ->
+                LanguageService.projectsInBackground event.fileName
+            )
+        else
+            Promise.lift ()
+
 
     let private handleNotification res =
         printfn "NOTIFY: %A" res
@@ -121,6 +133,7 @@ module Errors =
     let activate (context: ExtensionContext) =
         workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen, (), context.subscriptions) |> ignore
+        workspace.onDidSaveTextDocument $ (handlerSave, (), context.subscriptions) |> ignore
         LanguageService.registerNotify handleNotification
         Promise.lift parseVisibleTextEditors
 
