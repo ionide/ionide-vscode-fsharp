@@ -1,3 +1,8 @@
+### 3.13.0 - 21.11.2017
+* Change background type checking strategy... again
+* Add configuration for external symbols autocomplete `FSharp.externalAutocomplete`
+* EXPERIMENTAL - Add .Net Core version of FsAutoComplete, enabled with `FSharp.fsacRuntime`
+
 ### 3.12.5 - 17.11.2017
 * Update FSAC - small performance fixes and one critical crash error handling
 
