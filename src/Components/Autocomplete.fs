@@ -78,7 +78,7 @@ module Autocomplete =
             member __.provideCompletionItems(doc, pos, _) =
                 promise {
                     let setting = "FSharp.keywordsAutocomplete" |> Configuration.get true
-                    let external = true
+                    let external = "FSharp.externalAutocomplete" |> Configuration.get true
                     let ln = doc.lineAt pos.line
                     let! res = LanguageService.completion (doc.fileName) ln.text (int pos.line + 1) (int pos.character + 1) setting external
                     return mapCompletion doc pos res

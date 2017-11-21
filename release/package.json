@@ -1040,6 +1040,11 @@
 					"default": true,
 					"description": "Includes keywords in autocomplete"
 				},
+				"FSharp.externalAutocomplete": {
+					"type": "boolean",
+					"default": true,
+					"description": "Includes external (from unopen modules and namespaces) symbols in autocomplete"
+				},
 				"FSharp.linter": {
 					"type": "boolean",
 					"default": true,
