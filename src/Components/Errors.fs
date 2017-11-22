@@ -58,7 +58,10 @@ module Errors =
                 UnusedDeclarations.refresh.fire fileName
                 SimplifyName.refresh.fire fileName
                 CodeOutline.refresh.fire (undefined)
-                (Uri.file fileName, (mapResult result |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set  )
+                (Uri.file fileName, (mapResult result |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set
+                Some fileName
+            else
+                None)
 
     let private parseFile (file : TextDocument) =
         match file with
@@ -66,13 +69,13 @@ module Errors =
             let path = file.fileName
             match Project.find path with
             | Choice1Of3 _ -> parse file
-            | Choice2Of3 () -> Promise.lift (null |> unbox)
+            | Choice2Of3 () -> Promise.lift None
             | Choice3Of3 (Some p) ->
                 p
                 |> Project.load
                 |> Promise.bind (fun _ -> parse file)
             | Choice3Of3 None -> parse file
-        | _ -> Promise.lift (null |> unbox)
+        | _ -> Promise.lift None
 
     let mutable private timer = None
 
@@ -97,7 +100,9 @@ module Errors =
         if JS.isDefined event then
             parseFile event.document
             |> Promise.bind (fun n ->
-                LanguageService.projectsInBackground event.document.fileName
+                match n with
+                | Some _fileName -> LanguageService.projectsInBackground event.document.fileName
+                | None -> Promise.lift ()
             )
         else
             Promise.lift ()
@@ -106,7 +111,9 @@ module Errors =
         if JS.isDefined event then
             parseFile event
             |> Promise.bind (fun n ->
-                LanguageService.projectsInBackground event.fileName
+                match n with
+                | Some _fileName -> LanguageService.projectsInBackground event.fileName
+                | None -> Promise.lift ()
             )
         else
             Promise.lift ()
