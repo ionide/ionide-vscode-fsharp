@@ -215,7 +215,7 @@ module LanguageService =
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
-    let project s =
+    let private deserializeProjectResult (res: ProjectResult) =
         let parseInfo (f: obj) =
             match f?SdkType |> unbox with
             | "dotnet/sdk" ->
@@ -224,17 +224,18 @@ module LanguageService =
                 ProjectResponseInfo.Verbose
             | "project.json" ->
                 ProjectResponseInfo.ProjectJson
-            | s ->
+            | _ ->
                 log.Error("error during parsing of ProjectResult, invalid %j", f)
                 f |> unbox
 
-        let parse (res: ProjectResult) =
-            let info = res.Data.Info |> parseInfo
-            { res with Data = { res.Data with Info = info }}
+        { res with
+            Data = { res.Data with
+                        Info = parseInfo(res.Data.Info) } }
 
+    let project s =
         {ProjectRequest.FileName = s}
         |> requestCanFail "project" 0 (makeRequestId())
-        |> Promise.map (parse)
+        |> Promise.map deserializeProjectResult
 
     let parse path (text : string) (version : float) =
         let lines = text.Replace("\uFEFF", "").Split('\n')
@@ -400,7 +401,7 @@ module LanguageService =
         let onMessage res =
             match res?Kind |> unbox with
             | "project" ->
-                res |> unbox<ProjectResult> |> Choice1Of3 |> cb
+                res |> unbox<ProjectResult> |> deserializeProjectResult |> Choice1Of3 |> cb
             | "projectLoading" ->
                 res |> unbox<ProjectLoadingResult> |> Choice2Of3 |> cb
             | "error" ->
