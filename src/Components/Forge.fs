@@ -258,7 +258,7 @@ module Forge =
                             if JS.isDefined dir && JS.isDefined name then
                                 if name <> "" then
                                     let msg = window.setStatusBarMessage "Creating project..."
-                                    sprintf "new project -n %s -t %s --folder %s" name template.label dir
+                                    sprintf """new project -n "%s" -t %s --folder "%s" """ name template.label dir
                                     |> spawnForge
                                     |> Process.toPromise
                                     |> Promise.bind (fun _ ->
