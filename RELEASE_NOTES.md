@@ -1,4 +1,4 @@
-### 3.13.1 - 23.11.2017
+### 3.13.2 - 23.11.2017
 * Send `projectsInBackground` command only for f# files
 * Fix Forge project creation if choosen directory name is blank
 * Fix project properties page using workspace notification
