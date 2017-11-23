@@ -1,3 +1,9 @@
+### 3.13.1 - 23.11.2017
+* Send `projectsInBackground` command only for f# files
+* Fix Forge project creation if choosen directory name is blank
+* Fix project properties page using workspace notification
+* Update FSAC - project cracking fix and varius small fixes
+
 ### 3.13.0 - 21.11.2017
 * Change background type checking strategy... again
 * Add configuration for external symbols autocomplete `FSharp.externalAutocomplete`
