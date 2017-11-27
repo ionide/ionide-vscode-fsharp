@@ -113,7 +113,7 @@ module MSBuild =
     let invokeMSBuild project target hostPreference =
         let autoshow =
             let cfg = vscode.workspace.getConfiguration()
-            cfg.get ("FSharp.msbuildAutoshow", true)
+            cfg.get ("FSharp.msbuildAutoshow", false)
 
         let safeproject = sprintf "\"%s\"" project
         let command = sprintf "%s /t:%s" safeproject target
@@ -220,6 +220,24 @@ module MSBuild =
         let host = tryGetRightHost' path
         invokeMSBuild path target (Some host)
 
+    let restoreProject projOpt hostOpt =
+        buildProject "Restore" projOpt hostOpt
+        |> Promise.onSuccess (fun _ ->
+            match projOpt with
+            | Some p -> Project.load p |> unbox
+            | None -> ()
+        )
+
+    let restoreProjectPath (project : Project) =
+        let host = tryGetRightHost project
+        invokeMSBuild project.Project "Restore" (Some host)
+        |> Promise.bind (fun _ -> Project.load project.Project)
+
+    let restoreProjectWithoutParseData (path : string) =
+        let host = tryGetRightHost' path
+        invokeMSBuild path "Restore" (Some host)
+        |> Promise.bind (fun _ -> Project.load path)
+
     let buildSolution target sln =
         match host.value with
         | Some h -> invokeMSBuild sln target (Some h)
@@ -245,6 +263,57 @@ module MSBuild =
             |> ignore
 
     let activate (context: ExtensionContext) =
+        let projectWatcher = vscode.workspace.createFileSystemWatcher("**/*.fsproj")
+        projectWatcher.onDidCreate.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
+        projectWatcher.onDidChange.Invoke(fun n -> Project.load n.fsPath |> unbox) |> ignore
+
+        let solutionWatcher = vscode.workspace.createFileSystemWatcher("**/*.sln")
+        solutionWatcher.onDidCreate.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
+        solutionWatcher.onDidChange.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
+
+        let assetWatcher = vscode.workspace.createFileSystemWatcher("**/project.assets.json")
+
+        let getFsProjFromAssets (n:Uri)=
+            let objDir = Path.dirname n.fsPath
+            let fsprojDir = Path.join(objDir, "..")
+            let files = Fs.readdirSync (U2.Case1 fsprojDir)
+            files |> Seq.tryFind(fun n -> n.EndsWith ".fsproj"), fsprojDir
+
+        assetWatcher.onDidDelete.Invoke(fun n ->
+            let (fsprojOpt, fsprojDir) = getFsProjFromAssets n
+            match fsprojOpt with
+            | Some fsproj ->
+                let p = Path.join(fsprojDir, fsproj)
+                let fsacCache = Path.join(fsprojDir, "obj", "fsac.cache")
+                Fs.unlinkSync(U2.Case1 fsacCache)
+                restoreProjectWithoutParseData p
+                |> unbox
+            | None -> undefined
+        ) |> context.subscriptions.Add
+
+        assetWatcher.onDidCreate.Invoke(fun n ->
+            let (fsprojOpt, fsprojDir) = getFsProjFromAssets n
+            match fsprojOpt with
+            | Some fsproj ->
+                let p = Path.join(fsprojDir, fsproj)
+                Project.load p
+                |> unbox
+            | None -> undefined
+        ) |> context.subscriptions.Add
+
+        assetWatcher.onDidChange.Invoke(fun n ->
+            let (fsprojOpt, fsprojDir) = getFsProjFromAssets n
+            match fsprojOpt with
+            | Some fsproj ->
+                let p = Path.join(fsprojDir, fsproj)
+                Project.load p
+                |> unbox
+            | None -> undefined
+        ) |> context.subscriptions.Add
+
+        Project.projectNotRestoredLoaded.event.Invoke(fun n -> restoreProjectWithoutParseData n |> unbox)
+        |> context.subscriptions.Add
+
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> context.subscriptions.Add
         let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> context.subscriptions.Add
 
@@ -305,6 +374,6 @@ module MSBuild =
         registerCommand2 "MSBuild.buildSelected" (typedMsbuildCmd (buildProject "Build"))
         registerCommand2 "MSBuild.rebuildSelected" (typedMsbuildCmd (buildProject "Rebuild"))
         registerCommand2 "MSBuild.cleanSelected" (typedMsbuildCmd (buildProject "Clean"))
-        registerCommand2 "MSBuild.restoreSelected" (typedMsbuildCmd (buildProject"Restore"))
+        registerCommand2 "MSBuild.restoreSelected" (typedMsbuildCmd restoreProject)
 
         registerCommand "MSBuild.switchMSbuildHostType" (fun _ -> switchMSbuildHostType ())

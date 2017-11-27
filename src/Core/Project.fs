@@ -34,8 +34,10 @@ module Project =
     let private emptyProjectsMap : Map<ProjectFilePath,ProjectLoadingState> = Map.empty
     let mutable private loadedProjects = emptyProjectsMap
     let mutable private loadedWorkspace : WorkspacePeekFound option = None
+    let mutable workspaceNotificationAvaiable = false
     let setAnyProjectContext = Context.cachedSetter<bool> "fsharp.project.any"
     let workspaceChanged = EventEmitter<WorkspacePeekFound>()
+    let projectNotRestoredLoaded = EventEmitter<string>()
 
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files" |]
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
@@ -126,6 +128,7 @@ module Project =
             let (msg: string), (err: ErrorData) = unbox b
             match err with
             | ErrorData.ProjectNotRestored d ->
+                projectNotRestoredLoaded.fire path
                 Some (path, ProjectLoadingState.NotRestored (path, msg) )
             | _ ->
                 Some (path, (ProjectLoadingState.Failed (path, msg)))
@@ -438,6 +441,7 @@ module Project =
             | Choice3Of3 (msg, err) ->
                 match err with
                 | ErrorData.ProjectNotRestored d ->
+                    projectNotRestoredLoaded.fire d.Project
                     Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
                 | ErrorData.ProjectParsingFailed d ->
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
@@ -452,67 +456,72 @@ module Project =
         | None ->
             ()
 
+    let private initWorkspaceHelper parseVisibleTextEditors x  =
+        clearLoadedProjects ()
+        loadedWorkspace <- Some x
+        workspaceChanged.fire x
+        let projs =
+            match x with
+            | WorkspacePeekFound.Directory dir ->
+                dir.Fsprojs
+            | WorkspacePeekFound.Solution sln ->
+                sln.Items
+                |> Array.collect foldFsproj
+                |> Array.map fst
+
+        match x with
+        | WorkspacePeekFound.Solution _
+        | WorkspacePeekFound.Directory _ when not(projs |> Array.isEmpty) ->
+            setAnyProjectContext true
+        | _ -> ()
+
+        let loadProjects =
+            let loader =
+                match workspaceNotificationAvaiable, getWorkspaceLoaderFromConfig () with
+                | false, FSharpWorkspaceLoader.Projects ->
+                    FSharpWorkspaceLoader.Projects
+                | false, FSharpWorkspaceLoader.WorkspaceLoad ->
+                    // workspaceLoad require notification, but registration failed => warning
+                    // fallback to projects
+                    FSharpWorkspaceLoader.Projects
+                | true, loaderType -> loaderType
+
+            match loader with
+            | FSharpWorkspaceLoader.Projects ->
+                Promise.executeForAll load
+            | FSharpWorkspaceLoader.WorkspaceLoad ->
+                LanguageService.workspaceLoad
+
+        projs
+        |> List.ofArray
+        |> loadProjects
+        |> Promise.bind (fun _ -> parseVisibleTextEditors ())
+        |> Promise.map ignore
+
+    let reinitWorkspace () =
+        match loadedWorkspace with
+        | None -> Promise.empty
+        | Some wsp ->
+            initWorkspaceHelper (fun _ -> Promise.empty) wsp
+
+    let initWorkspace parseVisibleTextEditors =
+        getWorkspaceModeFromConfig ()
+        |> getWorkspaceForMode
+        |> Promise.bind (function Some x -> Promise.lift x | None -> getWorkspaceForModeIonideSearch ())
+        |> Promise.bind (initWorkspaceHelper parseVisibleTextEditors)
+
     let activate (context: ExtensionContext) parseVisibleTextEditors =
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
         |> context.subscriptions.Add
 
-        let w = vscode.workspace.createFileSystemWatcher("**/*.fsproj")
-        w.onDidCreate.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
-        w.onDidChange.Invoke(fun n -> load n.fsPath |> unbox) |> ignore
-
-        let workspaceNotificationAvaiable = LanguageService.registerNotifyWorkspace handleProjectParsedNotification
-
-        let initWorkspace x =
-            clearLoadedProjects ()
-            loadedWorkspace <- Some x
-            workspaceChanged.fire x
-            let projs =
-                match x with
-                | WorkspacePeekFound.Directory dir ->
-                    dir.Fsprojs
-                | WorkspacePeekFound.Solution sln ->
-                    sln.Items
-                    |> Array.collect foldFsproj
-                    |> Array.map fst
-
-            match x with
-            | WorkspacePeekFound.Solution _
-            | WorkspacePeekFound.Directory _ when not(projs |> Array.isEmpty) ->
-                setAnyProjectContext true
-            | _ -> ()
-
-            let loadProjects =
-                let loader =
-                   match workspaceNotificationAvaiable, getWorkspaceLoaderFromConfig () with
-                   | false, FSharpWorkspaceLoader.Projects ->
-                        FSharpWorkspaceLoader.Projects
-                   | false, FSharpWorkspaceLoader.WorkspaceLoad ->
-                        // workspaceLoad require notification, but registration failed => warning
-                        // fallback to projects
-                        FSharpWorkspaceLoader.Projects
-                   | true, loaderType -> loaderType
-
-                match loader with
-                | FSharpWorkspaceLoader.Projects ->
-                    Promise.executeForAll load
-                | FSharpWorkspaceLoader.WorkspaceLoad ->
-                    LanguageService.workspaceLoad
-
-            projs
-            |> List.ofArray
-            |> loadProjects
-            |> Promise.bind (fun _ -> parseVisibleTextEditors ())
-            |> Promise.map ignore
+        workspaceNotificationAvaiable <- LanguageService.registerNotifyWorkspace handleProjectParsedNotification
 
         commands.registerCommand("fsharp.changeWorkspace", (fun _ ->
             workspacePeek ()
             |> Promise.bind pickFSACWorkspace
-            |> Promise.bind (function Some w -> initWorkspace w | None -> Promise.empty )
+            |> Promise.bind (function Some w -> initWorkspaceHelper parseVisibleTextEditors w  | None -> Promise.empty )
             |> box
             ))
         |> context.subscriptions.Add
 
-        getWorkspaceModeFromConfig ()
-        |> getWorkspaceForMode
-        |> Promise.bind (function Some x -> Promise.lift x | None -> getWorkspaceForModeIonideSearch ())
-        |> Promise.bind initWorkspace
+        initWorkspace parseVisibleTextEditors

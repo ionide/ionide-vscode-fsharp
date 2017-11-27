@@ -661,10 +661,10 @@ module SolutionExplorer =
         commands.registerCommand("fsharp.explorer.msbuild.restore", Func<obj, obj>(fun m ->
             match unbox m with
             | Project (path, _, _, _, _, _, pr) ->
-                MSBuild.buildProjectPath "Restore" pr
+                MSBuild.restoreProjectPath pr
                 |> unbox
             | ProjectNotRestored (path, _, _) ->
-                MSBuild.buildProjectWithoutParseData "Restore" path
+                MSBuild.restoreProjectWithoutParseData path
                 |> unbox
             | _ -> undefined
         )) |> context.subscriptions.Add

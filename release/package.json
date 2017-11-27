@@ -1112,8 +1112,8 @@
 				},
 				"FSharp.msbuildAutoshow": {
 					"type": "boolean",
-					"default": true,
-					"description": "Automatically shows Expecto output panel"
+					"default": false,
+					"description": "Automatically shows MsBuild output panel"
 				},
 				"FSharp.msbuildHost": {
 					"type": "string",
