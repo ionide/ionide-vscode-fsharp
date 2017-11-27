@@ -1,3 +1,6 @@
+### 3.14.0 - 27.11.2017
+* Add automatic project reloading and restoring. Makes sure cache is invalidated after `paket install` was run. Solves multiple issues requiring reload of the window such as adding new project, adding file to project, adding package to project with Paket etc.
+
 ### 3.13.2 - 23.11.2017
 * Send `projectsInBackground` command only for f# files
 * Fix Forge project creation if choosen directory name is blank
