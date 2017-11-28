@@ -10,7 +10,8 @@ open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
 
 type Api = {
-    ProjectLoadedEvent: Event<string * string []>
+    ProjectLoadedEvent: Event<DTO.Project>
+    BuildProject: DTO.Project -> Fable.Import.JS.Promise<string>
 }
 
 
@@ -83,7 +84,8 @@ let activate (context: ExtensionContext) : Api =
     Forge.activate context
     Fsi.activate context
 
-    { ProjectLoadedEvent = Project.projectLoaded.event }
+    { ProjectLoadedEvent = Project.projectLoaded.event
+      BuildProject = MSBuild.buildProjectPath "Build" }
 
 let deactivate(disposables: Disposable[]) =
     LanguageService.stop ()

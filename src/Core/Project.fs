@@ -37,7 +37,7 @@ module Project =
     let setAnyProjectContext = Context.cachedSetter<bool> "fsharp.project.any"
     let workspaceChanged = EventEmitter<WorkspacePeekFound>()
     let projectNotRestoredLoaded = EventEmitter<string>()
-    let projectLoaded = EventEmitter<string*string[]>()
+    let projectLoaded = EventEmitter<Project>()
 
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files" |]
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
@@ -121,7 +121,7 @@ module Project =
 
         let loaded (pr:ProjectResult) =
             if isNotNull pr then
-                projectLoaded.fire (pr.Data.Project, pr.Data.Files |> List.toArray)
+                projectLoaded.fire (pr.Data)
                 Some (pr.Data.Project, (ProjectLoadingState.Loaded pr.Data))
             else
                 None
@@ -436,7 +436,7 @@ module Project =
         let projStatus =
             match res with
             | Choice1Of3 (pr: ProjectResult) ->
-                projectLoaded.fire (pr.Data.Project, pr.Data.Files |> List.toArray)
+                projectLoaded.fire (pr.Data)
                 Some (true, pr.Data.Project, (ProjectLoadingState.Loaded pr.Data))
             | Choice2Of3 (pr: ProjectLoadingResult) ->
                 Some (false, pr.Data.Project, (ProjectLoadingState.Loading pr.Data.Project))
