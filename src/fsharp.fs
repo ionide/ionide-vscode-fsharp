@@ -9,7 +9,12 @@ open Fable.Import.vscode
 open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
 
-let activate (context: ExtensionContext) =
+type Api = {
+    ProjectLoadedEvent: Event<string * string []>
+}
+
+
+let activate (context: ExtensionContext) : Api =
     let df = createEmpty<DocumentFilter>
     df.language <- Some "fsharp"
     let df' : DocumentSelector = df |> U3.Case2
@@ -78,7 +83,7 @@ let activate (context: ExtensionContext) =
     Forge.activate context
     Fsi.activate context
 
-    ()
+    { ProjectLoadedEvent = Project.projectLoaded.event }
 
 let deactivate(disposables: Disposable[]) =
     LanguageService.stop ()
