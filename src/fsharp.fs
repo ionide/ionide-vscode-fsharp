@@ -8,10 +8,12 @@ open Fable.Core.JsInterop
 open Fable.Import.vscode
 open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
+open Fable.Import.Node.ChildProcess
 
 type Api = {
     ProjectLoadedEvent: Event<DTO.Project>
     BuildProject: DTO.Project -> Fable.Import.JS.Promise<string>
+    GetProjectLauncher: OutputChannel -> DTO.Project -> (string -> Fable.Import.JS.Promise<ChildProcess>) option
 }
 
 
@@ -85,7 +87,8 @@ let activate (context: ExtensionContext) : Api =
     Fsi.activate context
 
     { ProjectLoadedEvent = Project.projectLoaded.event
-      BuildProject = MSBuild.buildProjectPath "Build" }
+      BuildProject = MSBuild.buildProjectPath "Build"
+      GetProjectLauncher = Project.getLauncher }
 
 let deactivate(disposables: Disposable[]) =
     LanguageService.stop ()
