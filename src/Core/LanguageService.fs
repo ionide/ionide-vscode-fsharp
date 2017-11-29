@@ -153,6 +153,8 @@ module LanguageService =
             match err with
             | ErrorData.GenericError ->
                 ""
+            | ErrorData.ProjectParsingFailed data ->
+                sprintf "'%s'" data.Project
             | ErrorData.ProjectNotRestored data ->
                 sprintf "'%s'" data.Project
         sprintf "%s, %s %s" whenMsg msg d
