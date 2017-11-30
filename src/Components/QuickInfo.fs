@@ -29,13 +29,9 @@ module private StatusDisplay =
             match doc with
             | Document.FSharp ->
                 let pos = selections.[0].active
-                let! o = LanguageService.tooltip (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+                let! o = LanguageService.signature (doc.fileName) (int pos.line + 1) (int pos.character + 1)
                 if isNotNull o then
-                    let signature = (o.Data |> Array.collect id).[0]
-                    if JS.isDefined signature.Signature then
-                        return Some signature
-                    else
-                        return None
+                    return Some o.Data
                 else
                     return None
             | _ -> return None
@@ -48,8 +44,7 @@ module private StatusDisplay =
             let! signature = getOverloadSignature textEditor selections
             match signature with
             | Some signature ->
-                let t = signature.Signature.Split('\n').[0]
-                showItem t signature.Signature
+                showItem signature signature
             | _ ->
                 hideItem()
         } |> ignore
