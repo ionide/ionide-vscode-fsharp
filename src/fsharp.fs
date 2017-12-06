@@ -9,11 +9,13 @@ open Fable.Import.vscode
 open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
 open Fable.Import.Node.ChildProcess
+open Debugger
 
 type Api = {
     ProjectLoadedEvent: Event<DTO.Project>
     BuildProject: DTO.Project -> Fable.Import.JS.Promise<string>
     GetProjectLauncher: OutputChannel -> DTO.Project -> (string -> Fable.Import.JS.Promise<ChildProcess>) option
+    DebugProject: DTO.Project -> string [] -> Fable.Import.JS.Promise<unit>
 }
 
 
@@ -88,7 +90,8 @@ let activate (context: ExtensionContext) : Api =
 
     { ProjectLoadedEvent = Project.projectLoaded.event
       BuildProject = MSBuild.buildProjectPath "Build"
-      GetProjectLauncher = Project.getLauncher }
+      GetProjectLauncher = Project.getLauncher
+      DebugProject = debugProject }
 
 let deactivate(disposables: Disposable[]) =
     LanguageService.stop ()

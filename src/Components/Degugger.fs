@@ -88,6 +88,26 @@ module Debugger =
             if Environment.isWin then None else Some "mono"
         | ProjectResponseInfo.ProjectJson -> Some "coreclr"
 
+    let debugProject (project : Project) (args : string []) =
+        promise {
+            //TODO check if portablepdb, require info from FSAC
+
+            let cfg = LaunchJsonVersion2.createRequestLaunch ()
+            match debuggerRuntime project with
+            | None ->
+                window.showWarningMessage "Can't start debugger"
+                |> ignore
+            | Some rntm ->
+                cfg |> setProgramPath project
+                cfg?``type`` <- rntm
+                cfg?preLaunchTask <- None
+                cfg?args <- args
+
+                let folder = workspace.workspaceFolders.[0]
+                let! _ = debug.startDebugging(folder, unbox cfg)
+                return ()
+        }
+
     let buildAndDebug (project : Project) =
         promise {
             //TODO check if portablepdb, require info from FSAC
