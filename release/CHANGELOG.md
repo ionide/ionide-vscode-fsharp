@@ -1,3 +1,6 @@
+### 3.14.3 - 6.12.2017
+* Fix quick info panel
+
 ### 3.14.2 - 29.11.2017
 * Fix project loading bug
 
