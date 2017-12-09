@@ -7,6 +7,7 @@
 - [.Net Core 2.0][dotnet]
 - [Node.js][nodejs]
 - [Yarn][yarn]
+- [MSBuildTools2015][msbuildtools2015]
 
 ## Building
 
@@ -28,8 +29,14 @@ dotnet restore
 cd src
 dotnet restore
 cd ..
-./build.sh  # or build.cmd if your OS is Windows
+./build.sh  # or build.cmd if your OS is Windows  (might need ./build Build here)
 ```
+
+If `dotnet restore` gives the error ` The tools version "14.0" is unrecognized`, then you need to install [msbuildtools2015][msbuildtools2015]
+
+
+If `./build.sh` gives errors, you may need to run `./build.sh Build` one time.
+
 
 Everything is done via `build.cmd` \ `build.sh`.
 
@@ -56,3 +63,4 @@ Everything is done via `build.cmd` \ `build.sh`.
 [nodejs]: https://nodejs.org/en/download/
 [yarn]: https://yarnpkg.com/en/docs/install
 [vscode]: https://code.visualstudio.com/Download
+[msbuildtools2015]: https://www.microsoft.com/en-us/download/details.aspx?id=48159&wa=wsignin1.0
