@@ -42,13 +42,23 @@ Everything is done via `build.cmd` \ `build.sh`.
 
 - `build Build` does a full-build, including package installation and copying some necessary files.<br/>
   It should always be done at least once after any clone/pull.
-- If a git dependency fail to build paket won't re-do it you can run their build scripts manually:
+- If a git dependency fails to build paket won't re-do it you can run their build scripts manually:
   - In `paket-files\github.com\fsharp\FsAutoComplete` run `build LocalRelease`
   - In `paket-files\github.com\fsharp-editing\Forge` run `build Build`
+
+## Launching the extension
+
+Once the initial build on the command line is completed, you should use vscode itself to build and launch the development extension.   To do this,  
+
+- open the project folder in vscode
+- Use one of the following two configurations which will build the project and launch a new vscode instance running your vscode extension
 - In VSCode two configurations are possible to run:
   - Use `Build and Launch Extension`
   - Start the `Watch` task and when a build is done start `Launch Only`
 
+These two options can be reached in VsCode in the bottom bar (look for triangle), or by typing `control-P Debug <space> ` and then selecting either `Build and Launch` or `Watch`
+
+The new extension window will appear with window title `Extension development host`
 ## Working with FSAC
 
 1. Run `build.cmd Build` \ `build.sh Build`
@@ -57,6 +67,8 @@ Everything is done via `build.cmd` \ `build.sh`.
 3. Open FSAC in VS
 4. Start FSAC.Suave in VS
 5. Press F5 in VSCode to build Ionide and start experimental instance
+
+## Dependencies
 
 [dotnet]: https://www.microsoft.com/net/download/core
 [mono]: http://www.mono-project.com/download/
