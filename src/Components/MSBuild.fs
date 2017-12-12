@@ -224,9 +224,11 @@ module MSBuild =
         let rec messageLoop() = async {
             let! (path,continuation) = inbox.Receive()
             let host = tryGetRightHost' path
-            let _:JS.Promise<unit> = 
+            do!
                 invokeMSBuild path "Restore" (Some host)
                 |> Promise.bind continuation
+                |> Async.AwaitPromise
+
             return! messageLoop()  
         }
         messageLoop() 
