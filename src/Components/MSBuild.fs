@@ -220,6 +220,18 @@ module MSBuild =
         let host = tryGetRightHost' path
         invokeMSBuild path target (Some host)
 
+    let restoreMailBox = MailboxProcessor.Start(fun inbox-> 
+        let rec messageLoop() = async {
+            let! (path,continuation) = inbox.Receive()
+            let host = tryGetRightHost' path
+            let _:JS.Promise<unit> = 
+                invokeMSBuild path "Restore" (Some host)
+                |> Promise.bind continuation
+            return! messageLoop()  
+        }
+        messageLoop() 
+    )
+
     let restoreProject projOpt hostOpt =
         buildProject "Restore" projOpt hostOpt
         |> Promise.onSuccess (fun _ ->
@@ -229,14 +241,10 @@ module MSBuild =
         )
 
     let restoreProjectPath (project : Project) =
-        let host = tryGetRightHost project
-        invokeMSBuild project.Project "Restore" (Some host)
-        |> Promise.bind (fun _ -> Project.load project.Project)
+        restoreMailBox.Post(project.Project,fun _ -> Project.load project.Project)
 
     let restoreProjectWithoutParseData (path : string) =
-        let host = tryGetRightHost' path
-        invokeMSBuild path "Restore" (Some host)
-        |> Promise.bind (fun _ -> Project.load path)
+        restoreMailBox.Post(path,fun _ -> Project.load path)
 
     let buildSolution target sln =
         match host.value with
@@ -263,13 +271,13 @@ module MSBuild =
             |> ignore
 
     let activate (context: ExtensionContext) =
-        let projectWatcher = vscode.workspace.createFileSystemWatcher("**/*.fsproj")
-        projectWatcher.onDidCreate.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
-        projectWatcher.onDidChange.Invoke(fun n -> Project.load n.fsPath |> unbox) |> ignore
-
         let solutionWatcher = vscode.workspace.createFileSystemWatcher("**/*.sln")
         solutionWatcher.onDidCreate.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
         solutionWatcher.onDidChange.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
+
+        let projectWatcher = vscode.workspace.createFileSystemWatcher("**/*.fsproj")
+        projectWatcher.onDidCreate.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
+        projectWatcher.onDidChange.Invoke(fun n -> Project.load n.fsPath |> unbox) |> ignore
 
         let assetWatcher = vscode.workspace.createFileSystemWatcher("**/project.assets.json")
 
