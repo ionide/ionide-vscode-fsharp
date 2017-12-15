@@ -133,17 +133,19 @@ module Project =
                 Some (path, ProjectLoadingState.NotRestored (path, msg) )
             | _ ->
                 Some (path, (ProjectLoadingState.Failed (path, msg)))
-
-        LanguageService.project path
-        |> Promise.either (loaded >> Promise.lift) (failed >> Promise.lift)
-        |> Promise.map (fun proj ->
-            match proj with
-            | Some (path, state) ->
-                updateInWorkspace path state
-                loadedWorkspace |> Option.iter (workspaceChanged.fire)
-                setAnyProjectContext true
-            | None ->
-                () )
+        if path.EndsWith ".fsproj" then
+            LanguageService.project path
+            |> Promise.either (loaded >> Promise.lift) (failed >> Promise.lift)
+            |> Promise.map (fun proj ->
+                match proj with
+                | Some (path, state) ->
+                    updateInWorkspace path state
+                    loadedWorkspace |> Option.iter (workspaceChanged.fire)
+                    setAnyProjectContext true
+                | None ->
+                    () )
+        else
+            Promise.empty
 
     let private chooseLoaded = function ProjectLoadingState.Loaded p -> Some p | _ -> None
 
