@@ -1,3 +1,6 @@
+### 3.14.4 - 15.12.2017
+* Sync auto restoring of projects
+
 ### 3.14.3 - 6.12.2017
 * Fix quick info panel
 
