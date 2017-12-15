@@ -146,7 +146,7 @@ module Errors =
 
 
     let activate (context: ExtensionContext) =
-        let allowBackgroundParsing = "FSharp.minimizeBackgroundParsing" |> Configuration.get true
+        let allowBackgroundParsing = not ("FSharp.minimizeBackgroundParsing" |> Configuration.get false)
         
         workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen allowBackgroundParsing, (), context.subscriptions) |> ignore
