@@ -1163,6 +1163,11 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Enables Code Outline tree view. Requires restart"
+				},
+				"FSharp.minimizeBackgroundParsing": {
+					"type": "boolean",
+					"default": false,
+					"description": "Minimize the amount of background type-checking of dependent projects. Requires restart.\nThis is a performance workaround that will increase intellisense responsiveness for projects that are referenced by many other projects in the solution."
 				}
 			}
 		},
