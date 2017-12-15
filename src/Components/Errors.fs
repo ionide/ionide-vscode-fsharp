@@ -96,25 +96,33 @@ module Errors =
                 |> ignore
             | _ -> () ) t)
 
-    let private handlerOpen (event : TextEditor) =
+    let private handlerOpen allowBackgroundParsing (event : TextEditor) =
         if JS.isDefined event then
-            parseFile event.document
-            |> Promise.bind (fun n ->
-                match n with
-                | Some _fileName -> LanguageService.projectsInBackground event.document.fileName
-                | None -> Promise.lift ()
-            )
+            promise {
+                let! parseResult = parseFile event.document
+               
+                if allowBackgroundParsing then
+                    match parseResult with
+                    | Some _fileName ->                     
+                        return! LanguageService.projectsInBackground event.document.fileName
+                    | None -> 
+                        return ()
+            }
         else
             Promise.lift ()
 
-    let private handlerSave (event : TextDocument) =
+    let private handlerSave allowBackgroundParsing (event : TextDocument) =
         if JS.isDefined event then
-            parseFile event
-            |> Promise.bind (fun n ->
-                match n with
-                | Some _fileName -> LanguageService.projectsInBackground event.fileName
-                | None -> Promise.lift ()
-            )
+            promise {
+                let! parseResult = parseFile event
+                
+                if allowBackgroundParsing then
+                    match parseResult with
+                    | Some _fileName -> 
+                        return! LanguageService.projectsInBackground event.fileName
+                    | None -> 
+                        return ()
+            }
         else
             Promise.lift ()
 
@@ -138,9 +146,11 @@ module Errors =
 
 
     let activate (context: ExtensionContext) =
+        let allowBackgroundParsing = "FSharp.minimizeBackgroundParsing" |> Configuration.get true
+        
         workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
-        window.onDidChangeActiveTextEditor $ (handlerOpen, (), context.subscriptions) |> ignore
-        workspace.onDidSaveTextDocument $ (handlerSave, (), context.subscriptions) |> ignore
+        window.onDidChangeActiveTextEditor $ (handlerOpen allowBackgroundParsing, (), context.subscriptions) |> ignore
+        workspace.onDidSaveTextDocument $ (handlerSave allowBackgroundParsing, (), context.subscriptions) |> ignore
         LanguageService.registerNotify handleNotification
         Promise.lift parseVisibleTextEditors
 
