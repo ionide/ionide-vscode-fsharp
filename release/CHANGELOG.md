@@ -1,3 +1,11 @@
+### 3.15.0 - 21.12.2017
+* Update FSAC - latest nightly FCS
+* Don't simplify open statements
+* Don't suggest rename to `_` for functions
+* Don't suggest opening namespace that is already open
+* Add generic parameter info to tooltips
+* Add static members to external symbols autocomplete
+
 ### 3.14.5 - 15.12.2017
 * Sync auto restoring of projects
 
