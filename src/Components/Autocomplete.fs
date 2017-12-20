@@ -48,6 +48,7 @@ module Autocomplete =
                         result.kind <- c.GlyphChar |> convertToKind |> unbox
                         result.insertText <- c.ReplacementText
                         result.sortText <- c.Name
+                        result.filterText <- c.Name
                         if JS.isDefined c.NamespaceToOpen then
                             result.label <- sprintf "%s (open %s)" c.Name c.NamespaceToOpen
                         else
@@ -72,6 +73,7 @@ module Autocomplete =
                     let te = TextEdit.insert(p, t)
                     sug.additionalTextEdits <- [| te |]
             sug
+
 
         { new CompletionItemProvider
           with
