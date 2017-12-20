@@ -10,7 +10,6 @@ open Ionide.VSCode.Helpers
 open Fable.Import.ws
 
 open DTO
-open Ionide.VSCode.Helpers
 
 module LanguageService =
     let ax =  Globals.require.Invoke "axios" |> unbox<Axios.AxiosStatic>

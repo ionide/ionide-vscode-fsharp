@@ -5,17 +5,14 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
 open Ionide.VSCode.Helpers
 
 open DTO
-open Ionide.VSCode.Helpers
 
 module Autocomplete =
 
 
     let private createProvider () =
-        let provider = createEmpty<CompletionItemProvider>
 
         let convertToKind code =
             match code with
@@ -73,7 +70,6 @@ module Autocomplete =
                     let te = TextEdit.insert(p, t)
                     sug.additionalTextEdits <- [| te |]
             sug
-
 
         { new CompletionItemProvider
           with
