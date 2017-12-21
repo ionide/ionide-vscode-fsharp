@@ -64,7 +64,7 @@ let vsceTool = lazy (platformTool "vsce" "vsce.cmd")
 let releaseBin      = "release/bin"
 let fsacBin         = "paket-files/github.com/fsharp/FsAutoComplete/bin/release"
 
-let releaseBinNetcore = releaseBin + "_netcore" 
+let releaseBinNetcore = releaseBin + "_netcore"
 let fsacBinNetcore = fsacBin + "_netcore"
 
 // --------------------------------------------------------------------------------------
@@ -109,8 +109,7 @@ Target "CopyFSACNetcore" (fun _ ->
     ensureDirectory releaseBinNetcore
     CleanDir releaseBinNetcore
 
-    !! (fsacBinNetcore + "/*")
-    |> CopyFiles releaseBinNetcore
+    CopyDir releaseBinNetcore fsacBinNetcore (fun _ -> true)
 )
 
 let releaseForge = "release/bin_forge"
