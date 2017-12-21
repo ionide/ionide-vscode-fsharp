@@ -37,14 +37,14 @@ module Autocomplete =
             let prevChar = noSpaces.[index]
 
             if isNotNull o then
-                o.Data |> Array.choose (fun c ->
+                o.Data |> Array.mapi (fun id i -> (id,i)) |> Array.choose (fun (id, c) ->
                     if prevChar = '.' && c.GlyphChar = "K" then
                         None
                     else
                         let result = createEmpty<CompletionItem>
                         result.kind <- c.GlyphChar |> convertToKind |> unbox
                         result.insertText <- c.ReplacementText
-                        result.sortText <- c.Name
+                        result.sortText <- sprintf "%06d" id
                         result.filterText <- c.Name
                         if JS.isDefined c.NamespaceToOpen then
                             result.label <- sprintf "%s (open %s)" c.Name c.NamespaceToOpen
@@ -84,7 +84,7 @@ module Autocomplete =
 
             member __.resolveCompletionItem(sug, _) =
                 promise {
-                    let! res = LanguageService.helptext sug.sortText
+                    let! res = LanguageService.helptext sug.filterText
                     return mapHelptext sug res
                 } |> U2.Case2
             }
