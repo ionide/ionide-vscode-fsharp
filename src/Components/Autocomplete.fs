@@ -10,8 +10,6 @@ open Ionide.VSCode.Helpers
 open DTO
 
 module Autocomplete =
-
-
     let private createProvider () =
 
         let convertToKind code =
@@ -28,30 +26,20 @@ module Autocomplete =
             | "K" -> CompletionItemKind.Keyword
             | _   -> 0 |> unbox
 
-        let mapCompletion (doc : TextDocument) (pos : Position) (o : CompletionResult) =
-            let lineStr = doc.getText(Range(pos.line, 0., pos.line, 1000. ))
-            let chars = lineStr.ToCharArray ()
-            let noSpaces = chars |> Array.filter ((<>) ' ')
-            let spacesCount = chars |> Array.take (int pos.character) |> Array.filter ((=) ' ') |> Array.length
-            let index = int pos.character - spacesCount - 1
-            let prevChar = noSpaces.[index]
-
+        let mapCompletion (o : CompletionResult) =
             if isNotNull o then
-                o.Data |> Array.mapi (fun id i -> (id,i)) |> Array.choose (fun (id, c) ->
-                    if prevChar = '.' && c.GlyphChar = "K" then
-                        None
+                o.Data |> Array.mapi (fun id c ->
+                    let result = createEmpty<CompletionItem>
+                    result.kind <- c.GlyphChar |> convertToKind |> unbox
+                    result.insertText <- c.ReplacementText
+                    result.sortText <- sprintf "%06d" id
+                    result.filterText <- c.Name
+                    if JS.isDefined c.NamespaceToOpen then
+                        result.label <- sprintf "%s (open %s)" c.Name c.NamespaceToOpen
                     else
-                        let result = createEmpty<CompletionItem>
-                        result.kind <- c.GlyphChar |> convertToKind |> unbox
-                        result.insertText <- c.ReplacementText
-                        result.sortText <- sprintf "%06d" id
-                        result.filterText <- c.Name
-                        if JS.isDefined c.NamespaceToOpen then
-                            result.label <- sprintf "%s (open %s)" c.Name c.NamespaceToOpen
-                        else
-                            result.label <- c.Name
+                        result.label <- c.Name
 
-                        Some result)
+                    result)
 
                 |> ResizeArray
             else
@@ -79,7 +67,7 @@ module Autocomplete =
                     let external = "FSharp.externalAutocomplete" |> Configuration.get true
                     let ln = doc.lineAt pos.line
                     let! res = LanguageService.completion (doc.fileName) ln.text (int pos.line + 1) (int pos.character + 1) setting external
-                    return mapCompletion doc pos res
+                    return mapCompletion res
                 } |> U2.Case2
 
             member __.resolveCompletionItem(sug, _) =
