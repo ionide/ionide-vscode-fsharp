@@ -722,10 +722,10 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: && (< monotouch) (< net46) (>= netstandard1.3) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (51500c383ec967be2b1bfacf9dcae05fb5a2c3fb)
+     (5aa057e2aa0efdff67f295bd4d327ec1e20f6b6e)
       build: build.cmd LocalRelease
       os: windows
-     (51500c383ec967be2b1bfacf9dcae05fb5a2c3fb)
+     (5aa057e2aa0efdff67f295bd4d327ec1e20f6b6e)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git

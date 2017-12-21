@@ -2,7 +2,6 @@
 module Ionide.VSCode.FSharp
 
 open System
-open System.Text.RegularExpressions
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import.vscode
@@ -56,7 +55,7 @@ let activate (context: ExtensionContext) : Api =
 
 
         ))
-        |> Promise.onSuccess (fun n ->
+        |> Promise.onSuccess (fun _ ->
             let e = DateTime.Now - init
             printfn "Startup took: %f ms" e.TotalMilliseconds
         )
