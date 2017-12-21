@@ -1,3 +1,6 @@
+### 3.15.1 - 21.12.2017
+* Fix .Net Core FSAC version
+
 ### 3.15.0 - 21.12.2017
 * Update FSAC - latest nightly FCS
 * Don't simplify open statements
