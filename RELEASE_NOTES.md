@@ -1,3 +1,9 @@
+### 3.15.2 - 22.12.2017
+* Better sorting of autocomplete suggestions
+* Better autocomplete for keywords
+* Don't provide autocomplete in comments, strings, inside operators, inside keywords etc.
+* Don't add `Attribute` suffix for completions inside `[< ... >]`
+
 ### 3.15.1 - 21.12.2017
 * Fix .Net Core FSAC version
 
