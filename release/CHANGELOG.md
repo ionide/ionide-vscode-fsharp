@@ -1,3 +1,6 @@
+### 3.15.3 - 22.12.2017
+* Fix resolving namespaces
+
 ### 3.15.2 - 22.12.2017
 * Better sorting of autocomplete suggestions
 * Better autocomplete for keywords
