@@ -5,18 +5,16 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
 open Ionide.VSCode.Helpers
 
 open DTO
-open Ionide.VSCode.Helpers
 
 module ResolveNamespaces =
     let private createProvider () =
 
         { new CodeActionProvider
           with
-            member this.provideCodeActions(doc, range, context, ct) =
+            member __.provideCodeActions(doc, range, context, _) =
                 promise {
                     let diagnostic = context.diagnostics |> Seq.tryFind (fun d -> d.message.Contains "is not defined")
                     let! res =
@@ -26,7 +24,6 @@ module ResolveNamespaces =
                             promise {
                                 let! res = LanguageService.resolveNamespaces doc.fileName ( int range.start.line + 1) (int range.start.character + 2)
                                 if isNotNull res then
-                                    let word = res.Data.Word
                                     let quals =
                                         res.Data.Qualifies
                                         |> Array.map (fun suggestion ->
@@ -40,7 +37,14 @@ module ResolveNamespaces =
                                     let opens =
                                         res.Data.Opens
                                         |> Array.map (fun suggestion ->
-                                            let s = suggestion.Namespace
+                                            let existingText = doc.getText(range)
+                                            let s =
+                                                if suggestion.Name.EndsWith existingText && suggestion.Name <> existingText then
+                                                    let prefix = suggestion.Name.Substring(0, suggestion.Name.Length - existingText.Length).TrimEnd('.')
+                                                    suggestion.Namespace + "." + prefix
+                                                else
+                                                    suggestion.Namespace
+
                                             let cmd = createEmpty<Command>
                                             cmd.title <- sprintf "Open %s" s
                                             cmd.command <- "fsharp.openNamespace"
