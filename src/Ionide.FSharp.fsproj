@@ -53,6 +53,7 @@
     <Compile Include="Components/Errors.fs" />
     <Compile Include="Components/LineLens.fs" />
     <Compile Include="Components/QuickInfo.fs" />
+    <Compile Include="Components/QuickInfoProject.fs" />
     <Compile Include="Components/Expecto.fs" />
     <Compile Include="Components/MSBuild.fs" />
     <Compile Include="Components/Help.fs" />

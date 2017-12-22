@@ -52,7 +52,7 @@ let activate (context: ExtensionContext) : Api =
             )
             |> Promise.onSuccess(fun _ -> if solutionExplorer then SolutionExplorer.activate context)
             |> Promise.bind(fun parseVisibleTextEditors -> Project.activate context parseVisibleTextEditors)
-
+            |> Promise.onSuccess(fun _ -> QuickInfoProject.activate context )
 
         ))
         |> Promise.onSuccess (fun _ ->
