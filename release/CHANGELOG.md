@@ -1,3 +1,6 @@
+### 3.15.6 - 22.12.2017
+* Update FSAC - update F# Core to latest
+
 ### 3.15.5 - 22.12.2017
 * Add project info on status bar
 
