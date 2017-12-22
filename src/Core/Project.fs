@@ -337,13 +337,13 @@ module Project =
     let buildWithMsbuild outputChannel (project:Project) =
         promise {
             let! msbuild = Environment.msbuild
-            return! Process.spawnWithNotification msbuild "" project.Project outputChannel
+            return! Process.spawnWithNotification msbuild "" project.ProjectQuoted outputChannel
             |> Process.toPromise
         }
 
     let buildWithDotnet outputChannel (project:Project) =
         promise {
-            let! childProcess = execWithDotnet outputChannel ("build " + project.Project)
+            let! childProcess = execWithDotnet outputChannel ("build " + project.ProjectQuoted)
             return!
                 childProcess
                 |> Process.toPromise
@@ -351,7 +351,7 @@ module Project =
 
     let getLauncher outputChannel (project:Project) =
         let execDotnet = fun args ->
-            let cmd = "run -p " + project.Project + if String.IsNullOrEmpty args then "" else " -- " + args
+            let cmd = "run -p " + project.ProjectQuoted + if String.IsNullOrEmpty args then "" else " -- " + args
             execWithDotnet outputChannel cmd
         match project.Output, isANetCoreAppProject project with
         | _, true -> Some execDotnet
@@ -360,7 +360,7 @@ module Project =
 
     let getLauncherWithShell  (project:Project) =
         let execDotnet = fun args ->
-            let cmd = "run -p " + project.Project + if String.IsNullOrEmpty args then "" else " -- " + args
+            let cmd = "run -p " + project.ProjectQuoted + if String.IsNullOrEmpty args then "" else " -- " + args
             execWithDotnetWithShell cmd
         match project.Output, isANetCoreAppProject project with
         | _, true -> Some execDotnet

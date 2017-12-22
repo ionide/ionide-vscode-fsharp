@@ -53,7 +53,7 @@ module String =
     let endWith ending (s : string) = s.EndsWith ending
 
     let startWith ending (s : string) = s.StartsWith ending
-
+    let quote (s: string) = sprintf @"""%s""" s
 
 [<RequireQualifiedAccess>]
 module Option =
@@ -84,6 +84,9 @@ module Utils =
     type System.Collections.Generic.Dictionary<'key, 'value> with
         [<Emit("$0.has($1) ? $0.get($1) : null")>]
         member this.TryGet(key: 'key): 'value option = jsNative
+
+    type DTO.Project with
+        member this.ProjectQuoted = String.quote this.Project
 
 [<AutoOpen>]
 module JS =
