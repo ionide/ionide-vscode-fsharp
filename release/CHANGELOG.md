@@ -1,3 +1,6 @@
+### 3.15.5 - 22.12.2017
+* Add project info on status bar
+
 ### 3.15.4 - 22.12.2017
 * Fix rename QuickFix with backtick members
 
