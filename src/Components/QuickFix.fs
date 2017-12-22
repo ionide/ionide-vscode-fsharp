@@ -40,6 +40,11 @@ module QuickFix =
             d.message.Split('\n').[1..]
             |> Array.map (fun suggestion ->
                 let s = suggestion.Trim()
+                let s =
+                    if System.Text.RegularExpressions.Regex.IsMatch(s, """^[a-zA-Z][a-zA-Z0-9']+$""") then
+                        s
+                    else
+                        "``" + s + "``"
                 let tiltle = sprintf "Replace with %s" s
                 mkQuickFix doc d.range tiltle s
         ))
