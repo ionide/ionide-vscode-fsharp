@@ -1,3 +1,7 @@
+### 3.15.7 - 22.12.2017
+* Update FSAC - try to fix ValueTupple.dll error
+* Set `cwd` for build in debugger settings
+
 ### 3.15.6 - 22.12.2017
 * Update FSAC - update F# Core to latest
 
