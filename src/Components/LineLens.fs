@@ -32,13 +32,11 @@ module LineLensConfig =
 
     type LineLensConfig = {
         enabled: EnabledMode
-        codeLensEnabled: bool
         prefix: string
     }
 
     let defaultConfig = {
         enabled = ReplaceCodeLens
-        codeLensEnabled = true
         prefix = " //  "
     }
 
@@ -47,18 +45,15 @@ module LineLensConfig =
     let getConfig () =
         let cfg = workspace.getConfiguration()
         let fsharpCodeLensConfig = cfg.get("[fsharp]", JsObject.empty).tryGet<bool>("editor.codeLens")
-        let globalCodeLensConfig = cfg.get("editor.codeLens", defaultConfig.codeLensEnabled)
-        let codeLensEnabled = defaultArg fsharpCodeLensConfig globalCodeLensConfig
         {
             enabled = cfg.get("FSharp.lineLens.enabled", "replacecodelens") |> parseEnabledMode
-            codeLensEnabled = codeLensEnabled
             prefix = cfg.get("FSharp.lineLens.prefix", defaultConfig.prefix)
         }
 
     let isEnabled conf =
-        match conf.enabled, conf.codeLensEnabled with
-        | Always, _ -> true
-        | ReplaceCodeLens, false -> true
+        match conf.enabled with
+        | Always -> true
+        | ReplaceCodeLens -> true
         | _ -> false
 
 module Documents =
@@ -301,7 +296,7 @@ let uninstall () =
 let configChangedHandler () =
     logger.Debug("Config Changed event")
 
-    let wasEnabled = LineLensConfig.isEnabled config
+    let wasEnabled = (LineLensConfig.isEnabled config) && state <> None
     config <- LineLensConfig.getConfig ()
     let isEnabled = LineLensConfig.isEnabled config
 

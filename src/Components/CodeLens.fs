@@ -8,10 +8,12 @@ open Fable.Import.Node
 open Fable.Core.JsInterop
 open DTO
 open Ionide.VSCode.Helpers
+open System
 
 module CodeLens =
     let refresh = EventEmitter<int>()
     let mutable private version = 0
+    let mutable private replacedByLineLens = false    
 
     let formatSignature (sign : SignatureData) : string =
         let formatType = function
@@ -58,14 +60,17 @@ module CodeLens =
         { new CodeLensProvider with
             member __.provideCodeLenses(doc, _) =
                 promise {
-                    let text = doc.getText()
-                    let! result = LanguageService.declarations doc.fileName text version
-                    let data =
-                        if isNotNull result then
-                            let res = symbolsToCodeLens doc result.Data
-                            res
-                        else [||]
-                    return ResizeArray data
+                    if replacedByLineLens then
+                        return ResizeArray [||]
+                    else
+                        let text = doc.getText()
+                        let! result = LanguageService.declarations doc.fileName text version
+                        let data =
+                            if isNotNull result then
+                                let res = symbolsToCodeLens doc result.Data
+                                res
+                            else [||]
+                        return ResizeArray data
                 }
                 |> U2.Case2
 
@@ -104,7 +109,14 @@ module CodeLens =
             member __.onDidChangeCodeLenses = EventEmitter().event
         }
 
+    let configChangedHandler () = 
+        let cfg = workspace.getConfiguration()
+        replacedByLineLens <- (cfg.get("FSharp.lineLens.enabled", "replacecodelens").ToLowerInvariant()) = "replacecodelens"
+
     let activate selector (context: ExtensionContext) =
+        workspace.onDidChangeConfiguration $ (configChangedHandler, (), context.subscriptions) |> ignore
         refresh.event.Invoke(fun n -> (version <- n ) |> unbox) |> context.subscriptions.Add
         languages.registerCodeLensProvider(selector, createProvider()) |> context.subscriptions.Add
+
+        configChangedHandler()
         ()
