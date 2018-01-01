@@ -75,7 +75,7 @@ module Debugger =
         // WORKAROUND the project.Output is the obj assembly, instead of bin assembly
         // ref https://github.com/fsharp/FsAutoComplete/issues/218
         let programPath = programPath.Replace("/obj/", "/bin/")
-
+        cfg?cwd <- Path.dirname project.Output
         cfg?program <- programPath
 
     let debuggerRuntime project =
