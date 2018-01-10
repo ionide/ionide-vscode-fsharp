@@ -336,6 +336,16 @@
 				"title": "Clear project cache"
 			},
 			{
+				"command": "fsharp.diagnostics.toggle",
+				"title": "Toggle diagnostics",
+				"category": "F#"
+			},
+			{
+				"command": "fsharp.diagnostics.getInfos",
+				"title": "Get info for diagnostics",
+				"category": "F#"
+			},
+			{
 				"command": "fsharp.explorer.msbuild.build",
 				"title": "Build"
 			},
@@ -925,7 +935,8 @@
 			"F# Interactive",
 			"Forge",
 			"Expecto",
-			"MSBuild"
+			"MSBuild",
+			"Diagnostics"
 		],
 		"keybindings": [
 			{
