@@ -77,7 +77,7 @@ module Diagnostics =
 <!-- 2. Ctrl + P > "F# Add Reference" -->
             """.Trim()
 
-        let machineInfos os arch =
+        let machineInfos os arch vscode=
             let txt =
                 sprintf
                     """
@@ -85,9 +85,11 @@ module Diagnostics =
 
 * Operating system: **%s**
 * Arch: **%s**
+* VSCode: **%s**
                     """
                     os
                     arch
+                    vscode
             txt.Trim()
 
         let netcoreRuntime dotnetVersion =
@@ -207,7 +209,7 @@ module Diagnostics =
             let! runtimeInfos = getRuntimeInfos ()
 
             Templates.header + "\n\n"
-                + Templates.machineInfos os arch + "\n"
+                + Templates.machineInfos os arch vscode.version + "\n"
                 + runtimeInfos + "\n"
                 + Templates.fsacLog ""
             |> writeToFile
