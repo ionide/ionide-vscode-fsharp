@@ -1,3 +1,7 @@
+### 3.15.8 - 11.01.2018
+* Update Forge
+* Fix run Expecto tests unquoted project file path
+
 ### 3.15.7 - 22.12.2017
 * Update FSAC - try to fix ValueTupple.dll error
 * Set `cwd` for build in debugger settings
