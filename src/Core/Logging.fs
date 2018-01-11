@@ -14,6 +14,12 @@ module Logging =
             member this.isGreaterOrEqualTo level = Level.GetLevelNum(this) >= Level.GetLevelNum(level)
             member this.isLessOrEqualTo level = Level.GetLevelNum(this) <= Level.GetLevelNum(level)
 
+    let private logsStream =
+        Exports.Path.join(Exports.Os.tmpdir(), "ionide")
+        |> Environment.ensureDirectory
+        |> (fun dir -> Exports.Path.join(dir, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.logs")))
+        |> Exports.Fs.createWriteStream
+
     let private writeDevToolsConsole (level: Level) (source: string option) (template: string) (args: obj[]) =
         // just replace %j (Util.format->JSON specifier --> console->OBJECT %O specifier)
         // the other % specifiers are basically the same
@@ -31,6 +37,11 @@ module Logging =
         let formattedLogLine = String.Format("[{0:HH:mm:ss} {1,-5}] {2}", DateTime.Now, string level, formattedMessage)
         out.appendLine (formattedLogLine)
 
+    let private writeToFile level source template args =
+        let formattedMessage = Util.format(template, args)
+        let formattedLogLine = String.Format("[{0:HH:mm:ss} {1,-5} {2,-5}] {3}\n", DateTime.Now, source, string level, formattedMessage)
+        logsStream.write formattedLogLine |> ignore
+
     let private writeBothIfConfigured (out: OutputChannel option)
               (chanMinLevel: Level)
               (consoleMinLevel: Level option)
@@ -43,6 +54,8 @@ module Logging =
 
         if out.IsSome && level.isGreaterOrEqualTo(chanMinLevel) then
             writeOutputChannel out.Value level source template args
+
+        writeToFile level source template args
 
     /// The templates may use node util.format placeholders: %s, %d, %j, %%
     /// https://nodejs.org/api/util.html#util_util_format_format
