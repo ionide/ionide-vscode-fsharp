@@ -9,9 +9,6 @@ open Ionide.VSCode.Helpers
 
 module Diagnostics =
 
-    let outputChannel = window.createOutputChannel "Diagnostics"
-    let private logger = ConsoleAndOutputChannelLogger(Some "Diagnostics", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
-
     let toggleDiagnosticsMode () =
         let cfg = workspace.getConfiguration()
 
@@ -35,7 +32,7 @@ module Diagnostics =
                 return! window.showInformationMessage("Diagnostic activated, please reload the window.")
         }
 
-    let execCommand path (args: string list) =
+    let execCommand path (args: string list) : JS.Promise<string> =
         Promise.create (fun resolve reject ->
 
             ChildProcess.spawn(path, args |> ResizeArray)
@@ -54,11 +51,18 @@ module Diagnostics =
             |> ignore
         )
         |> Promise.onFail (fun error ->
-            logger.Debug("Failed to execute command:")
-            logger.Debug("- path: %s", path)
-            logger.Debug("- args: %s", args |> ResizeArray)
-            logger.Debug("Error: %s", error)
-            outputChannel.show()
+            Fable.Import.Browser.console.error(
+                """
+["IONIDE-DIAGNOSTICS"]
+Failed to execute command:
+- path: %s
+- args: %s
+Error: %s
+                """.Trim(),
+                path,
+                args |> String.concat " ",
+                error
+            )
         )
 
     module Templates =

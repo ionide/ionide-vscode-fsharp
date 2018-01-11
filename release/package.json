@@ -935,8 +935,7 @@
 			"F# Interactive",
 			"Forge",
 			"Expecto",
-			"MSBuild",
-			"Diagnostics"
+			"MSBuild"
 		],
 		"keybindings": [
 			{
