@@ -346,6 +346,11 @@
 				"category": "F#"
 			},
 			{
+				"command": "fsharp.diagnostics.getFSACLogs",
+				"title": "Get FSAC logs",
+				"category": "F#"
+			},
+			{
 				"command": "fsharp.explorer.msbuild.build",
 				"title": "Build"
 			},

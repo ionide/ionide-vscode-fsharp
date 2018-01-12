@@ -14,11 +14,13 @@ module Logging =
             member this.isGreaterOrEqualTo level = Level.GetLevelNum(this) >= Level.GetLevelNum(level)
             member this.isLessOrEqualTo level = Level.GetLevelNum(this) <= Level.GetLevelNum(level)
 
-    let private logsStream =
+    let private fsacLogsStream =
         Exports.Path.join(Exports.Os.tmpdir(), "ionide")
         |> Environment.ensureDirectory
-        |> (fun dir -> Exports.Path.join(dir, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.logs")))
+        |> fun dir -> Exports.Path.join(dir, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.log"))
         |> Exports.Fs.createWriteStream
+
+    let fsacLogsPath = fsacLogsStream.path
 
     let private writeDevToolsConsole (level: Level) (source: string option) (template: string) (args: obj[]) =
         // just replace %j (Util.format->JSON specifier --> console->OBJECT %O specifier)
@@ -37,10 +39,10 @@ module Logging =
         let formattedLogLine = String.Format("[{0:HH:mm:ss} {1,-5}] {2}", DateTime.Now, string level, formattedMessage)
         out.appendLine (formattedLogLine)
 
-    let private writeToFile level source template args =
+    let private writeToFile level template args =
         let formattedMessage = Util.format(template, args)
-        let formattedLogLine = String.Format("[{0:HH:mm:ss} {1,-5} {2,-5}] {3}\n", DateTime.Now, source, string level, formattedMessage)
-        logsStream.write formattedLogLine |> ignore
+        let formattedLogLine = String.Format("[{0:HH:mm:ss} {1,-5}] {2}\n", DateTime.Now, string level, formattedMessage)
+        fsacLogsStream.write formattedLogLine |> ignore
 
     let private writeBothIfConfigured (out: OutputChannel option)
               (chanMinLevel: Level)
@@ -55,7 +57,9 @@ module Logging =
         if out.IsSome && level.isGreaterOrEqualTo(chanMinLevel) then
             writeOutputChannel out.Value level source template args
 
-        writeToFile level source template args
+        // Only write FSAC logs into the file
+        if source = Some "IONIDE-FSAC" then
+            writeToFile level template args
 
     /// The templates may use node util.format placeholders: %s, %d, %j, %%
     /// https://nodejs.org/api/util.html#util_util_format_format

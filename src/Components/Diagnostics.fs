@@ -136,25 +136,11 @@ Error: %s
                     msbuildVersion
             txt.Trim()
 
-        let fsacLog logs =
-            let txt =
-                sprintf
-                    """
-<details>
-<summary>
-    FSAC logs (click to expand)
-</summary>
-<p>
-
-```shell
-%s
-```
-
-</p>
-</details>
-                    """
-                    logs
-            txt.Trim()
+        let fsacLog =
+            """
+<!-- You can also linked the FSAC log file into your issue -->
+<!-- Use `Ctrl+P > "F#: Get FSAC logs"` commands to get file location -->
+            """.Trim()
 
     let getMSBuildVersion () =
         promise {
@@ -215,14 +201,55 @@ Error: %s
             Templates.header + "\n\n"
                 + Templates.machineInfos os arch vscode.version + "\n"
                 + runtimeInfos + "\n"
-                + Templates.fsacLog ""
+                + Templates.fsacLog
             |> writeToFile
             |> ignore
         }
+
+    let getFSACLogs () =
+        let writeStream =
+            Exports.Path.join(Exports.Os.homedir(), "ionide", "FSAC_logs")
+            |> Environment.ensureDirectory
+            |> fun dir -> Exports.Path.join(dir, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.log"))
+            |> Exports.Fs.createWriteStream
+
+        let readStream = Exports.Fs.createReadStream(Logging.fsacLogsPath)
+
+
+        Promise.create(fun resolve reject ->
+            readStream.on("error", reject) |> ignore
+            writeStream.on("error", reject) |> ignore
+            writeStream.on("finish", (fun _ -> resolve writeStream.path)) |> ignore
+            readStream.pipe(writeStream) |> ignore
+        )
+        |> Promise.bind(fun path ->
+            vscode.window.showInformationMessage(
+                "FSAC logs exported to: " + path,
+                "Open file"
+            )
+            |> Promise.bind (fun action ->
+                match action with
+                | "Open file" ->
+                    path
+                    |> workspace.openTextDocument
+                    |> Promise.bind (fun document ->
+                        vscode.window.showTextDocument(document) |> ignore
+                        JS.undefined
+                    )
+                | _ -> JS.undefined
+            )
+        )
+        |> Promise.onFail(fun error ->
+            Fable.Import.Browser.console.error(error)
+            vscode.window.showErrorMessage("Couldn't retrieved the FSAC logs file") |> ignore
+        )
 
     let activate (context: ExtensionContext) =
         commands.registerCommand("fsharp.diagnostics.toggle", toggleDiagnosticsMode |> unbox<Func<obj,obj>> )
         |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.diagnostics.getInfos", getDiagnosticsInfos |> unbox<Func<obj,obj>> )
+        |> context.subscriptions.Add
+
+        commands.registerCommand("fsharp.diagnostics.getFSACLogs", getFSACLogs |> unbox<Func<obj,obj>>)
         |> context.subscriptions.Add

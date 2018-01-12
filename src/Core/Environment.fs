@@ -176,7 +176,7 @@ module Environment =
             | head::tail ->
                 let subPath = Exports.Path.join(currentPath, head)
                 if not (Exports.Fs.existsSync !^subPath) then
-                    Exports.Fs.mkdir !^subPath
+                    Exports.Fs.mkdirSync !^subPath
                 ensure tail subPath
             | [] -> ()
 
