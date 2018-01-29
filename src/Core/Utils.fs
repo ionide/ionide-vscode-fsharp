@@ -53,6 +53,13 @@ module String =
     let endWith ending (s : string) = s.EndsWith ending
 
     let startWith ending (s : string) = s.StartsWith ending
+    let quote (s : string) =
+        let isQuoted (s : string) = s.StartsWith @"""" && s.EndsWith @""""
+        let containsWhitespace = Seq.exists (fun c -> c = ' ' || c = '\t' || c = '\n'  )
+        let quote = sprintf @"""%s"""
+        match s with
+        | s when s |> isQuoted |> not && s |> containsWhitespace -> quote s
+        | s -> s
 
 
 [<RequireQualifiedAccess>]
