@@ -206,21 +206,18 @@ Error: %s
             |> ignore
         }
 
-    let getFSACLogs () =
+    let getIonideLogs () =
         let writeStream =
             Exports.Path.join(Exports.Os.homedir(), "ionide", "FSAC_logs")
             |> Environment.ensureDirectory
             |> fun dir -> Exports.Path.join(dir, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.log"))
             |> Exports.Fs.createWriteStream
 
-        let readStream = Exports.Fs.createReadStream(Logging.fsacLogsPath)
-
-
         Promise.create(fun resolve reject ->
-            readStream.on("error", reject) |> ignore
             writeStream.on("error", reject) |> ignore
-            writeStream.on("finish", (fun _ -> resolve writeStream.path)) |> ignore
-            readStream.pipe(writeStream) |> ignore
+            writeStream.on("close", (fun _ -> resolve writeStream.path)) |> ignore
+            writeStream.write(Logging.getIonideLogs ()) |> ignore
+            writeStream.close()
         )
         |> Promise.bind(fun path ->
             vscode.window.showInformationMessage(
@@ -251,5 +248,5 @@ Error: %s
         commands.registerCommand("fsharp.diagnostics.getInfos", getDiagnosticsInfos |> unbox<Func<obj,obj>> )
         |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.diagnostics.getFSACLogs", getFSACLogs |> unbox<Func<obj,obj>>)
+        commands.registerCommand("fsharp.diagnostics.getIonideLogs", getIonideLogs |> unbox<Func<obj,obj>>)
         |> context.subscriptions.Add

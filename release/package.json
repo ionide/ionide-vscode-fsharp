@@ -346,8 +346,8 @@
 				"category": "F#"
 			},
 			{
-				"command": "fsharp.diagnostics.getFSACLogs",
-				"title": "Get FSAC logs",
+				"command": "fsharp.diagnostics.getIonideLogs",
+				"title": "Get Ionide logs",
 				"category": "F#"
 			},
 			{

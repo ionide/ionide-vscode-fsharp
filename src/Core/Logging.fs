@@ -14,13 +14,9 @@ module Logging =
             member this.isGreaterOrEqualTo level = Level.GetLevelNum(this) >= Level.GetLevelNum(level)
             member this.isLessOrEqualTo level = Level.GetLevelNum(this) <= Level.GetLevelNum(level)
 
-    let private fsacLogsStream =
-        Exports.Path.join(Exports.Os.tmpdir(), "ionide")
-        |> Environment.ensureDirectory
-        |> fun dir -> Exports.Path.join(dir, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.log"))
-        |> Exports.Fs.createWriteStream
+    let mutable private ionideLogsMemory = []
 
-    let fsacLogsPath = fsacLogsStream.path
+    let getIonideLogs () = ionideLogsMemory |> String.concat "\n"
 
     let private writeDevToolsConsole (level: Level) (source: string option) (template: string) (args: obj[]) =
         // just replace %j (Util.format->JSON specifier --> console->OBJECT %O specifier)
@@ -42,7 +38,11 @@ module Logging =
     let private writeToFile level template args =
         let formattedMessage = Util.format(template, args)
         let formattedLogLine = String.Format("[{0:HH:mm:ss} {1,-5}] {2}\n", DateTime.Now, string level, formattedMessage)
-        fsacLogsStream.write formattedLogLine |> ignore
+        // Only store the 200 last logs
+        if ionideLogsMemory.Length >= 200 then
+            ionideLogsMemory <- ionideLogsMemory.Tail @ [formattedLogLine]
+        else
+            ionideLogsMemory <- ionideLogsMemory @ [formattedLogLine]
 
     let private writeBothIfConfigured (out: OutputChannel option)
               (chanMinLevel: Level)
@@ -59,7 +59,11 @@ module Logging =
 
         // Only write FSAC logs into the file
         if source = Some "IONIDE-FSAC" then
-            writeToFile level template args
+            try
+                if string args.[0] <> "parse" then
+                    writeToFile level template args
+            with
+                | _ -> () // Do nothing
 
     /// The templates may use node util.format placeholders: %s, %d, %j, %%
     /// https://nodejs.org/api/util.html#util_util_format_format
