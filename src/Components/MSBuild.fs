@@ -220,7 +220,7 @@ module MSBuild =
         let host = tryGetRightHost' path
         invokeMSBuild path target (Some host)
 
-    let restoreMailBox = MailboxProcessor.Start(fun inbox-> 
+    let restoreMailBox = MailboxProcessor.Start(fun inbox->
         let rec messageLoop() = async {
             let! (path,continuation) = inbox.Receive()
             let host = tryGetRightHost' path
@@ -229,9 +229,9 @@ module MSBuild =
                 |> Promise.bind continuation
                 |> Async.AwaitPromise
 
-            return! messageLoop()  
+            return! messageLoop()
         }
-        messageLoop() 
+        messageLoop()
     )
 
     let restoreProject projOpt hostOpt =
@@ -362,7 +362,10 @@ module MSBuild =
                 logger.Info("Active msbuild: not choosen yet") )
         |> context.subscriptions.Add
 
-        let reloadCfg = loadMSBuildHostCfg >> Promise.map (fun h -> host.value <- h)
+        let reloadCfg _ = promise {
+            let! hostCfg = loadMSBuildHostCfg ()
+            host.value <- hostCfg
+        }
 
         [envMsbuild; envDotnet]
         |> Promise.all

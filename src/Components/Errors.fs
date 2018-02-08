@@ -10,6 +10,7 @@ open Fable.Import.Node
 open DTO
 open Ionide.VSCode.Helpers
 open System.Text.RegularExpressions
+open System
 
 module Errors =
     let private logger = ConsoleAndOutputChannelLogger(Some "Errors", Level.DEBUG, None, Some Level.DEBUG)
@@ -48,6 +49,7 @@ module Errors =
         let fileName = document.fileName
         let text = document.getText()
         let version = document.version
+        let uri = document.uri
         LanguageService.parse document.fileName (document.getText()) document.version
         |> Promise.map (fun (result : ParseResult) ->
             if isNotNull result then
@@ -57,7 +59,7 @@ module Errors =
                 UnusedOpens.refresh.fire fileName
                 UnusedDeclarations.refresh.fire fileName
                 SimplifyName.refresh.fire fileName
-                CodeOutline.refresh.fire (undefined)
+                CodeOutline.refresh.fire uri
                 (Uri.file fileName, (mapResult result |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set
                 Some fileName
             else
@@ -100,12 +102,12 @@ module Errors =
         if JS.isDefined event then
             promise {
                 let! parseResult = parseFile event.document
-               
+
                 if allowBackgroundParsing then
                     match parseResult with
-                    | Some _fileName ->                     
+                    | Some _fileName ->
                         return! LanguageService.projectsInBackground event.document.fileName
-                    | None -> 
+                    | None ->
                         return ()
             }
         else
@@ -115,12 +117,12 @@ module Errors =
         if JS.isDefined event then
             promise {
                 let! parseResult = parseFile event
-                
+
                 if allowBackgroundParsing then
                     match parseResult with
-                    | Some _fileName -> 
+                    | Some _fileName ->
                         return! LanguageService.projectsInBackground event.fileName
-                    | None -> 
+                    | None ->
                         return ()
             }
         else
@@ -147,7 +149,7 @@ module Errors =
 
     let activate (context: ExtensionContext) =
         let allowBackgroundParsing = not ("FSharp.minimizeBackgroundParsing" |> Configuration.get false)
-        
+
         workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen allowBackgroundParsing, (), context.subscriptions) |> ignore
         workspace.onDidSaveTextDocument $ (handlerSave allowBackgroundParsing, (), context.subscriptions) |> ignore

@@ -1192,7 +1192,7 @@
 				"FSharp.codeOutline": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables Code Outline tree view. Requires restart"
+					"description": "Enables Code Outline tree view."
 				},
 				"FSharp.minimizeBackgroundParsing": {
 					"type": "boolean",
