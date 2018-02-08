@@ -205,7 +205,29 @@ module CodeOutline =
                 ti
         }
 
+    let setShowCodeOutline = Context.cachedSetter<bool> "fsharp.showCodeOutline"
+
+    let inline private isFsharpFile (doc: TextDocument) =
+        match doc with
+        | Document.FSharp when doc.uri.scheme = "file" -> true
+        | _ -> false
+
+    let private setShowCodeOutlineForEditor (textEditor: TextEditor) =
+        let newValue =
+            if textEditor <> undefined then
+                if isFsharpFile textEditor.document then
+                    "FSharp.codeOutline" |> Configuration.get true
+                else
+                    false
+            else
+                false
+        setShowCodeOutline newValue
+
     let activate (context: ExtensionContext) =
+        setShowCodeOutlineForEditor window.activeTextEditor
+        window.onDidChangeActiveTextEditor.Invoke(unbox setShowCodeOutlineForEditor)
+            |> context.subscriptions.Add
+
         commands.registerCommand("fsharp.codeOutline.goTo", Func<obj, obj>(fun n ->
             let line =
                 match unbox<Model> n with

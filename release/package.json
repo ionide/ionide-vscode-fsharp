@@ -420,7 +420,7 @@
 				{
 					"id": "ionide.codeOutline",
 					"name": "F# Code Outline",
-					"when": "fsharp.project.any"
+					"when": "fsharp.showCodeOutline"
 				}
 			]
 		},
