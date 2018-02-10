@@ -13,6 +13,8 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module CodeOutline =
+    let private configurationKey = "FSharp.codeOutline"
+    let private isEnabledFor uri = configurationKey |> Configuration.getInContext uri true
 
     type CollapseMode =
         | CollapseAll
@@ -30,7 +32,8 @@ module CodeOutline =
         Symbol : Symbol
     }
 
-    let refresh = EventEmitter<Model> ()
+    let refresh = EventEmitter<Uri> ()
+    let private reallyRefresh = EventEmitter<Model option> ()
     let mutable private collapseMode = Default
     let mutable private currentDocument : string option = None
 
@@ -142,7 +145,7 @@ module CodeOutline =
         { new TreeDataProvider<Model>
           with
             member this.onDidChangeTreeData =
-                refresh.event
+                reallyRefresh.event
 
             member this.getChildren(node) =
                 if JS.isDefined node then
@@ -205,7 +208,44 @@ module CodeOutline =
                 ti
         }
 
+    let setShowCodeOutline = Context.cachedSetter<bool> "fsharp.showCodeOutline"
+
+    let inline private isFsharpFile (doc: TextDocument) =
+        match doc with
+        | Document.FSharp when doc.uri.scheme = "file" -> true
+        | _ -> false
+
+    let private setShowCodeOutlineForEditor (textEditor: TextEditor) =
+        let newValue =
+            if textEditor <> undefined then
+                if isFsharpFile textEditor.document then
+                    isEnabledFor textEditor.document.uri
+                else
+                    false
+            else
+                false
+        setShowCodeOutline newValue
+
+    let onDidChangeConfiguration (evt: ConfigurationChangeEvent) =
+        let textEditor = window.activeTextEditor
+        if textEditor <> undefined && evt.affectsConfiguration(configurationKey, textEditor.document.uri) then
+            setShowCodeOutlineForEditor window.activeTextEditor
+            refresh.fire textEditor.document.uri
+
     let activate (context: ExtensionContext) =
+        setShowCodeOutlineForEditor window.activeTextEditor
+        window.onDidChangeActiveTextEditor.Invoke(unbox setShowCodeOutlineForEditor)
+            |> context.subscriptions.Add
+
+        refresh.event.Invoke(fun uri ->
+            if isEnabledFor uri then
+                reallyRefresh.fire(None)
+            createEmpty)
+            |> context.subscriptions.Add
+
+        workspace.onDidChangeConfiguration.Invoke(unbox onDidChangeConfiguration)
+            |> context.subscriptions.Add
+
         commands.registerCommand("fsharp.codeOutline.goTo", Func<obj, obj>(fun n ->
             let line =
                 match unbox<Model> n with

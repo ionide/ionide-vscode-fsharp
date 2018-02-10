@@ -208,7 +208,7 @@ module SolutionExplorer =
     let private getRoot () =
         defaultArg (getSolution ()) (Workspace [])
 
-    let private createProvider (emiter : EventEmitter<Model>) : TreeDataProvider<Model> =
+    let private createProvider (emiter : EventEmitter<Model option>) : TreeDataProvider<Model> =
         let plugPath =
             try
                 (VSCode.getPluginPath "Ionide.ionide-fsharp")
@@ -316,22 +316,22 @@ module SolutionExplorer =
                 ti
         }
 
-    let loadCurrentTheme (reloadTree: EventEmitter<Model>) = promise {
+    let loadCurrentTheme (reloadTree: EventEmitter<Model option>) = promise {
         let configured = VsCodeIconTheme.getConfigured() |> Option.bind VsCodeIconTheme.getInfo
         match configured with
         | Some configured ->
             if loadedTheme.IsNone || loadedTheme.Value.info.id <> configured.id then
                 let! loaded = VsCodeIconTheme.load configured
                 loadedTheme <- loaded
-                reloadTree.fire (undefined)
+                reloadTree.fire None
         | None ->
             if loadedTheme.IsSome then
                 loadedTheme <- None
-                reloadTree.fire (undefined)
+                reloadTree.fire None
     }
 
     let activate (context: ExtensionContext) =
-        let emiter = EventEmitter<Model>()
+        let emiter = EventEmitter<Model option>()
 
         let provider = createProvider emiter
 
