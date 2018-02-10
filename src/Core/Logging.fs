@@ -14,6 +14,10 @@ module Logging =
             member this.isGreaterOrEqualTo level = Level.GetLevelNum(this) >= Level.GetLevelNum(level)
             member this.isLessOrEqualTo level = Level.GetLevelNum(this) <= Level.GetLevelNum(level)
 
+    let mutable private ionideLogsMemory = []
+
+    let getIonideLogs () = ionideLogsMemory |> String.concat "\n"
+
     let private writeDevToolsConsole (level: Level) (source: string option) (template: string) (args: obj[]) =
         // just replace %j (Util.format->JSON specifier --> console->OBJECT %O specifier)
         // the other % specifiers are basically the same
@@ -31,6 +35,15 @@ module Logging =
         let formattedLogLine = String.Format("[{0:HH:mm:ss} {1,-5}] {2}", DateTime.Now, string level, formattedMessage)
         out.appendLine (formattedLogLine)
 
+    let private writeToFile level template args =
+        let formattedMessage = Util.format(template, args)
+        let formattedLogLine = String.Format("[{0:HH:mm:ss} {1,-5}] {2}\n", DateTime.Now, string level, formattedMessage)
+        // Only store the 200 last logs
+        if ionideLogsMemory.Length >= 200 then
+            ionideLogsMemory <- ionideLogsMemory.Tail @ [formattedLogLine]
+        else
+            ionideLogsMemory <- ionideLogsMemory @ [formattedLogLine]
+
     let private writeBothIfConfigured (out: OutputChannel option)
               (chanMinLevel: Level)
               (consoleMinLevel: Level option)
@@ -43,6 +56,14 @@ module Logging =
 
         if out.IsSome && level.isGreaterOrEqualTo(chanMinLevel) then
             writeOutputChannel out.Value level source template args
+
+        // Only write FSAC logs into the file
+        if source = Some "IONIDE-FSAC" then
+            try
+                if string args.[0] <> "parse" then
+                    writeToFile level template args
+            with
+                | _ -> () // Do nothing
 
     /// The templates may use node util.format placeholders: %s, %d, %j, %%
     /// https://nodejs.org/api/util.html#util_util_format_format

@@ -159,3 +159,26 @@ module Environment =
                         else
                             "dotnet" // at this point nothing really matters because we don't have a sane default at all :(
             }
+
+    let ensureDirectory (path : string) =
+        let root =
+            if Exports.Path.isAbsolute path then
+                Exports.Path.sep
+            else
+                Globals.__dirname
+
+        let segments =
+            path.Split [| char Exports.Path.sep |]
+            |> Array.toList
+
+        let rec ensure segments currentPath =
+            match segments with
+            | head::tail ->
+                let subPath = Exports.Path.join(currentPath, head)
+                if not (Exports.Fs.existsSync !^subPath) then
+                    Exports.Fs.mkdirSync !^subPath
+                ensure tail subPath
+            | [] -> ()
+
+        ensure segments root
+        path
