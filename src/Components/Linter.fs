@@ -62,7 +62,10 @@ module Linter =
                         |> Seq.map (fun suggestion ->
                             let cmd = createEmpty<Command>
                             cmd.title <- sprintf "Replace with %s" suggestion.ToText
-                            cmd.command <- "fsharp.lintFix"
+                            cmd.command <-
+                                match d.message.Contains("to PascalCase") with
+                                | x when x -> "fsharp.lintFixRename"
+                                | _ -> "fsharp.lintFix"
                             cmd.arguments <- Some ([| doc |> unbox; d.range |> unbox; suggestion.ToText |> unbox; |] |> ResizeArray)
                             cmd)
                         |> Seq.toArray
@@ -76,6 +79,9 @@ module Linter =
         workspace.applyEdit edit
         |> Promise.onSuccess (fun _ -> lintDocument doc.fileName)
 
+    let applyRenameFix(doc : TextDocument, range : vscode.Range, suggestion : string) =
+        commands.executeCommand("vscode.executeDocumentRenameProvider", Uri.file doc.fileName, range.start, suggestion)
+        |> Promise.bind (workspace.applyEdit)
     let activate selector (context: ExtensionContext) =
         refresh.event $ (handler,(), context.subscriptions) |> ignore
         if JS.isDefined window.activeTextEditor then
@@ -85,3 +91,4 @@ module Linter =
 
         languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
         commands.registerCommand("fsharp.lintFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.lintFixRename",Func<obj,obj,obj,obj>(fun a b c -> applyRenameFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add
