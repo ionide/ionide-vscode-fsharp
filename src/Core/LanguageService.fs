@@ -59,7 +59,7 @@ module LanguageService =
         editorSideLogger.ChanMinLevel |> showCurrentLevel
 
         vscode.workspace.onDidChangeConfiguration
-        |> Event.invoke (fun () ->
+        |> Event.invoke (fun _ ->
             editorSideLogger.ChanMinLevel <- logLanguageServiceRequestsOutputWindowLevel ()
             editorSideLogger.ChanMinLevel |> showCurrentLevel )
         |> ignore

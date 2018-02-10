@@ -25,7 +25,6 @@ let activate (context: ExtensionContext) : Api =
 
     let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
-    let codeOutline = "FSharp.codeOutline" |> Configuration.get true
 
     let init = DateTime.Now
 
@@ -47,7 +46,7 @@ let activate (context: ExtensionContext) : Api =
                 UnusedOpens.activate df' context
                 UnusedDeclarations.activate df' context
                 SimplifyName.activate df' context
-                if codeOutline then CodeOutline.activate context
+                CodeOutline.activate context
 
             )
             |> Promise.onSuccess(fun _ -> if solutionExplorer then SolutionExplorer.activate context)

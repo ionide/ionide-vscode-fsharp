@@ -12,18 +12,19 @@ let mutable projectPath = ""
 
 let handler (te : TextEditor) =
     hideItem ()
-    let path = te.document.fileName
-    let proj = Project.tryFindLoadedProjectByFile path
-    match proj with
-    | None -> ()
-    | Some p ->
-        projectPath <- p.Project
-        let pPath = Path.basename p.Project
-        let text = sprintf "$(circuit-board) %s" pPath
-        item.Value.text <- text
-        item.Value.tooltip <- p.Project
-        item.Value.command <- "openProjectFileFromStatusbar"
-        item.Value.show()
+    if te.document <> undefined then
+        let path = te.document.fileName
+        let proj = Project.tryFindLoadedProjectByFile path
+        match proj with
+        | None -> ()
+        | Some p ->
+            projectPath <- p.Project
+            let pPath = Path.basename p.Project
+            let text = sprintf "$(circuit-board) %s" pPath
+            item.Value.text <- text
+            item.Value.tooltip <- p.Project
+            item.Value.command <- "openProjectFileFromStatusbar"
+            item.Value.show()
 
 let handlerCommand() =
     commands.executeCommand("vscode.open", Uri.file projectPath)
