@@ -1,3 +1,9 @@
+### 3.16.0 - 18.02.2018
+* Update LineLenses settings
+* Use rename when replacing PascalCase literals
+* Some fixes to CodeOutline UX
+* Add diagnostic commands
+
 ### 3.15.8 - 11.01.2018
 * Update Forge
 * Fix run Expecto tests unquoted project file path
