@@ -30,7 +30,7 @@ Add **MSBUILD_PATH** environment variable which points to the home of **Microsof
 
 ### Windows
 
-[You can download F# 4.0 here for Windows](https://www.microsoft.com/en-us/download/details.aspx?id=48179)
+[You can download F# 4.1 here for Windows](http://download.microsoft.com/download/F/3/D/F3D6045E-4040-4058-ADAD-2698F1793CBC/Microsoft.FSharp.SDK.Core.msi)
 
 [Install the Microsoft Build Tools 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48159&wa=wsignin1.0)
 
