@@ -1,0 +1,136 @@
+{
+    "id": "https://websharper.com/wsconfig.schema.json",
+    "$schema": "http://json-schema.org/draft-06/schema#",
+    "description": "Schema for WebSharper wsconfig.json configuration file",
+    "type": "object",
+    "properties": {
+        "project": { "$ref": "#/definitions/project" }
+    },
+    "oneOf": [
+        {
+            "properties": {
+                "project": { "const": "library" },
+                "javascript": { "$ref": "#/definitions/javascript" },
+                "warnOnly": { "$ref": "#/definitions/warnOnly" },
+                "jsOutput": { "$ref": "#/definitions/jsOutput" },
+                "minJsOutput": { "$ref": "#/definitions/minJsOutput" },
+                "analyzeClosures": { "$ref": "#/definitions/analyzeClosures" },
+                "$schema": { "$ref": "#/definitions/$schema" }
+            },
+            "additionalProperties": false
+        },
+        {
+            "properties": {
+                "project": { "const": "site" },
+                "javascript": { "$ref": "#/definitions/javascript" },
+                "warnOnly": { "$ref": "#/definitions/warnOnly" },
+                "jsOutput": { "$ref": "#/definitions/jsOutput" },
+                "minJsOutput": { "$ref": "#/definitions/minJsOutput" },
+                "analyzeClosures": { "$ref": "#/definitions/analyzeClosures" },
+                "$schema": { "$ref": "#/definitions/$schema" },
+                "sourceMap": { "$ref": "#/definitions/sourceMap" },
+                "downloadResources": { "$ref": "#/definitions/downloadResources" }
+            },
+            "additionalProperties": false
+        },
+        {
+            "properties": {
+                "project": { "const": "extension" },
+                "javascript": { "$ref": "#/definitions/javascript" },
+                "warnOnly": { "$ref": "#/definitions/warnOnly" },
+                "jsOutput": { "$ref": "#/definitions/jsOutput" },
+                "minJsOutput": { "$ref": "#/definitions/minJsOutput" },
+                "analyzeClosures": { "$ref": "#/definitions/analyzeClosures" },
+                "$schema": { "$ref": "#/definitions/$schema" }
+            },
+            "additionalProperties": false
+        },
+        {
+            "properties": {
+                "project": { "const": "html" },
+                "javascript": { "$ref": "#/definitions/javascript" },
+                "warnOnly": { "$ref": "#/definitions/warnOnly" },
+                "jsOutput": { "$ref": "#/definitions/jsOutput" },
+                "minJsOutput": { "$ref": "#/definitions/minJsOutput" },
+                "analyzeClosures": { "$ref": "#/definitions/analyzeClosures" },
+                "$schema": { "$ref": "#/definitions/$schema" },
+                "outputDir": { "$ref": "#/definitions/outputDir" }
+            },
+            "additionalProperties": false
+        },
+        {
+            "properties": {
+                "project": { "enum": [ "bundle", "bundleOnly" ] },
+                "javascript": { "$ref": "#/definitions/javascript" },
+                "warnOnly": { "$ref": "#/definitions/warnOnly" },
+                "jsOutput": { "$ref": "#/definitions/jsOutput" },
+                "minJsOutput": { "$ref": "#/definitions/minJsOutput" },
+                "analyzeClosures": { "$ref": "#/definitions/analyzeClosures" },
+                "$schema": { "$ref": "#/definitions/$schema" },
+                "outputDir": { "$ref": "#/definitions/outputDir" },
+                "sourceMap": { "$ref": "#/definitions/sourceMap" },
+                "dce": { "$ref": "#/definitions/dce" }
+            },
+            "additionalProperties": false
+        }
+    ],
+    "definitions": {
+        "project": {
+            "enum": [ "library", "site", "extension", "html", "bundle", "bundleOnly" ],
+            "description": "The WebSharper project type.",
+            "default": "library"
+        },
+        "javascript": {
+            "oneOf": [
+                { "type": "boolean" },
+                { "type": "array", "items": { "type": "string" } }
+            ],
+            "description": "If true, marks the whole project for JavaScript compilation. As a filename array, marks the given files for JavaScript compilation.",
+            "default": false
+        },
+        "warnOnly": {
+            "type": "boolean",
+            "description": "If true, WebSharper compiler errors will be treated as warnings.",
+            "default": false
+        },
+        "jsOutput": {
+            "type": "string",
+            "description": "Provide a path to a file to write the .js output for the project."
+        },
+        "minJsOutput": {
+            "type": "string",
+            "description": "Provide a path to a file to write the .min.js output for the project."
+        },
+        "analyzeClosures": {
+            "oneOf": [
+                { "type": "boolean" },
+                { "enum": [ "moveToTop" ] }
+            ],
+            "description": "Enable warnings on possible memory leaks due to unnecessary closure capture; see http://point.davidglasser.net/2013/06/27/surprising-javascript-memory-leak.html. \"moveToTop\" moves all non-capturing lambdas to top level automatically (experimental).",
+            "default": false
+        },
+        "$schema": {
+            "type": "string"
+        },
+        "outputDir": {
+            "type": "string",
+            "description": "The output directory.",
+            "default": "."
+        },
+        "sourceMap": {
+            "type": "boolean",
+            "description": "If true, the compiler will include source maps and the required source files in a WebSharper assembly.",
+            "default": false
+        },
+        "dce": {
+            "type": "boolean",
+            "description": "Enable dead code elimination.",
+            "default": true
+        },
+        "downloadResources": {
+            "type": "boolean",
+            "description": "If true, WebSharper downloads all remote js/css resources defined in the current project and all references.",
+            "default": false
+        }
+    }
+}

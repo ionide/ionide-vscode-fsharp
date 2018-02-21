@@ -159,6 +159,7 @@ Target "CopySchemas" (fun _ ->
     ensureDirectory fsschemaRelease
     CleanDir fsschemaRelease
     CopyFile fsschemaRelease (fsschemaDir </> "fableconfig.json")
+    CopyFile fsschemaRelease (fsschemaDir </> "wsconfig.json")
 )
 
 

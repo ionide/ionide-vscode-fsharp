@@ -1220,6 +1220,10 @@
 			{
 				"fileMatch": "fableconfig.json",
 				"url": "./schemas/fableconfig.json"
+			},
+			{
+				"fileMatch": "wsconfig.json",
+				"url": "./schemas/wsconfig.json"
 			}
 		],
 		"breakpoints": [
