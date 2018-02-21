@@ -1,3 +1,6 @@
+### 3.17.0 - 21.02.2018
+* Add JSON schema for WebSharper config file
+
 ### 3.16.0 - 18.02.2018
 * Update LineLenses settings
 * Use rename when replacing PascalCase literals
