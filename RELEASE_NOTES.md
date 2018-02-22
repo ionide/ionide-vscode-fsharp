@@ -1,3 +1,6 @@
+### 3.17.1 - 22.02.2018
+* Update to latest FCS
+
 ### 3.17.0 - 21.02.2018
 * Add JSON schema for WebSharper config file
 
