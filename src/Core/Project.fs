@@ -38,6 +38,7 @@ module Project =
     let workspaceChanged = EventEmitter<WorkspacePeekFound>()
     let projectNotRestoredLoaded = EventEmitter<string>()
     let projectLoaded = EventEmitter<Project>()
+    let workspaceLoaded = EventEmitter<unit>() 
 
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files" |]
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
@@ -437,12 +438,12 @@ module Project =
     let handleProjectParsedNotification res =
         let projStatus =
             match res with
-            | Choice1Of3 (pr: ProjectResult) ->
+            | Choice1Of4 (pr: ProjectResult) ->
                 projectLoaded.fire (pr.Data)
                 Some (true, pr.Data.Project, (ProjectLoadingState.Loaded pr.Data))
-            | Choice2Of3 (pr: ProjectLoadingResult) ->
+            | Choice2Of4 (pr: ProjectLoadingResult) ->
                 Some (false, pr.Data.Project, (ProjectLoadingState.Loading pr.Data.Project))
-            | Choice3Of3 (msg, err) ->
+            | Choice3Of4 (msg, err) ->
                 match err with
                 | ErrorData.ProjectNotRestored d ->
                     projectNotRestoredLoaded.fire d.Project
@@ -451,6 +452,12 @@ module Project =
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
                 | _ ->
                     None
+            | Choice4Of4 msg -> 
+                match msg with
+                | "finished" -> 
+                    workspaceLoaded.fire () 
+                    None 
+                | _ -> None
 
         match projStatus with
         | Some (isDone, path, state) ->

@@ -402,11 +402,13 @@ module LanguageService =
         let onMessage res =
             match res?Kind |> unbox with
             | "project" ->
-                res |> unbox<ProjectResult> |> deserializeProjectResult |> Choice1Of3 |> cb
+                res |> unbox<ProjectResult> |> deserializeProjectResult |> Choice1Of4 |> cb
             | "projectLoading" ->
-                res |> unbox<ProjectLoadingResult> |> Choice2Of3 |> cb
+                res |> unbox<ProjectLoadingResult> |> Choice2Of4 |> cb
             | "error" ->
-                res?Data |> parseError |> Choice3Of3 |> cb
+                res?Data |> parseError |> Choice3Of4 |> cb
+            | "workspaceLoad" ->
+                res?Data?Status |> unbox<string> |> Choice4Of4 |> cb
             | _ ->
                 ()
 

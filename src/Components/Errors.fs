@@ -5,12 +5,9 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
-open System.Text.RegularExpressions
-open System
 
 module Errors =
     let private logger = ConsoleAndOutputChannelLogger(Some "Errors", Level.DEBUG, None, Some Level.DEBUG)
@@ -146,15 +143,25 @@ module Errors =
         | x::tail ->
             tail |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document )) (parseFile x.document )
 
+    let parseVisibleFileInProject (proj : Project) = 
+        let vs =
+            window.visibleTextEditors 
+            |> Seq.where (fun te -> proj.Files |> List.contains te.document.fileName)
+            |> Seq.toList
+        // printfn "FILES FOR PROJECT %A: %A" proj vs
+        setTimeout (fun _ -> 
+            match vs with
+            | [] -> ()
+            | [x] -> parse x.document |> ignore
+            | x::tail ->
+                tail |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parse e.document )) (parse x.document ) |> ignore)  250.
 
     let activate (context: ExtensionContext) =
         let allowBackgroundParsing = not ("FSharp.minimizeBackgroundParsing" |> Configuration.get false)
+        Project.projectLoaded.event $ (parseVisibleFileInProject, (), context.subscriptions) |> ignore
 
         workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen allowBackgroundParsing, (), context.subscriptions) |> ignore
         workspace.onDidSaveTextDocument $ (handlerSave allowBackgroundParsing, (), context.subscriptions) |> ignore
         LanguageService.registerNotify handleNotification
         Promise.lift parseVisibleTextEditors
-
-
-
