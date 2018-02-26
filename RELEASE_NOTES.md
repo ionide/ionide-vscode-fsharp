@@ -1,3 +1,7 @@
+### 3.17.2 - 22.02.2018
+* Update Forge - should fix Forge startup problem
+* Fix startup behaviour
+
 ### 3.17.1 - 22.02.2018
 * Update to latest FCS
 
