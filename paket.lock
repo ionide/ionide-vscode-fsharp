@@ -598,10 +598,10 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (< portable-net45+win8+wp8+wpa81)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (5e3866d23173ecae8d166d4f6f4a9335f9e5edea)
+     (b374512e868835b75bee1ec2c2a10c1e0e31b094)
       build: build.cmd LocalRelease
       os: windows
-     (5e3866d23173ecae8d166d4f6f4a9335f9e5edea)
+     (b374512e868835b75bee1ec2c2a10c1e0e31b094)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
@@ -612,13 +612,13 @@ GIT
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (9aa4b1055e3173225bc0d4b4e48542c2450beb99)
+     (a715e9bda68f2a43e9d1e63c39e16b1c54f7a3e5)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (450da450957b58efbb7a04ef636e445c5c4a03d2)
-    src/Fable.Import.VSCode.fs (450da450957b58efbb7a04ef636e445c5c4a03d2)
-    src/Fable.Import.ws.fs (450da450957b58efbb7a04ef636e445c5c4a03d2)
-    src/Helpers.fs (450da450957b58efbb7a04ef636e445c5c4a03d2)
+    src/Fable.Import.Axios.fs (039192b97c6032495ab13e9c0ea5ea84c973cdbe)
+    src/Fable.Import.VSCode.fs (039192b97c6032495ab13e9c0ea5ea84c973cdbe)
+    src/Fable.Import.ws.fs (039192b97c6032495ab13e9c0ea5ea84c973cdbe)
+    src/Helpers.fs (039192b97c6032495ab13e9c0ea5ea84c973cdbe)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2
@@ -1121,5 +1121,5 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (< portable-net45+win8+wp8+wpa81)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (a769b9ef31de04ecb7a18d07f235eebe0d458826)
+    modules/Octokit/Octokit.fsx (8f21aabb0974b0f4c7b7dab674b2ea2691a9db8c)
       Octokit (>= 0.20)
