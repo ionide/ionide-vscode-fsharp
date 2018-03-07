@@ -49,11 +49,14 @@ module Environment =
         programFilesX86
         |> String.replace " (x86)" ""
 
-
     let private getToolsPathWindows () =
-        [ "4.1"; "4.0"; "3.1"; "3.0" ]
-        |> List.map (fun v -> programFilesX86 </> @"\Microsoft SDKs\F#\" </> v </> @"\Framework\v4.0")
-        |> List.tryFind dirExists
+        let fsharpInstallDir = Globals.``process``.env?``FSHARPINSTALLDIR"`` |> unbox<string>
+        if dirExists fsharpInstallDir then 
+            Some (fsharpInstallDir.TrimEnd '\\')
+        else
+            [ "10.1"; "4.1"; "4.0"; "3.1"; "3.0" ]
+            |> List.map (fun v -> programFilesX86 </> @"\Microsoft SDKs\F#\" </> v </> @"\Framework\v4.0")
+            |> List.tryFind dirExists
 
     let private getToolsPathFromConfiguration () =
         let cfg = workspace.getConfiguration ()
