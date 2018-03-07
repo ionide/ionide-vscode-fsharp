@@ -1,3 +1,7 @@
+### 3.17.3 - 08.03.2018
+* Update FSAC - latest FCS
+* Support for F# SDK 10.1
+
 ### 3.17.2 - 22.02.2018
 * Update Forge - should fix Forge startup problem
 * Fix startup behaviour
