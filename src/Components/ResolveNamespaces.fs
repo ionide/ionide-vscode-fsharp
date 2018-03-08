@@ -52,7 +52,7 @@ module ResolveNamespaces =
                                             cmd.arguments <- Some ([| doc |> unbox; suggestion |> unbox; s |> unbox; |] |> ResizeArray)
                                             cmd)
 
-                                    return [| yield! quals; yield! opens |]
+                                    return [| yield! opens; yield! quals |]
                                 else
                                     return [||]
                             }
