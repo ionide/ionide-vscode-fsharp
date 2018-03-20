@@ -34,6 +34,7 @@ cd ..
 
 If `dotnet restore` gives the error ` The tools version "14.0" is unrecognized`, then you need to install [msbuildtools2015][msbuildtools2015]
 
+If `dotnet restore` gives the error `error MSB4126: The specified solution configuration "Debug|x64" is invalid`, there's a good chance you have the `Platform` environment variable set to "x64".  Unset the variable and try the restore command again. 
 
 If `./build.sh` gives errors, you may need to run `./build.sh Build` one time.
 
