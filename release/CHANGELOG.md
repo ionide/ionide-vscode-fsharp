@@ -1,3 +1,8 @@
+### 3.18.0 - 26.03.2018
+* Remove Expecto integration
+* Fix Forge integration with whitespaces in path
+* Update FSAC - latest FCS - lower memory usage
+
 ### 3.17.3 - 08.03.2018
 * Update FSAC - latest FCS
 * Support for F# SDK 10.1
