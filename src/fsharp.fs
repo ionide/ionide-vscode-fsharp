@@ -75,7 +75,6 @@ let activate (context: ExtensionContext) : Api =
         if resolve then ResolveNamespaces.activate df' context
         UnionCaseGenerator.activate df' context
         Help.activate context
-        Expecto.activate context
         MSBuild.activate context
         SignatureData.activate context
         Debugger.activate context

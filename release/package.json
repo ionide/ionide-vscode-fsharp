@@ -207,30 +207,6 @@
 				"title": "F#: Change Workspace or Solution"
 			},
 			{
-				"command": "Expecto.run",
-				"title": "Expecto: Run"
-			},
-			{
-				"command": "Expecto.runSingle",
-				"title": "Expecto: Run Single"
-			},
-			{
-				"command": "Expecto.runList",
-				"title": "Expecto: Run List"
-			},
-			{
-				"command": "Expecto.runFailed",
-				"title": "Expecto: Run Failed"
-			},
-			{
-				"command": "Expecto.startWatchMode",
-				"title": "Expecto: Start Watch Mode"
-			},
-			{
-				"command": "Expecto.stopWatchMode",
-				"title": "Expecto: Stop Watch Mode"
-			},
-			{
 				"command": "MSBuild.buildCurrent",
 				"title": "MSBuild: Build current project"
 			},
@@ -939,7 +915,6 @@
 			"F# Language Service",
 			"F# Interactive",
 			"Forge",
-			"Expecto",
 			"MSBuild"
 		],
 		"keybindings": [
@@ -968,21 +943,6 @@
 			{
 				"command": "fsharp.generateDoc",
 				"key": "alt+shift+j",
-				"when": "editorFocus && editorLangId == 'fsharp'"
-			},
-			{
-				"command": "Expecto.run",
-				"key": "ctrl+F6",
-				"when": "editorFocus && editorLangId == 'fsharp'"
-			},
-			{
-				"command": "Expecto.runFailed",
-				"key": "ctrl+alt+F6",
-				"when": "editorFocus && editorLangId == 'fsharp'"
-			},
-			{
-				"command": "Expecto.startWatchMode",
-				"key": "alt+F6",
 				"when": "editorFocus && editorLangId == 'fsharp'"
 			},
 			{
@@ -1119,36 +1079,6 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Save Current file before send LastSelection to FSI"
-				},
-				"Expecto.runSequenced": {
-					"type": "boolean",
-					"default": false,
-					"description": "Run Expecto tests with `--sequenced` flag"
-				},
-				"Expecto.runDebug": {
-					"type": "boolean",
-					"default": false,
-					"description": "Run Expecto tests with `--debug` flag"
-				},
-				"Expecto.runVersion": {
-					"type": "boolean",
-					"default": false,
-					"description": "Run Expecto tests with `--version` flag"
-				},
-				"Expecto.runFailOnFocusedTests": {
-					"type": "boolean",
-					"default": false,
-					"description": "Run Expecto tests with `--fail-on-focused-tests` flag"
-				},
-				"Expecto.customArgs": {
-					"type": "string",
-					"default": "--summary-location",
-					"description": "Run Expecto tests with additional custom arguments"
-				},
-				"Expecto.autoshow": {
-					"type": "boolean",
-					"default": true,
-					"description": "Automatically shows Expecto output panel"
 				},
 				"FSharp.msbuildLocation": {
 					"type": "string",
