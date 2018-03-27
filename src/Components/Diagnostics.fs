@@ -210,7 +210,7 @@ Error: %s
         let writeStream =
             Exports.Path.join(Exports.Os.tmpdir(), "ionide", "FSAC_logs")
             |> Environment.ensureDirectory
-            |> fun dir -> Exports.Path.join(dir, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.log"))
+            |> fun dir -> Exports.Path.join(dir, DateTime.Now.ToString("yyyyMMdd-HHmmss.log"))
             |> Exports.Fs.createWriteStream
 
         Promise.create(fun resolve reject ->
