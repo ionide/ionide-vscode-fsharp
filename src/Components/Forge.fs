@@ -59,30 +59,30 @@ module Forge =
         else
             path
     let moveFileUpPath path =
-        sprintf "move file -n '%s' -u" path |> spawnForge |> ignore
+        sprintf "move file -n %s -u" (quotePath path) |> spawnForge |> ignore
 
     let moveFileDownPath path =
-        sprintf "move file -n '%s' -d" path |> spawnForge |> ignore
+        sprintf "move file -n %s -d" (quotePath path) |> spawnForge |> ignore
 
     let removeFilePath path =
-        sprintf "remove file -n '%s'" path |> spawnForge |> ignore
+        sprintf "remove file -n %s" (quotePath path) |> spawnForge |> ignore
 
     let addFileAbove fromFile project path  =
-        sprintf "add file -p '%s' -n '%s' --above '%s'"  project path fromFile |> spawnForge |> ignore
+        sprintf "add file -p %s -n %s --above %s"  (quotePath project) (quotePath path) (quotePath fromFile) |> spawnForge |> ignore
 
     let addFileBelow fromFile project path =
-        sprintf "add file -p '%s' -n '%s' --below '%s'" project path fromFile |> spawnForge |> ignore
+        sprintf "add file -p %s -n %s --below %s" (quotePath project) (quotePath path) (quotePath fromFile) |> spawnForge |> ignore
 
     let addFile project path =
-        sprintf "add file -p '%s' -n '%s'" project path  |> spawnForge |> ignore
+        sprintf "add file -p %s -n %s" (quotePath project) (quotePath path) |> spawnForge |> ignore
 
     let addReferencePath path =
         promise {
             let opts = createEmpty<InputBoxOptions>
             opts.placeHolder <- Some "Reference"
-            let! name = window.showInputBox(opts) |> Promise.map quotePath
+            let! name = window.showInputBox(opts)
             if JS.isDefined name && JS.isDefined path then
-                sprintf "add reference -n '%s' -p '%s'" name path |> spawnForge |> ignore }
+                sprintf "add reference -n %s -p %s" (quotePath name) (quotePath path) |> spawnForge |> ignore }
 
     let addProjectReferencePath path =
         promise {
@@ -90,12 +90,12 @@ module Forge =
             if projects.Count <> 0 then
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Reference"
-                let! n = window.showQuickPick(projects |> U2.Case1, opts) |> Promise.map quotePath
+                let! n = window.showQuickPick(projects |> U2.Case1, opts)
                 if JS.isDefined n && JS.isDefined path then
-                    sprintf "add project -n '%s' -p '%s'" n path |> spawnForge |> ignore }
+                    sprintf "add project -n %s -p %s" (quotePath n) (quotePath path) |> spawnForge |> ignore }
 
     let removeProjectReferencePath ref proj =
-        sprintf "remove project -n '%s' -p '%s'" ref proj |> spawnForge |> ignore
+        sprintf "remove project -n %s -p %s" (quotePath ref) (quotePath proj) |> spawnForge |> ignore
 
     let renameFilePath oldName proj =
         promise {
@@ -106,12 +106,12 @@ module Forge =
             let! n = window.showInputBox(opts)
             if JS.isDefined n then
                 let newName = Path.join(dir, n)
-                sprintf "rename file -n '%s' -r '%s' -p '%s'" oldName newName proj |> spawnForge |> ignore
+                sprintf "rename file -n %s -r %s -p %s" (quotePath oldName) (quotePath newName) (quotePath proj) |> spawnForge |> ignore
         }
 
     let moveFileToFolder (folderList : string list) file proj =
         promise {
-            let! _ = sprintf "remove file -n '%s'" file |> spawnForge |> Process.toPromise
+            let! _ = sprintf "remove file -n %s" file |> spawnForge |> Process.toPromise
             if folderList.Length <> 0 then
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Reference"
@@ -122,8 +122,8 @@ module Forge =
                     let newFile = Path.join(projDir, n, fn )
                     Fs.rename(file, newFile, fun err ->
                         promise {
-                            let! _ = sprintf "add file -n '%s'" newFile |> spawnForge |> Process.toPromise
-                            let! _ = sprintf "move file -n '%s' -d" newFile |> spawnForge |> Process.toPromise
+                            let! _ = sprintf "add file -n %s" (quotePath newFile) |> spawnForge |> Process.toPromise
+                            let! _ = sprintf "move file -n %s -d" (quotePath newFile) |> spawnForge |> Process.toPromise
                             return ()
                         } |> ignore
                     )
@@ -132,13 +132,13 @@ module Forge =
     let moveFileUp () =
         let editor = vscode.window.activeTextEditor
         match editor.document with
-        | Document.FSharp -> sprintf "move file -n '%s' -u" editor.document.fileName |> spawnForge |> ignore
+        | Document.FSharp -> sprintf "move file -n %s -u" (quotePath editor.document.fileName) |> spawnForge |> ignore
         | _ -> ()
 
     let moveFileDown () =
         let editor = vscode.window.activeTextEditor
         match editor.document with
-        | Document.FSharp -> sprintf "move file -n '%s' -d" editor.document.fileName |> spawnForge |> ignore
+        | Document.FSharp -> sprintf "move file -n %s -d" (quotePath editor.document.fileName) |> spawnForge |> ignore
         | _ -> ()
 
     let refreshTemplates () =
@@ -147,13 +147,13 @@ module Forge =
     let addCurrentFileToProject () =
         let editor = vscode.window.activeTextEditor
         match editor.document with
-        | Document.FSharp -> sprintf "add file -n '%s'" editor.document.fileName |> spawnForge |> ignore
+        | Document.FSharp -> sprintf "add file -n %s" (quotePath editor.document.fileName) |> spawnForge |> ignore
         | _ -> ()
 
     let removeCurrentFileFromProject () =
         let editor = vscode.window.activeTextEditor
         match editor.document with
-        | Document.FSharp -> sprintf "remove file -n '%s'" editor.document.fileName |> spawnForge |> ignore
+        | Document.FSharp -> sprintf "remove file -n %s" (quotePath editor.document.fileName) |> spawnForge |> ignore
         | _ -> ()
 
     let addReference () =
@@ -162,13 +162,13 @@ module Forge =
             if projects.Count <> 0 then
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Project to edit"
-                let! edit = window.showQuickPick(projects |> U2.Case1,opts) |> Promise.map quotePath
+                let! edit = window.showQuickPick(projects |> U2.Case1,opts)
 
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "Reference"
-                let! name = window.showInputBox(opts) |> Promise.map quotePath
+                let! name = window.showInputBox(opts)
                 if JS.isDefined name && JS.isDefined edit then
-                    sprintf "add reference -n '%s' -p '%s'" name edit |> spawnForge |> ignore }
+                    sprintf "add reference -n %s -p %s" (quotePath name) (quotePath edit) |> spawnForge |> ignore }
 
     let removeReference () =
         promise {
@@ -176,19 +176,19 @@ module Forge =
             if projects.Count <> 0 then
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Project to edit"
-                let! edit = window.showQuickPick(projects |> U2.Case1,opts) |> Promise.map quotePath
+                let! edit = window.showQuickPick(projects |> U2.Case1,opts)
 
                 let! n =
-                    sprintf "list references -p '%s'" edit
+                    sprintf "list references -p %s" (quotePath edit)
                     |> execForge
                     |> Promise.map handleForgeList
 
                 if n.Count <> 0 then
                     let opts = createEmpty<QuickPickOptions>
                     opts.placeHolder <- Some "Reference"
-                    let! ref = window.showQuickPick(n |> U2.Case1,opts) |> Promise.map quotePath
+                    let! ref = window.showQuickPick(n |> U2.Case1,opts)
                     if JS.isDefined ref && JS.isDefined edit then
-                        sprintf "remove reference -n '%s' -p '%s'" ref edit |> spawnForge |> ignore }
+                        sprintf "remove reference -n %s -p %s" (quotePath ref) (quotePath edit) |> spawnForge |> ignore }
 
 
     let addProjectReference () =
@@ -197,13 +197,13 @@ module Forge =
             if projects.Count <> 0 then
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Project to edit"
-                let! edit = window.showQuickPick(projects |> U2.Case1, opts) |> Promise.map quotePath
+                let! edit = window.showQuickPick(projects |> U2.Case1, opts)
 
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Reference"
-                let! n = window.showQuickPick(projects |> U2.Case1, opts) |> Promise.map quotePath
+                let! n = window.showQuickPick(projects |> U2.Case1, opts)
                 if JS.isDefined n && JS.isDefined edit then
-                    sprintf "add project -n '%s' -p '%s'" n edit |> spawnForge |> ignore }
+                    sprintf "add project -n %s -p %s" (quotePath n) (quotePath edit) |> spawnForge |> ignore }
 
 
     let removeProjectReference () =
@@ -212,19 +212,19 @@ module Forge =
             if projects.Count <> 0 then
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Project to edit"
-                let! edit = window.showQuickPick(projects |> U2.Case1,opts) |> Promise.map quotePath
+                let! edit = window.showQuickPick(projects |> U2.Case1,opts)
 
                 let! n =
-                    sprintf "list projectReferences -p '%s'" edit
+                    sprintf "list projectReferences -p %s" (quotePath edit)
                     |> execForge
                     |> Promise.map handleForgeList
 
                 if n.Count <> 0 then
                     let opts = createEmpty<QuickPickOptions>
                     opts.placeHolder <- Some "Reference"
-                    let! ref = window.showQuickPick(n |> U2.Case1,opts) |> Promise.map quotePath
+                    let! ref = window.showQuickPick(n |> U2.Case1,opts)
                     if JS.isDefined ref && JS.isDefined edit then
-                        sprintf "remove project -n '%s' -p '%s'" ref edit |> spawnForge |> ignore }
+                        sprintf "remove project -n %s -p %s" (quotePath ref) (quotePath edit) |> spawnForge |> ignore }
 
     let private logger = ConsoleAndOutputChannelLogger(Some "Forge", Level.DEBUG, None, Some Level.DEBUG)
 
@@ -258,7 +258,7 @@ module Forge =
                             if JS.isDefined dir && JS.isDefined name then
                                 if name <> "" then
                                     let msg = window.setStatusBarMessage "Creating project..."
-                                    sprintf """new project -n "'%s'" -t %s --folder "'%s'" """ name template.label dir
+                                    sprintf """new project -n %s -t %s --folder %s """ (quotePath name) template.label (quotePath dir)
                                     |> spawnForge
                                     |> Process.toPromise
                                     |> Promise.bind (fun _ ->
@@ -304,7 +304,7 @@ module Forge =
                         let! name =  window.showInputBox(opts)
                         if JS.isDefined dir && JS.isDefined name then
                             let msg = window.setStatusBarMessage "Creating project..."
-                            sprintf "new project -n '%s' -t %s --folder '%s' --no-fake" name template.label dir
+                            sprintf "new project -n %s -t %s --folder %s --no-fake" (quotePath name) template.label (quotePath dir)
                             |> spawnForge
                             |> Process.toPromise
                             |> Promise.bind (fun _ ->
