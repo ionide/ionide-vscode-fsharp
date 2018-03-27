@@ -127,7 +127,6 @@ module Errors =
 
 
     let private handleNotification res =
-        printfn "NOTIFY: %A" res
         let (file, errors) = mapResult res
         let notActive =
             match unbox window.activeTextEditor with
