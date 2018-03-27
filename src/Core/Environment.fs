@@ -177,13 +177,16 @@ module Environment =
         let rec ensure segments currentPath =
             match segments with
             | head::tail ->
-                let subPath =
-                    match currentPath with
-                    | Some path -> Exports.Path.join(path, head)
-                    | None -> head
-                if not (Exports.Fs.existsSync !^subPath) then
-                    Exports.Fs.mkdirSync !^subPath
-                ensure tail (Some subPath)
+                if head = "" then
+                    ensure tail currentPath
+                else
+                    let subPath =
+                        match currentPath with
+                        | Some path -> Exports.Path.join(path, head)
+                        | None -> head
+                    if not (Exports.Fs.existsSync !^subPath) then
+                        Exports.Fs.mkdirSync !^subPath
+                    ensure tail (Some subPath)
             | [] -> ()
 
         ensure segments root
