@@ -51,7 +51,7 @@ module Environment =
 
     let private getToolsPathWindows () =
         let fsharpInstallDir = Globals.``process``.env?``FSHARPINSTALLDIR"`` |> unbox<string>
-        if dirExists fsharpInstallDir then 
+        if dirExists fsharpInstallDir then
             Some (fsharpInstallDir.TrimEnd '\\')
         else
             [ "10.1"; "4.1"; "4.0"; "3.1"; "3.0" ]
@@ -166,7 +166,7 @@ module Environment =
     let ensureDirectory (path : string) =
         let root =
             if Exports.Path.isAbsolute path then
-                Exports.Path.sep
+                ""
             else
                 Globals.__dirname
 
