@@ -166,9 +166,9 @@ module Environment =
     let ensureDirectory (path : string) =
         let root =
             if Exports.Path.isAbsolute path then
-                ""
+                None
             else
-                Globals.__dirname
+                Some Globals.__dirname
 
         let segments =
             path.Split [| char Exports.Path.sep |]
@@ -177,10 +177,13 @@ module Environment =
         let rec ensure segments currentPath =
             match segments with
             | head::tail ->
-                let subPath = Exports.Path.join(currentPath, head)
+                let subPath =
+                    match currentPath with
+                    | Some path -> Exports.Path.join(path, head)
+                    | None -> head
                 if not (Exports.Fs.existsSync !^subPath) then
                     Exports.Fs.mkdirSync !^subPath
-                ensure tail subPath
+                ensure tail (Some subPath)
             | [] -> ()
 
         ensure segments root
