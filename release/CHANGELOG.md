@@ -1,3 +1,8 @@
+### 3.18.1 - 29.03.2018
+* Fix forge path quotting.
+* Remove notify printfn
+* Update FSAC - latest FCS - lower memory usage
+
 ### 3.18.0 - 26.03.2018
 * Remove Expecto integration
 * Fix Forge integration with whitespaces in path
