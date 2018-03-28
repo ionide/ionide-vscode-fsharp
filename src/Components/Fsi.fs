@@ -14,29 +14,36 @@ module Fsi =
     let mutable fsiOutputPID : int option = None
     let mutable lastSelectionSent : string option = None
 
+    let mutable lastCd : string option = None
+    let mutable lastCurrentFile : string option = None
+
     let isPowershell () =
         let t = "terminal.integrated.shell.windows" |> Configuration.get ""
         t.ToLower().Contains "powershell"
 
-    let sendCd () =
-        let editor = window.activeTextEditor
-        let file,dir =
-            if  JS.isDefined editor then
-                let file = editor.document.fileName
+    let sendCd (textEditor: TextEditor) =
+        let file, dir =
+            if JS.isDefined textEditor then
+                let file = textEditor.document.fileName
                 let dir = Path.dirname file
-                file,dir
+                file, dir
             else
                 let dir = workspace.rootPath
                 Path.join(dir, "tmp.fsx"), dir
-        let msg1 = sprintf "# silentCd @\"%s\";;\n" dir
-        let msg2 = (sprintf "# %d @\"%s\" \n" 1 file)
 
+        match lastCd with
+        | Some(cd) when cd = dir -> ()
+        | _ ->
+            let msg = sprintf "# silentCd @\"%s\";;\n" dir
+            fsiOutput |> Option.iter (fun n -> n.sendText(msg, false))
+            lastCd <- Some dir
 
-        fsiOutput |> Option.iter (fun n ->
-            n.sendText(msg1, false)
-            n.sendText(msg2, false)
-            n.sendText(";;\n", false)
-        )
+        match lastCurrentFile with
+        | Some (currentFile) when currentFile = file -> ()
+        | _ ->
+            let msg = sprintf "# %d @\"%s\"\n;;\n" 1 file
+            fsiOutput |> Option.iter (fun n -> n.sendText(msg, false))
+            lastCurrentFile <- Some file
 
     let private start () =
         promise {
@@ -55,9 +62,10 @@ module Fsi =
 
             let terminal = window.createTerminal("F# Interactive", Environment.fsi, parms)
             terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
-
+            lastCd <- None
+            lastCurrentFile <- None
             fsiOutput <- Some terminal
-            sendCd ()
+            sendCd window.activeTextEditor
             terminal.show(true)
             return terminal
 
@@ -73,7 +81,7 @@ module Fsi =
             i1 <- i2]
 
     let private send (msg : string) =
-        let msgWithNewline = msg + "\n;;\n"
+        let msgWithNewline = msg + ";;\n"
         match fsiOutput with
         | None -> start ()
         | Some fo -> Promise.lift fo
@@ -94,6 +102,7 @@ module Fsi =
         let _ = editor.document.fileName
         let pos = editor.selection.start
         let line = editor.document.lineAt pos
+        sendCd editor
         send line.text
         |> Promise.onSuccess (fun _ -> commands.executeCommand "cursorDown" |> ignore)
         |> Promise.suppress // prevent unhandled promise exception
@@ -103,6 +112,7 @@ module Fsi =
         let editor = window.activeTextEditor
         let _ = editor.document.fileName
 
+        sendCd editor
         if editor.selection.isEmpty then
             sendLine ()
         else
@@ -128,6 +138,7 @@ module Fsi =
     let private sendFile () =
         let editor = window.activeTextEditor
         let text = editor.document.getText ()
+        sendCd editor
         send text
         |> Promise.suppress // prevent unhandled promise exception
         |> ignore
@@ -138,7 +149,13 @@ module Fsi =
     let private sendReferences () =
         window.activeTextEditor.document.fileName
         |> Project.tryFindLoadedProjectByFile
-        |> Option.iter (fun p -> p.References  |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not )  |> referenceAssemblies |> Promise.suppress |> ignore)
+        |> Option.iter (fun p ->
+            sendCd window.activeTextEditor
+            p.References
+            |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not )
+            |> referenceAssemblies
+            |> Promise.suppress
+            |> ignore)
 
     let private handleCloseTerminal (terminal:Terminal) =
         fsiOutputPID
@@ -147,7 +164,9 @@ module Fsi =
             |> Promise.onSuccess (fun closedTerminalPID ->
                 if closedTerminalPID = currentTerminalPID then
                     fsiOutput <- None
-                    fsiOutputPID <- None)
+                    fsiOutputPID <- None
+                    lastCd <- None
+                    lastCurrentFile <- None)
             |> Promise.suppress // prevent unhandled promise exception
             |> ignore)
         |> ignore
@@ -201,7 +220,6 @@ module Fsi =
 
 
     let activate (context: ExtensionContext) =
-        window.onDidChangeActiveTextEditor $ ((fun n -> if JS.isDefined n then sendCd()), (), context.subscriptions) |> ignore
         window.onDidCloseTerminal $ (handleCloseTerminal, (), context.subscriptions) |> ignore
 
         commands.registerCommand("fsi.Start", start |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
