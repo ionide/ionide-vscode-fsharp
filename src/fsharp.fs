@@ -12,7 +12,7 @@ open Debugger
 
 type Api = {
     ProjectLoadedEvent: Event<DTO.Project>
-    BuildProject: DTO.Project -> Fable.Import.JS.Promise<bool>
+    BuildProject: DTO.Project -> Fable.Import.JS.Promise<string>
     GetProjectLauncher: OutputChannel -> DTO.Project -> (string -> Fable.Import.JS.Promise<ChildProcess>) option
     DebugProject: DTO.Project -> string [] -> Fable.Import.JS.Promise<unit>
 }
@@ -87,8 +87,15 @@ let activate (context: ExtensionContext) : Api =
     Fsi.activate context
     ScriptRunner.activate context
 
+    let buildProject project = promise {
+        let! exit = MSBuild.buildProjectPath "Build" project
+        match exit.Code with
+        | Some code -> return code.ToString()
+        | None -> return ""
+    }
+
     { ProjectLoadedEvent = Project.projectLoaded.event
-      BuildProject = MSBuild.buildProjectPath "Build"
+      BuildProject = buildProject
       GetProjectLauncher = Project.getLauncher
       DebugProject = debugProject }
 

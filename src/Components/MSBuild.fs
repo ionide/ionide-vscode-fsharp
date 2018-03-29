@@ -9,6 +9,7 @@ open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
+open Ionide.VSCode.Helpers.Process
 
 module MSBuild =
     let outputChannel = window.createOutputChannel "msbuild"
@@ -139,7 +140,6 @@ module MSBuild =
                     if autoshow then outputChannel.show()
                 return! Process.spawnWithNotification msbuildPath "" cmd outputChannel
                         |> Process.toPromise
-                        |> Promise.map(fun exit -> exit.Code = Some 0)
             }
 
         let theMSbuildHostType =
@@ -193,7 +193,7 @@ module MSBuild =
                 | None -> pickProject "Project to build"
                 | Some h -> Some h |> Promise.lift
             return! match chosen with
-                    | None -> Promise.lift true
+                    | None -> { Code = Some 0; Signal = None } |> Promise.lift
                     | Some proj -> invokeMSBuild proj target hostOpt
         }
 
@@ -237,17 +237,19 @@ module MSBuild =
 
     let restoreProject (projOpt: string option) hostOpt =
         buildProject "Restore" projOpt hostOpt
-        |> Promise.onSuccess (fun success ->
+        |> Promise.onSuccess (fun exit ->
+            let failed = exit.Code <> Some 0
             match projOpt with
-            | Some p -> Project.load (not success) p |> unbox
+            | Some p -> Project.load failed p |> unbox
             | None -> ()
         )
 
     let private restoreProjectAsync (path : string) =
-        restoreMailBox.Post(path, fun success ->
-            if not success then
+        restoreMailBox.Post(path, fun exit ->
+            let failed = exit.Code <> Some 0
+            if failed then
                 logger.Debug("Restore of %s failed. Trying to load anyway.", path)
-            Project.load (not success) path)
+            Project.load failed path)
 
     let restoreProjectPath (project : Project) =
         restoreProjectAsync project.Project
