@@ -1,3 +1,7 @@
+### 3.18.2 - 29.03.2018
+* If a restore failed don't enter an infinite loop
+* Tweak silentcd & friends in FSI
+
 ### 3.18.1 - 29.03.2018
 * Fix forge path quotting.
 * Remove notify printfn
