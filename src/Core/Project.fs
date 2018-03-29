@@ -11,9 +11,6 @@ open Ionide.VSCode.Helpers
 open DTO
 
 module Project =
-    let outputChannel = window.createOutputChannel "project"
-    let private logger = ConsoleAndOutputChannelLogger(Some "project", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
-
     [<RequireQualifiedAccess>]
     type ProjectLoadingState =
         | Loading of path: string
@@ -40,7 +37,7 @@ module Project =
     let workspaceChanged = EventEmitter<WorkspacePeekFound>()
     let projectNotRestoredLoaded = EventEmitter<string>()
     let projectLoaded = EventEmitter<Project>()
-    let workspaceLoaded = EventEmitter<unit>() 
+    let workspaceLoaded = EventEmitter<unit>()
 
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files" |]
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
@@ -132,7 +129,6 @@ module Project =
             let (msg: string), (err: ErrorData) = unbox b
             match err with
             | ErrorData.ProjectNotRestored _d when not commingFromFailedRestore ->
-                logger.Debug("ProjectNotRestored %A", path)
                 projectNotRestoredLoaded.fire path
                 Some (path, ProjectLoadingState.NotRestored (path, msg) )
             | _ ->
@@ -455,11 +451,11 @@ module Project =
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
                 | _ ->
                     None
-            | Choice4Of4 msg -> 
+            | Choice4Of4 msg ->
                 match msg with
-                | "finished" -> 
-                    workspaceLoaded.fire () 
-                    None 
+                | "finished" ->
+                    workspaceLoaded.fire ()
+                    None
                 | _ -> None
 
         match projStatus with

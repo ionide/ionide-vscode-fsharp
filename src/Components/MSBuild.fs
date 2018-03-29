@@ -193,7 +193,7 @@ module MSBuild =
                 | None -> pickProject "Project to build"
                 | Some h -> Some h |> Promise.lift
             return! match chosen with
-                    | None -> Promise.empty
+                    | None -> Promise.lift true
                     | Some proj -> invokeMSBuild proj target hostOpt
         }
 
@@ -236,7 +236,6 @@ module MSBuild =
     )
 
     let restoreProject (projOpt: string option) hostOpt =
-        logger.Debug("restoreProject %A", projOpt)
         buildProject "Restore" projOpt hostOpt
         |> Promise.onSuccess (fun success ->
             match projOpt with
@@ -244,13 +243,17 @@ module MSBuild =
             | None -> ()
         )
 
+    let private restoreProjectAsync (path : string) =
+        restoreMailBox.Post(path, fun success ->
+            if not success then
+                logger.Debug("Restore of %s failed. Trying to load anyway.", path)
+            Project.load (not success) path)
+
     let restoreProjectPath (project : Project) =
-        logger.Debug("restoreProjectPath %A", project.Project)
-        restoreMailBox.Post(project.Project,fun success -> Project.load (not success) project.Project)
+        restoreProjectAsync project.Project
 
     let restoreProjectWithoutParseData (path : string) =
-        logger.Debug("restoreProjectWithoutParseData %A", path)
-        restoreMailBox.Post(path,fun success -> Project.load (not success) path)
+        restoreProjectAsync path
 
     let buildSolution target sln = promise {
         match host.value with
