@@ -139,6 +139,7 @@ module MSBuild =
                     if autoshow then outputChannel.show()
                 return! Process.spawnWithNotification msbuildPath "" cmd outputChannel
                         |> Process.toPromise
+                        |> Promise.map(fun exit -> exit.Code = Some 0)
             }
 
         let theMSbuildHostType =
@@ -234,31 +235,38 @@ module MSBuild =
         messageLoop()
     )
 
-    let restoreProject projOpt hostOpt =
+    let restoreProject (projOpt: string option) hostOpt =
+        logger.Debug("restoreProject %A", projOpt)
         buildProject "Restore" projOpt hostOpt
-        |> Promise.onSuccess (fun _ ->
+        |> Promise.onSuccess (fun success ->
             match projOpt with
-            | Some p -> Project.load p |> unbox
+            | Some p -> Project.load (not success) p |> unbox
             | None -> ()
         )
 
     let restoreProjectPath (project : Project) =
-        restoreMailBox.Post(project.Project,fun _ -> Project.load project.Project)
+        logger.Debug("restoreProjectPath %A", project.Project)
+        restoreMailBox.Post(project.Project,fun success -> Project.load (not success) project.Project)
 
     let restoreProjectWithoutParseData (path : string) =
-        restoreMailBox.Post(path,fun _ -> Project.load path)
+        logger.Debug("restoreProjectWithoutParseData %A", path)
+        restoreMailBox.Post(path,fun success -> Project.load (not success) path)
 
-    let buildSolution target sln =
+    let buildSolution target sln = promise {
         match host.value with
-        | Some h -> invokeMSBuild sln target (Some h)
+        | Some h ->
+            let! _ = invokeMSBuild sln target (Some h)
+            return ()
         | None ->
-            pickMSbuildHostType ()
-            |> Promise.bind (fun host ->
+            let! host = pickMSbuildHostType ()
             match host with
-            | Some h -> invokeMSBuild sln target (Some h)
+            | Some h ->
+                let! _ = invokeMSBuild sln target (Some h)
+                return ()
             | None ->
-                window.showWarningMessage "Host needs to be chosen for solution build"
-            )
+                let! _ = window.showWarningMessage "Host needs to be chosen for solution build"
+                return ()
+    }
 
     let buildCurrentSolution target =
         match Project.getLoadedSolution () with
@@ -279,7 +287,7 @@ module MSBuild =
 
         let projectWatcher = vscode.workspace.createFileSystemWatcher("**/*.fsproj")
         projectWatcher.onDidCreate.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
-        projectWatcher.onDidChange.Invoke(fun n -> Project.load n.fsPath |> unbox) |> ignore
+        projectWatcher.onDidChange.Invoke(fun n -> Project.load false n.fsPath |> unbox) |> ignore
 
         let assetWatcher = vscode.workspace.createFileSystemWatcher("**/project.assets.json")
 
@@ -306,7 +314,7 @@ module MSBuild =
             match fsprojOpt with
             | Some fsproj ->
                 let p = Path.join(fsprojDir, fsproj)
-                Project.load p
+                Project.load false p
                 |> unbox
             | None -> undefined
         ) |> context.subscriptions.Add
@@ -316,7 +324,7 @@ module MSBuild =
             match fsprojOpt with
             | Some fsproj ->
                 let p = Path.join(fsprojDir, fsproj)
-                Project.load p
+                Project.load false p
                 |> unbox
             | None -> undefined
         ) |> context.subscriptions.Add
