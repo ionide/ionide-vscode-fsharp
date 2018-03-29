@@ -30,7 +30,7 @@ NUGET
     Fable.Import.Node (0.1.5)
       Fable.Core (>= 1.1.15) - restriction: >= netstandard1.6
       FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
-    FSharp.Compiler.Service (22.0.2) - restriction: >= netcoreapp2.0
+    FSharp.Compiler.Service (22.0.3) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.1.18) - restriction: || (>= net45) (>= netstandard2.0)
       Microsoft.DiaSymReader (>= 1.1) - restriction: || (>= net45) (>= netstandard2.0)
       Microsoft.DiaSymReader.PortablePdb (>= 1.2) - restriction: || (>= net45) (>= netstandard2.0)
@@ -635,10 +635,10 @@ GIT
      (a715e9bda68f2a43e9d1e63c39e16b1c54f7a3e5)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (771740b1b8be6479841e44804e311f42646d5345)
-    src/Fable.Import.VSCode.fs (771740b1b8be6479841e44804e311f42646d5345)
-    src/Fable.Import.ws.fs (771740b1b8be6479841e44804e311f42646d5345)
-    src/Helpers.fs (771740b1b8be6479841e44804e311f42646d5345)
+    src/Fable.Import.Axios.fs (6eb3892d22f5c7c9bdc92cc85dee5e78c5c39277)
+    src/Fable.Import.VSCode.fs (6eb3892d22f5c7c9bdc92cc85dee5e78c5c39277)
+    src/Fable.Import.ws.fs (6eb3892d22f5c7c9bdc92cc85dee5e78c5c39277)
+    src/Helpers.fs (6eb3892d22f5c7c9bdc92cc85dee5e78c5c39277)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2
