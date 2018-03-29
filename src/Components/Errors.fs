@@ -71,7 +71,7 @@ module Errors =
             | Choice2Of3 () -> Promise.lift None
             | Choice3Of3 (Some p) ->
                 p
-                |> Project.load
+                |> Project.load false
                 |> Promise.bind (fun _ -> parse file)
             | Choice3Of3 None -> parse file
         | _ -> Promise.lift None

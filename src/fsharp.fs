@@ -12,7 +12,7 @@ open Debugger
 
 type Api = {
     ProjectLoadedEvent: Event<DTO.Project>
-    BuildProject: DTO.Project -> Fable.Import.JS.Promise<string>
+    BuildProject: DTO.Project -> Fable.Import.JS.Promise<bool>
     GetProjectLauncher: OutputChannel -> DTO.Project -> (string -> Fable.Import.JS.Promise<ChildProcess>) option
     DebugProject: DTO.Project -> string [] -> Fable.Import.JS.Promise<unit>
 }

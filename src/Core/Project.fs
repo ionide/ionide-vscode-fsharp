@@ -11,6 +11,8 @@ open Ionide.VSCode.Helpers
 open DTO
 
 module Project =
+    let outputChannel = window.createOutputChannel "project"
+    let private logger = ConsoleAndOutputChannelLogger(Some "project", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
 
     [<RequireQualifiedAccess>]
     type ProjectLoadingState =
@@ -117,7 +119,7 @@ module Project =
         loadedProjects <- emptyProjectsMap
         setAnyProjectContext false
 
-    let load (path:string) =
+    let load commingFromFailedRestore (path:string) =
         updateInWorkspace path (ProjectLoadingState.Loading path)
 
         let loaded (pr:ProjectResult) =
@@ -129,7 +131,8 @@ module Project =
         let failed (b: obj) =
             let (msg: string), (err: ErrorData) = unbox b
             match err with
-            | ErrorData.ProjectNotRestored d ->
+            | ErrorData.ProjectNotRestored _d when not commingFromFailedRestore ->
+                logger.Debug("ProjectNotRestored %A", path)
                 projectNotRestoredLoaded.fire path
                 Some (path, ProjectLoadingState.NotRestored (path, msg) )
             | _ ->
@@ -499,7 +502,7 @@ module Project =
 
             match loader with
             | FSharpWorkspaceLoader.Projects ->
-                Promise.executeForAll load
+                Promise.executeForAll (load false)
             | FSharpWorkspaceLoader.WorkspaceLoad ->
                 LanguageService.workspaceLoad
 
