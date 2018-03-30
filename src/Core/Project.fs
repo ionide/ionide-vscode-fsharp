@@ -116,7 +116,7 @@ module Project =
         loadedProjects <- emptyProjectsMap
         setAnyProjectContext false
 
-    let load commingFromFailedRestore (path:string) =
+    let load commingFromRestore (path:string) =
         updateInWorkspace path (ProjectLoadingState.Loading path)
 
         let loaded (pr:ProjectResult) =
@@ -128,7 +128,7 @@ module Project =
         let failed (b: obj) =
             let (msg: string), (err: ErrorData) = unbox b
             match err with
-            | ErrorData.ProjectNotRestored _d when not commingFromFailedRestore ->
+            | ErrorData.ProjectNotRestored _d when not commingFromRestore ->
                 projectNotRestoredLoaded.fire path
                 Some (path, ProjectLoadingState.NotRestored (path, msg) )
             | _ ->

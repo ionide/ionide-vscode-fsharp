@@ -239,17 +239,20 @@ module MSBuild =
         buildProject "Restore" projOpt hostOpt
         |> Promise.onSuccess (fun exit ->
             let failed = exit.Code <> Some 0
-            match projOpt with
-            | Some p -> Project.load failed p |> unbox
-            | None -> ()
+            match failed, projOpt with
+            | false, Some p -> Project.load true p |> unbox
+            | true, Some p -> logger.Error("Restore of %s failed with code %i, signal %s", p, exit.Code, exit.Signal)
+            | _ -> ()
         )
 
     let private restoreProjectAsync (path : string) =
         restoreMailBox.Post(path, fun exit ->
             let failed = exit.Code <> Some 0
             if failed then
-                logger.Debug("Restore of %s failed. Trying to load anyway.", path)
-            Project.load failed path)
+                logger.Error("Restore of %s failed with code %i, signal %s", path, exit.Code, exit.Signal)
+                () |> Promise.lift
+            else
+                Project.load true path)
 
     let restoreProjectPath (project : Project) =
         restoreProjectAsync project.Project
