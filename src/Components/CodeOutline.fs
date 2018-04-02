@@ -88,13 +88,17 @@ module CodeOutline =
 
 
     let map (input : Symbols[]) : Model =
-        match input |> Seq.tryFind (fun n -> n.Declaration.IsTopLevel ) with
+        let topLevelDeclarationOrOnlyDeclaration = 
+            match input |> Seq.tryFind (fun n -> n.Declaration.IsTopLevel) with
+            | None when input.Length = 1 -> Some (input.[0])
+            | result -> result
+        match topLevelDeclarationOrOnlyDeclaration with
         | None -> TopLevelNamespace ("", [])
         | Some topLevel ->
             let entry = {Key = ""; Children = new Dictionary<_,_>(); Symbol = topLevel.Declaration}
             let symbols =
                 input
-                |> Seq.filter (fun n -> not n.Declaration.IsTopLevel)
+                |> Seq.filter (fun n -> (not n.Declaration.IsTopLevel) && n.Declaration.UniqueName <> topLevel.Declaration.UniqueName)
                 |> Seq.collect (fun n -> Array.append (Array.singleton n.Declaration) (n.Nested |> Array.map (fun x -> {x with Name = n.Declaration.Name + "." + x.Name }))  )
             let symbols = Seq.append (topLevel.Nested) symbols
             symbols |> Seq.iter (fun x -> add' entry x 0 |> ignore )
@@ -104,7 +108,6 @@ module CodeOutline =
                 |> Seq.map (fun n -> toModel n.Value )
                 |> Seq.toList
                 |> List.sortBy (modelSortBy)
-
 
             TopLevelNamespace (topLevel.Declaration.Name, x)
 
