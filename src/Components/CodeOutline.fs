@@ -98,7 +98,7 @@ module CodeOutline =
             let entry = {Key = ""; Children = new Dictionary<_,_>(); Symbol = topLevel.Declaration}
             let symbols =
                 input
-                |> Seq.filter (fun n -> (not n.Declaration.IsTopLevel) && n.Declaration.UniqueName <> topLevel.Declaration.UniqueName)
+                |> Seq.filter (fun n -> (not n.Declaration.IsTopLevel) && not (Object.ReferenceEquals(n, topLevel)))
                 |> Seq.collect (fun n -> Array.append (Array.singleton n.Declaration) (n.Nested |> Array.map (fun x -> {x with Name = n.Declaration.Name + "." + x.Name }))  )
             let symbols = Seq.append (topLevel.Nested) symbols
             symbols |> Seq.iter (fun x -> add' entry x 0 |> ignore )
