@@ -81,7 +81,7 @@ module Fsi =
             i1 <- i2]
 
     let private send (msg : string) =
-        let msgWithNewline = msg + ";;\n"
+        let msgWithNewline = msg + (if msg.Contains "//" then "\n" else "") + ";;\n"
         match fsiOutput with
         | None -> start ()
         | Some fo -> Promise.lift fo
