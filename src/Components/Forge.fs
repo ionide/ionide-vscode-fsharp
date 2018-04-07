@@ -55,7 +55,7 @@ module Forge =
 
     let private quotePath (path : string) =
         if JS.isDefined path then
-            if path.Contains " " then "\"" + path + "\"" else path
+            if path = "" || path.Contains " " then "\"" + path + "\"" else path
         else
             path
     let moveFileUpPath path =
