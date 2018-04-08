@@ -51,7 +51,7 @@ module Environment =
 
     let private getToolsPathWindows () =
         let fsharpInstallDir = Globals.``process``.env?``FSHARPINSTALLDIR"`` |> unbox<string>
-        if dirExists fsharpInstallDir then 
+        if dirExists fsharpInstallDir then
             Some (fsharpInstallDir.TrimEnd '\\')
         else
             [ "10.1"; "4.1"; "4.0"; "3.1"; "3.0" ]
@@ -166,9 +166,9 @@ module Environment =
     let ensureDirectory (path : string) =
         let root =
             if Exports.Path.isAbsolute path then
-                Exports.Path.sep
+                None
             else
-                Globals.__dirname
+                Some Globals.__dirname
 
         let segments =
             path.Split [| char Exports.Path.sep |]
@@ -177,10 +177,16 @@ module Environment =
         let rec ensure segments currentPath =
             match segments with
             | head::tail ->
-                let subPath = Exports.Path.join(currentPath, head)
-                if not (Exports.Fs.existsSync !^subPath) then
-                    Exports.Fs.mkdirSync !^subPath
-                ensure tail subPath
+                if head = "" then
+                    ensure tail currentPath
+                else
+                    let subPath =
+                        match currentPath with
+                        | Some path -> Exports.Path.join(path, head)
+                        | None -> head
+                    if not (Exports.Fs.existsSync !^subPath) then
+                        Exports.Fs.mkdirSync !^subPath
+                    ensure tail (Some subPath)
             | [] -> ()
 
         ensure segments root
