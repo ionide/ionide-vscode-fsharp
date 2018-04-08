@@ -29,7 +29,7 @@ module Logging =
         let browserLogTemplate = String.Format("[{0}] {1}", source.ToString(), template.Replace("%j", "%O"))
         let nameOnConsoleObject =
             match level with
-            | DEBUG -> "debug"
+            | DEBUG -> "log"
             | INFO -> "info"
             | WARN -> "warn"
             | ERROR -> "error"
