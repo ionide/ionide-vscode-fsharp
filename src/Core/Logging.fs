@@ -20,7 +20,7 @@ module Logging =
 
     let getIonideLogs () = ionideLogsMemory |> String.concat "\n"
 
-    [<Emit("console[$0]($1...)")>]
+    [<Emit("console[$0] ? console[$0]($1...) : void 0")>]
     let private consoleLog (_level: string, [<ParamListAttribute>] _args: obj list): unit = failwith "JS only"
 
     let getConsoleLogArgs (level: Level) (source: string option) (template: string) (args: obj[]) =
