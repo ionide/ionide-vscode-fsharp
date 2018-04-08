@@ -1,3 +1,11 @@
+### 3.19.0 - 29.03.2018
+* Reflect the log levels on the dev console
+* Avoid infinite restore loops
+* Put the ;; on the next line when sending code to FSI when there's a comment
+* Fix code outline for fsx files starting with `namespace global`
+* Fix `Get Log` command
+* Fix `New Project` command - empty directory
+
 ### 3.18.2 - 29.03.2018
 * If a restore failed don't enter an infinite loop
 * Tweak silentcd & friends in FSI
