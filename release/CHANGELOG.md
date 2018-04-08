@@ -1,4 +1,7 @@
-### 3.19.0 - 29.03.2018
+### 3.19.1 - 09.04.2018
+* Only use log levels that exists
+
+### 3.19.0 - 08.04.2018
 * Reflect the log levels on the dev console
 * Avoid infinite restore loops
 * Put the ;; on the next line when sending code to FSI when there's a comment
