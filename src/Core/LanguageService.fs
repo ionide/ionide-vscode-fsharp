@@ -10,6 +10,7 @@ open Ionide.VSCode.Helpers
 open Fable.Import.ws
 
 open DTO
+open Fable.Import.Axios
 
 module LanguageService =
     let ax =  Globals.require.Invoke "axios" |> unbox<Axios.AxiosStatic>
@@ -162,12 +163,10 @@ module LanguageService =
         let started = DateTime.Now
         let fullRequestUrl = url fsacAction requestId
         logOutgoingRequest requestId fsacAction obj
-        let options =
-            createObj [
-                "proxy" ==> false
-            ]
 
-        ax.post (fullRequestUrl, obj, unbox options)
+        let options = createEmpty<AxiosXHRConfigBase<obj>>
+        options.proxy <- Some (U2.Case2 false)
+        ax.post (fullRequestUrl, obj, options)
         |> Promise.onFail (fun r ->
             // The outgoing request was not made
             logIncomingResponseError requestId fsacAction started r
