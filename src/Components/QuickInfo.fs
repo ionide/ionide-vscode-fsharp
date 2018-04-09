@@ -1,13 +1,7 @@
 module Ionide.VSCode.FSharp.QuickInfo
 
-open System
-open Fable.Core
-open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
-
-open DTO
 open Ionide.VSCode.Helpers
 
 module private StatusDisplay =
@@ -23,18 +17,24 @@ module private StatusDisplay =
         item <- Some (window.createStatusBarItem (unbox 1, -10. ))
         context.subscriptions.Add(item.Value)
 
-    let private getOverloadSignature (textEditor : TextEditor) (selections: ResizeArray<Selection>) = promise {
-        if JS.isDefined textEditor?document then
+    let private isFsharpTextEditor (textEditor : TextEditor) =
+        if JS.isDefined textEditor && JS.isDefined textEditor.document then
             let doc = textEditor.document
             match doc with
-            | Document.FSharp ->
-                let pos = selections.[0].active
-                let! o = LanguageService.signature (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-                if isNotNull o then
-                    return Some o.Data
-                else
-                    return None
-            | _ -> return None
+            | Document.FSharp -> true
+            | _ -> false
+        else
+            false
+
+    let private getOverloadSignature (textEditor : TextEditor) (selections: ResizeArray<Selection>) = promise {
+        if isFsharpTextEditor textEditor && selections.Count > 0 then
+            let doc = textEditor.document
+            let pos = selections.[0].active
+            let! o = LanguageService.signature (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+            if isNotNull o then
+                return Some o.Data
+            else
+                return None
         else
             return None
     }
@@ -49,17 +49,24 @@ module private StatusDisplay =
                 hideItem()
         } |> ignore
 
-    let clear () = update JS.undefined (ResizeArray())
+    let clear () =
+        update JS.undefined (ResizeArray())
 
 let mutable private timer = None
-let private clearTimer () = timer |> Option.iter(clearTimeout)
+let private clearTimer () =
+    match timer with
+    | Some t ->
+        clearTimeout t
+        timer <- None
+    | _ -> ()
 
 let private selectionChanged (event : TextEditorSelectionChangeEvent) =
     clearTimer()
     timer <- Some (setTimeout (fun () -> StatusDisplay.update event.textEditor event.selections) 500.)
 
-let private documentClosed (document: TextDocument) =
+let private textEditorChanged (_textEditor : TextEditor) =
     clearTimer()
+    // The display is always cleared, if it's an F# document an onDocumentParsed event will arrive
     StatusDisplay.clear()
 
 let private documentParsedHandler (event: Errors.DocumentParsedEvent) =
@@ -72,5 +79,5 @@ let activate (context: ExtensionContext) =
     StatusDisplay.activate context
 
     context.subscriptions.Add(window.onDidChangeTextEditorSelection.Invoke(unbox selectionChanged))
-    context.subscriptions.Add(workspace.onDidCloseTextDocument.Invoke(unbox documentClosed))
+    context.subscriptions.Add(window.onDidChangeActiveTextEditor.Invoke(unbox textEditorChanged))
     context.subscriptions.Add(Errors.onDocumentParsed.Invoke(unbox documentParsedHandler))

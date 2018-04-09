@@ -275,7 +275,7 @@ module LanguageService =
 
     let signature fn line col =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
-        |> request "signature" 0 (makeRequestId())
+        |> request<_, Result<string>> "signature" 0 (makeRequestId())
 
     let findDeclaration fn line col =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
