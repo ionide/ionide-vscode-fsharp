@@ -2,7 +2,6 @@ module Ionide.VSCode.FSharp.QuickInfo
 
 open Fable.Import
 open Fable.Import.vscode
-open DTO
 open Ionide.VSCode.Helpers
 
 module private StatusDisplay =
@@ -48,7 +47,6 @@ module private StatusDisplay =
                 showItem signature signature
             | _ ->
                 hideItem()
-                //logger.Info("x", textEditor.document.fileName, selections)
         } |> ignore
 
     let clear () =
