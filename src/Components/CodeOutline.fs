@@ -45,8 +45,8 @@ module CodeOutline =
             | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp")
 
         let p = createEmpty<TreeIconPath>
-        p.dark <- Path.join(plugPath, "images", dark)
-        p.light <- Path.join(plugPath, "images", light)
+        p.dark <- Path.join(plugPath, "images", dark) |> U3.Case1
+        p.light <- Path.join(plugPath, "images", light) |> U3.Case1
         p
 
     let rec add' (state : NodeEntry) (symbol : Symbol) index =
@@ -88,7 +88,7 @@ module CodeOutline =
 
 
     let map (input : Symbols[]) : Model =
-        let topLevelDeclarationOrOnlyDeclaration = 
+        let topLevelDeclarationOrOnlyDeclaration =
             match input |> Seq.tryFind (fun n -> n.Declaration.IsTopLevel) with
             | None when input.Length = 1 -> Some (input.[0])
             | result -> result
@@ -178,7 +178,7 @@ module CodeOutline =
 
             member this.getTreeItem(node) =
                 let ti = createEmpty<TreeItem>
-                ti.label <- getLabel node
+                ti.label <- getLabel node |> Some
                 ti.collapsibleState <-
                     match collapseMode with
                     | Default ->
@@ -199,7 +199,7 @@ module CodeOutline =
                         | TopLevelNamespace _ | Type _ -> Some TreeItemCollapsibleState.Expanded
                         | _ -> None
 
-                ti.iconPath <- getIcon node
+                ti.iconPath <- getIcon node |> Option.map U4.Case3
                 ti.contextValue <- Some "fsharp.codeOutline.item"
 
                 let c = createEmpty<Command>

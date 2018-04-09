@@ -60,7 +60,6 @@
     <Compile Include="Components/Help.fs" />
     <Compile Include="Components/Diagnostics.fs" />
     <Compile Include="Components/Degugger.fs" />
-    <Compile Include="Components/VsCodeIconTheme.fs" />
     <Compile Include="Components/SolutionExplorer.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>

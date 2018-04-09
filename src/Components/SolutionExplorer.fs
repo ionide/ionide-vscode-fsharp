@@ -36,8 +36,6 @@ module SolutionExplorer =
         Children : Dictionary<string, NodeEntry>
     }
 
-    let mutable loadedTheme: VsCodeIconTheme.Loaded option = None
-
     let rec add' (state : NodeEntry) (entry : string) index =
         let sep = Path.sep
 
@@ -227,10 +225,6 @@ module SolutionExplorer =
                     getRoot () |> getSubmodel |> ResizeArray
 
             member this.getTreeItem(node) =
-                let ti = createEmpty<TreeItem>
-
-                ti.label <- getLabel node
-
                 let collaps =
                     match node with
                     | File _ | Reference _ | ProjectReference _ ->
@@ -255,7 +249,7 @@ module SolutionExplorer =
                     | Folder _ | Project _ | ProjectReferencesList _ | ReferenceList _ ->
                         vscode.TreeItemCollapsibleState.Collapsed
 
-                ti.collapsibleState <- Some collaps
+                let ti = new TreeItem(getLabel node, collaps)
 
                 let command =
                     match node with
@@ -290,45 +284,33 @@ module SolutionExplorer =
 
                 let p = createEmpty<TreeIconPath>
 
-                let iconFromTheme (f: VsCodeIconTheme.Loaded -> VsCodeIconTheme.ResolvedIcon) light dark =
-                    let fromTheme = loadedTheme |> Option.map f
-                    p.light <- defaultArg (fromTheme |> Option.bind (fun x -> x.light)) (plugPath + light)
-                    p.dark <- defaultArg (fromTheme |> Option.bind (fun x -> x.dark)) (plugPath + dark)
-                    Some p
-
-                let icon =
+                let icon, resourceUri =
                     match node with
-                    | File (path, _, _) ->
-                        let fileName = Path.basename(path)
-                        iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/file-code-light.svg" "/images/file-code-dark.svg"
-                    | Project (path, _, _, _, _, _, _) | Solution (path, _, _)  ->
-                        let fileName = Path.basename(path)
-                        iconFromTheme (VsCodeIconTheme.getFileIcon fileName None false) "/images/project-light.svg" "/images/project-dark.svg"
-                    | Folder (name,_, _) | WorkspaceFolder (name, _)  ->
-                        iconFromTheme (VsCodeIconTheme.getFolderIcon name) "/images/folder-light.svg" "/images/folder-dark.svg"
-                    | Reference _ | ProjectReference _ ->
-                        p.light <- plugPath + "/images/circuit-board-light.svg"
-                        p.dark <- plugPath + "/images/circuit-board-dark.svg"
-                        Some p
-                    | _ -> None
+                    | File (path, _, _)
+                    | Project (path, _, _, _, _, _, _)
+                    | ProjectNotLoaded (path, _)
+                    | ProjectLoading (path, _)
+                    | ProjectFailedToLoad (path, _, _)
+                    | ProjectNotRestored (path, _, _)
+                    | Solution (path, _, _)  ->
+                        ThemeIcon.File |> U4.Case4 |> Some, Uri.file path |> Some
+                    | Folder (_, path, _) ->
+                        ThemeIcon.Folder |> U4.Case4 |> Some, Uri.file path |> Some
+                    | WorkspaceFolder _  ->
+                        ThemeIcon.Folder |> U4.Case4 |> Some, None
+                    | Reference (path, _, _) | ProjectReference (path, _, _) ->
+                        p.light <- (plugPath + "/images/circuit-board-light.svg") |> U3.Case1
+                        p.dark <- (plugPath + "/images/circuit-board-dark.svg") |> U3.Case1
+                        p |> U4.Case3 |> Some, Uri.file path |> Some
+                    | Workspace _
+                    | ReferenceList _
+                    | ProjectReferencesList _ ->
+                        None, None
                 ti.iconPath <- icon
-
+                ti.resourceUri <- resourceUri
+                ti.id <- (resourceUri |> Option.map(fun u -> u.toString()))
                 ti
         }
-
-    let loadCurrentTheme (reloadTree: EventEmitter<Model option>) = promise {
-        let configured = VsCodeIconTheme.getConfigured() |> Option.bind VsCodeIconTheme.getInfo
-        match configured with
-        | Some configured ->
-            if loadedTheme.IsNone || loadedTheme.Value.info.id <> configured.id then
-                let! loaded = VsCodeIconTheme.load configured
-                loadedTheme <- loaded
-                reloadTree.fire None
-        | None ->
-            if loadedTheme.IsSome then
-                loadedTheme <- None
-                reloadTree.fire None
-    }
 
     let activate (context: ExtensionContext) =
         let emiter = EventEmitter<Model option>()
@@ -752,8 +734,4 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        workspace.onDidChangeConfiguration.Invoke(fun _ ->
-            loadCurrentTheme emiter |> ignore
-            null) |> ignore
-        loadCurrentTheme emiter |> ignore
         ()
