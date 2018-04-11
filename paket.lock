@@ -618,10 +618,10 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (< portable-net45+win8+wp8+wpa81)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (5ef2538b768d1b376b1ee8fd5c2863421faab30e)
+     (9dfff73f560412af1170d4f8155f7860d290e447)
       build: build.cmd LocalRelease
       os: windows
-     (5ef2538b768d1b376b1ee8fd5c2863421faab30e)
+     (9dfff73f560412af1170d4f8155f7860d290e447)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
@@ -635,10 +635,10 @@ GIT
      (a715e9bda68f2a43e9d1e63c39e16b1c54f7a3e5)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (6eb3892d22f5c7c9bdc92cc85dee5e78c5c39277)
-    src/Fable.Import.VSCode.fs (6eb3892d22f5c7c9bdc92cc85dee5e78c5c39277)
-    src/Fable.Import.ws.fs (6eb3892d22f5c7c9bdc92cc85dee5e78c5c39277)
-    src/Helpers.fs (6eb3892d22f5c7c9bdc92cc85dee5e78c5c39277)
+    src/Fable.Import.Axios.fs (b29ea4d6097e754731b444cc88a038950197ed82)
+    src/Fable.Import.VSCode.fs (b29ea4d6097e754731b444cc88a038950197ed82)
+    src/Fable.Import.ws.fs (b29ea4d6097e754731b444cc88a038950197ed82)
+    src/Helpers.fs (b29ea4d6097e754731b444cc88a038950197ed82)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2
@@ -1141,5 +1141,5 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (< portable-net45+win8+wp8+wpa81)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (3a396e5ba4a5a00103be6b8393f37ece2f840eb7)
+    modules/Octokit/Octokit.fsx (b011a602d0b690fb80a30e5b97df53523d6c4b23)
       Octokit (>= 0.20)
