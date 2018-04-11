@@ -1,3 +1,8 @@
+### 3.19.2 - 11.04.2018
+* Use VSCode native icontheme support
+* Fix proxy problem
+* Ensure QuickInfo is hidden on non F#
+
 ### 3.19.1 - 09.04.2018
 * Only use log levels that exists
 
