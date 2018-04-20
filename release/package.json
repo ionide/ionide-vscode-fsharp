@@ -189,7 +189,7 @@
 				"title": "F#: Remove Reference"
 			},
 			{
-				"command": "fsharp.getHelp",
+				"command": "FSharp.getHelp",
 				"title": "F#: Get Help"
 			},
 			{
