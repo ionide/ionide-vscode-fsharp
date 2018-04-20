@@ -87,8 +87,7 @@
 			{
 				"command": "fsi.SendFile",
 				"title": "FSI: Send File",
-				"icon":
-				{
+				"icon": {
 					"light": "./images/send-light.svg",
 					"dark": "./images/send-dark.svg"
 				}
@@ -104,8 +103,7 @@
 			{
 				"command": "fsharp.scriptrunner.run",
 				"title": "F#: Run script",
-				"icon":
-				{
+				"icon": {
 					"light": "./images/run-light.svg",
 					"dark": "./images/run-dark.svg"
 				}
@@ -249,7 +247,6 @@
 			{
 				"command": "MSBuild.cleanCurrentSolution",
 				"title": "MSBuild: Clean current solution"
-
 			},
 			{
 				"command": "fsharp.explorer.moveUp",
@@ -873,16 +870,16 @@
 			],
 			"editor/title": [
 				{
-				  "command": "fsi.SendFile",
-				  "when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'",
-				  "group": "navigation"
+					"command": "fsi.SendFile",
+					"when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'",
+					"group": "navigation"
 				},
 				{
 					"command": "fsharp.scriptrunner.run",
 					"when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'",
 					"group": "navigation"
-				  }
-			  ],
+				}
+			],
 			"touchBar": [
 				{
 					"command": "fsharp.debugDefaultProject",
@@ -946,7 +943,7 @@
 				"when": "editorFocus && editorLangId == 'fsharp'"
 			},
 			{
-				"command": "FSharp.getHelp",
+				"command": "fsharp.getHelp",
 				"key": "shift+F1",
 				"when": "editorFocus && editorLangId == 'fsharp'"
 			},
