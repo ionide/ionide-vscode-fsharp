@@ -1,3 +1,9 @@
+### 3.19.3 - 11.04.2018
+* Fix `F#: Get Help` command
+* Fix `Go-to` command - don't navigate to files that don't exist
+* Update FSAC - constrains in tooltips
+* Update grammar - small fixes
+
 ### 3.19.2 - 11.04.2018
 * Use VSCode native icontheme support
 * Fix proxy problem
