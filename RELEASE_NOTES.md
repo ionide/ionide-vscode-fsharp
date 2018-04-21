@@ -1,4 +1,7 @@
-### 3.19.3 - 11.04.2018
+### 3.19.4 - 21.04.2018
+* Update FSAC - fix code lens signatures for getters.
+
+### 3.19.3 - 20.04.2018
 * Fix `F#: Get Help` command
 * Fix `Go-to` command - don't navigate to files that don't exist
 * Update FSAC - constrains in tooltips
