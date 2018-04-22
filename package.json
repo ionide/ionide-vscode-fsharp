@@ -11,6 +11,7 @@
     "fable-compiler": "0.6.x",
     "fable-loader": "1.0.7",
     "fable-utils": "^1.0.2",
+    "htmlparser2": "^3.9.2",
     "mocha": "*",
     "toml": "*",
     "vscode": "*",

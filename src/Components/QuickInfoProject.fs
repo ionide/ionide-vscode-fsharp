@@ -1,9 +1,8 @@
 module Ionide.VSCode.FSharp.QuickInfoProject
 
 open Fable.Import.vscode
-open Fable.Import.Node
-open Fable.Import.vscode
-open Fable.Import.vscode
+
+module node = Fable.Import.Node.Exports
 
 let mutable private item : StatusBarItem option = None
 let private hideItem () = item |> Option.iter (fun n -> n.hide ())
@@ -19,7 +18,7 @@ let handler (te : TextEditor) =
         | None -> ()
         | Some p ->
             projectPath <- p.Project
-            let pPath = Path.basename p.Project
+            let pPath = node.path.basename p.Project
             let text = sprintf "$(circuit-board) %s" pPath
             item.Value.text <- text
             item.Value.tooltip <- p.Project

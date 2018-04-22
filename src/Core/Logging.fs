@@ -18,7 +18,7 @@ module Logging =
 
     let mutable private ionideLogsMemory = []
 
-    let getIonideLogs () = ionideLogsMemory |> String.concat "\n"
+    let getIonideLogs () : string = ionideLogsMemory |> String.concat "\n"
 
     [<Emit("console[$0] ? console[$0]($1...) : void 0")>]
     let private consoleLog (_level: string, [<ParamListAttribute>] _args: obj list): unit = failwith "JS only"

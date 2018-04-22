@@ -4,13 +4,15 @@ open System
 open Fable.Import.vscode
 open Fable.Import.Node
 
+module node = Fable.Import.Node.Exports
+
 module ScriptRunner =
     let private runFile () =
         let scriptFile = window.activeTextEditor.document.fileName
-        let scriptDir = Path.dirname(scriptFile)
+        let scriptDir = node.path.dirname(scriptFile)
 
         let (shellCmd, shellArgs, textToSend) =
-            match Os.``type``() with
+            match node.os.``type``() with
             | "Windows_NT" ->
                 ("cmd.exe",
                  [| "/Q"; "/K" |],
@@ -20,7 +22,7 @@ module ScriptRunner =
                  [||],
                  sprintf "cd \"%s\" && clear && \"%s\" \"%s\" && echo \"Press enter to close script...\" && read && exit" scriptDir Environment.fsi scriptFile)
 
-        let title = Path.basename scriptFile
+        let title = node.path.basename scriptFile
         let terminal = window.createTerminal(title, shellCmd, shellArgs)
         terminal.sendText(textToSend)
         terminal.show ()

@@ -5,11 +5,12 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
 open Ionide.VSCode.Helpers.Process
+
+module node = Fable.Import.Node.Exports
 
 module MSBuild =
     let outputChannel = window.createOutputChannel "msbuild"
@@ -300,18 +301,18 @@ module MSBuild =
         let assetWatcher = vscode.workspace.createFileSystemWatcher("**/project.assets.json")
 
         let getFsProjFromAssets (n:Uri)=
-            let objDir = Path.dirname n.fsPath
-            let fsprojDir = Path.join(objDir, "..")
-            let files = Fs.readdirSync (U2.Case1 fsprojDir)
+            let objDir = node.path.dirname n.fsPath
+            let fsprojDir = node.path.join(objDir, "..")
+            let files = node.fs.readdirSync (U2.Case1 fsprojDir)
             files |> Seq.tryFind(fun n -> n.EndsWith ".fsproj"), fsprojDir
 
         assetWatcher.onDidDelete.Invoke(fun n ->
             let (fsprojOpt, fsprojDir) = getFsProjFromAssets n
             match fsprojOpt with
             | Some fsproj ->
-                let p = Path.join(fsprojDir, fsproj)
-                let fsacCache = Path.join(fsprojDir, "obj", "fsac.cache")
-                Fs.unlinkSync(U2.Case1 fsacCache)
+                let p = node.path.join(fsprojDir, fsproj)
+                let fsacCache = node.path.join(fsprojDir, "obj", "fsac.cache")
+                node.fs.unlinkSync(U2.Case1 fsacCache)
                 restoreProjectWithoutParseData p
                 |> unbox
             | None -> undefined
@@ -321,7 +322,7 @@ module MSBuild =
             let (fsprojOpt, fsprojDir) = getFsProjFromAssets n
             match fsprojOpt with
             | Some fsproj ->
-                let p = Path.join(fsprojDir, fsproj)
+                let p = node.path.join(fsprojDir, fsproj)
                 Project.load false p
                 |> unbox
             | None -> undefined
@@ -331,7 +332,7 @@ module MSBuild =
             let (fsprojOpt, fsprojDir) = getFsProjFromAssets n
             match fsprojOpt with
             | Some fsproj ->
-                let p = Path.join(fsprojDir, fsproj)
+                let p = node.path.join(fsprojDir, fsproj)
                 Project.load false p
                 |> unbox
             | None -> undefined

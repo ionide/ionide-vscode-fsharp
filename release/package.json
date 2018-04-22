@@ -396,6 +396,12 @@
 			{
 				"command": "fsharp.explorer.solution.addProject",
 				"title": "Add project"
+			},
+			{
+				"command": "fsharp.htmlConverter.convert",
+				"title": "Convert html to Elmish",
+				"description": "Converts your selection to Elmish by assuming that your selection is HTML code",
+				"category": "F#"
 			}
 		],
 		"views": {

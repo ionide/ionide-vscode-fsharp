@@ -3,10 +3,11 @@ version 5.142.0
 source https://www.nuget.org/api/v2
 storage:none
 
-clitool dotnet-fable 1.2.4
-nuget Fable.Core 1.2.4
-nuget Fable.Import.Node 0.1.5
-nuget Fable.Import.Browser 0.1.2
+clitool dotnet-fable
+nuget Fable.Core
+nuget Fable.Import.Browser
+nuget Fable.Import.Node
+nuget Fable.HtmlConverter
 
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd LocalRelease", OS: windows
 git https://github.com/fsharp-editing/Forge.git master build:"build.cmd Build", OS: windows
@@ -16,10 +17,10 @@ git https://github.com/fsharp-editing/Forge.git master build:"build.sh Build", O
 
 git https://github.com/ionide/ionide-fsgrammar.git
 
-github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
-github ionide/ionide-vscode-helpers src/Helpers.fs
-github ionide/ionide-vscode-helpers src/Fable.Import.Axios.fs
-github ionide/ionide-vscode-helpers src/Fable.Import.ws.fs
+github MangelMaxime/ionide-vscode-helpers:update_deps src/Fable.Import.VSCode.fs
+github MangelMaxime/ionide-vscode-helpers:update_deps src/Helpers.fs
+github MangelMaxime/ionide-vscode-helpers:update_deps src/Fable.Import.Axios.fs
+github MangelMaxime/ionide-vscode-helpers:update_deps src/Fable.Import.ws.fs
 
 group build
     source https://www.nuget.org/api/v2
