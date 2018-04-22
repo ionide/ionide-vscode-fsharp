@@ -61,6 +61,7 @@
     <Compile Include="Components/Diagnostics.fs" />
     <Compile Include="Components/Degugger.fs" />
     <Compile Include="Components/SolutionExplorer.fs" />
+    <Compile Include="Components/HtmlConverter.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
