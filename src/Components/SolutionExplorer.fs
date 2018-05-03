@@ -312,10 +312,22 @@ module SolutionExplorer =
                 ti
         }
 
+    module private ShowInActivity =
+        let private setInFsharpActivity = Context.cachedSetter<bool> "fsharp.showProjectExplorerInFsharpActivity"
+        let private setInExplorerActivity = Context.cachedSetter<bool> "fsharp.showProjectExplorerInExplorerActivity"
+
+        let set () =
+            let showIn = "FSharp.showProjectExplorerIn" |> Configuration.get "fsharpActivity"
+            let inFsharpActivity = (showIn = "fsharpActivity")
+            setInFsharpActivity inFsharpActivity
+            setInExplorerActivity (not inFsharpActivity)
+
     let activate (context: ExtensionContext) =
         let emiter = EventEmitter<Model option>()
 
         let provider = createProvider emiter
+
+        ShowInActivity.set ()
 
         Project.workspaceChanged.event.Invoke(fun _ ->
             emiter.fire (undefined) |> unbox)
