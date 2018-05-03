@@ -229,6 +229,16 @@ module CodeOutline =
                 false
         setShowCodeOutline newValue
 
+    module private ShowInActivity =
+        let private setInFsharpActivity = Context.cachedSetter<bool> "fsharp.showCodeOutlineInFsharpActivity"
+        let private setInExplorerActivity = Context.cachedSetter<bool> "fsharp.showCodeOutlineInExplorerActivity"
+
+        let set () =
+            let showIn = "FSharp.showCodeOutlineIn" |> Configuration.get "fsharpy"
+            let inFsharpActivity = (showIn = "fsharp")
+            setInFsharpActivity inFsharpActivity
+            setInExplorerActivity (not inFsharpActivity)
+
     let onDidChangeConfiguration (evt: ConfigurationChangeEvent) =
         let textEditor = window.activeTextEditor
         if textEditor <> undefined && evt.affectsConfiguration(configurationKey, textEditor.document.uri) then
@@ -237,6 +247,7 @@ module CodeOutline =
 
     let activate (context: ExtensionContext) =
         setShowCodeOutlineForEditor window.activeTextEditor
+        ShowInActivity.set()
         window.onDidChangeActiveTextEditor.Invoke(unbox setShowCodeOutlineForEditor)
             |> context.subscriptions.Add
 

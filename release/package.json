@@ -398,17 +398,39 @@
 				"title": "Add project"
 			}
 		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "ionide-fsharp",
+					"title": "F#",
+					"icon": "images/activity-fsharp-logo.svg",
+					"when": "fsharp.showProjectExplorerInFsharpActivity"
+				}
+			]
+		},
 		"views": {
 			"explorer": [
 				{
 					"id": "ionide.projectExplorer",
 					"name": "F# Project Explorer",
-					"when": "fsharp.project.any"
+					"when": "fsharp.project.any && fsharp.showProjectExplorerInExplorerActivity"
 				},
 				{
 					"id": "ionide.codeOutline",
 					"name": "F# Code Outline",
-					"when": "fsharp.showCodeOutline"
+					"when": "fsharp.showCodeOutline && fsharp.showCodeOutlineInExplorerActivity"
+				}
+			],
+			"ionide-fsharp": [
+				{
+					"id": "ionide.projectExplorer",
+					"name": "Project Explorer",
+					"when": "fsharp.project.any && fsharp.showProjectExplorerInFsharpActivity"
+				},
+				{
+					"id": "ionide.codeOutline",
+					"name": "Code Outline",
+					"when": "fsharp.project.any && fsharp.showCodeOutlineInFsharpActivity"
 				}
 			]
 		},
@@ -1106,7 +1128,7 @@
 				"FSharp.enableTreeView": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables solution explorer - experimental feature."
+					"description": "Enables project explorer."
 				},
 				"FSharp.excludeProjectDirectories": {
 					"type": "array",
@@ -1140,6 +1162,26 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Minimize the amount of background type-checking of dependent projects. Requires restart.\nThis is a performance workaround that will increase intellisense responsiveness for projects that are referenced by many other projects in the solution."
+				},
+				"FSharp.showCodeOutlineIn": {
+					"type":"string",
+					"default": "fsharp",
+					"description": "Set the activity (left bar) where the code outline view will be displayed.\nRequires restart.",
+					"enum": [
+						"explorer",
+						"fsharp"
+					],
+					"scope": "application"
+				},
+				"FSharp.showProjectExplorerIn": {
+					"type":"string",
+					"default": "fsharp",
+					"description": "Set the activity (left bar) where the project explorer view will be displayed.\nRequires restart.",
+					"enum": [
+						"explorer",
+						"fsharp"
+					],
+					"scope": "application"
 				}
 			}
 		},
