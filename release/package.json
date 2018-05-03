@@ -403,7 +403,7 @@
 				{
 					"id": "ionide-fsharp",
 					"title": "F#",
-					"icon": "images/fsharp-logo.svg",
+					"icon": "images/activity-fsharp-logo.svg",
 					"when": "fsharp.showProjectExplorerInFsharpActivity"
 				}
 			]
