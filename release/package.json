@@ -430,7 +430,7 @@
 				{
 					"id": "ionide.codeOutline",
 					"name": "Code Outline",
-					"when": "fsharp.project.any && fsharp.showCodeOutlineInFsharpActivity"
+					"when": "fsharp.showCodeOutline && fsharp.showCodeOutlineInFsharpActivity"
 				}
 			]
 		},
@@ -1156,7 +1156,8 @@
 				"FSharp.codeOutline": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables Code Outline tree view."
+					"description": "Enables Code Outline tree view.",
+					"scope": "resource"
 				},
 				"FSharp.minimizeBackgroundParsing": {
 					"type": "boolean",
