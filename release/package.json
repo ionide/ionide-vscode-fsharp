@@ -1165,21 +1165,21 @@
 				},
 				"FSharp.showCodeOutlineIn": {
 					"type":"string",
-					"default": "fsharpActivity",
-					"description": "Set where the code outline view will be displayed.\nRequires restart.",
+					"default": "fsharp",
+					"description": "Set the activity (left bar) where the code outline view will be displayed.\nRequires restart.",
 					"enum": [
 						"explorer",
-						"fsharpActivity"
+						"fsharp"
 					],
 					"scope": "application"
 				},
 				"FSharp.showProjectExplorerIn": {
 					"type":"string",
-					"default": "fsharpActivity",
-					"description": "Set where the project explorer view will be displayed.\nRequires restart.",
+					"default": "fsharp",
+					"description": "Set the activity (left bar) where the project explorer view will be displayed.\nRequires restart.",
 					"enum": [
 						"explorer",
-						"fsharpActivity"
+						"fsharp"
 					],
 					"scope": "application"
 				}

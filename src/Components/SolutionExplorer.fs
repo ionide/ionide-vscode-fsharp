@@ -317,8 +317,8 @@ module SolutionExplorer =
         let private setInExplorerActivity = Context.cachedSetter<bool> "fsharp.showProjectExplorerInExplorerActivity"
 
         let set () =
-            let showIn = "FSharp.showProjectExplorerIn" |> Configuration.get "fsharpActivity"
-            let inFsharpActivity = (showIn = "fsharpActivity")
+            let showIn = "FSharp.showProjectExplorerIn" |> Configuration.get "fsharp"
+            let inFsharpActivity = (showIn = "fsharp")
             setInFsharpActivity inFsharpActivity
             setInExplorerActivity (not inFsharpActivity)
 

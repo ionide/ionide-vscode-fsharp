@@ -234,8 +234,8 @@ module CodeOutline =
         let private setInExplorerActivity = Context.cachedSetter<bool> "fsharp.showCodeOutlineInExplorerActivity"
 
         let set () =
-            let showIn = "FSharp.showCodeOutlineIn" |> Configuration.get "fsharpActivity"
-            let inFsharpActivity = (showIn = "fsharpActivity")
+            let showIn = "FSharp.showCodeOutlineIn" |> Configuration.get "fsharpy"
+            let inFsharpActivity = (showIn = "fsharp")
             setInFsharpActivity inFsharpActivity
             setInExplorerActivity (not inFsharpActivity)
 
