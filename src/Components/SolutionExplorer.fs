@@ -5,12 +5,13 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
 open Ionide.VSCode.Helpers
 open System.Collections.Generic
 
 open DTO
 open Ionide.VSCode.Helpers
+
+module node = Fable.Import.Node.Exports
 
 module SolutionExplorer =
 
@@ -37,7 +38,7 @@ module SolutionExplorer =
     }
 
     let rec add' (state : NodeEntry) (entry : string) index =
-        let sep = Path.sep
+        let sep = node.path.sep
 
         if index >= entry.Length then
             state
@@ -56,7 +57,7 @@ module SolutionExplorer =
                 add' item entry (endIndex + 1)
 
     let rec toModel folder pp (entry : NodeEntry)  =
-        let f = (folder + Path.sep + entry.Key)
+        let f = (folder + node.path.sep + entry.Key)
         if entry.Children.Count > 0 then
             let childs =
                 entry.Children
@@ -64,7 +65,7 @@ module SolutionExplorer =
                 |> Seq.toList
             Folder(entry.Key, f, childs)
         else
-            let p = (Path.dirname pp) + f
+            let p = (node.path.dirname pp) + f
             File(p, entry.Key, pp)
 
 
@@ -85,12 +86,12 @@ module SolutionExplorer =
 
         let files =
             proj.Files
-            |> List.map (fun p -> Path.relative(Path.dirname proj.Project, p))
+            |> List.map (fun p -> node.path.relative(node.path.dirname proj.Project, p))
             |> buildTree proj.Project
 
         let refs =
             proj.References
-            |> List.map (fun p -> Reference(p,Path.basename p, proj.Project))
+            |> List.map (fun p -> Reference(p,node.path.basename p, proj.Project))
             |> fun n -> ReferenceList(n, proj.Project)
 
         let projs =
@@ -98,22 +99,22 @@ module SolutionExplorer =
             |> List.choose (fun r ->
                 projects
                 |> Array.tryFind (fun pr -> pr.Output = r))
-            |> List.map (fun p -> ProjectReference(p.Project, Path.basename(p.Project, ".fsproj"), proj.Project))
+            |> List.map (fun p -> ProjectReference(p.Project, node.path.basename(p.Project, ".fsproj"), proj.Project))
             |> fun n -> ProjectReferencesList(n, proj.Project)
 
-        let name = Path.basename(proj.Project, ".fsproj")
+        let name = node.path.basename(proj.Project, ".fsproj")
         Project(proj.Project, name,files, projs, refs, Project.isExeProject proj, proj)
 
     let private getProjectModelByState proj =
         match proj with
         | Project.ProjectLoadingState.Loading p ->
-            Model.ProjectLoading (p, Path.basename p)
+            Model.ProjectLoading (p, node.path.basename p)
         | Project.ProjectLoadingState.Loaded proj ->
             getProjectModel proj
         | Project.ProjectLoadingState.Failed (p, err) ->
-            Model.ProjectFailedToLoad (p, Path.basename p, err)
+            Model.ProjectFailedToLoad (p, node.path.basename p, err)
         | Project.ProjectLoadingState.NotRestored (p, err) ->
-            Model.ProjectNotRestored (p, Path.basename p, err)
+            Model.ProjectNotRestored (p, node.path.basename p, err)
 
     let getFolders model =
         let rec loop model lst =
@@ -135,7 +136,7 @@ module SolutionExplorer =
         let getProjItem projPath =
             match Project.tryFindInWorkspace projPath with
             | None ->
-                Model.ProjectNotLoaded (projPath, (Path.basename projPath))
+                Model.ProjectNotLoaded (projPath, (node.path.basename projPath))
             | Some p ->
                 getProjectModelByState p
         let rec getItem (item: WorkspacePeekFoundSolutionItem) =
@@ -143,14 +144,14 @@ module SolutionExplorer =
             | WorkspacePeekFoundSolutionItemKind.Folder folder ->
                 let files =
                     folder.Files
-                    |> Array.map (fun f -> Model.File (f,Path.basename(f),""))
+                    |> Array.map (fun f -> Model.File (f,node.path.basename(f),""))
                 let items = folder.Items |> Array.map getItem
                 Model.WorkspaceFolder (item.Name, (Seq.append files items |> List.ofSeq))
             | MsbuildFormat proj ->
                 getProjItem item.Name
         match ws with
         | WorkspacePeekFound.Solution sln ->
-            let s = Solution (sln.Path, (Path.basename sln.Path), (sln.Items |> Array.map getItem |> List.ofArray))
+            let s = Solution (sln.Path, (node.path.basename sln.Path), (sln.Items |> Array.map getItem |> List.ofArray))
             Workspace [s]
         | WorkspacePeekFound.Directory dir ->
             Workspace (dir.Fsprojs |> Array.map getProjItem |> List.ofArray)
@@ -401,10 +402,10 @@ module SolutionExplorer =
                 window.showInputBox(opts)
                 |> Promise.map (fun file ->
                     if JS.isDefined file then
-                        let file' = Path.join(proj |> Path.dirname, file)
-                        let from = Path.relative(proj |> Path.dirname, from)
-                        let proj = Path.relative(workspace.rootPath, proj)
-                        Fs.appendFileSync( file', "") |> unbox
+                        let file' = node.path.join(proj |> node.path.dirname, file)
+                        let from = node.path.relative(proj |> node.path.dirname, from)
+                        let proj = node.path.relative(workspace.rootPath, proj)
+                        node.fs.appendFileSync( file', "") |> unbox
                         Forge.addFileAbove from proj file'
                 )
                 |> unbox
@@ -421,10 +422,10 @@ module SolutionExplorer =
                 window.showInputBox(opts)
                 |> Promise.map (fun file ->
                     if JS.isDefined file then
-                        let file' = Path.join(proj |> Path.dirname, file)
-                        let from = Path.relative(proj |> Path.dirname, from)
-                        let proj = Path.relative(workspace.rootPath, proj)
-                        Fs.appendFileSync( file', "") |> unbox
+                        let file' = node.path.join(proj |> node.path.dirname, file)
+                        let from = node.path.relative(proj |> node.path.dirname, from)
+                        let proj = node.path.relative(workspace.rootPath, proj)
+                        node.fs.appendFileSync( file', "") |> unbox
                         Forge.addFileBelow from proj file'
                 )
                 |> unbox
@@ -441,9 +442,9 @@ module SolutionExplorer =
                 window.showInputBox(opts)
                 |> Promise.map (fun file ->
                     if JS.isDefined file then
-                        let file' = Path.join(Path.dirname proj, file)
-                        let proj = Path.relative(workspace.rootPath, proj)
-                        Fs.appendFileSync( file', "") |> unbox
+                        let file' = node.path.join(node.path.dirname proj, file)
+                        let proj = node.path.relative(workspace.rootPath, proj)
+                        node.fs.appendFileSync( file', "") |> unbox
                         Forge.addFile proj file'
                 )
                 |> unbox
@@ -517,7 +518,7 @@ module SolutionExplorer =
                   member this.provideTextDocumentContent (uri: Uri) =
                       match uri.path with
                       | "/projects/status" ->
-                          let q = Querystring.parse(uri.query)
+                          let q = node.querystring.parse(uri.query)
                           let path : string = q?path |> unbox
                           match Project.tryFindInWorkspace path with
                           | None ->

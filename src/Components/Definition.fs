@@ -5,15 +5,16 @@ open System.Text.RegularExpressions
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import.vscode
-open Fable.Import.Node
 open Ionide.VSCode.Helpers
 open DTO
+
+module node = Fable.Import.Node.Exports
 
 module Definition =
     module FromFindDeclaration =
         let private mapFindDeclarationResult (doc : TextDocument) (pos : Position) (o : FindDeclarationResult) : Definition option =
             if isNotNull o then
-                if Fs.existsSync !!o.Data.File then
+                if node.fs.existsSync !!o.Data.File then
                     let loc = createEmpty<Location>
                     let range = doc.getWordRangeAtPosition pos
                     let length = range.``end``.character - range.start.character
@@ -129,8 +130,8 @@ module Definition =
             match tryParseLoad line.text (int(pos.character)) with
             | None -> None
             | Some filePath ->
-                let dir = Path.dirname(doc.fileName)
-                let absolute = Path.resolve(dir, filePath)
+                let dir = node.path.dirname(doc.fileName)
+                let absolute = node.path.resolve(dir, filePath)
                 Location(Uri.file absolute, U2.Case2 (Position(0., 0.))) |> U2.Case1 |> Some
 
     let private createProvider () =

@@ -5,10 +5,11 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
+
+module node =  Fable.Import.Node.Exports
 
 module WorkspaceSymbols =
     let private createProvider () =
@@ -27,11 +28,11 @@ module WorkspaceSymbols =
             | _   -> 0 |> unbox
 
         let relative f =
-            Path.relative (workspace.rootPath, f)
+            node.path.relative (workspace.rootPath, f)
 
         let mapRes o =
              if isNotNull o then
-                o.Data |> Array.map (fun syms ->
+                Array.collect (fun syms ->
                     let oc = createEmpty<SymbolInformation>
                     oc.name <- syms.Declaration.Name
                     oc.kind <- syms.Declaration.GlyphChar |> convertToKind
@@ -50,7 +51,7 @@ module WorkspaceSymbols =
                         loc.uri <- Uri.file sym.File
                         oc.location <- loc
                         oc )
-                    ocs |> Array.append (Array.create 1 oc)) |> Array.concat
+                    ocs |> Array.append (Array.create 1 oc)) o.Data
                 else
                     [||]
 

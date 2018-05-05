@@ -1,13 +1,14 @@
 namespace Ionide.VSCode.FSharp
 
 open System
-open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import.vscode
 open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
+
+module node = Fable.Import.Node.Exports
 
 module Fsi =
     let mutable fsiOutput : Terminal option = None
@@ -25,11 +26,11 @@ module Fsi =
         let file, dir =
             if JS.isDefined textEditor then
                 let file = textEditor.document.fileName
-                let dir = Path.dirname file
+                let dir = node.path.dirname file
                 file, dir
             else
                 let dir = workspace.rootPath
-                Path.join(dir, "tmp.fsx"), dir
+                node.path.join(dir, "tmp.fsx"), dir
 
         match lastCd with
         | Some(cd) when cd = dir -> ()
@@ -183,7 +184,7 @@ module Fsi =
         promise {
             match ctn with
             | Some c ->
-                let path = Path.join(workspace.rootPath, "references.fsx")
+                let path = node.path.join(workspace.rootPath, "references.fsx")
                 let! td = Uri.parse ("untitled:" + path) |> workspace.openTextDocument
                 let! te = window.showTextDocument(td, ViewColumn.Three)
                 let! _ = te.edit (fun e ->
@@ -207,7 +208,7 @@ module Fsi =
                 yield! project.Files |> List.map (sprintf "#load @\"%s\"")
             |]
         promise {
-            let path = Path.join(workspace.rootPath, "references.fsx")
+            let path = node.path.join(workspace.rootPath, "references.fsx")
             let! td = Uri.parse ("untitled:" + path) |> workspace.openTextDocument
             let! te = window.showTextDocument(td, ViewColumn.Three)
             let! _ = te.edit (fun e ->

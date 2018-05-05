@@ -1,35 +1,32 @@
 STORAGE: NONE
 NUGET
   remote: https://www.nuget.org/api/v2
-    dotnet-fable (1.2.4) - clitool: true
-      Dotnet.ProjInfo (>= 0.7.4) - restriction: >= netcoreapp2.0
-      Fable.Compiler (>= 1.2.4) - restriction: >= netcoreapp2.0
-      Fable.Core (>= 1.2.4) - restriction: >= netcoreapp2.0
+    dotnet-fable (1.3.15) - clitool: true
+      Dotnet.ProjInfo (>= 0.9) - restriction: >= netcoreapp2.0
+      Fable.Compiler (>= 1.3.15) - restriction: >= netcoreapp2.0
+      Fable.Core (>= 1.3.12) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.2.3) - restriction: >= netcoreapp2.0
       Microsoft.NETCore.App (>= 2.0) - restriction: >= netcoreapp2.0
     Dotnet.ProjInfo (0.9) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.2.3) - restriction: && (< net45) (>= netstandard2.0)
-    Fable.Compiler (1.2.4) - restriction: >= netcoreapp2.0
-      Fable.Core (>= 1.2.4) - restriction: >= netstandard1.6
-      FSharp.Compiler.Service (>= 14.0.2) - restriction: >= netstandard1.6
+    Fable.Compiler (1.3.15) - restriction: >= netcoreapp2.0
+      Fable.Core (>= 1.3.12) - restriction: >= netstandard1.6
+      FSharp.Compiler.Service (>= 20.0.1) - restriction: >= netstandard1.6
       FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
-      NETStandard.Library (>= 1.6.1) - restriction: >= netstandard1.6
-      Newtonsoft.Json (>= 10.0.3) - restriction: >= netstandard1.6
+      Newtonsoft.Json (>= 11.0.1) - restriction: >= netstandard1.6
       System.Collections.Immutable (>= 1.4) - restriction: >= netstandard1.6
       System.Reflection.Metadata (>= 1.5) - restriction: >= netstandard1.6
       System.Runtime.Loader (>= 4.3) - restriction: >= netstandard1.6
-      System.ValueTuple (>= 4.4) - restriction: >= netstandard1.6
-    Fable.Core (1.2.4)
+    Fable.Core (1.3.12)
       FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
       NETStandard.Library (>= 1.6.1) - restriction: >= netstandard1.6
-      System.ValueTuple (>= 4.4) - restriction: >= netstandard1.6
-    Fable.Import.Browser (0.1.2)
-      Fable.Core (>= 1.1.15) - restriction: >= netstandard1.6
-      FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
-      NETStandard.Library (>= 1.6.1) - restriction: >= netstandard1.6
-    Fable.Import.Node (0.1.5)
-      Fable.Core (>= 1.1.15) - restriction: >= netstandard1.6
-      FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
+    Fable.HtmlConverter (1.0.1)
+      Fable.Core (>= 1.3.12) - restriction: >= netstandard2.0
+      Thoth.Json (>= 1.0) - restriction: >= netstandard2.0
+    Fable.Import.Browser (1.1.2)
+      Fable.Core (>= 1.3.8) - restriction: >= netstandard1.6
+    Fable.Import.Node (0.4.3)
+      Fable.Core (>= 1.3.8) - restriction: >= netstandard2.0
     FSharp.Compiler.Service (22.0.3) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.1.18) - restriction: || (>= net45) (>= netstandard2.0)
       Microsoft.DiaSymReader (>= 1.1) - restriction: || (>= net45) (>= netstandard2.0)
@@ -585,8 +582,6 @@ NUGET
       Microsoft.NETCore.Platforms (>= 1.1) - restriction: || (&& (< monoandroid) (< monotouch) (< net451) (>= netstandard1.2) (< win81) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (< portable-net451+win81+wpa81)
       Microsoft.NETCore.Targets (>= 1.1) - restriction: || (&& (< monoandroid) (< monotouch) (< net451) (>= netstandard1.2) (< win81) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (< portable-net451+win81+wpa81)
       System.Runtime (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net451) (>= netstandard1.2) (< win81) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (< portable-net451+win81+wpa81)
-    System.ValueTuple (4.4) - restriction: >= netstandard1.6
-      NETStandard.Library (>= 1.6.1) - restriction: && (< monoandroid) (< monotouch) (< net461) (>= netstandard1.0) (< netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)
     System.Xml.ReaderWriter (4.3.1) - restriction: || (&& (< net45) (< netstandard1.2) (>= netstandard1.6)) (&& (< net45) (< netstandard1.3) (>= netstandard1.6)) (&& (< net45) (< netstandard1.4) (>= netstandard1.6)) (&& (< net45) (< netstandard1.5) (>= netstandard1.6)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0)) (&& (>= net46) (< netstandard1.4) (>= netstandard1.6)) (&& (>= netstandard1.6) (< portable-net45+win8+wpa81)) (&& (>= netstandard1.6) (>= uap10.0))
       System.Collections (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (< portable-net45+win8+wp8+wpa81)
       System.Diagnostics.Debug (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (< portable-net45+win8+wp8+wpa81)
@@ -616,6 +611,9 @@ NUGET
       System.Text.Encoding (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (< portable-net45+win8+wp8+wpa81)
       System.Threading (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (< portable-net45+win8+wp8+wpa81)
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (< portable-net45+win8+wp8+wpa81)
+    Thoth.Json (1.0) - restriction: >= netstandard2.0
+      Fable.Core (>= 1.3.12) - restriction: >= netstandard2.0
+      FSharp.Core (>= 4.3.4) - restriction: >= netstandard2.0
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
      (c5c8e0d4766b6a5d1e6d62a1258fa3a148a8566e)
@@ -634,11 +632,11 @@ GIT
   remote: https://github.com/ionide/ionide-fsgrammar.git
      (e15bff40cf4bc42c82bcbdb2a836e4b944b3ef3e)
 GITHUB
-  remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (b29ea4d6097e754731b444cc88a038950197ed82)
-    src/Fable.Import.VSCode.fs (b29ea4d6097e754731b444cc88a038950197ed82)
-    src/Fable.Import.ws.fs (b29ea4d6097e754731b444cc88a038950197ed82)
-    src/Helpers.fs (b29ea4d6097e754731b444cc88a038950197ed82)
+  remote: MangelMaxime/ionide-vscode-helpers
+    src/Fable.Import.Axios.fs (7cd80dfcaa665a72e1a6828518723348e9e58220)
+    src/Fable.Import.VSCode.fs (7cd80dfcaa665a72e1a6828518723348e9e58220)
+    src/Fable.Import.ws.fs (7cd80dfcaa665a72e1a6828518723348e9e58220)
+    src/Helpers.fs (7cd80dfcaa665a72e1a6828518723348e9e58220)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2

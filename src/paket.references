@@ -3,6 +3,7 @@ dotnet-fable
 Fable.Core
 Fable.Import.Node
 Fable.Import.Browser
+Fable.HtmlConverter
 
 File: Fable.Import.VSCode.fs
 File: Helpers.fs

@@ -5,12 +5,11 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
 open Ionide.VSCode.Helpers
 open System.Collections.Generic
 
 open DTO
-open Ionide.VSCode.Helpers
+module node = Fable.Import.Node.Exports
 
 module CodeOutline =
     let private configurationKey = "FSharp.codeOutline"
@@ -45,8 +44,8 @@ module CodeOutline =
             | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp")
 
         let p = createEmpty<TreeIconPath>
-        p.dark <- Path.join(plugPath, "images", dark) |> U3.Case1
-        p.light <- Path.join(plugPath, "images", light) |> U3.Case1
+        p.dark <- node.path.join(plugPath, "images", dark) |> U3.Case1
+        p.light <- node.path.join(plugPath, "images", light) |> U3.Case1
         p
 
     let rec add' (state : NodeEntry) (symbol : Symbol) index =

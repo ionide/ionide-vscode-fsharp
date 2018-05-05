@@ -12,6 +12,8 @@ open Fable.Import.ws
 open DTO
 open Fable.Import.Axios
 
+module node = Fable.Import.Node.Exports
+
 module LanguageService =
     let ax =  Globals.require.Invoke "axios" |> unbox<Axios.AxiosStatic>
 
@@ -433,7 +435,7 @@ module LanguageService =
             let child =
                 let spawnLogged path (args: string list) =
                     fsacStdoutWriter (sprintf "Running: %s %s\n" path (args |> String.concat " "))
-                    ChildProcess.spawn(path, args |> ResizeArray)
+                    node.childProcess.spawn(path, args |> ResizeArray)
                 spawnLogged fsacExe
                   [ yield! fsacArgs
                     yield! ["--mode"; "http"]
