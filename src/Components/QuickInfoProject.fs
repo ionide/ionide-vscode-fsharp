@@ -2,8 +2,6 @@ module Ionide.VSCode.FSharp.QuickInfoProject
 
 open Fable.Import.vscode
 open Fable.Import.Node
-open Fable.Import.vscode
-open Fable.Import.vscode
 
 let mutable private item : StatusBarItem option = None
 let private hideItem () = item |> Option.iter (fun n -> n.hide ())
@@ -12,7 +10,7 @@ let mutable projectPath = ""
 
 let handler (te : TextEditor) =
     hideItem ()
-    if te.document <> undefined then
+    if te <> undefined && te.document <> undefined then
         let path = te.document.fileName
         let proj = Project.tryFindLoadedProjectByFile path
         match proj with
