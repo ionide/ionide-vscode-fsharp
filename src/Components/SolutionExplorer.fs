@@ -26,7 +26,7 @@ module SolutionExplorer =
         | ProjectFailedToLoad of path: string * name: string * error: string
         | ProjectNotRestored of path: string * name: string * error: string
         | Project of path: string * name: string * Files: Model list * ProjectReferencesList : Model  * ReferenceList: Model * isExe : bool * project : DTO.Project
-        | Folder of name : string * path: string * Files : Model list
+        | Folder of name : string * path: string * Files : Model list * projectPath : string
         | File of path: string * name: string * projectPath : string
         | Reference of path: string * name: string * projectPath : string
         | ProjectReference of path: string * name: string * projectPath : string
@@ -62,7 +62,7 @@ module SolutionExplorer =
                 entry.Children
                 |> Seq.map (fun n -> toModel f pp n.Value )
                 |> Seq.toList
-            Folder(entry.Key, f, childs)
+            Folder(entry.Key, f, childs, pp)
         else
             let p = (Path.dirname pp) + f
             File(p, entry.Key, pp)
@@ -120,7 +120,7 @@ module SolutionExplorer =
             match model with
             | Workspace fls -> fls |> List.collect (fun x -> loop x lst )
             | Project (_,_,fls,_, _, _, _) -> fls |> List.collect (fun x -> loop x lst )
-            | Folder (_, f, fls) ->
+            | Folder (_, f, fls, _) ->
                 fls |> List.collect (fun x -> loop x lst@[f] )
             | _ -> []
         let lst =
@@ -177,7 +177,7 @@ module SolutionExplorer =
             ]
         | ReferenceList (refs, _) -> refs
         | ProjectReferencesList (refs, _) -> refs
-        | Folder (_,_,files) -> files
+        | Folder (_,_,files, _) -> files
         | File _ -> []
         | Reference _ -> []
         | ProjectReference _ -> []
@@ -194,7 +194,7 @@ module SolutionExplorer =
         | Project (_, name,_, _,_, _, _) -> name
         | ReferenceList _ -> "References"
         | ProjectReferencesList (refs, _) -> "Project References"
-        | Folder (n,_, _) -> n
+        | Folder (n,_, _, _) -> n
         | File (_, name, _) -> name
         | Reference (_, name, _) ->
             if name.ToLowerInvariant().EndsWith(".dll") then
@@ -220,9 +220,13 @@ module SolutionExplorer =
 
             member this.getChildren(node) =
                 if JS.isDefined node then
-                    getSubmodel node |> ResizeArray
+                    let r = getSubmodel node |> ResizeArray
+                    printfn "[TREE VIEW]: %A" r
+                    r
                 else
-                    getRoot () |> getSubmodel |> ResizeArray
+                    let r = getRoot () |> getSubmodel |> ResizeArray
+                    printfn "[TREE VIEW]: %A" r
+                    r
 
             member this.getTreeItem(node) =
                 let collaps =
@@ -294,7 +298,7 @@ module SolutionExplorer =
                     | ProjectNotRestored (path, _, _)
                     | Solution (path, _, _)  ->
                         ThemeIcon.File |> U4.Case4 |> Some, Uri.file path |> Some
-                    | Folder (_, path, _) ->
+                    | Folder (_, path, _,_) ->
                         ThemeIcon.Folder |> U4.Case4 |> Some, Uri.file path |> Some
                     | WorkspaceFolder _  ->
                         ThemeIcon.Folder |> U4.Case4 |> Some, None
@@ -308,7 +312,14 @@ module SolutionExplorer =
                         None, None
                 ti.iconPath <- icon
                 ti.resourceUri <- resourceUri
-                ti.id <- (resourceUri |> Option.map(fun u -> u.toString()))
+                ti.id <-
+                    match node with
+                    | ReferenceList (_, pp) | ProjectReferencesList (_,pp) | Reference (_, _, pp) | ProjectReference (_, _, pp)  ->
+                        Some ((defaultArg ti.label "") + "||" + pp)
+                    | Folder (_,_, _, pp) | File (_, _, pp) ->
+                        (resourceUri |> Option.map(fun u -> (defaultArg ti.label "") + "||" + u.toString() + "||" + pp))
+                    | _ ->
+                        (resourceUri |> Option.map(fun u -> (defaultArg ti.label "") + "||" + u.toString()))
                 ti
         }
 
