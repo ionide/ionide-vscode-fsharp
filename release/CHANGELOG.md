@@ -1,3 +1,11 @@
+### 3.20.0 - 07.05.2018
+* Add "fast" build to the API
+* Add an F# activity in the left bar
+* Fix undefined error in QuickInfoProject
+* Fix project explorer - node id
+* Update FSAC - fixes to workspace load performance
+* Make workspace load default project loader mode
+
 ### 3.19.4 - 21.04.2018
 * Update FSAC - fix code lens signatures for getters.
 
