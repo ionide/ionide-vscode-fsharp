@@ -62,7 +62,7 @@ NUGET
       System.Runtime.InteropServices (>= 4.3) - restriction: >= netstandard1.1
       System.Text.Encoding (>= 4.3) - restriction: >= netstandard1.1
       System.Threading (>= 4.3) - restriction: >= netstandard1.1
-    Microsoft.Net.Compilers (2.7) - restriction: >= netcoreapp2.0
+    Microsoft.Net.Compilers (2.8) - restriction: >= netcoreapp2.0
     Microsoft.NETCore.App (2.0.7) - restriction: >= netcoreapp2.0
       Microsoft.NETCore.DotNetHostPolicy (>= 2.0.7) - restriction: >= netcoreapp2.0
       Microsoft.NETCore.Platforms (>= 2.0.2) - restriction: >= netcoreapp2.0
@@ -618,10 +618,10 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (< portable-net45+win8+wp8+wpa81)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (c5c8e0d4766b6a5d1e6d62a1258fa3a148a8566e)
+     (9c84c69d44e9f72e6cf088e1e9d8f8bada55a960)
       build: build.cmd LocalRelease
       os: windows
-     (c5c8e0d4766b6a5d1e6d62a1258fa3a148a8566e)
+     (9c84c69d44e9f72e6cf088e1e9d8f8bada55a960)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
@@ -642,7 +642,7 @@ GITHUB
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2
-    FAKE (4.64.12)
+    FAKE (4.64.13)
     Microsoft.NETCore.Platforms (2.0.2) - restriction: || (&& (< net45) (>= net46) (< netstandard1.4)) (&& (< net45) (>= net461)) (&& (< net45) (>= netstandard1.1) (< netstandard1.2) (< win8)) (&& (< net45) (>= netstandard1.2) (< netstandard1.3) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.3) (< netstandard1.4) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.4) (< netstandard1.5) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.5) (< netstandard1.6)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0)) (&& (< net45) (>= netstandard2.0)) (>= netcoreapp2.0) (&& (< netstandard1.0) (>= netstandard1.1) (< portable-net45+win8)) (&& (< netstandard1.0) (>= netstandard1.1) (>= win8)) (&& (< netstandard1.0) (>= netstandard1.1) (< win8)) (&& (>= netstandard1.1) (< portable-net45+win8+wpa81)) (&& (>= netstandard1.1) (>= wp8)) (&& (< netstandard1.3) (< win8) (>= wpa81)) (>= uap10.0)
     Microsoft.NETCore.Targets (2.0) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.3) (< netstandard1.4) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.4) (< netstandard1.5) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.5) (< netstandard1.6)) (&& (< net45) (>= net46) (< netstandard1.4)) (&& (>= uap10.0) (< uap10.1))
     Microsoft.Win32.Primitives (4.3) - restriction: || (&& (< net45) (>= net46) (< netstandard1.4)) (&& (< net45) (>= netstandard1.3) (< netstandard1.4) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.4) (< netstandard1.5) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.5) (< netstandard1.6)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0)) (&& (>= uap10.0) (< uap10.1))
@@ -1141,5 +1141,5 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (< portable-net45+win8+wp8+wpa81)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (800579e69ce35b77345ee21923ddf117168067cd)
+    modules/Octokit/Octokit.fsx (83f79896d303c081039fd887885ca5c74c95526b)
       Octokit (>= 0.20)

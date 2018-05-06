@@ -217,6 +217,12 @@ module MSBuild =
         let host = tryGetRightHost project
         invokeMSBuild project.Project target (Some host)
 
+    let buildProjectPathFast  (project : Project) =
+        promise {
+            let! (d : CompileResult) = LanguageService.compile project.Project
+            return { Code = Some d.Data.Code; Signal = None }
+        }
+
     let buildProjectWithoutParseData target (path : string) =
         let host = tryGetRightHost' path
         invokeMSBuild path target (Some host)

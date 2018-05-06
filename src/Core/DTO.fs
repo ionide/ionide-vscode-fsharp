@@ -311,6 +311,10 @@ module DTO =
         Names: SimplifiedNameData []
     }
 
+    type CompileData = {
+        Code : int
+    }
+
     type Result<'T> = {Kind : string; Data : 'T}
     type CompilerLocationResult = Result<CompilerLocation>
     type HelptextResult = Result<Helptext>
@@ -331,4 +335,5 @@ module DTO =
     type UnusedOpensResult = Result<UnusedOpens>
     type UnusedDeclarationsResult = Result<UnusedDeclarations>
     type SimplifiedNameResult = Result<SimplifiedName>
+    type CompileResult = Result<CompileData>
 

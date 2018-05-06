@@ -379,6 +379,10 @@ module LanguageService =
         {ProjectRequest.FileName = s}
         |> request "projectsInBackground" 0 (makeRequestId())
 
+    let compile s =
+        {ProjectRequest.FileName = s}
+        |> request "compile" 0 (makeRequestId())
+
     [<PassGenerics>]
     let private registerNotifyAll (cb : 'a -> unit) (ws: WebSocket) =
         ws.on_message((fun (res : string) ->

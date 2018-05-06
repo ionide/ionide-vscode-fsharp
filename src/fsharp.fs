@@ -13,6 +13,7 @@ open Debugger
 type Api = {
     ProjectLoadedEvent: Event<DTO.Project>
     BuildProject: DTO.Project -> Fable.Import.JS.Promise<string>
+    BuildProjectFast: DTO.Project -> Fable.Import.JS.Promise<string>
     GetProjectLauncher: OutputChannel -> DTO.Project -> (string -> Fable.Import.JS.Promise<ChildProcess>) option
     DebugProject: DTO.Project -> string [] -> Fable.Import.JS.Promise<unit>
 }
@@ -94,8 +95,16 @@ let activate (context: ExtensionContext) : Api =
         | None -> return ""
     }
 
+    let buildProjectFast project = promise {
+        let! exit = MSBuild.buildProjectPathFast project
+        match exit.Code with
+        | Some code -> return code.ToString()
+        | None -> return ""
+    }
+
     { ProjectLoadedEvent = Project.projectLoaded.event
       BuildProject = buildProject
+      BuildProjectFast = buildProjectFast
       GetProjectLauncher = Project.getLauncher
       DebugProject = debugProject }
 
