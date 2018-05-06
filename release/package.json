@@ -1010,7 +1010,7 @@
 				},
 				"FSharp.workspaceLoader": {
 					"type": "string",
-					"default": "projects",
+					"default": "workspaceLoad",
 					"description": "Choose the FSAC workspace loader",
 					"enum": [
 						"projects",
