@@ -211,6 +211,19 @@ module CodeOutline =
                 ti
         }
 
+    module private ShowInActivity =
+        let private setInFsharpActivity = Context.cachedSetter<bool> "fsharp.showCodeOutlineInFsharpActivity"
+        let private setInExplorerActivity = Context.cachedSetter<bool> "fsharp.showCodeOutlineInExplorerActivity"
+
+        let showInFsharpActivity () =
+            let showIn = "FSharp.showCodeOutlineIn" |> Configuration.get "fsharp"
+            showIn = "fsharp"
+
+        let set () =
+            let inFsharpActivity = showInFsharpActivity ()
+            setInFsharpActivity inFsharpActivity
+            setInExplorerActivity (not inFsharpActivity)
+
     let setShowCodeOutline = Context.cachedSetter<bool> "fsharp.showCodeOutline"
 
     let inline private isFsharpFile (doc: TextDocument) =
@@ -221,7 +234,7 @@ module CodeOutline =
     let private setShowCodeOutlineForEditor (textEditor: TextEditor) =
         let newValue =
             if textEditor <> undefined then
-                if isFsharpFile textEditor.document then
+                if isFsharpFile textEditor.document || ShowInActivity.showInFsharpActivity() then
                     isEnabledFor textEditor.document.uri
                 else
                     false
@@ -235,9 +248,15 @@ module CodeOutline =
             setShowCodeOutlineForEditor window.activeTextEditor
             refresh.fire textEditor.document.uri
 
+    let private onDidChangeActiveTextEditor (textEditor: TextEditor) =
+        setShowCodeOutlineForEditor textEditor
+        if textEditor = undefined || (not (isFsharpFile textEditor.document)) then
+            reallyRefresh.fire(None)
+
     let activate (context: ExtensionContext) =
         setShowCodeOutlineForEditor window.activeTextEditor
-        window.onDidChangeActiveTextEditor.Invoke(unbox setShowCodeOutlineForEditor)
+        ShowInActivity.set()
+        window.onDidChangeActiveTextEditor.Invoke(unbox onDidChangeActiveTextEditor)
             |> context.subscriptions.Add
 
         refresh.event.Invoke(fun uri ->
