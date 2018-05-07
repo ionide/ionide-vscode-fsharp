@@ -1,3 +1,6 @@
+### 3.20.1 - 07.05.2018
+* Update FSAC - fixes to workspace load
+
 ### 3.20.0 - 07.05.2018
 * Add "fast" build to the API
 * Add an F# activity in the left bar
