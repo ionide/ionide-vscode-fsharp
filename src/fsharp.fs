@@ -102,7 +102,12 @@ let activate (context: ExtensionContext) : Api =
         | None -> return ""
     }
 
-    { ProjectLoadedEvent = Project.projectLoaded.event
+    let event = Fable.Import.vscode.EventEmitter<DTO.Project>()
+    Project.projectLoaded.event.Invoke(fun n ->
+        !!(setTimeout (fun _ -> event.fire n) 500.)
+    ) |> ignore
+
+    { ProjectLoadedEvent = event.event
       BuildProject = buildProject
       BuildProjectFast = buildProjectFast
       GetProjectLauncher = Project.getLauncher
