@@ -250,11 +250,19 @@
 			},
 			{
 				"command": "fsharp.explorer.moveUp",
-				"title": "Move file up"
+				"title": "Move file up",
+				"icon": {
+					"light": "./images/up-mono-light.svg",
+					"dark": "./images/up-mono-dark.svg"
+				}
 			},
 			{
 				"command": "fsharp.explorer.moveDown",
-				"title": "Move file down"
+				"title": "Move file down",
+				"icon": {
+					"light": "./images/down-mono-light.svg",
+					"dark": "./images/down-mono-dark.svg"
+				}
 			},
 			{
 				"command": "fsharp.explorer.moveToFolder",
@@ -686,9 +694,19 @@
 					"group": "1_navigation@1"
 				},
 				{
+					"command": "fsharp.explorer.moveUp",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
+					"group": "inline@1"
+				},
+				{
 					"command": "fsharp.explorer.moveDown",
 					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
 					"group": "1_navigation@2"
+				},
+				{
+					"command": "fsharp.explorer.moveDown",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
+					"group": "inline@2"
 				},
 				{
 					"command": "fsharp.explorer.moveToFolder",
