@@ -219,10 +219,12 @@ module CodeOutline =
             let showIn = "FSharp.showCodeOutlineIn" |> Configuration.get "fsharp"
             showIn = "fsharp"
 
-        let set () =
+        let initializeAndGetId () =
             let inFsharpActivity = showInFsharpActivity ()
             setInFsharpActivity inFsharpActivity
             setInExplorerActivity (not inFsharpActivity)
+
+            if inFsharpActivity then "ionide.codeOutlineInActivity" else "ionide.codeOutline"
 
     let setShowCodeOutline = Context.cachedSetter<bool> "fsharp.showCodeOutline"
 
@@ -255,7 +257,9 @@ module CodeOutline =
 
     let activate (context: ExtensionContext) =
         setShowCodeOutlineForEditor window.activeTextEditor
-        ShowInActivity.set()
+
+        let treeViewId = ShowInActivity.initializeAndGetId ()
+
         window.onDidChangeActiveTextEditor.Invoke(unbox onDidChangeActiveTextEditor)
             |> context.subscriptions.Add
 
@@ -299,5 +303,5 @@ module CodeOutline =
             refresh.fire undefined |> unbox
         )) |> context.subscriptions.Add
 
-        window.registerTreeDataProvider("ionide.codeOutline", createProvider () )
+        window.registerTreeDataProvider(treeViewId, createProvider () )
         |> context.subscriptions.Add

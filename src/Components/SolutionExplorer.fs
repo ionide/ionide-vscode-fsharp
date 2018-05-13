@@ -221,11 +221,9 @@ module SolutionExplorer =
             member this.getChildren(node) =
                 if JS.isDefined node then
                     let r = getSubmodel node |> ResizeArray
-                    printfn "[TREE VIEW]: %A" r
                     r
                 else
                     let r = getRoot () |> getSubmodel |> ResizeArray
-                    printfn "[TREE VIEW]: %A" r
                     r
 
             member this.getTreeItem(node) =
@@ -327,18 +325,20 @@ module SolutionExplorer =
         let private setInFsharpActivity = Context.cachedSetter<bool> "fsharp.showProjectExplorerInFsharpActivity"
         let private setInExplorerActivity = Context.cachedSetter<bool> "fsharp.showProjectExplorerInExplorerActivity"
 
-        let set () =
+        let initializeAndGetId (): string =
             let showIn = "FSharp.showProjectExplorerIn" |> Configuration.get "fsharp"
             let inFsharpActivity = (showIn = "fsharp")
             setInFsharpActivity inFsharpActivity
             setInExplorerActivity (not inFsharpActivity)
+
+            if inFsharpActivity then "ionide.projectExplorerInActivity" else "ionide.projectExplorer"
 
     let activate (context: ExtensionContext) =
         let emiter = EventEmitter<Model option>()
 
         let provider = createProvider emiter
 
-        ShowInActivity.set ()
+        let treeViewId = ShowInActivity.initializeAndGetId ()
 
         Project.workspaceChanged.event.Invoke(fun _ ->
             emiter.fire (undefined) |> unbox)
@@ -478,7 +478,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        window.registerTreeDataProvider("ionide.projectExplorer", provider )
+        window.registerTreeDataProvider(treeViewId, provider )
         |> context.subscriptions.Add
 
         let wsProvider =
