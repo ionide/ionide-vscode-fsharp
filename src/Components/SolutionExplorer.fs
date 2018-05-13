@@ -10,7 +10,6 @@ open Ionide.VSCode.Helpers
 open System.Collections.Generic
 
 open DTO
-open Ionide.VSCode.Helpers
 
 module SolutionExplorer =
     type Model =
@@ -247,7 +246,7 @@ module SolutionExplorer =
     let private getRoot () =
         defaultArg (getSolution ()) (Workspace [])
 
-    let private createProvider (emiter : EventEmitter<Model option>) : TreeDataProvider<Model> =
+    let private createProvider (event: Event<Model option>) (rootChanged: EventEmitter<Model>) : TreeDataProvider<Model> =
         let plugPath =
             try
                 (VSCode.getPluginPath "Ionide.ionide-fsharp")
@@ -258,21 +257,25 @@ module SolutionExplorer =
           with
             member __.getParent =
                 Some (fun node ->
+                    printfn "GET PARENT %A" (getLabel node)
                     if JS.isDefined node then
                         let parentRef = getParentRef node
+                        printfn "PARENT = %A" (!parentRef |> Option.map getLabel)
                         !parentRef
                     else
                         None)
 
             member this.onDidChangeTreeData =
-                emiter.event
+                event
 
             member this.getChildren(node) =
                 if JS.isDefined node then
                     let r = getSubmodel node |> ResizeArray
                     r
                 else
-                    let r = getRoot () |> getSubmodel |> ResizeArray
+                    let root = getRoot()
+                    rootChanged.fire root
+                    let r = root |> getSubmodel |> ResizeArray
                     r
 
             member this.getTreeItem(node) =
@@ -382,17 +385,73 @@ module SolutionExplorer =
 
             if inFsharpActivity then "ionide.projectExplorerInActivity" else "ionide.projectExplorer"
 
-    let private onDidChangeActiveTextEditor (tree: TreeView<Model>) (textEditor: TextEditor) =
-        if JS.isDefined textEditor then
-            let uri = textEditor.document.uri
-            if uri.scheme = "file" && JS.isDefined uri.fsPath then
-                let path = uri.fsPath
-                ()
+    module AutoReveal =
+        type private State = {
+            RootModel: Model
+            ModelPerFile: Map<string, Model>
+        }
+
+        let private onDidChangeActiveTextEditor (tree: TreeView<Model>) (state: State option ref) (textEditor: TextEditor) =
+            if JS.isDefined textEditor then
+                let uri = textEditor.document.uri
+                if uri.scheme = "file" && JS.isDefined uri.fsPath then
+                    let path = uri.fsPath
+                    let model = !state |> Option.bind(fun s -> s.ModelPerFile |> Map.tryFind path)
+                    printfn "FOUND %A for %s" model path
+                    match model with
+                    | Some model ->
+                        let options = createEmpty<TreeViewRevealOptions>
+                        options.select <- Some false
+                        tree.reveal(model, options) |> ignore
+                    | _ -> ()
+
+        let rec private getModelPerFile (model: Model) : (string * Model) list =
+            match model with
+            | File (_, path, _, _)
+            | ProjectNotLoaded (_, path, _)
+            | ProjectLoading (_, path, _)
+            | ProjectFailedToLoad (_, path, _, _)
+            | ProjectNotRestored (_, path, _, _) ->
+                [ path, model ]
+            | Project (_, path, _, children, _, _, _, _)
+            | Solution (_, path, _, children) ->
+                let current = path, model
+                let forChildren = children |> List.collect getModelPerFile
+                current :: forChildren
+            | Folder (_, _, _, children,_)
+            | WorkspaceFolder (_, _, children)
+            | Workspace children ->
+                children |> List.collect getModelPerFile
+            | Reference _
+            | ProjectReference _
+            | ReferenceList _
+            | ProjectReferencesList _->
+                []
+
+        let private onEvent (state: State option ref) (newValue: Model) =
+            let modelPerFile = getModelPerFile newValue |> Map.ofList
+            printfn "------------------------------"
+            printfn "UPDATED STATE = %A" modelPerFile
+            printfn "------------------------------"
+            let newState = Some { RootModel = newValue; ModelPerFile = modelPerFile }
+            state := newState
+
+        let activate (context: ExtensionContext) (rootChanged: Event<Model>) (treeView: TreeView<Model>) =
+            let state: State option ref = ref None
+
+            let onDidChangeActiveTextEditor = onDidChangeActiveTextEditor treeView state
+            window.onDidChangeActiveTextEditor.Invoke(unbox onDidChangeActiveTextEditor)
+                |> context.subscriptions.Add
+
+            let onEvent = onEvent state
+            rootChanged.Invoke(unbox onEvent)
+                |> context.subscriptions.Add
 
     let activate (context: ExtensionContext) =
         let emiter = EventEmitter<Model option>()
+        let rootChanged = EventEmitter<Model>()
 
-        let provider = createProvider emiter
+        let provider = createProvider emiter.event rootChanged
 
         let treeViewId = ShowInActivity.initializeAndGetId ()
 
@@ -538,6 +597,8 @@ module SolutionExplorer =
         treeOptions.treeDataProvider <- provider
         let treeView = window.createTreeView(treeViewId, treeOptions)
         context.subscriptions.Add treeView
+
+        AutoReveal.activate context rootChanged.event treeView
 
         let wsProvider =
             let viewLoading path =
