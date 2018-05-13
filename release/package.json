@@ -726,208 +726,208 @@
 			"view/item/context": [
 				{
 					"command": "fsharp.explorer.moveUp",
-					"when": "viewItem ==ionide.projectExplorer.file",
+					"when": "viewItem == ionide.projectExplorer.file",
 					"group": "1_navigation@1"
 				},
 				{
 					"command": "fsharp.explorer.moveDown",
-					"when": "viewItem ==ionide.projectExplorer.file",
+					"when": "viewItem == ionide.projectExplorer.file",
 					"group": "1_navigation@2"
 				},
 				{
 					"command": "fsharp.explorer.moveToFolder",
-					"when": "viewItem ==ionide.projectExplorer.file",
+					"when": "viewItem == ionide.projectExplorer.file",
 					"group": "1_navigation@3"
 				},
 				{
 					"command": "fsharp.explorer.removeFile",
-					"when": "viewItem ==ionide.projectExplorer.file",
+					"when": "viewItem == ionide.projectExplorer.file",
 					"group": "1_navigation@4"
 				},
 				{
 					"command": "fsharp.explorer.renameFile",
-					"when": "viewItem ==ionide.projectExplorer.file",
+					"when": "viewItem == ionide.projectExplorer.file",
 					"group": "2_modification@1"
 				},
 				{
 					"command": "fsharp.explorer.addAbove",
-					"when": "viewItem ==ionide.projectExplorer.file",
+					"when": "viewItem == ionide.projectExplorer.file",
 					"group": "3_add@1"
 				},
 				{
 					"command": "fsharp.explorer.addBelow",
-					"when": "viewItem ==ionide.projectExplorer.file",
+					"when": "viewItem == ionide.projectExplorer.file",
 					"group": "3_add@2"
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
-					"when": "viewItem ==ionide.projectExplorer.projectNotLoaded"
+					"when": "viewItem == ionide.projectExplorer.projectNotLoaded"
 				},
 				{
 					"command": "fsharp.explorer.showProjectLoadFailedInfo",
-					"when": "viewItem ==ionide.projectExplorer.projectLoadFailed"
+					"when": "viewItem == ionide.projectExplorer.projectLoadFailed"
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
-					"when": "viewItem ==ionide.projectExplorer.projectLoadFailed"
+					"when": "viewItem == ionide.projectExplorer.projectLoadFailed"
 				},
 				{
 					"command": "fsharp.explorer.showProjectStatus",
-					"when": "viewItem ==ionide.projectExplorer.projectLoading"
+					"when": "viewItem == ionide.projectExplorer.projectLoading"
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
-					"when": "viewItem ==ionide.projectExplorer.projectLoading"
+					"when": "viewItem == ionide.projectExplorer.projectLoading"
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
-					"when": "viewItem ==ionide.projectExplorer.projectNotRestored"
+					"when": "viewItem == ionide.projectExplorer.projectNotRestored"
 				},
 				{
 					"command": "fsharp.explorer.showProjectStatus",
-					"when": "viewItem ==ionide.projectExplorer.projectNotRestored"
+					"when": "viewItem == ionide.projectExplorer.projectNotRestored"
 				},
 				{
 					"command": "fsharp.explorer.addProjecRef",
-					"when": "viewItem ==ionide.projectExplorer.projectRefList"
+					"when": "viewItem == ionide.projectExplorer.projectRefList"
 				},
 				{
 					"command": "fsharp.explorer.removeProjecRef",
-					"when": "viewItem ==ionide.projectExplorer.projRef"
+					"when": "viewItem == ionide.projectExplorer.projRef"
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
-					"when": "viewItem ==ionide.projectExplorer.project",
+					"when": "viewItem == ionide.projectExplorer.project",
 					"group": "4_derails@1"
 				},
 				{
 					"command": "fsharp.explorer.showProjectStatus",
-					"when": "viewItem ==ionide.projectExplorer.project",
+					"when": "viewItem == ionide.projectExplorer.project",
 					"group": "4_details@2"
 				},
 				{
 					"command": "fsharp.explorer.addFile",
-					"when": "viewItem ==ionide.projectExplorer.project",
+					"when": "viewItem == ionide.projectExplorer.project",
 					"group": "2_modifications@2"
 				},
 				{
 					"command": "fsharp.explorer.project.generateFSI",
-					"when": "viewItem ==ionide.projectExplorer.project",
+					"when": "viewItem == ionide.projectExplorer.project",
 					"group": "3_fsi@1"
 				},
 				{
 					"command": "fsharp.explorer.project.sendFSI",
-					"when": "viewItem ==ionide.projectExplorer.project",
+					"when": "viewItem == ionide.projectExplorer.project",
 					"group": "3_fsi@2"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.build",
-					"when": "viewItem ==ionide.projectExplorer.project",
+					"when": "viewItem == ionide.projectExplorer.project",
 					"group": "1_navigation@1"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.rebuild",
-					"when": "viewItem ==ionide.projectExplorer.project",
+					"when": "viewItem == ionide.projectExplorer.project",
 					"group": "1_navigation@2"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.clean",
-					"when": "viewItem ==ionide.projectExplorer.project",
+					"when": "viewItem == ionide.projectExplorer.project",
 					"group": "1_navigation@3"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.restore",
-					"when": "viewItem ==ionide.projectExplorer.project",
+					"when": "viewItem == ionide.projectExplorer.project",
 					"group": "1_navigation@4"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.restore",
-					"when": "viewItem ==ionide.projectExplorer.projectNotRestored",
+					"when": "viewItem == ionide.projectExplorer.projectNotRestored",
 					"group": "1_navigation@1"
 				},
 				{
 					"command": "fsharp.explorer.solution.build",
-					"when": "viewItem ==ionide.projectExplorer.solution",
+					"when": "viewItem == ionide.projectExplorer.solution",
 					"group": "1_navigation@1"
 				},
 				{
 					"command": "fsharp.explorer.solution.rebuild",
-					"when": "viewItem ==ionide.projectExplorer.solution",
+					"when": "viewItem == ionide.projectExplorer.solution",
 					"group": "1_navigation@2"
 				},
 				{
 					"command": "fsharp.explorer.solution.clean",
-					"when": "viewItem ==ionide.projectExplorer.solution",
+					"when": "viewItem == ionide.projectExplorer.solution",
 					"group": "1_navigation@3"
 				},
 				{
 					"command": "fsharp.explorer.solution.restore",
-					"when": "viewItem ==ionide.projectExplorer.solution",
+					"when": "viewItem == ionide.projectExplorer.solution",
 					"group": "1_navigation@3"
 				},
 				{
 					"command": "fsharp.explorer.solution.addProject",
-					"when": "viewItem ==ionide.projectExplorer.solution",
+					"when": "viewItem == ionide.projectExplorer.solution",
 					"group": "2_modification@1"
 				},
 				{
 					"command": "fsharp.explorer.addFile",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "3_modifications@2"
 				},
 				{
 					"command": "fsharp.explorer.project.generateFSI",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "4_fsi@1"
 				},
 				{
 					"command": "fsharp.explorer.project.sendFSI",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "4_fsi@2"
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "5_detail@1"
 				},
 				{
 					"command": "fsharp.explorer.showProjectStatus",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "5_detail@2"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.build",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "2_navigation@1"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.rebuild",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "2_navigation@2"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.clean",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "2_navigation@3"
 				},
 				{
 					"command": "fsharp.explorer.msbuild.restore",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "2_navigation@4"
 				},
 				{
 					"command": "fsharp.explorer.project.run",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "1_run@1"
 				},
 				{
 					"command": "fsharp.explorer.project.debug",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "1_run@2"
 				},
 				{
 					"command": "fsharp.explorer.project.setDefault",
-					"when": "viewItem ==ionide.projectExplorer.projectExe",
+					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "1_run@3"
 				}
 			],
