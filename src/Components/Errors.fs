@@ -15,7 +15,6 @@ module Errors =
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
     let private mapResult (ev : ParseResult) =
-        printfn "======= MAP RESULT ======="
         let errors =
             ev.Data.Errors
             |> Seq.distinctBy (fun error -> error.Severity, error.StartLine, error.StartColumn)
