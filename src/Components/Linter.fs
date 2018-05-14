@@ -17,6 +17,8 @@ module Linter =
 
     let private isLinterEnabled () = "FSharp.linter" |> Configuration.get true
 
+    let deleteDiagnostic uri = currentDiagnostic.delete uri
+
     let private diagnosticFromLintWarning file (warning : Lint) =
         let range = CodeRange.fromDTO warning.Range
         let loc = Location (Uri.file file, range |> U2.Case1)

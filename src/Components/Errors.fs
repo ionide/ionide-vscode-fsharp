@@ -15,6 +15,7 @@ module Errors =
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
     let private mapResult (ev : ParseResult) =
+        printfn "======= MAP RESULT ======="
         let errors =
             ev.Data.Errors
             |> Seq.distinctBy (fun error -> error.Severity, error.StartLine, error.StartColumn)
@@ -142,22 +143,33 @@ module Errors =
         | x::tail ->
             tail |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parseFile e.document )) (parseFile x.document )
 
-    let parseVisibleFileInProject (proj : Project) = 
+    let parseVisibleFileInProject (proj : Project) =
         let vs =
-            window.visibleTextEditors 
+            window.visibleTextEditors
             |> Seq.where (fun te -> proj.Files |> List.contains te.document.fileName)
             |> Seq.toList
         // printfn "FILES FOR PROJECT %A: %A" proj vs
-        setTimeout (fun _ -> 
+        setTimeout (fun _ ->
             match vs with
             | [] -> ()
             | [x] -> parse x.document |> ignore
             | x::tail ->
                 tail |> List.fold (fun acc e -> acc |> Promise.bind(fun _ -> parse e.document )) (parse x.document ) |> ignore)  250.
 
+    let private deleteWatcher = workspace.createFileSystemWatcher("**/*.{fs,fsx}", true, true, false)
+
     let activate (context: ExtensionContext) =
         let allowBackgroundParsing = not ("FSharp.minimizeBackgroundParsing" |> Configuration.get false)
         Project.projectLoaded.event $ (parseVisibleFileInProject, (), context.subscriptions) |> ignore
+
+
+        deleteWatcher.onDidDelete $ (fun (uri : Uri) ->
+            currentDiagnostic.delete uri
+            Linter.deleteDiagnostic uri
+            UnusedOpens.deleteDiagnostic uri
+            UnusedDeclarations.deleteDiagnostic uri
+            SimplifyName.deleteDiagnostic uri
+        ) |> ignore
 
         workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen allowBackgroundParsing, (), context.subscriptions) |> ignore
