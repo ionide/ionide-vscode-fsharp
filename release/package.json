@@ -11,7 +11,7 @@
 	"description": "F# Language Support",
 	"categories": [
 		"Linters",
-		"Languages",
+		"Programming Languages",
 		"Snippets"
 	],
 	"license": "SEE LICENSE IN LICENSE.md",
@@ -830,8 +830,8 @@
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
-					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectNotRestored"
-          "group": "inline@99"
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectNotRestored",
+          			"group": "inline@99"
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
