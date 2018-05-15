@@ -821,6 +821,10 @@
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
+					"when": "viewItem == ionide.projectExplorer.projectNotRestored"
+				},
+				{
+					"command": "fsharp.explorer.openProjectFile",
 					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectLoading",
 					"group": "inline@99"
 				},

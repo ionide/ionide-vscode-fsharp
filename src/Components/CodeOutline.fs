@@ -147,6 +147,9 @@ module CodeOutline =
     let createProvider () : TreeDataProvider<Model> =
         { new TreeDataProvider<Model>
           with
+            member __.getParent =
+                None
+
             member this.onDidChangeTreeData =
                 reallyRefresh.event
 
