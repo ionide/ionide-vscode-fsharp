@@ -15,6 +15,8 @@ module UnusedDeclarations =
     let refresh = EventEmitter<string>()
     let private isAnalyzerEnabled () = "FSharp.unusedDeclarationsAnalyzer" |> Configuration.get true
 
+    let deleteDiagnostic uri = currentDiagnostic.delete uri
+
     let private diagnosticFromRange file (warning : UnusedDeclaration) =
         let range = CodeRange.fromDTO warning.Range
         let loc = Location (Uri.file file, range |> U2.Case1)

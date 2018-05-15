@@ -16,6 +16,9 @@ module UnusedOpens =
 
     let private isAnalyzerEnabled () = "FSharp.unusedOpensAnalyzer" |> Configuration.get true
 
+    let deleteDiagnostic uri =
+        currentDiagnostic.delete uri
+
     let private diagnosticFromRange file (warning : Range) =
         let range = CodeRange.fromDTO warning
         Diagnostic(range, "Unused open statement", DiagnosticSeverity.Information), file
