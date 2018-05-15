@@ -15,6 +15,8 @@ module SimplifyName =
     let refresh = EventEmitter<string>()
     let private isAnalyzerEnabled () = "FSharp.simplifyNameAnalyzer" |> Configuration.get true
 
+    let deleteDiagnostic uri = currentDiagnostic.delete uri
+
     let private diagnosticFromRange file (data : SimplifiedNameData) =
         let range = CodeRange.fromSimplifiedNameRange data.UnnecessaryRange
         Diagnostic(range, "This qualifier is redundant", DiagnosticSeverity.Information), file

@@ -592,7 +592,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         )) |> context.subscriptions.Add
-
+        
         let treeOptions = createEmpty<CreateTreeViewOptions<Model>>
         treeOptions.treeDataProvider <- provider
         let treeView = window.createTreeView(treeViewId, treeOptions)
