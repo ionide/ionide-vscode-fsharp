@@ -250,11 +250,19 @@
 			},
 			{
 				"command": "fsharp.explorer.moveUp",
-				"title": "Move file up"
+				"title": "Move file up",
+				"icon": {
+					"light": "./images/up-mono-light.svg",
+					"dark": "./images/up-mono-dark.svg"
+				}
 			},
 			{
 				"command": "fsharp.explorer.moveDown",
-				"title": "Move file down"
+				"title": "Move file down",
+				"icon": {
+					"light": "./images/down-mono-light.svg",
+					"dark": "./images/down-mono-dark.svg"
+				}
 			},
 			{
 				"command": "fsharp.explorer.moveToFolder",
@@ -298,7 +306,11 @@
 			},
 			{
 				"command": "fsharp.explorer.openProjectFile",
-				"title": "Open project file"
+				"title": "Open project file",
+				"icon": {
+					"light": "images/open-file-mono-light.svg",
+					"dark": "images/open-file-mono-dark.svg"
+				}
 			},
 			{
 				"command": "fsharp.explorer.refresh",
@@ -357,11 +369,19 @@
 			},
 			{
 				"command": "fsharp.explorer.project.run",
-				"title": "Run"
+				"title": "Run",
+				"icon": {
+					"light": "./images/run-mono-light.svg",
+					"dark": "./images/run-mono-dark.svg"
+				}
 			},
 			{
 				"command": "fsharp.explorer.project.debug",
-				"title": "Debug"
+				"title": "Debug",
+				"icon": {
+					"light": "./images/debug-mono-light.svg",
+					"dark": "./images/debug-mono-dark.svg"
+				}
 			},
 			{
 				"command": "fsharp.explorer.project.setDefault",
@@ -730,9 +750,19 @@
 					"group": "1_navigation@1"
 				},
 				{
+					"command": "fsharp.explorer.moveUp",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
+					"group": "inline@1"
+				},
+				{
 					"command": "fsharp.explorer.moveDown",
 					"when": "viewItem == ionide.projectExplorer.file",
 					"group": "1_navigation@2"
+				},
+				{
+					"command": "fsharp.explorer.moveDown",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.file",
+					"group": "inline@2"
 				},
 				{
 					"command": "fsharp.explorer.moveToFolder",
@@ -764,12 +794,22 @@
 					"when": "viewItem == ionide.projectExplorer.projectNotLoaded"
 				},
 				{
+					"command": "fsharp.explorer.openProjectFile",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectNotLoaded",
+					"group": "inline@99"
+				},
+				{
 					"command": "fsharp.explorer.showProjectLoadFailedInfo",
 					"when": "viewItem == ionide.projectExplorer.projectLoadFailed"
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
 					"when": "viewItem == ionide.projectExplorer.projectLoadFailed"
+				},
+				{
+					"command": "fsharp.explorer.openProjectFile",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectLoadFailed",
+					"group": "inline@99"
 				},
 				{
 					"command": "fsharp.explorer.showProjectStatus",
@@ -781,7 +821,18 @@
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
-					"when": "viewItem == ionide.projectExplorer.projectNotRestored"
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectLoading",
+					"group": "inline@99"
+				},
+				{
+					"command": "fsharp.explorer.openProjectFile",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectNotRestored"
+          "group": "inline@99"
+				},
+				{
+					"command": "fsharp.explorer.openProjectFile",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectNotRestored",
+					"group": "inline@99"
 				},
 				{
 					"command": "fsharp.explorer.showProjectStatus",
@@ -799,6 +850,11 @@
 					"command": "fsharp.explorer.openProjectFile",
 					"when": "viewItem == ionide.projectExplorer.project",
 					"group": "4_derails@1"
+				},
+				{
+					"command": "fsharp.explorer.openProjectFile",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.project",
+					"group": "inline@99"
 				},
 				{
 					"command": "fsharp.explorer.showProjectStatus",
@@ -891,6 +947,11 @@
 					"group": "5_detail@1"
 				},
 				{
+					"command": "fsharp.explorer.openProjectFile",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+					"group": "inline@99"
+				},
+				{
 					"command": "fsharp.explorer.showProjectStatus",
 					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "5_detail@2"
@@ -921,9 +982,19 @@
 					"group": "1_run@1"
 				},
 				{
+					"command": "fsharp.explorer.project.run",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+					"group": "inline@1"
+				},
+				{
 					"command": "fsharp.explorer.project.debug",
 					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "1_run@2"
+				},
+				{
+					"command": "fsharp.explorer.project.debug",
+					"when": "view == ionide.projectExplorer && viewItem == ionide.projectExplorer.projectExe",
+					"group": "inline@2"
 				},
 				{
 					"command": "fsharp.explorer.project.setDefault",
