@@ -50,8 +50,7 @@ Do `Ctrl+Shift+P > F#: Get info for diagnostics`, this will open a file with som
 > * Arch: **x64**
 > * VSCode: **1.23.1**
 > * Runtime: **netcore**
-> * Dotnet version: **2.1.103
-> **
+> * Dotnet version: **2.1.103**
 > <!-- You can also linked the FSAC log file into your issue -->
 > <!-- Use `Ctrl+P > "F#: Get FSAC logs"` commands to get file location -->
 

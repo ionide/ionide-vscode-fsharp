@@ -96,14 +96,14 @@ Error: %s
                     vscode
             txt.Trim()
 
-        let netcoreRuntime dotnetVersion =
+        let netcoreRuntime (dotnetVersion : string) =
             let txt =
                 sprintf
                     """
 * Runtime: **netcore**
 * Dotnet version: **%s**
                     """
-                    dotnetVersion
+                    (dotnetVersion.Trim())
             txt.Trim()
 
         let monoRuntime monoVersion msbuildVersion =
@@ -176,7 +176,7 @@ Error: %s
 
     let writeToFile (text : string) =
         promise {
-            let path = Path.join(workspace.rootPath, "Diagnostric info")
+            let path = Path.join(workspace.rootPath, "Diagnostic info")
             let newFile = Uri.parse ("untitled:" + path)
             let! document = newFile |> workspace.openTextDocument
 
