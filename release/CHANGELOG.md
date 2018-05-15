@@ -1,3 +1,7 @@
+### 3.20.4 - 15.05.2018
+* Use a different ID for views in the fsharp activity container
+* Inline icons in solution explorer
+
 ### 3.20.3 - 07.05.2018
 * Update FSAC - fixes to workspace load
 
