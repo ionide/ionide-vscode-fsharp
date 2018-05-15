@@ -592,13 +592,13 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         )) |> context.subscriptions.Add
-        
+
         let treeOptions = createEmpty<CreateTreeViewOptions<Model>>
         treeOptions.treeDataProvider <- provider
         let treeView = window.createTreeView(treeViewId, treeOptions)
         context.subscriptions.Add treeView
 
-        AutoReveal.activate context rootChanged.event treeView
+        // AutoReveal.activate context rootChanged.event treeView
 
         let wsProvider =
             let viewLoading path =
