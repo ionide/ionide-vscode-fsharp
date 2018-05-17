@@ -87,6 +87,7 @@ let activate (context: ExtensionContext) : Api =
     Forge.activate context
     Fsi.activate context
     ScriptRunner.activate context
+    LanguageConfiguration.activate context
 
     let buildProject project = promise {
         let! exit = MSBuild.buildProjectPath "Build" project
