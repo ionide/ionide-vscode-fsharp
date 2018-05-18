@@ -1,12 +1,7 @@
 namespace Ionide.VSCode.FSharp
 
 open System
-open Fable.Core
-open Fable.Core.JsInterop
-open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
-open System.Text.RegularExpressions
 open DTO
 open Ionide.VSCode.Helpers
 
@@ -23,10 +18,10 @@ module SignatureData =
                     p.Data.Parameters
                     |> Seq.collect id
                     |> Seq.where (fun prm -> String.IsNullOrWhiteSpace prm.Name |> not )
-                    |> Seq.map (fun prm -> sprintf "///  * `%s` - parameter of type `%s`" prm.Name prm.Type)
+                    |> Seq.map (fun prm -> sprintf "///   * `%s` - parameter of type `%s`" prm.Name prm.Type)
                     |> String.concat "\n"
                 let pms = if pms = "" then "///" else pms
-                let comment = sprintf "\n///**Description**\n///\n///**Parameters**\n%s\n///\n///**Output Type**\n///  * `%s`\n///\n///**Exceptions**\n///" pms p.Data.OutputType
+                let comment = sprintf "\n/// **Description**\n///\n/// **Parameters**\n%s\n///\n/// **Output Type**\n///   * `%s`\n///\n/// **Exceptions**\n///" pms p.Data.OutputType
                 let x = window.activeTextEditor.selection.active.line
                 let t = window.activeTextEditor.document.getText(Range(x, 0., x, 1000.))
                 let t' = t.TrimStart(' ')

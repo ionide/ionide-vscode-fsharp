@@ -31,6 +31,7 @@
     <Compile Include="Components/Tooltip.fs" />
     <Compile Include="Components/Autocomplete.fs" />
     <Compile Include="Components/ParameterHints.fs" />
+    <Compile Include="Components/LanguageConfiguration.fs" />
     <Compile Include="Components/Definition.fs" />
     <Compile Include="Components/TypeDefinition.fs" />
     <Compile Include="Components/References.fs" />
