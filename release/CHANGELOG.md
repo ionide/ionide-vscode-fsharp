@@ -1,3 +1,7 @@
+### 3.20.5 - 22.05.2018
+* Improve SignatureData generation + auto comment in doc comment section
+* Update FSAC - fix for abstract member and member override signatures
+
 ### 3.20.4 - 15.05.2018
 * Use a different ID for views in the fsharp activity container
 * Inline icons in solution explorer
