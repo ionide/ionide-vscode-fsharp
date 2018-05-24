@@ -62,7 +62,7 @@ NUGET
       System.Runtime.InteropServices (>= 4.3) - restriction: >= netstandard1.1
       System.Text.Encoding (>= 4.3) - restriction: >= netstandard1.1
       System.Threading (>= 4.3) - restriction: >= netstandard1.1
-    Microsoft.Net.Compilers (2.8) - restriction: >= netcoreapp2.0
+    Microsoft.Net.Compilers (2.8.2) - restriction: >= netcoreapp2.0
     Microsoft.NETCore.App (2.0.7) - restriction: >= netcoreapp2.0
       Microsoft.NETCore.DotNetHostPolicy (>= 2.0.7) - restriction: >= netcoreapp2.0
       Microsoft.NETCore.Platforms (>= 2.0.2) - restriction: >= netcoreapp2.0
@@ -632,7 +632,7 @@ GIT
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (197b6640cc3a39295b06f17b9a9f287ac9c74828)
+     (a3007be40a66316728f09e9e5ded1622298e62fa)
 GITHUB
   remote: ionide/ionide-vscode-helpers
     src/Fable.Import.Axios.fs (e6459be7d4a187407b4fd02588857cd5aea0fcb6)
