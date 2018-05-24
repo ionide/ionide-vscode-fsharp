@@ -1,3 +1,6 @@
+### 3.20.6 - 24.05.2018
+* Update deps - F# grammar fix
+
 ### 3.20.5 - 22.05.2018
 * Improve SignatureData generation + auto comment in doc comment section
 * Update FSAC - fix for abstract member and member override signatures
