@@ -1,3 +1,7 @@
+### 3.20.7 - 25.05.2018
+* Update deps - multiple F# grammar fixes and markdown highlighting for comments
+* Update FSAC - fix helptext caching bug
+
 ### 3.20.6 - 24.05.2018
 * Update deps - F# grammar fix
 
