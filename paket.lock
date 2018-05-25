@@ -632,7 +632,7 @@ GIT
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (bcb48721bf35a87541799b75560df82d36f2b15f)
+     (7ac2813fa6f40d59e8f078738db2d4f9485c4978)
 GITHUB
   remote: ionide/ionide-vscode-helpers
     src/Fable.Import.Axios.fs (e6459be7d4a187407b4fd02588857cd5aea0fcb6)
