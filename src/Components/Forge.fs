@@ -321,12 +321,22 @@ module Forge =
     let newProjectScaffold () =
         promise {
             let msg = window.setStatusBarMessage "Creating project..."
+            let mutable output = ""
             sprintf "new scaffold"
             |> spawnForge
+            |> Process.onOutput (fun f ->
+                output <- output + f.toString()
+            )
+            |> Process.onErrorOutput (fun f ->
+                output <- output + f.toString()
+            )
             |> Process.toPromise
             |> Promise.bind (fun _ ->
                 msg.dispose() |> ignore
-                window.showInformationMessage "Project created"
+                if output.Contains "fatal: destination path" && output.Contains "already exists and is not an empty directory" then
+                    window.showInformationMessage "Creating project failed - directory is not empty"
+                else
+                    window.showInformationMessage "Project created"
             )
             |> ignore
 
