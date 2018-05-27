@@ -20,6 +20,9 @@ NUGET
     Fable.Core (1.3.17)
       FSharp.Core (>= 4.2.3) - restriction: >= netstandard1.6
       NETStandard.Library (>= 1.6.1) - restriction: >= netstandard1.6
+    Fable.HtmlConverter (1.0.1)
+      Fable.Core (>= 1.3.12) - restriction: >= netstandard2.0
+      Thoth.Json (>= 1.0) - restriction: >= netstandard2.0
     Fable.Import.Browser (1.1.2)
       Fable.Core (>= 1.3.8) - restriction: >= netstandard1.6
     Fable.Import.Node (0.4.3)
@@ -608,6 +611,9 @@ NUGET
       System.Text.Encoding (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (< portable-net45+win8+wp8+wpa81)
       System.Threading (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (< portable-net45+win8+wp8+wpa81)
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (< portable-net45+win8+wp8+wpa81)
+    Thoth.Json (1.0) - restriction: >= netstandard2.0
+      Fable.Core (>= 1.3.12) - restriction: >= netstandard2.0
+      FSharp.Core (>= 4.3.4) - restriction: >= netstandard2.0
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
      (d397eb6f6734c833d66b5c6e48eb032f4d2d320a)

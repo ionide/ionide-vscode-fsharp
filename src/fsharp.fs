@@ -88,6 +88,7 @@ let activate (context: ExtensionContext) : Api =
     Fsi.activate context
     ScriptRunner.activate context
     LanguageConfiguration.activate context
+    HtmlConverter.activate context
 
     let buildProject project = promise {
         let! exit = MSBuild.buildProjectPath "Build" project

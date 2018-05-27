@@ -5,6 +5,7 @@ storage:none
 
 clitool dotnet-fable
 nuget Fable.Core
+nuget Fable.HtmlConverter
 nuget Fable.Import.Node
 nuget Fable.Import.Browser
 
