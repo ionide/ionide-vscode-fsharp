@@ -10,11 +10,12 @@ open Fable.Import.vscode
 open Fable.Import.Node
 open Ionide.VSCode.Helpers
 open DTO
+module node = Fable.Import.Node.Exports
 
 module TypeDefinition =
     let private mapFindDeclarationResult (doc : TextDocument) (pos : Position) (o : FindDeclarationResult) : Definition option =
         if isNotNull o then
-            if Fs.existsSync !!o.Data.File then
+            if node.fs.existsSync !!o.Data.File then
                 let loc = createEmpty<Location>
                 let range = doc.getWordRangeAtPosition pos
                 let length = range.``end``.character - range.start.character

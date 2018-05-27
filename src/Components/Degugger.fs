@@ -10,6 +10,7 @@ open Fable.Import.vscode
 open Fable.Import.Node
 open Ionide.VSCode.Helpers
 open DTO
+module node = Fable.Import.Node.Exports
 
 [<RequireQualifiedAccess>]
 module LaunchJsonVersion2 =
@@ -69,13 +70,13 @@ module Debugger =
         }
 
     let setProgramPath project (cfg: LaunchJsonVersion2.RequestLaunch) =
-        let relativeOutPath = Path.relative(workspace.rootPath, project.Output).Replace("\\", "/")
+        let relativeOutPath = node.path.relative(workspace.rootPath, project.Output).Replace("\\", "/")
         let programPath = sprintf "${workspaceRoot}/%s" relativeOutPath
 
         // WORKAROUND the project.Output is the obj assembly, instead of bin assembly
         // ref https://github.com/fsharp/FsAutoComplete/issues/218
         let programPath = programPath.Replace("/obj/", "/bin/")
-        cfg?cwd <- Path.dirname project.Output
+        cfg?cwd <- node.path.dirname project.Output
         cfg?program <- programPath
 
     let debuggerRuntime project =

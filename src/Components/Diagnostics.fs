@@ -6,6 +6,7 @@ open Fable.Import.vscode
 open Fable.Import.Node
 
 open Ionide.VSCode.Helpers
+module node = Fable.Import.Node.Exports
 
 module Diagnostics =
 
@@ -35,7 +36,7 @@ module Diagnostics =
     let execCommand path (args: string list) : JS.Promise<string> =
         Promise.create (fun resolve reject ->
 
-            ChildProcess.spawn(path, args |> ResizeArray)
+            node.childProcess.spawn(path, args |> ResizeArray)
             |> Process.onOutput (fun buffer ->
                 let outputString = buffer.toString()
                 resolve(outputString)
@@ -176,7 +177,7 @@ Error: %s
 
     let writeToFile (text : string) =
         promise {
-            let path = Path.join(workspace.rootPath, "Diagnostic info")
+            let path = node.path.join(workspace.rootPath, "Diagnostic info")
             let newFile = Uri.parse ("untitled:" + path)
             let! document = newFile |> workspace.openTextDocument
 
@@ -192,8 +193,8 @@ Error: %s
         }
 
     let getDiagnosticsInfos () =
-        let os = Node.Exports.Os.``type``() |> string
-        let arch = Node.Exports.Os.arch() |> string
+        let os = node.os.``type``() |> string
+        let arch = node.os.arch() |> string
 
         promise {
             let! runtimeInfos = getRuntimeInfos ()
@@ -208,15 +209,15 @@ Error: %s
 
     let getIonideLogs () =
         let writeStream =
-            Exports.Path.join(Exports.Os.tmpdir(), "ionide", "FSAC_logs")
+            node.path.join(Exports.os.tmpdir(), "ionide", "FSAC_logs")
             |> Environment.ensureDirectory
-            |> fun dir -> Exports.Path.join(dir, DateTime.Now.ToString("yyyyMMdd-HHmmss.log"))
-            |> Exports.Fs.createWriteStream
+            |> fun dir -> Exports.path.join(dir, DateTime.Now.ToString("yyyyMMdd-HHmmss.log"))
+            |> Exports.fs.createWriteStream
 
         Promise.create(fun resolve reject ->
             writeStream.on("error", reject) |> ignore
             writeStream.on("close", (fun _ -> resolve writeStream.path)) |> ignore
-            writeStream.write(Logging.getIonideLogs ()) |> ignore
+            writeStream.write(node.buffer.Buffer.Create(Logging.getIonideLogs ())) |> ignore
             writeStream.close()
         )
         |> Promise.bind(fun path ->
