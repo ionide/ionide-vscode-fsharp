@@ -1,10 +1,9 @@
 dotnet-fable
-
 Fable.Core
 Fable.Import.Node
 Fable.Import.Browser
-
-File: Fable.Import.VSCode.fs
-File: Helpers.fs
-File: Fable.Import.Axios.fs
-File: Fable.Import.ws.fs
+Fable.HtmlConverter
+File:Fable.Import.VSCode.fs
+File:Helpers.fs
+File:Fable.Import.Axios.fs
+File:Fable.Import.ws.fs

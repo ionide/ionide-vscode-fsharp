@@ -9,6 +9,7 @@ open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
+module node = Fable.Import.Node.Exports
 
 module WorkspaceSymbols =
     let private createProvider () =
@@ -27,7 +28,7 @@ module WorkspaceSymbols =
             | _   -> 0 |> unbox
 
         let relative f =
-            Path.relative (workspace.rootPath, f)
+            node.path.relative (workspace.rootPath, f)
 
         let mapRes o =
              if isNotNull o then

@@ -18,5 +18,8 @@
     "webpack-node-externals": "^1.6.0",
     "ws": "^3.1.0",
     "xhr2": "*"
+  },
+  "dependencies": {
+    "htmlparser2": "^3.9.2"
   }
 }

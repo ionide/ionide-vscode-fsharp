@@ -10,6 +10,7 @@ module Environment =
     open Fable.Import.vscode
     open Fable.Import.Node
     open Ionide.VSCode.Helpers
+    module node = Fable.Import.Node.Exports
 
     let isWin = Globals.``process``.platform = Base.NodeJS.Platform.Win32
 
@@ -19,13 +20,13 @@ module Environment =
 
     let private dirExists dir =
         try
-            Fs.statSync(U2.Case1 dir).isDirectory()
+            node.fs.statSync(U2.Case1 dir).isDirectory()
         with
         | _ -> false
 
     let private fileExists file =
         try
-            Fs.statSync(U2.Case1 file).isFile()
+            node.fs.statSync(U2.Case1 file).isFile()
         with
         | _ -> false
 
@@ -165,13 +166,13 @@ module Environment =
 
     let ensureDirectory (path : string) =
         let root =
-            if Exports.Path.isAbsolute path then
+            if node.path.isAbsolute path then
                 None
             else
                 Some Globals.__dirname
 
         let segments =
-            path.Split [| char Exports.Path.sep |]
+            path.Split [| char node.path.sep |]
             |> Array.toList
 
         let rec ensure segments currentPath =
@@ -182,10 +183,10 @@ module Environment =
                 else
                     let subPath =
                         match currentPath with
-                        | Some path -> Exports.Path.join(path, head)
+                        | Some path -> node.path.join(path, head)
                         | None -> head
-                    if not (Exports.Fs.existsSync !^subPath) then
-                        Exports.Fs.mkdirSync !^subPath
+                    if not (node.fs.existsSync !^subPath) then
+                        node.fs.mkdirSync subPath
                     ensure tail (Some subPath)
             | [] -> ()
 

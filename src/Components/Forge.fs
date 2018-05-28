@@ -9,6 +9,7 @@ open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
+module node = Fable.Import.Node.Exports
 
 module Forge =
 
@@ -99,13 +100,13 @@ module Forge =
 
     let renameFilePath oldName proj =
         promise {
-            let fn = Path.basename oldName
-            let dir = Path.dirname oldName
+            let fn = node.path.basename oldName
+            let dir = node.path.dirname oldName
             let opts = createEmpty<InputBoxOptions>
             opts.value <- Some fn
             let! n = window.showInputBox(opts)
             if JS.isDefined n then
-                let newName = Path.join(dir, n)
+                let newName = node.path.join(dir, n)
                 sprintf "rename file -n %s -r %s -p %s" (quotePath oldName) (quotePath newName) (quotePath proj) |> spawnForge |> ignore
         }
 
@@ -117,10 +118,10 @@ module Forge =
                 opts.placeHolder <- Some "Reference"
                 let! n = window.showQuickPick(folderList |> List.toSeq |> ResizeArray |> U2.Case1, opts) |> Promise.map quotePath
                 if JS.isDefined n then
-                    let fn = Path.basename file
-                    let projDir = Path.dirname proj
-                    let newFile = Path.join(projDir, n, fn )
-                    Fs.rename(file, newFile, fun err ->
+                    let fn = node.path.basename file
+                    let projDir = node.path.dirname proj
+                    let newFile = node.path.join(projDir, n, fn )
+                    node.fs.rename(file, newFile, fun err ->
                         promise {
                             let! _ = sprintf "add file -n %s" (quotePath newFile) |> spawnForge |> Process.toPromise
                             let! _ = sprintf "move file -n %s -d" (quotePath newFile) |> spawnForge |> Process.toPromise
@@ -230,8 +231,8 @@ module Forge =
 
     let newProject () =
         promise {
-            if Fs.existsSync (U2.Case1 templateLocation) then
-                let f = (Fs.readFileSync templateLocation).toString()
+            if node.fs.existsSync (U2.Case1 templateLocation) then
+                let f = (node.fs.readFileSync templateLocation).toString()
                 let file : TemplateFile = f |> JS.JSON.parse |> unbox
 
                 let n =
@@ -278,8 +279,8 @@ module Forge =
 
     let newProjectNoFake () =
         promise {
-            if Fs.existsSync (U2.Case1 templateLocation) then
-                let f = (Fs.readFileSync templateLocation).toString()
+            if node.fs.existsSync (U2.Case1 templateLocation) then
+                let f = (node.fs.readFileSync templateLocation).toString()
                 let file : TemplateFile = f |> JS.JSON.parse |> unbox
 
                 let n =
@@ -359,6 +360,6 @@ module Forge =
         commands.registerCommand("fsharp.RemoveProjectReference", removeProjectReference |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsharp.AddReference", addReference |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsharp.RemoveReference", removeReference |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        if Fs.existsSync (U2.Case1 templateLocation) |> not then refreshTemplates ()
+        if node.fs.existsSync (U2.Case1 templateLocation) |> not then refreshTemplates ()
 
         ()
