@@ -1,3 +1,9 @@
+### 3.21.0 - 30.05.2018
+* Update FSAC - latest FCS (nightly)
+* Update grammar
+* Update Fable dependencies to latest
+* Add HTML to Elmish
+
 ### 3.20.8 - 25.05.2018
 * Update deps - multiple F# grammar fixes and markdown highlighting for comments
 * Update FSAC - fix helptext caching bug
