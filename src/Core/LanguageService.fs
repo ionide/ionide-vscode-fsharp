@@ -85,6 +85,8 @@ module LanguageService =
 
     let port = if devMode then "8088" else genPort ()
     let private url fsacAction requestId = (sprintf "http://127.0.0.1:%s/%s?requestId=%i" port fsacAction requestId)
+    /// because node 7.x doesn't give us the signal used if a process dies, we have to set up our own signal to show if we died via our own `stop()` call.
+    let mutable private exitRequested: bool = false
     let mutable private service : ChildProcess.ChildProcess option =  None
     let mutable private socketNotify : WebSocket option = None
     let mutable private socketNotifyWorkspace : WebSocket option = None
@@ -513,14 +515,35 @@ module LanguageService =
              start' "dotnet" [ path ]
 
     let start () =
-         let startByDevMode = if devMode then Promise.empty else startFSAC ()
-         startByDevMode
-         |> Promise.onSuccess (fun _ ->
-            socketNotify <- startSocket "notify" )
-         |> Promise.onSuccess (fun _ ->
-            socketNotifyWorkspace <- startSocket "notifyWorkspace" )
+        let rec doRetry procPromise =
+            procPromise ()
+            |> Promise.onSuccess (fun (childProcess: ChildProcess.ChildProcess) ->
+                childProcess.on("exit", fun () ->
+                    if exitRequested
+                    then
+                        log.Info("FSAC killed by us")
+                        ()
+                    else
+                        log.Info("FSAC killed by outside event, restarting")
+                        doRetry procPromise |> ignore
+                ) |> ignore
+            )
+
+        let startByDevMode =
+            if devMode
+            then fun () -> Promise.empty
+            else startFSAC
+
+        doRetry startByDevMode
+        |> Promise.onSuccess (fun _ ->
+            socketNotify <- startSocket "notify"
+            socketNotifyWorkspace <- startSocket "notifyWorkspace"
+            ()
+        )
 
     let stop () =
+        exitRequested <- true
         service |> Option.iter (fun n -> n.kill "SIGKILL")
         service <- None
+        exitRequested <- false
         ()
