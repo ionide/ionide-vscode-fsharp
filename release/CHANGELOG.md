@@ -1,3 +1,8 @@
+### 3.22.0 - 06.06.2018
+* Fix process spawn bug
+* Update gramar
+* Update FSAC - make sure we don't start background project parsing if it's turned off
+
 ### 3.21.0 - 30.05.2018
 * Update FSAC - latest FCS (nightly)
 * Update grammar
