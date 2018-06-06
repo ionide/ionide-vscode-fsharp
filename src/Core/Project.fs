@@ -354,18 +354,18 @@ module Project =
         let execDotnet = fun args ->
             let cmd = "run -p " + (String.quote project.Project) + if String.IsNullOrEmpty args then "" else " -- " + args
             execWithDotnet outputChannel cmd
-        match project.Output, isANetCoreAppProject project with
+        match project.OutputType, isNetCoreApp project with
+        | "exe", _  -> Some (fun args -> exec project.Output outputChannel args)
         | _, true -> Some execDotnet
-        | out, _ when out |> String.endWith ".exe" -> Some (fun args -> exec out outputChannel args)
         | _ -> None
 
     let getLauncherWithShell  (project:Project) =
         let execDotnet = fun args ->
             let cmd = "run -p " + (String.quote project.Project) + if String.IsNullOrEmpty args then "" else " -- " + args
             execWithDotnetWithShell cmd
-        match project.Output, isANetCoreAppProject project with
+        match project.OutputType, isNetCoreApp project with
+        | "exe", _ -> Some (fun args -> execWithShell project.Output args)
         | _, true -> Some execDotnet
-        | out, _ when out |> String.endWith ".exe" -> Some (fun args -> execWithShell out args)
         | _ -> None
 
     let private getWorkspaceForModeIonideSearch () =
