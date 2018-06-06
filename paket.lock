@@ -27,10 +27,8 @@ NUGET
       Fable.Core (>= 1.3.8) - restriction: >= netstandard1.6
     Fable.Import.Node (0.4.3)
       Fable.Core (>= 1.3.8) - restriction: >= netstandard2.0
-    FSharp.Compiler.Service (22.0.3) - restriction: >= netcoreapp2.0
+    FSharp.Compiler.Service (23.0.3) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.1.18) - restriction: || (>= net45) (>= netstandard2.0)
-      Microsoft.DiaSymReader (>= 1.1) - restriction: || (>= net45) (>= netstandard2.0)
-      Microsoft.DiaSymReader.PortablePdb (>= 1.2) - restriction: || (>= net45) (>= netstandard2.0)
       System.Collections.Immutable (>= 1.3.1) - restriction: || (>= net45) (>= netstandard2.0)
       System.Diagnostics.Process (>= 4.1) - restriction: && (< net45) (>= netstandard2.0)
       System.Diagnostics.TraceSource (>= 4.0) - restriction: && (< net45) (>= netstandard2.0)
@@ -40,26 +38,6 @@ NUGET
       System.Runtime.Loader (>= 4.0) - restriction: && (< net45) (>= netstandard2.0)
       System.Security.Cryptography.Algorithms (>= 4.3) - restriction: && (< net45) (>= netstandard2.0)
     FSharp.Core (4.3.4) - restriction: >= netcoreapp2.0
-    Microsoft.DiaSymReader (1.2) - restriction: >= netcoreapp2.0
-      Microsoft.Net.Compilers (>= 2.3) - restriction: || (>= net20) (>= netstandard1.1)
-      NETStandard.Library (>= 1.6.1) - restriction: && (< net20) (>= netstandard1.1)
-    Microsoft.DiaSymReader.PortablePdb (1.4) - restriction: >= netcoreapp2.0
-      Microsoft.DiaSymReader (>= 1.2) - restriction: >= portable-net45+win8
-      System.Collections (>= 4.3) - restriction: >= netstandard1.1
-      System.Collections.Immutable (>= 1.3.1) - restriction: >= portable-net45+win8
-      System.Diagnostics.Debug (>= 4.3) - restriction: >= netstandard1.1
-      System.Globalization (>= 4.3) - restriction: >= netstandard1.1
-      System.IO (>= 4.3) - restriction: >= netstandard1.1
-      System.Linq (>= 4.3) - restriction: >= netstandard1.1
-      System.Reflection (>= 4.3) - restriction: >= netstandard1.1
-      System.Reflection.Metadata (>= 1.4.2) - restriction: >= portable-net45+win8
-      System.Reflection.Primitives (>= 4.3) - restriction: >= netstandard1.1
-      System.Runtime (>= 4.3) - restriction: >= netstandard1.1
-      System.Runtime.Extensions (>= 4.3) - restriction: >= netstandard1.1
-      System.Runtime.InteropServices (>= 4.3) - restriction: >= netstandard1.1
-      System.Text.Encoding (>= 4.3) - restriction: >= netstandard1.1
-      System.Threading (>= 4.3) - restriction: >= netstandard1.1
-    Microsoft.Net.Compilers (2.8.2) - restriction: >= netcoreapp2.0
     Microsoft.NETCore.App (2.1) - restriction: >= netcoreapp2.0
     Microsoft.NETCore.Platforms (2.1) - restriction: || (&& (>= net45) (< netstandard1.3) (>= netstandard1.6)) (&& (< net45) (< netstandard1.2) (>= netstandard1.6)) (&& (< net45) (< netstandard1.3) (>= netstandard1.6)) (&& (< net45) (< netstandard1.4) (>= netstandard1.6)) (&& (< net45) (< netstandard1.5) (>= netstandard1.6)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0)) (&& (< net45) (>= netstandard2.0)) (&& (>= net46) (< netstandard1.4) (>= netstandard1.6)) (&& (>= net461) (>= netstandard1.6)) (>= netcoreapp2.0) (&& (< netstandard1.0) (>= netstandard1.6)) (&& (< netstandard1.3) (>= netstandard1.6) (>= wpa81)) (&& (>= netstandard1.6) (< portable-net45+win8+wpa81)) (&& (>= netstandard1.6) (>= uap10.0)) (&& (>= netstandard1.6) (>= wp8))
     Microsoft.NETCore.Targets (2.1) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (< netstandard1.4) (>= netstandard1.6)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard1.6)) (&& (>= netstandard1.6) (>= uap10.0))
@@ -628,17 +606,17 @@ GIT
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (e0a0f94e35d62c769d20f6929d39f08cfd4e9860)
+     (fabedb79413e950b68249de62accdbd3a3ade898)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (889bd15245e8c2406a985b62d237816e908bfb05)
-    src/Fable.Import.VSCode.fs (889bd15245e8c2406a985b62d237816e908bfb05)
-    src/Fable.Import.ws.fs (889bd15245e8c2406a985b62d237816e908bfb05)
-    src/Helpers.fs (889bd15245e8c2406a985b62d237816e908bfb05)
+    src/Fable.Import.Axios.fs (ce5c778ec42d2738c6d5c13d08f663a819e0e37b)
+    src/Fable.Import.VSCode.fs (ce5c778ec42d2738c6d5c13d08f663a819e0e37b)
+    src/Fable.Import.ws.fs (ce5c778ec42d2738c6d5c13d08f663a819e0e37b)
+    src/Helpers.fs (ce5c778ec42d2738c6d5c13d08f663a819e0e37b)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2
-    FAKE (4.64.13)
+    FAKE (5.0)
     Microsoft.NETCore.Platforms (2.1) - restriction: || (&& (< net45) (>= net46) (< netstandard1.4)) (&& (< net45) (>= net461)) (&& (< net45) (>= netstandard1.1) (< netstandard1.2) (< win8)) (&& (< net45) (>= netstandard1.2) (< netstandard1.3) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.3) (< netstandard1.4) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.4) (< netstandard1.5) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.5) (< netstandard1.6)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0)) (&& (< net45) (>= netstandard2.0)) (>= netcoreapp2.0) (&& (< netstandard1.0) (>= netstandard1.1) (< portable-net45+win8)) (&& (< netstandard1.0) (>= netstandard1.1) (>= win8)) (&& (< netstandard1.0) (>= netstandard1.1) (< win8)) (&& (>= netstandard1.1) (< portable-net45+win8+wpa81)) (&& (>= netstandard1.1) (>= wp8)) (&& (< netstandard1.3) (< win8) (>= wpa81)) (>= uap10.0)
     Microsoft.NETCore.Targets (2.1) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.3) (< netstandard1.4) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.4) (< netstandard1.5) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (>= netstandard1.5) (< netstandard1.6)) (&& (< net45) (>= net46) (< netstandard1.4)) (&& (>= uap10.0) (< uap10.1))
     Microsoft.Win32.Primitives (4.3) - restriction: || (&& (< net45) (>= net46) (< netstandard1.4)) (&& (< net45) (>= netstandard1.3) (< netstandard1.4) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.4) (< netstandard1.5) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.5) (< netstandard1.6)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0)) (&& (>= uap10.0) (< uap10.1))
@@ -1140,5 +1118,5 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (< portable-net45+win8+wp8+wpa81)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (7207fc85d52c6ee21f49c61551b8323b4e7608ed)
+    modules/Octokit/Octokit.fsx (97a503a180d86701ae7c56f7e15432907a86b3f3)
       Octokit (>= 0.20)
