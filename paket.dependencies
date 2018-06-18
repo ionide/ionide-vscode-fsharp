@@ -8,10 +8,6 @@ nuget Fable.Core
 nuget Fable.HtmlConverter
 nuget Fable.Import.Node
 nuget Fable.Import.Browser
-nuget Fake.Core.Target
-nuget Fake.DotNet.Cli
-nuget Fake.JavaScript.Yarn
-nuget Fake.Tools.Git
 
 git https://github.com/fsharp/FsAutoComplete.git latest_fcs_may2018 build:"build.cmd LocalRelease", OS: windows
 git https://github.com/fsharp-editing/Forge.git master build:"build.cmd Build", OS: windows
@@ -31,3 +27,9 @@ group build
 
     github fsharp/FAKE modules/Octokit/Octokit.fsx
     nuget Fake
+    nuget Fake.Core.Target
+    nuget Fake.Core.UserInput
+    nuget Fake.Core.ReleaseNotes
+    nuget Fake.DotNet.Cli
+    nuget Fake.JavaScript.Yarn
+    nuget Fake.Tools.Git

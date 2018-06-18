@@ -7,6 +7,7 @@
 source nuget/dotnetcore
 source https://api.nuget.org/v3/index.json
 nuget Fake.Core.Target
+nuget Fake.Core.UserInput
 nuget Fake.IO.FileSystem
 nuget Fake.IO.Zip
 nuget Fake.JavaScript.Yarn
@@ -240,8 +241,7 @@ Target.create "PublishToGallery" ( fun _ ->
         //TODO: replaced with Environment.GetEnvironmentVariable as it seemed to be the best match
         match Environment.GetEnvironmentVariable "vsce-token" with
         | s when not (String.IsNullOrWhiteSpace s) -> s
-        //TODO: getUserPassword no longer available
-        | _ -> "" //getUserPassword "VSCE Token: "
+        | _ -> UserInput.getUserPassword "VSCE Token: "
 
     Process.killAllByName "vsce"
     run vsceTool.Value (sprintf "publish --pat %s" token) "release"
@@ -257,14 +257,12 @@ Target.create "ReleaseGitHub" (fun _ ->
         //TODO: replaced with Environment.GetEnvironmentVariable as it seemed to be the best match
         match Environment.GetEnvironmentVariable "github-user" with
         | s when not (String.IsNullOrWhiteSpace s) -> s
-        //TODO: getUserInput no longer available
-        | _ -> "" //getUserInput "Username: "
+        | _ -> UserInput.getUserInput "Username: "
     let pw =
         //TODO: replaced with Environment.GetEnvironmentVariable as it seemed to be the best match
         match Environment.GetEnvironmentVariable "github-pw" with
         | s when not (String.IsNullOrWhiteSpace s) -> s
-        //TODO: getUserPassword no longer available
-        | _ -> "" //getUserPassword "Password: "
+        | _ -> UserInput.getUserPassword "Password: "
     let remote =
         Git.CommandHelper.getGitResult "" "remote -v"
         |> Seq.filter (fun (s: string) -> s.EndsWith("(push)"))
@@ -320,7 +318,7 @@ Target.create "Release" ignore
 // ==> "InstallVSCE"
 ==> "BuildPackage"
 ==> "ReleaseGitHub"
-//==> "PublishToGallery"
+==> "PublishToGallery"
 ==> "Release"
 
 Target.runOrDefault "Default"
