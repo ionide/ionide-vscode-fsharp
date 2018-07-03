@@ -74,7 +74,6 @@ choco install visualstudiocode -y
 - Integration with F# Interactive
 - Integration with Forge (Project scaffolding and modification)
 - Integration with FSharpLint (additional hints and quick fixes)
-- Integration with Expecto (lightweight F# test runner)
 - Integration with MsBuild (Build, Rebuild, Clean project)
 - Solution / project explorer
 
