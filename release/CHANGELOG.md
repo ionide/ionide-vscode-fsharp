@@ -1,3 +1,6 @@
+### 3.22.2 - 06.07.2018
+* Update FSAC - better Paket integration
+
 ### 3.22.1 - 03.07.2018
 * Update grammar
 
