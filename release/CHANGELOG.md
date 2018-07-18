@@ -1,3 +1,7 @@
+### 3.22.4 - 18.07.2018
+* Even more grammar fixes
+* Fix launcher detection (.Net Core vs normal exe)
+
 ### 3.22.3 - 06.07.2018
 * More grammar fixes
 
