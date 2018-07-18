@@ -355,8 +355,9 @@ module Project =
             let cmd = "run -p " + (String.quote project.Project) + if String.IsNullOrEmpty args then "" else " -- " + args
             execWithDotnet outputChannel cmd
         match project.OutputType, isNetCoreApp project with
+        | "exe", true -> Some execDotnet
         | "exe", _  -> Some (fun args -> exec project.Output outputChannel args)
-        | _, true -> Some execDotnet
+        | _ , true -> Some execDotnet
         | _ -> None
 
     let getLauncherWithShell  (project:Project) =
@@ -364,6 +365,7 @@ module Project =
             let cmd = "run -p " + (String.quote project.Project) + if String.IsNullOrEmpty args then "" else " -- " + args
             execWithDotnetWithShell cmd
         match project.OutputType, isNetCoreApp project with
+        | "exe", true -> Some execDotnet
         | "exe", _ -> Some (fun args -> execWithShell project.Output args)
         | _, true -> Some execDotnet
         | _ -> None
