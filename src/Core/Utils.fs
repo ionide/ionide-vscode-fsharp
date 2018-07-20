@@ -241,6 +241,10 @@ module Markdown =
     let createCommentBlock (comment: string) : MarkdownString =
         comment
         |> replaceXml
+        |> String.split [|'\n'|]
+        |> Array.filter (not << String.IsNullOrWhiteSpace)
+        |> Array.map String.trim
+        |> String.concat "\n\n"
         |> (fun v -> MarkdownString v)
 
 module Promise =
