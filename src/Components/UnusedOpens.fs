@@ -21,7 +21,9 @@ module UnusedOpens =
 
     let private diagnosticFromRange file (warning : Range) =
         let range = CodeRange.fromDTO warning
-        Diagnostic(range, "Unused open statement", DiagnosticSeverity.Information), file
+        let d = Diagnostic(range, "Unused open statement", DiagnosticSeverity.Hint)
+        d.tags <- ResizeArray [| DiagnosticTag.Unnecessary |]
+        d, file
 
     let private mapResult file (ev : UnusedOpensResult) =
         if isNotNull ev then
