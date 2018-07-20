@@ -1,3 +1,8 @@
+### 3.23.0 - 18.07.2018
+* Use Unnecessary tag for unused declaration
+* Use Unnecessary tag for unused opens
+* Update dependencies - grammar fixes
+
 ### 3.22.4 - 18.07.2018
 * Even more grammar fixes
 * Fix launcher detection (.Net Core vs normal exe)

@@ -37,7 +37,7 @@ NUGET
       System.Reflection.TypeExtensions (>= 4.3) - restriction: && (< net45) (>= netstandard2.0)
       System.Runtime.Loader (>= 4.0) - restriction: && (< net45) (>= netstandard2.0)
       System.Security.Cryptography.Algorithms (>= 4.3) - restriction: && (< net45) (>= netstandard2.0)
-    FSharp.Core (4.5) - restriction: >= netcoreapp2.0
+    FSharp.Core (4.5.1) - restriction: >= netcoreapp2.0
     Microsoft.NETCore.App (2.1.2) - restriction: >= netcoreapp2.0
     Microsoft.NETCore.Platforms (2.1) - restriction: || (&& (>= net45) (< netstandard1.3) (>= netstandard1.6)) (&& (< net45) (< netstandard1.2) (>= netstandard1.6)) (&& (< net45) (< netstandard1.3) (>= netstandard1.6)) (&& (< net45) (< netstandard1.4) (>= netstandard1.6)) (&& (< net45) (< netstandard1.5) (>= netstandard1.6)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0)) (&& (< net45) (>= netstandard2.0)) (&& (>= net46) (< netstandard1.4) (>= netstandard1.6)) (&& (>= net461) (>= netstandard1.6)) (>= netcoreapp2.0) (&& (< netstandard1.0) (>= netstandard1.6)) (&& (< netstandard1.3) (>= netstandard1.6) (>= wpa81)) (&& (>= netstandard1.6) (< portable-net45+win8+wpa81)) (&& (>= netstandard1.6) (>= uap10.0)) (&& (>= netstandard1.6) (>= wp8))
     Microsoft.NETCore.Targets (2.1) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (< netstandard1.2) (>= netstandard1.6)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard1.6)) (&& (< monoandroid) (< net45) (< netstandard1.4) (>= netstandard1.6)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard1.6)) (&& (< net45) (>= net46) (< netstandard1.4) (>= netstandard1.6)) (&& (>= netstandard1.6) (< portable-net45+win8+wpa81)) (&& (>= netstandard1.6) (>= uap10.0))
@@ -616,13 +616,13 @@ GIT
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (2e8a5db6355bb6a0ca3a78a9f4d129ff1d059173)
+     (67c9f45ebbbd5a12d89ffad1661caf8452f1d552)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (ce5c778ec42d2738c6d5c13d08f663a819e0e37b)
-    src/Fable.Import.VSCode.fs (ce5c778ec42d2738c6d5c13d08f663a819e0e37b)
-    src/Fable.Import.ws.fs (ce5c778ec42d2738c6d5c13d08f663a819e0e37b)
-    src/Helpers.fs (ce5c778ec42d2738c6d5c13d08f663a819e0e37b)
+    src/Fable.Import.Axios.fs (472e725da9c0bff61fe10c42c891f39fd2d23b91)
+    src/Fable.Import.VSCode.fs (472e725da9c0bff61fe10c42c891f39fd2d23b91)
+    src/Fable.Import.ws.fs (472e725da9c0bff61fe10c42c891f39fd2d23b91)
+    src/Helpers.fs (472e725da9c0bff61fe10c42c891f39fd2d23b91)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2

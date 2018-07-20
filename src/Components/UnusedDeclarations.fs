@@ -19,8 +19,8 @@ module UnusedDeclarations =
 
     let private diagnosticFromRange file (warning : UnusedDeclaration) =
         let range = CodeRange.fromDTO warning.Range
-        let loc = Location (Uri.file file, range |> U2.Case1)
-        let d = Diagnostic(range, "This value is unused", DiagnosticSeverity.Information)
+        let d = Diagnostic(range, "This value is unused", DiagnosticSeverity.Hint)
+        d.tags <- ResizeArray [| DiagnosticTag.Unnecessary |]
         let code = if warning.IsThisMember then 1. else 0.
         d.code <- U2.Case2 code
         d, file
