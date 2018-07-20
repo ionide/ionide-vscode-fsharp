@@ -451,8 +451,19 @@ module Project =
                     projectNotRestoredLoaded.fire d.Project
                     Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
                 | ErrorData.ProjectParsingFailed d ->
+                    let msg = "Project parsing failed: " + path.basename(d.Project)
+                    vscode.window.showErrorMessage(msg, "Show status")
+                    |> Promise.map(fun res ->
+                        if res = "Show status" then
+                            Preview.showStatus d.Project (path.basename(d.Project))
+                            |> ignore
+                    )
+                    |> ignore
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
                 | _ ->
+                    "Project loading failed"
+                    |> vscode.window.showErrorMessage
+                    |> ignore
                     None
             | Choice4Of4 msg ->
                 match msg with
