@@ -448,11 +448,20 @@ module Project =
             | Choice3Of4 (msg, err) ->
                 match err with
                 | ErrorData.ProjectNotRestored d ->
+                    "Project loading failed, please restore it"
+                    |> vscode.window.showErrorMessage
+                    |> ignore
                     projectNotRestoredLoaded.fire d.Project
                     Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
                 | ErrorData.ProjectParsingFailed d ->
+                    "Project parsing failed"
+                    |> vscode.window.showErrorMessage
+                    |> ignore
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
                 | _ ->
+                    "Project loading failed"
+                    |> vscode.window.showErrorMessage
+                    |> ignore
                     None
             | Choice4Of4 msg ->
                 match msg with

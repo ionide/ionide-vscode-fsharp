@@ -239,6 +239,11 @@ module LanguageService =
         {ProjectRequest.FileName = s}
         |> requestCanFail "project" 0 (makeRequestId())
         |> Promise.map deserializeProjectResult
+        |> Promise.onFail(fun _ ->
+           "Project loading failed"
+           |> vscode.window.showErrorMessage
+           |> ignore
+        )
 
     let parse path (text : string) (version : float) =
         let lines = text.Replace("\uFEFF", "").Split('\n')
