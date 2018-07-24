@@ -189,18 +189,23 @@ module Markdown =
           "&quot;", "\""
           "&apos;", "'"
           "&amp;", "&"
-          "<summary>", ""
-          "</summary>", ""
-          "<para>", ""
-          "</para>", ""
+          "<summary>", "**Description**\n\n"
+          "</summary>", "\n"
+          "<para>", "\n"
+          "</para>", "\n"
           "<remarks>", ""
-          "</remarks>", "" ]
+          "</remarks>", "\n" ]
 
     let private regexReplacePatterns =
         let r pat = Regex(pat, RegexOptions.Compiled ||| RegexOptions.IgnoreCase)
-        let code = Array.item 0 >> sprintf "`%s`"
-        let returns = Array.item 0 >> sprintf "returns %s"
-        let param (s: string[]) = sprintf "%s: %s"(s.[0].Substring(1, s.[0].Length - 2)) s.[1]
+        let code (strings : string array) =
+            let str = strings.[0]
+            if str.Contains("\n") then
+                "```forceNoHighlight" + str + "```"
+            else
+                "`" + str + "`"
+        let returns = Array.item 0 >> sprintf "\n**Returns**\n\n%s"
+        let param (s: string[]) = sprintf "* `%s`: %s"(s.[0].Substring(1, s.[0].Length - 2)) s.[1]
         [ r"<c>((?:(?!<c>)(?!<\/c>)[\s\S])*)<\/c>", code
           r"""<see\s+cref=(?:'[^']*'|"[^"]*")>((?:(?!<\/see>)[\s\S])*)<\/see>""", code
           r"""<param\s+name=('[^']*'|"[^"]*")>((?:(?!<\/param>)[\s\S])*)<\/param>""", param
@@ -211,9 +216,30 @@ module Markdown =
           r"<returns>((?:(?!<\/returns>)[\s\S])*)<\/returns>", returns
         ]
 
+    /// Helpers to create a new section in the markdown comment
+    let private suffixXmlKey (tag : string) (value : string) (str : string) =
+        match str.IndexOf(tag) with
+        | x when x <> -1 ->
+            let insertAt =
+                if str.Chars(x - 1) = ' ' then
+                    x - 1
+                else
+                    x
+            str.Insert(insertAt, value)
+        | _ -> str
+
+    let private suffixTypeparam = suffixXmlKey "<typeparam" "\n**Type parameters**\n\n"
+    let private suffixException = suffixXmlKey "<exception" "\n**Exceptions**\n\n"
+    let private suffixParam = suffixXmlKey "<param" "\n**Parameters**\n\n"
+
     /// Replaces XML tags with Markdown equivalents.
     /// List of standard tags: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/xml-documentation
     let private replaceXml (str: string) : string =
+        let str =
+            str
+            |> suffixTypeparam
+            |> suffixException
+            |> suffixParam
 
         let res =
             regexReplacePatterns
@@ -241,10 +267,6 @@ module Markdown =
     let createCommentBlock (comment: string) : MarkdownString =
         comment
         |> replaceXml
-        |> String.split [|'\n'|]
-        |> Array.filter (not << String.IsNullOrWhiteSpace)
-        |> Array.map String.trim
-        |> String.concat "\n\n"
         |> (fun v -> MarkdownString v)
 
 module Promise =
