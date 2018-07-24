@@ -668,20 +668,16 @@ module SolutionExplorer =
         vscode.workspace.registerTextDocumentContentProvider(DocumentSelector.Case1 "fsharp-workspace", wsProvider)
         |> context.subscriptions.Add
 
-        let projectStatusUri projectPath = vscode.Uri.parse(sprintf "fsharp-workspace://authority/projects/status?path=%s" (JS.encodeURIComponent(projectPath)))
-
         let projectStatusCommand m =
-            let showStatus path name =
-                vscode.commands.executeCommand("vscode.previewHtml", projectStatusUri path, vscode.ViewColumn.One, (sprintf "Project %s status" name))
             match m with
             | ProjectFailedToLoad (_, path, name, _) ->
-                showStatus path name
+                Preview.showStatus path name
             | ProjectNotRestored (_, path, name, _) ->
-                showStatus path name
+                Preview.showStatus path name
             | Model.ProjectLoading (_, path, name) ->
-                showStatus path name
+                Preview.showStatus path name
             | Model.Project (_, path, name, _, _, _, _, _) ->
-                showStatus path name
+                Preview.showStatus path name
             | _ ->
                 Promise.empty
 
