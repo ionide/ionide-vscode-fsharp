@@ -326,9 +326,13 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "namespaces" 0 (makeRequestId())
 
-    let unionCaseGenerator fn line col =
+    let unionCaseGenerator fn line col : JS.Promise<Result<UnionCaseGenerator>> =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "unionCaseGenerator" 0 (makeRequestId())
+
+    let recordStubGenerator fn line col : JS.Promise<Result<RecordStubCaseGenerator>> =
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        |> request "recordStubGenerator" 0 (makeRequestId())
 
     let workspacePeek dir deep excludedDirs =
         let rec mapItem (f: WorkspacePeekFoundSolutionItem) : WorkspacePeekFoundSolutionItem option =
