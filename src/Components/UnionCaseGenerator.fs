@@ -27,9 +27,7 @@ module UnionCaseGenerator =
                                 let line = int range.start.line + 2
                                 let col = doc.getText().Split('\n').[line - 1].IndexOf('|') + 3
 
-
                                 let! res = LanguageService.unionCaseGenerator doc.fileName line col
-
                                 let cmd = createEmpty<Command>
                                 cmd.title <- "Generate union pattern match case"
                                 cmd.command <- "fsharp.insertUnionCases"
@@ -44,7 +42,7 @@ module UnionCaseGenerator =
     let insertText (doc : TextDocument, text : string, pos : Pos) =
         let edit = WorkspaceEdit()
         let uri = Uri.file doc.fileName
-        let position = Position(unbox (pos.Line - 1), unbox pos.Col)
+        let position = Position(unbox (pos.Line - 1), unbox pos.Column)
         let text = text.Replace("$1", "failwith \"Not Implemented\"")
         edit.insert(uri, position, text)
         workspace.applyEdit edit

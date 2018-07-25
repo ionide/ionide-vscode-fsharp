@@ -125,7 +125,7 @@ module DTO =
 
     type Pos = {
         Line: int
-        Col: int
+        Column: int
     }
 
     type Symbol = {
@@ -217,6 +217,11 @@ module DTO =
     }
 
     type UnionCaseGenerator = {
+        Text : string
+        Position : Pos
+    }
+
+    type RecordStubCaseGenerator = {
         Text : string
         Position : Pos
     }

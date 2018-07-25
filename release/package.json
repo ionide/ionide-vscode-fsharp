@@ -329,7 +329,7 @@
 				"command": "fsharp.diagnostics.getInfos",
 				"title": "Get info for diagnostics",
 				"category": "F#"
-			},
+            },
 			{
 				"command": "fsharp.diagnostics.getIonideLogs",
 				"title": "Get Ionide logs",

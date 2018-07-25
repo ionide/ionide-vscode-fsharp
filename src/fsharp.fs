@@ -75,6 +75,7 @@ let activate (context: ExtensionContext) : Api =
         QuickFix.activate df' context
         if resolve then ResolveNamespaces.activate df' context
         UnionCaseGenerator.activate df' context
+        RecordStubGenerator.activate df' context
         Help.activate context
         MSBuild.activate context
         SignatureData.activate context
