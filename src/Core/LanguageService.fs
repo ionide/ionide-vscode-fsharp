@@ -400,6 +400,13 @@ module LanguageService =
         {ProjectRequest.FileName = s}
         |> request "compile" 0 (makeRequestId())
 
+    let enableSymbolCache () =
+        "" |> request "enableSymbolCache" 0 (makeRequestId())
+
+    let buildBackgroundSymbolCache () =
+        "" |> request "buildBackgroundSymbolCache" 0 (makeRequestId())
+
+
     [<PassGenerics>]
     let private registerNotifyAll (cb : 'a -> unit) (ws: WebSocket) =
         ws.on_message((fun (res : string) ->

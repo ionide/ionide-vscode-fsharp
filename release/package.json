@@ -329,7 +329,7 @@
 				"command": "fsharp.diagnostics.getInfos",
 				"title": "Get info for diagnostics",
 				"category": "F#"
-            },
+			},
 			{
 				"command": "fsharp.diagnostics.getIonideLogs",
 				"title": "Get Ionide logs",
@@ -837,7 +837,7 @@
 				{
 					"command": "fsharp.explorer.openProjectFile",
 					"when": "viewItem == ionide.projectExplorer.projectNotRestored",
-          			"group": "inline@99"
+					"group": "inline@99"
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
@@ -1202,8 +1202,8 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Enables integration with FSharpLinter (additional warnings)"
-                },
-                "FSharp.recordStubGeneration": {
+				},
+				"FSharp.recordStubGeneration": {
 					"type": "boolean",
 					"default": true,
 					"description": "Enables record stub generation"
@@ -1299,7 +1299,7 @@
 					"description": "Minimize the amount of background type-checking of dependent projects. Requires restart.\nThis is a performance workaround that will increase intellisense responsiveness for projects that are referenced by many other projects in the solution."
 				},
 				"FSharp.showCodeOutlineIn": {
-					"type":"string",
+					"type": "string",
 					"default": "fsharp",
 					"description": "Set the activity (left bar) where the code outline view will be displayed.\nRequires restart.",
 					"enum": [
@@ -1309,7 +1309,7 @@
 					"scope": "application"
 				},
 				"FSharp.showProjectExplorerIn": {
-					"type":"string",
+					"type": "string",
 					"default": "fsharp",
 					"description": "Set the activity (left bar) where the project explorer view will be displayed.\nRequires restart.",
 					"enum": [
