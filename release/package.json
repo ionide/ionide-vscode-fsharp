@@ -1202,6 +1202,11 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Enables integration with FSharpLinter (additional warnings)"
+                },
+                "FSharp.recordStubGeneration": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enables record stub generation"
 				},
 				"FSharp.unusedOpensAnalyzer": {
 					"type": "boolean",
