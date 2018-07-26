@@ -77,9 +77,12 @@ module RecordStubGenerator =
         currentDiagnostic.clear()
 
     let activate selector (context: ExtensionContext) =
-        languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
+        let isEnabled = "FSharp.recordStubGeneration" |> Configuration.get true
 
-        vscode.window.onDidChangeTextEditorSelection $ (findSuggestions, (), context.subscriptions) |> ignore
+        if isEnabled then
+            languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.generateRecordStub", testCommand |> unbox<Func<obj,obj,obj>>)
-        |> context.subscriptions.Add
+            vscode.window.onDidChangeTextEditorSelection $ (findSuggestions, (), context.subscriptions) |> ignore
+
+            commands.registerCommand("fsharp.generateRecordStub", testCommand |> unbox<Func<obj,obj,obj>>)
+            |> context.subscriptions.Add
