@@ -51,7 +51,7 @@ module RecordStubGenerator =
                 let range =
                     Position(ev.textEditor.selection.start.line, ev.textEditor.selection.start.character)
                     |> ev.textEditor.document.getWordRangeAtPosition
-                let diagnostics = [| Diagnostic(range, "Generate record stubs", DiagnosticSeverity.Information) |] |> ResizeArray
+                let diagnostics = [| Diagnostic(range, "Generate record stubs", DiagnosticSeverity.Hint) |] |> ResizeArray
                 // Add
                 currentDiagnostic.set(uri, diagnostics)
             else
