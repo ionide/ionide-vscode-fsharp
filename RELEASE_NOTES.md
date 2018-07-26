@@ -1,3 +1,10 @@
+### 3.24.0 - 26.07.2018
+* Update FSAC - latest FCS, F# 4.5, performance fixes, background symbol caching
+* Add notifications if project loading or parsing failed
+* Improve tooltip display
+* Implement RecordStubGenerator and fix UnionCaseGenerato
+* Add ability to send text to FSI through command arguments
+
 ### 3.23.0 - 18.07.2018
 * Use Unnecessary tag for unused declaration
 * Use Unnecessary tag for unused opens
