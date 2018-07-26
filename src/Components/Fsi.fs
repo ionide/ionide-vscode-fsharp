@@ -144,6 +144,11 @@ module Fsi =
         |> Promise.suppress // prevent unhandled promise exception
         |> ignore
 
+    let private sendText (lines : string list) =
+        send (String.concat ";;\n" lines)
+        |> Promise.suppress // prevent unhandled promise exception
+        |> ignore
+
     let private referenceAssembly (path:ProjectReferencePath) = path |> sprintf "#r @\"%s\"" |> send
     let private referenceAssemblies = Promise.executeForAll referenceAssembly
 
@@ -228,6 +233,7 @@ module Fsi =
         commands.registerCommand("fsi.SendSelection", sendSelection |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsi.SendLastSelection", sendLastSelection |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsi.SendFile", sendFile |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendText", sendText |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
 
