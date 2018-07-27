@@ -53,6 +53,7 @@ module LanguageService =
 
         let logLevel = logLanguageServiceRequestsOutputWindowLevel ()
         let editorSideLogger = ConsoleAndOutputChannelLogger(Some source, logLevel, channel, Some logLevel)
+        let mutable minLogLevel = logLevel
 
         let showCurrentLevel level =
             if level <> Level.DEBUG then
@@ -63,6 +64,7 @@ module LanguageService =
         vscode.workspace.onDidChangeConfiguration
         |> Event.invoke (fun _ ->
             editorSideLogger.ChanMinLevel <- logLanguageServiceRequestsOutputWindowLevel ()
+            minLogLevel <- logLanguageServiceRequestsOutputWindowLevel ()
             editorSideLogger.ChanMinLevel |> showCurrentLevel )
         |> ignore
 
@@ -70,7 +72,12 @@ module LanguageService =
         let fsacStdOutWriter =
             if logRequestsToConsole then
                 let chan = window.createOutputChannel (channelName + " (server)")
-                chan.append
+                let chan2 = window.createOutputChannel (channelName + " (Symbol Cache)")
+                (fun (s : string) ->
+                    if s.Contains "[Symbol Cache]" then
+                        if minLogLevel <> DEBUG && s.Contains "[Debug]" then () else chan2.append s
+                    else
+                        if minLogLevel <> DEBUG && s.Contains "[Debug]" then () else chan.append s)
             else
                 ignore
 
@@ -475,7 +482,7 @@ module LanguageService =
                 // Wait until FsAC sends the 'listener started' magic string until
                 // we inform the caller that it's ready to accept requests.
                 let isStartedMessage = outputString.Contains "listener started in"
-                if isStartedMessage then
+                if isStartedMessage && not isResolvedAsStarted then
                     fsacStdoutWriter ("Resolving startup promise because FSAC printed the 'listener started' message")
                     fsacStdoutWriter "\n"
                     service <- Some child
