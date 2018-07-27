@@ -1,3 +1,9 @@
+### 3.24.1 - 27.07.2018
+* Use hint instead of information for record stub action
+* Add debuncing for record stub generation
+* Make sure record stub is checked only for F# files
+* Add setting for disabling failed project notifications `FSharp.disableFailedProjectNotifications`
+
 ### 3.24.0 - 26.07.2018
 * Update FSAC - latest FCS, F# 4.5, performance fixes, background symbol caching
 * Add notifications if project loading or parsing failed

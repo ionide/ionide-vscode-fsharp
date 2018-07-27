@@ -18,7 +18,6 @@ type Api = {
     DebugProject: DTO.Project -> string [] -> Fable.Import.JS.Promise<unit>
 }
 
-
 let activate (context: ExtensionContext) : Api =
     let df = createEmpty<DocumentFilter>
     df.language <- Some "fsharp"
