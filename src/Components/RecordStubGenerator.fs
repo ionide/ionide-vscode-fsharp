@@ -5,11 +5,8 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
 open Ionide.VSCode.Helpers
-
 open DTO
-open Ionide.VSCode.Helpers
 
 module RecordStubGenerator =
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
@@ -40,26 +37,34 @@ module RecordStubGenerator =
         /// Offset line and col by `1` in order to match FSAC Position
         let line = int ev.textEditor.selection.start.line + 1
         let col = int ev.textEditor.selection.start.character + 1
+        match ev.textEditor.document with
+        | Document.FSharp ->
+            promise {
+                let! res = LanguageService.recordStubGenerator ev.textEditor.document.fileName line col
+                // If a suggestion has been found
+                if JS.isDefined res then
+                    // Store the suggestion information
+                    suggestion <- Some res.Data
+                    let uri = Uri.file ev.textEditor.document.fileName
+                    let range =
+                        Position(ev.textEditor.selection.start.line, ev.textEditor.selection.start.character)
+                        |> ev.textEditor.document.getWordRangeAtPosition
+                    let diagnostics = [| Diagnostic(range, "Generate record stubs", DiagnosticSeverity.Hint) |] |> ResizeArray
+                    // Add
+                    currentDiagnostic.set(uri, diagnostics)
+                else
+                    // No suggestion found clean preivous result and diagnostic
+                    suggestion <- None
+                    currentDiagnostic.clear()
+            }
+            |> ignore
+        | _ -> ()
 
-        promise {
-            let! res = LanguageService.recordStubGenerator ev.textEditor.document.fileName line col
-            // If a suggestion has been found
-            if JS.isDefined res then
-                // Store the suggestion information
-                suggestion <- Some res.Data
-                let uri = Uri.file ev.textEditor.document.fileName
-                let range =
-                    Position(ev.textEditor.selection.start.line, ev.textEditor.selection.start.character)
-                    |> ev.textEditor.document.getWordRangeAtPosition
-                let diagnostics = [| Diagnostic(range, "Generate record stubs", DiagnosticSeverity.Hint) |] |> ResizeArray
-                // Add
-                currentDiagnostic.set(uri, diagnostics)
-            else
-                // No suggestion found clean preivous result and diagnostic
-                suggestion <- None
-                currentDiagnostic.clear()
-        }
-        |> ignore
+    let mutable private timer = None
+
+    let selectionHandler (ev : TextEditorSelectionChangeEvent) =
+        timer |> Option.iter(clearTimeout)
+        timer <- Some (setTimeout (fun _ -> findSuggestions ev ) 500.)
 
     let insertText (doc : TextDocument) (text : string) (pos : Pos) =
         let edit = WorkspaceEdit()
@@ -82,7 +87,7 @@ module RecordStubGenerator =
         if isEnabled then
             languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
 
-            vscode.window.onDidChangeTextEditorSelection $ (findSuggestions, (), context.subscriptions) |> ignore
+            vscode.window.onDidChangeTextEditorSelection $ (selectionHandler, (), context.subscriptions) |> ignore
 
             commands.registerCommand("fsharp.generateRecordStub", testCommand |> unbox<Func<obj,obj,obj>>)
             |> context.subscriptions.Add
