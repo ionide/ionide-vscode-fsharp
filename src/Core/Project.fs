@@ -438,6 +438,7 @@ module Project =
         | "projects" | _ -> FSharpWorkspaceLoader.Projects
 
     let handleProjectParsedNotification res =
+        let disableShowNotification = "FSharp.disableFailedProjectNotifications" |> Configuration.get false
         let projStatus =
             match res with
             | Choice1Of4 (pr: ProjectResult) ->
@@ -451,19 +452,21 @@ module Project =
                     projectNotRestoredLoaded.fire d.Project
                     Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
                 | ErrorData.ProjectParsingFailed d ->
-                    let msg = "Project parsing failed: " + path.basename(d.Project)
-                    vscode.window.showErrorMessage(msg, "Show status")
-                    |> Promise.map(fun res ->
-                        if res = "Show status" then
-                            Preview.showStatus d.Project (path.basename(d.Project))
-                            |> ignore
-                    )
-                    |> ignore
+                    if not disableShowNotification then
+                        let msg = "Project parsing failed: " + path.basename(d.Project)
+                        vscode.window.showErrorMessage(msg, "Show status")
+                        |> Promise.map(fun res ->
+                            if res = "Show status" then
+                                Preview.showStatus d.Project (path.basename(d.Project))
+                                |> ignore
+                        )
+                        |> ignore
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
                 | _ ->
-                    "Project loading failed"
-                    |> vscode.window.showErrorMessage
-                    |> ignore
+                    if not disableShowNotification then
+                        "Project loading failed"
+                        |> vscode.window.showErrorMessage
+                        |> ignore
                     None
             | Choice4Of4 msg ->
                 match msg with

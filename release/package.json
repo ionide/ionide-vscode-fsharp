@@ -1298,6 +1298,11 @@
 					"default": false,
 					"description": "Minimize the amount of background type-checking of dependent projects. Requires restart.\nThis is a performance workaround that will increase intellisense responsiveness for projects that are referenced by many other projects in the solution."
 				},
+				"FSharp.disableFailedProjectNotifications": {
+					"type": "boolean",
+					"default": false,
+					"description": "Disables popup notifications for failed project loading"
+				},
 				"FSharp.showCodeOutlineIn": {
 					"type": "string",
 					"default": "fsharp",
