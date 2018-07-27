@@ -266,8 +266,8 @@ Target "Release" DoNothing
 
 "Clean"
 ==> "RunScript"
-==> "CopyFSAC"
-==> "CopyFSACNetcore"
+// ==> "CopyFSAC"
+// ==> "CopyFSACNetcore"
 ==> "CopyForge"
 ==> "CopyGrammar"
 ==> "CopySchemas"

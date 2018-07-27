@@ -1,3 +1,8 @@
+### 3.24.2 - 27.07.2018
+* EXPERIMENTAL Enable background symbol cache with `FSharp.enableBackgroundSymbolCache`
+* Split logging from symbol cache to its own output channel
+* Handle `[Debug]` output from FSAC
+
 ### 3.24.1 - 27.07.2018
 * Use hint instead of information for record stub action
 * Add debuncing for record stub generation
