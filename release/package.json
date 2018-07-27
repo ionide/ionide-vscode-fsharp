@@ -1061,7 +1061,6 @@
 		},
 		"outputChannels": [
 			"F# Language Service",
-			"F# Interactive",
 			"Forge",
 			"MSBuild"
 		],
@@ -1302,6 +1301,11 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Disables popup notifications for failed project loading"
+				},
+				"FSharp.enableBackgroundSymbolCache": {
+					"type": "boolean",
+					"default": false,
+					"description": "EXPERIMENTAL. Enables background symbol cache. Requires restart."
 				},
 				"FSharp.showCodeOutlineIn": {
 					"type": "string",

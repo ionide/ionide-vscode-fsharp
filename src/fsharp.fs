@@ -25,12 +25,8 @@ let activate (context: ExtensionContext) : Api =
 
     let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
-    // "FSharp.enableBackgroundSymbolCache": {
-    // "type": "boolean",
-    // "default": false,
-    // "description": "EXPERIMENTAL. Enables background symbol cache. Requires restart."
-    // },
-    let backgroundSymbolCache = false// "FSharp.enableBackgroundSymbolCache" |> Configuration.get false
+
+    let backgroundSymbolCache = "FSharp.enableBackgroundSymbolCache" |> Configuration.get false
 
     let init = DateTime.Now
 
@@ -66,9 +62,15 @@ let activate (context: ExtensionContext) : Api =
         )
         |> Promise.onSuccess (fun _ ->
             if backgroundSymbolCache then
-                LanguageService.enableSymbolCache ()
-                |> Promise.bind (fun _ -> LanguageService.buildBackgroundSymbolCache ())
-                |> ignore
+                let progressOpts = createEmpty<ProgressOptions>
+                progressOpts.location <- ProgressLocation.Window
+                window.withProgress(progressOpts, (fun p ->
+                    let pm = createEmpty<ProgressMessage>
+                    pm.message <- "Building background symbol cache"
+                    p.report pm
+                    LanguageService.enableSymbolCache ()
+                    |> Promise.bind (fun _ -> LanguageService.buildBackgroundSymbolCache ())
+                )) |> ignore
         )
         |> ignore
 
