@@ -16,7 +16,7 @@ module node = Fable.Import.Node.Exports
 module LanguageService =
     let ax =  Globals.require.Invoke "axios" |> unbox<Axios.AxiosStatic>
 
-    let devMode = true
+    let devMode = false
 
     [<RequireQualifiedAccess>]
     type LogConfigSetting = None | Output | DevConsole | Both
