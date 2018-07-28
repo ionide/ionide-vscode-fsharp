@@ -266,8 +266,8 @@ Target "Release" DoNothing
 
 "Clean"
 ==> "RunScript"
-// ==> "CopyFSAC"
-// ==> "CopyFSACNetcore"
+==> "CopyFSAC"
+==> "CopyFSACNetcore"
 ==> "CopyForge"
 ==> "CopyGrammar"
 ==> "CopySchemas"
@@ -276,7 +276,7 @@ Target "Release" DoNothing
 "YarnInstall" ==> "Build"
 "DotNetRestore" ==> "Build"
 
-"Build"
+"Default"
 ==> "SetVersion"
 // ==> "InstallVSCE"
 ==> "BuildPackage"
