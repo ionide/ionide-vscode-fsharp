@@ -16,7 +16,7 @@ module node = Fable.Import.Node.Exports
 module LanguageService =
     let ax =  Globals.require.Invoke "axios" |> unbox<Axios.AxiosStatic>
 
-    let devMode = false
+    let devMode = true
 
     [<RequireQualifiedAccess>]
     type LogConfigSetting = None | Output | DevConsole | Both
@@ -170,6 +170,7 @@ module LanguageService =
         sprintf "%s, %s %s" whenMsg msg d
 
     let private requestRaw<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+        Fable.Import.JS.console.log "requestRaw"
         let started = DateTime.Now
         let fullRequestUrl = url fsacAction requestId
         logOutgoingRequest requestId fsacAction obj
@@ -559,10 +560,10 @@ module LanguageService =
 
         let startByDevMode =
             if devMode
-            then fun () -> Promise.empty
-            else startFSAC
+            then Promise.empty
+            else doRetry startFSAC
 
-        doRetry startByDevMode
+        startByDevMode
         |> Promise.onSuccess (fun _ ->
             socketNotify <- startSocket "notify"
             socketNotifyWorkspace <- startSocket "notifyWorkspace"
