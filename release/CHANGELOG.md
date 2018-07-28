@@ -1,3 +1,6 @@
+### 3.25.0 - 27.07.2018
+* Add navigation to external definitions (decompiled C# code)
+
 ### 3.24.2 - 27.07.2018
 * EXPERIMENTAL Enable background symbol cache with `FSharp.enableBackgroundSymbolCache`
 * Split logging from symbol cache to its own output channel
