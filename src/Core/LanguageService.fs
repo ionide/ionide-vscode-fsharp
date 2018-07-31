@@ -170,7 +170,6 @@ module LanguageService =
         sprintf "%s, %s %s" whenMsg msg d
 
     let private requestRaw<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
-        Fable.Import.JS.console.log "requestRaw"
         let started = DateTime.Now
         let fullRequestUrl = url fsacAction requestId
         logOutgoingRequest requestId fsacAction obj
