@@ -289,6 +289,10 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "tooltip" 0 (makeRequestId())
 
+    let documentation fn line col =
+        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        |> request "documentation" 0 (makeRequestId())
+
     let toolbar fn line col =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "tooltip" 0 (makeRequestId())

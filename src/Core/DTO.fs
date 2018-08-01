@@ -22,6 +22,17 @@ module DTO =
         Footer: string
     }
 
+    type DocumentationDescription = {
+        XmlKey: string
+        Constructors: string list
+        Fields: string list
+        Functions: string list
+        Signature: string
+        Comment: string
+        Footer: string
+    }
+
+
     type Error = {
         /// 1-indexed first line of the error block
         StartLine : int
