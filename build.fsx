@@ -101,8 +101,9 @@ Target "CopyFSAC" (fun _ ->
     ensureDirectory releaseBin
     CleanDir releaseBin
 
-    !! (fsacBin + "/*")
-    |> CopyFiles releaseBin
+
+    CopyDir releaseBin fsacBin (fun _ -> true)
+    CopyFiles fsacBin !!"paket-files/github.com/fsharp/FsAutoComplete/src/FsAutoComplete/bin/Release/net461/win-x64/FSharp.Compiler.Service.ProjectCrackerTool.*"
 )
 
 Target "CopyFSACNetcore" (fun _ ->
@@ -110,6 +111,7 @@ Target "CopyFSACNetcore" (fun _ ->
     CleanDir releaseBinNetcore
 
     CopyDir releaseBinNetcore fsacBinNetcore (fun _ -> true)
+    CopyFiles fsacBinNetcore !!"paket-files/github.com/fsharp/FsAutoComplete/src/FsAutoComplete.SymbolCache.netcore/bin/Release/netcoreapp2.0/*.json"
 
     let mainfestFile = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
