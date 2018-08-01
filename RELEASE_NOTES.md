@@ -1,3 +1,8 @@
+### 3.25.1 - 01.08.2018
+* Make tooltips nicer - make sure that XML docs are converted correctly to the markdown, various fixes around signatures formatting, minimize module signature
+* Update Fable.HtmlConverter
+* Fix release process for updated version of FSAC.
+
 ### 3.25.0 - 27.07.2018
 * Add navigation to external definitions (decompiled C# code)
 
