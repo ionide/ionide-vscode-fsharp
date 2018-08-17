@@ -18,22 +18,11 @@ module Environment =
         if isWin then a + @"\" + b
         else a + "/" + b
 
-    let private dirExists dir =
-        try
-            node.fs.statSync(U2.Case1 dir).isDirectory()
-        with
-        | _ -> false
-
     let private fileExists file =
         try
             node.fs.statSync(U2.Case1 file).isFile()
         with
         | _ -> false
-
-    let private getOrElse defaultValue option =
-        match option with
-        | None -> defaultValue
-        | Some x -> x
 
     let private programFilesX86 =
         let wow64 = Globals.``process``.env?``PROCESSOR_ARCHITEW6432`` |> unbox<string>
@@ -50,46 +39,21 @@ module Environment =
         programFilesX86
         |> String.replace " (x86)" ""
 
-    let private getToolsPathWindows () =
-        let fsharpInstallDir = Globals.``process``.env?``FSHARPINSTALLDIR"`` |> unbox<string>
-        if dirExists fsharpInstallDir then
-            Some (fsharpInstallDir.TrimEnd '\\')
-        else
-            [ "10.1"; "4.1"; "4.0"; "3.1"; "3.0" ]
-            |> List.map (fun v -> programFilesX86 </> @"\Microsoft SDKs\F#\" </> v </> @"\Framework\v4.0")
-            |> List.tryFind dirExists
-
-    let private getToolsPathFromConfiguration () =
-        let cfg = workspace.getConfiguration ()
-        let path = cfg.get("FSharp.toolsDirPath", "")
-        if path <> "" && dirExists path then Some path
-        else None
-
-    let private getListDirectoriesToSearchForTools () =
-        if isWin then
-            [ getToolsPathFromConfiguration (); getToolsPathWindows () ]
-        else
-            [ getToolsPathFromConfiguration () ]
-        |> List.choose id
-
     let private findFirstValidFilePath exeName directoryList =
         directoryList
         |> List.map (fun v -> v </> exeName)
         |> List.tryFind fileExists
 
-    let private getFsiFilePath () =
-        if isWin then
-            let cfg = workspace.getConfiguration ()
-            let fsiPath = cfg.get("FSharp.fsiFilePath", "")
-            if fsiPath = ""  then "FsiAnyCpu.exe" else fsiPath
-        else "fsharpi"
+    let private fsiFileName = if isWin then "FsiAnyCpu.exe" else "fsharpi"
+    let private fscFileName = if isWin then "Fsc.exe" else "fsharpc"
 
-    let fsi =
-        let fileName = getFsiFilePath ()
-        let dirs = getListDirectoriesToSearchForTools ()
-        match findFirstValidFilePath fileName dirs with
-        | None -> fileName
-        | Some x -> x
+    let configFSIPath =
+        Configuration.tryGet "FSharp.fsiFilePath"
+        |> Option.map (fun path -> path </> fsiFileName)
+
+    let configFSCPath =
+        Configuration.tryGet "FSharp.fsiFilePath"
+        |> Option.map (fun path -> path </> fscFileName)
 
     // because the buffers from console output contain newlines, we need to trim them out if we want to have usable path inputs
     let spawnAndGetTrimmedOutput location linuxCmd command =
@@ -105,43 +69,7 @@ module Environment =
             spawnAndGetTrimmedOutput "which" "" toolName
             |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None )
 
-
-    /// discover the path to msbuild by a) checking the user-specified configuration, and only if that's not present then try probing
-    let msbuild =
-        let configured = Configuration.get "" "FSharp.msbuildLocation"
-        if configured <> ""
-        then configured |> Promise.lift
-        else
-            if not isWin
-            then
-                let tools = [
-                    "msbuild"
-                    "xbuild"
-                ]
-
-                promise {
-                    let! tools = Promise.all (tools |> List.map tryGetTool) |> Promise.map Seq.toList
-                    match tools with
-                    | [Some m; _] -> return m
-                    | [_; Some x] -> return x
-                    | _ -> return "xbuild" // at this point nothing really matters because we don't have a sane default at all :(
-                }
-            else
-                let MSBuildPath =
-                    [
-                      (programFilesX86 </> @"\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin")
-                      (programFilesX86 </> @"\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin")
-                      (programFilesX86 </> @"\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin")
-                      (programFilesX86 </> @"\MSBuild\15.0\Bin")
-                      (programFilesX86 </> @"\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin")
-                      (programFilesX86 </> @"\MSBuild\14.0\Bin")
-                      (programFilesX86 </> @"\MSBuild\12.0\Bin")
-                      (programFilesX86 </> @"\MSBuild\12.0\Bin\amd64")
-                      @"c:\Windows\Microsoft.NET\Framework\v4.0.30319\"
-                      @"c:\Windows\Microsoft.NET\Framework\v4.0.30128\"
-                      @"c:\Windows\Microsoft.NET\Framework\v3.5\" ]
-
-                defaultArg (findFirstValidFilePath "MSBuild.exe" MSBuildPath) "msbuild.exe" |> Promise.lift
+    let configMSBuildPath = Configuration.tryGet "FSharp.msbuildLocation"
 
     let dotnet =
         let configured = Configuration.get "" "FSharp.dotnetLocation"

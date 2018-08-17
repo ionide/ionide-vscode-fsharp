@@ -145,7 +145,7 @@ Error: %s
 
     let getMSBuildVersion () =
         promise {
-            let! msbuild = Environment.msbuild
+            let! msbuild = Binaries.msbuild ()
             let! version = execCommand msbuild [ "/version" ]
             return version.Trim()
         }

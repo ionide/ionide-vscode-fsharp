@@ -337,7 +337,7 @@ module Project =
 
     let buildWithMsbuild outputChannel (project:Project) =
         promise {
-            let! msbuild = Environment.msbuild
+            let! msbuild = Binaries.msbuild ()
             return! Process.spawnWithNotification msbuild "" (String.quote project.Project) outputChannel
             |> Process.toPromise
         }
