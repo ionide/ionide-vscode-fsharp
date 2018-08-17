@@ -602,10 +602,10 @@ NUGET
       FSharp.Core (>= 4.3.4) - restriction: >= netstandard2.0
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (a303a16b5cf31f429bea92caaadef4c2c83040aa)
+     (fb8bb1fb0636602b308093579659347ccb0a17b0)
       build: build.cmd LocalRelease
       os: windows
-     (a303a16b5cf31f429bea92caaadef4c2c83040aa)
+     (fb8bb1fb0636602b308093579659347ccb0a17b0)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
@@ -1138,5 +1138,5 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (< portable-net45+win8+wp8+wpa81)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (e12702e99e775460e77b116fada9568ae291a7c7)
+    modules/Octokit/Octokit.fsx (0e2a58d4065fc3dda72448c1a3d978ab433c170f)
       Octokit (>= 0.20)
