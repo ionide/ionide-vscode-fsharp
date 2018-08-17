@@ -1,3 +1,6 @@
+### 3.25.2 - 17.08.2018
+* Update FSAC - VS 2017 breaking changes
+
 ### 3.25.1 - 01.08.2018
 * Make tooltips nicer - make sure that XML docs are converted correctly to the markdown, various fixes around signatures formatting, minimize module signature
 * Update Fable.HtmlConverter
