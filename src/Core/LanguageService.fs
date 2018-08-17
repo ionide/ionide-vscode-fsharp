@@ -317,7 +317,7 @@ module LanguageService =
         {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
         |> request "signatureData" 0 (makeRequestId())
 
-    let declarations fn (text : string) version=
+    let declarations fn (text : string) version =
         let lines = text.Replace("\uFEFF", "").Split('\n')
         {DeclarationsRequest.FileName = handleUntitled fn; Lines = lines; Version = version}
         |> request<_, Result<Symbols[]>> "declarations" 0 (makeRequestId())
@@ -327,7 +327,7 @@ module LanguageService =
         "" |> request "declarationsProjects" 0 (makeRequestId())
 
     let compilerLocation () =
-        "" |> request "compilerlocation" 0 (makeRequestId())
+        "" |> request<string, CompilerLocationResult> "compilerlocation" 0 (makeRequestId())
 
     let lint s =
         {ProjectRequest.FileName = s}
@@ -520,19 +520,19 @@ module LanguageService =
 
     type [<RequireQualifiedAccess>] FSACTargetRuntime = NET | NetcoreFdd
 
-    let startFSAC () =
-         let fsacTargetRuntime =
-            match "FSharp.fsacRuntime" |> Configuration.get "net" with
-            | "netcore" -> FSACTargetRuntime.NetcoreFdd
-            | "net" | _ -> FSACTargetRuntime.NET
+    let targetRuntime =
+        match "FSharp.fsacRuntime" |> Configuration.get "net" with
+        | "netcore" -> FSACTargetRuntime.NetcoreFdd
+        | "net" | _ -> FSACTargetRuntime.NET
 
+    let startFSAC () =
          let ionidePluginPath =
             try
                 (VSCode.getPluginPath "Ionide.ionide-fsharp")
             with
             | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp")
 
-         match fsacTargetRuntime with
+         match targetRuntime with
          | FSACTargetRuntime.NET ->
              let path = ionidePluginPath + "/bin/fsautocomplete.exe"
              let fsacExe, fsacArgs =

@@ -122,7 +122,7 @@ module DTO =
     }
 
     type CompilerLocation = {
-        Fcs : string
+        Fsc : string
         Fsi : string
         MSBuild : string
     }

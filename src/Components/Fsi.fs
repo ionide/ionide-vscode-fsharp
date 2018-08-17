@@ -60,8 +60,8 @@ module Fsi =
                 else
                     fsiParams
                 |> Array.ofList
-
-            let terminal = window.createTerminal("F# Interactive", Environment.fsi, parms)
+            let! fsiPath = Binaries.fsi ()
+            let terminal = window.createTerminal("F# Interactive", fsiPath, parms)
             terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
             lastCd <- None
             lastCurrentFile <- None
@@ -69,8 +69,7 @@ module Fsi =
             sendCd window.activeTextEditor
             terminal.show(true)
             return terminal
-
-            }
+        }
         |> Promise.onFail (fun _ ->
             window.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore)
 

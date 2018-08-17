@@ -27,6 +27,7 @@
     <Compile Include="Core/Environment.fs" />
     <Compile Include="Core/Logging.fs" />
     <Compile Include="Core/LanguageService.fs" />
+    <Compile Include="Core/Binaries.fs" />
     <Compile Include="Core/Project.fs" />
     <Compile Include="Components/Tooltip.fs" />
     <Compile Include="Components/Autocomplete.fs" />

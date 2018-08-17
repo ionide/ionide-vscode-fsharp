@@ -79,6 +79,10 @@ module Document =
 
 [<RequireQualifiedAccess>]
 module Configuration =
+    let tryGet key =
+        let configuredValue = workspace.getConfiguration().get(key)
+        if configuredValue = "" then None else Some configuredValue
+
     let get defaultValue key =
         workspace.getConfiguration().get(key, defaultValue)
 
