@@ -38,7 +38,7 @@ module MSBuild =
 
     let pickMSbuildHostType () =
         promise {
-            let! envMsbuild = Binaries.msbuild ()
+            let! envMsbuild = LanguageService.msbuild ()
             let! envDotnet = Environment.dotnet
 
             let hosts =
@@ -131,7 +131,7 @@ module MSBuild =
 
                 let! msbuildPath =
                     match host' with
-                    | MSbuildHost.MSBuildExe -> Binaries.msbuild () |> Promise.map Option.get // TODO: send notification and fail if msbuild isn't there
+                    | MSbuildHost.MSBuildExe -> LanguageService.msbuild () |> Promise.map Option.get // TODO: send notification and fail if msbuild isn't there
                     | MSbuildHost.DotnetCli -> Environment.dotnet
                     | MSbuildHost.Auto -> Promise.lift ""
 
@@ -367,7 +367,7 @@ module MSBuild =
             f p h
 
         let envMsbuild =
-            Binaries.msbuild ()
+            LanguageService.msbuild ()
             |> Promise.bind (fun p -> 
                 match p with
                 | Some p ->

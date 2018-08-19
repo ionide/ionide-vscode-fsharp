@@ -438,6 +438,37 @@ module LanguageService =
         { ProjectRequest.FileName = s }
         |> request "registerAnalyzer" 0 (makeRequestId())
 
+    let private fsacConfig () = 
+        compilerLocation () 
+        |> Promise.map (fun c -> c.Data)
+
+    let fsi () = 
+        promise {
+            match Environment.configFSIPath with
+            | Some path -> return Some path
+            | None ->
+                let! fsacPaths = fsacConfig ()
+                return fsacPaths.Fsi
+        }
+
+    let fsc () = 
+        promise {
+            match Environment.configFSCPath with
+            | Some path -> return Some path
+            | None ->
+                let! fsacPaths = fsacConfig ()
+                return fsacPaths.Fsc
+        }
+
+    let msbuild () =
+        promise {
+            match Environment.configMSBuildPath with
+            | Some path -> return Some path
+            | None ->
+                let! fsacPaths = fsacConfig ()
+                return fsacPaths.MSBuild
+        } 
+
     [<PassGenerics>]
     let private registerNotifyAll (cb : 'a -> unit) (ws : WebSocket) =
         ws.on_message((fun (res : string) ->
@@ -554,27 +585,49 @@ module LanguageService =
         match "FSharp.fsacRuntime" |> Configuration.get "net" with
         | "netcore" -> FSACTargetRuntime.NetcoreFdd
         | "net" | _ -> FSACTargetRuntime.NET
-
-    let startFSAC () =
-         let ionidePluginPath =
-            try
-                (VSCode.getPluginPath "Ionide.ionide-fsharp")
-            with
-            | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp")
-
-         match targetRuntime with
-         | FSACTargetRuntime.NET ->
-             let path = ionidePluginPath + "/bin/fsautocomplete.exe"
-             let fsacExe, fsacArgs =
+    
+    let spawnFSACForRuntime runtime rootPath =
+        match runtime with
+        | FSACTargetRuntime.NET ->
+            let path = rootPath + "/bin/fsautocomplete.exe"
+            let fsacExe, fsacArgs =
                 if Process.isMono () then
                     let mono = "FSharp.monoPath" |> Configuration.get "mono"
                     mono, [ yield path ]
                 else
                     path, []
-             start' fsacExe fsacArgs
-         | FSACTargetRuntime.NetcoreFdd ->
-             let path = ionidePluginPath + "/bin_netcore/fsautocomplete.dll"
-             start' "dotnet" [ path ]
+            start' fsacExe fsacArgs
+        | FSACTargetRuntime.NetcoreFdd ->
+            let path = rootPath + "/bin_netcore/fsautocomplete.dll"
+            start' "dotnet" [ path ]
+
+    let ensurePrereqsForRuntime runtime =
+        match runtime with
+        | FSACTargetRuntime.NET -> 
+            promise {
+                let! fsc = fsc ()
+                let! msbuild = msbuild ()
+                match fsc, msbuild with
+                | Some fsc, Some msbuild -> return ()
+                | _, _ -> 
+                    if Environment.isWin
+                    then return! vscode.window.showErrorMessage "Missing binaries for Windows .Net" |> Promise.map ignore
+                    else return! vscode.window.showErrorMessage "Missing binaries for Mono" |> Promise.map ignore
+            }
+        | FSACTargetRuntime.NetcoreFdd -> 
+            Promise.lift ()
+
+    let startFSAC () =
+        let ionidePluginPath =
+            try
+                (VSCode.getPluginPath "Ionide.ionide-fsharp")
+            with
+            | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp")
+        promise {
+            do! ensurePrereqsForRuntime targetRuntime
+            return! spawnFSACForRuntime targetRuntime ionidePluginPath
+        }
+       
 
     let start () =
         let rec doRetry procPromise =

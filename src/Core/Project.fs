@@ -351,7 +351,7 @@ module Project =
 
     let buildWithMsbuild outputChannel (project : Project) =
         promise {
-            let! msbuild = Binaries.msbuild ()
+            let! msbuild = LanguageService.msbuild ()
             match msbuild with
             | Some msbuild -> 
                 return! Process.spawnWithNotification msbuild "" (String.quote project.Project) outputChannel

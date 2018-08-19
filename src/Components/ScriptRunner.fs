@@ -14,7 +14,7 @@ module ScriptRunner =
 
         promise {
             let! fsi = 
-                Binaries.fsi ()
+                LanguageService.fsi ()
                 |> Promise.bind (fun p -> 
                     match p with
                     | Some fsi -> Promise.lift fsi
