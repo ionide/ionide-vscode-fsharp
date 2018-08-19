@@ -353,7 +353,7 @@ module Project =
         promise {
             let! msbuild = LanguageService.msbuild ()
             match msbuild with
-            | Some msbuild -> 
+            | Some msbuild ->
                 return! Process.spawnWithNotification msbuild "" (String.quote project.Project) outputChannel
                 |> Process.toPromise
             | None ->

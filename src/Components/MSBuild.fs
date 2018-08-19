@@ -131,7 +131,10 @@ module MSBuild =
 
                 let! msbuildPath =
                     match host' with
-                    | MSbuildHost.MSBuildExe -> LanguageService.msbuild () |> Promise.map Option.get // TODO: send notification and fail if msbuild isn't there
+                    | MSbuildHost.MSBuildExe ->
+                        LanguageService.msbuild ()
+                        |> Promise.bind (function Some msbuild -> Promise.lift msbuild
+                                                | None -> Promise.reject "MsBuild binary not found. Please install it from the [Visual Studio Download Page](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)")
                     | MSbuildHost.DotnetCli -> Environment.dotnet
                     | MSbuildHost.Auto -> Promise.lift ""
 
@@ -368,7 +371,7 @@ module MSBuild =
 
         let envMsbuild =
             LanguageService.msbuild ()
-            |> Promise.bind (fun p -> 
+            |> Promise.bind (fun p ->
                 match p with
                 | Some p ->
                     logger.Info("MSBuild (.NET) found at %s", p)

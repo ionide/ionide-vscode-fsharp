@@ -61,7 +61,7 @@ module Fsi =
                 else
                     fsiParams
                 |> Array.ofList
-            let! fsiPath = 
+            let! fsiPath =
                 LanguageService.fsi ()
                 |> Promise.bind (fun fsi -> match fsi with Some fsi -> Promise.lift fsi | None -> Promise.reject "FSI not found")
 

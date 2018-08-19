@@ -13,9 +13,9 @@ module ScriptRunner =
         let scriptDir = node.path.dirname(scriptFile)
 
         promise {
-            let! fsi = 
+            let! fsi =
                 LanguageService.fsi ()
-                |> Promise.bind (fun p -> 
+                |> Promise.bind (fun p ->
                     match p with
                     | Some fsi -> Promise.lift fsi
                     | None -> Promise.reject "FSI not found"

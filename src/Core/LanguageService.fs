@@ -442,7 +442,7 @@ module LanguageService =
         compilerLocation () 
         |> Promise.map (fun c -> c.Data)
 
-    let fsi () = 
+    let fsi () =
         promise {
             match Environment.configFSIPath with
             | Some path -> return Some path
@@ -451,7 +451,7 @@ module LanguageService =
                 return fsacPaths.Fsi
         }
 
-    let fsc () = 
+    let fsc () =
         promise {
             match Environment.configFSCPath with
             | Some path -> return Some path
@@ -467,7 +467,7 @@ module LanguageService =
             | None ->
                 let! fsacPaths = fsacConfig ()
                 return fsacPaths.MSBuild
-        } 
+        }
 
     [<PassGenerics>]
     let private registerNotifyAll (cb : 'a -> unit) (ws : WebSocket) =
@@ -585,7 +585,7 @@ module LanguageService =
         match "FSharp.fsacRuntime" |> Configuration.get "net" with
         | "netcore" -> FSACTargetRuntime.NetcoreFdd
         | "net" | _ -> FSACTargetRuntime.NET
-    
+
     let spawnFSACForRuntime runtime rootPath =
         match runtime with
         | FSACTargetRuntime.NET ->
@@ -603,18 +603,18 @@ module LanguageService =
 
     let ensurePrereqsForRuntime runtime =
         match runtime with
-        | FSACTargetRuntime.NET -> 
+        | FSACTargetRuntime.NET ->
             promise {
                 let! fsc = fsc ()
                 let! msbuild = msbuild ()
                 match fsc, msbuild with
-                | Some fsc, Some msbuild -> return ()
-                | _, _ -> 
+                | Some _, Some _ -> return ()
+                | _, _ ->
                     if Environment.isWin
-                    then return! vscode.window.showErrorMessage "Missing binaries for Windows .Net" |> Promise.map ignore
-                    else return! vscode.window.showErrorMessage "Missing binaries for Mono" |> Promise.map ignore
+                    then return! vscode.window.showErrorMessage "Visual Studio Build Tools not found. Please install them from the [Visual Studio Download Page](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)" |> Promise.map ignore
+                    else return! vscode.window.showErrorMessage "Mono installation not found. Please install the latest version for your operating system from the [Mono Project](https://www.mono-project.com/download/stable/)" |> Promise.map ignore
             }
-        | FSACTargetRuntime.NetcoreFdd -> 
+        | FSACTargetRuntime.NetcoreFdd ->
             Promise.lift ()
 
     let startFSAC () =
@@ -623,11 +623,7 @@ module LanguageService =
                 (VSCode.getPluginPath "Ionide.ionide-fsharp")
             with
             | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp")
-        promise {
-            do! ensurePrereqsForRuntime targetRuntime
-            return! spawnFSACForRuntime targetRuntime ionidePluginPath
-        }
-       
+        spawnFSACForRuntime targetRuntime ionidePluginPath
 
     let start () =
         let rec doRetry procPromise =
@@ -656,6 +652,7 @@ module LanguageService =
             socketNotifyAnalyzer <- startSocket "notifyAnalyzer"
             ()
         )
+        |> Promise.bind (fun _ -> ensurePrereqsForRuntime targetRuntime)
 
     let stop () =
         exitRequested <- true
