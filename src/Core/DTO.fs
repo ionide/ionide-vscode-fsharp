@@ -137,9 +137,9 @@ module DTO =
           Overloads : Overload [] }
 
     type CompilerLocation =
-        { Fsc : string
-          Fsi : string
-          MSBuild : string }
+        { Fsc : string option
+          Fsi : string option
+          MSBuild : string option }
 
     type Range =
         { StartColumn : int
@@ -189,7 +189,6 @@ module DTO =
     type AnalyzerResponse =
         { File: string
           Messages: AnalyzerMsg []}
-
 
     type ProjectFilePath = string
     type SourceFilePath = string

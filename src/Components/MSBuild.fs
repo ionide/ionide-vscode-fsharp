@@ -42,8 +42,9 @@ module MSBuild =
             let! envDotnet = Environment.dotnet
 
             let hosts =
-                [ sprintf ".NET (%s)" envMsbuild, MSbuildHost.MSBuildExe
-                  sprintf ".NET Core (%s msbuild)" envDotnet, MSbuildHost.DotnetCli ]
+                [ yield envMsbuild |> Option.map (fun msbuild -> sprintf ".NET (%s)" msbuild, MSbuildHost.MSBuildExe)
+                  yield Some (sprintf ".NET Core (%s msbuild)" envDotnet, MSbuildHost.DotnetCli) ]
+                |> List.choose id
                 |> Map.ofList
 
             let hostsLabels = hosts |> Map.toList |> List.map fst |> ResizeArray
@@ -130,9 +131,10 @@ module MSBuild =
 
                 let! msbuildPath =
                     match host' with
-                    | MSbuildHost.MSBuildExe -> Binaries.msbuild ()
+                    | MSbuildHost.MSBuildExe -> Binaries.msbuild () |> Promise.map Option.get // TODO: send notification and fail if msbuild isn't there
                     | MSbuildHost.DotnetCli -> Environment.dotnet
                     | MSbuildHost.Auto -> Promise.lift ""
+
                 let cmd =
                     match host' with
                     | MSbuildHost.MSBuildExe -> command
@@ -366,15 +368,20 @@ module MSBuild =
 
         let envMsbuild =
             Binaries.msbuild ()
-            |> Promise.map (fun p ->
-                logger.Info("MSBuild (.NET) found at %s", p)
-                p)
+            |> Promise.bind (fun p -> 
+                match p with
+                | Some p ->
+                    logger.Info("MSBuild (.NET) found at %s", p)
+                    Promise.lift p
+                | None -> Promise.reject "MSBuild not found"
+            )
 
         let envDotnet =
             Environment.dotnet
             |> Promise.map (fun p ->
                 logger.Info("Dotnet cli (.NET Core) found at %s", p)
-                p)
+                p
+            )
 
         host.onMSbuildHostTypeDidChange
         |> Event.invoke (fun host ->

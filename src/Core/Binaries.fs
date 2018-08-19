@@ -12,13 +12,28 @@ module Binaries =
         |> Promise.map (fun c -> c.Data)
 
     let fsi () = 
-        Environment.configFSIPath |> Option.map Promise.lift
-        |> Option.defaultWith (fsacConfig >> Promise.map (fun paths -> paths.Fsi))
+        promise {
+            match Environment.configFSIPath with
+            | Some path -> return Some path
+            | None ->
+                let! fsacPaths = fsacConfig ()
+                return fsacPaths.Fsi
+        }
 
     let fsc () = 
-        Environment.configFSCPath |> Option.map Promise.lift
-        |> Option.defaultWith (fsacConfig >> Promise.map (fun paths -> paths.Fsc))
-        
-    let msbuild () = 
-        Environment.configMSBuildPath |> Option.map Promise.lift
-        |> Option.defaultWith (fsacConfig >> Promise.map (fun paths -> paths.MSBuild))
+        promise {
+            match Environment.configFSCPath with
+            | Some path -> return Some path
+            | None ->
+                let! fsacPaths = fsacConfig ()
+                return fsacPaths.Fsc
+        }
+
+    let msbuild () =
+        promise {
+            match Environment.configMSBuildPath with
+            | Some path -> return Some path
+            | None ->
+                let! fsacPaths = fsacConfig ()
+                return fsacPaths.MSBuild
+        } 

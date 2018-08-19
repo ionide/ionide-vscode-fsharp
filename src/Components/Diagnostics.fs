@@ -145,7 +145,10 @@ Error: %s
 
     let getMSBuildVersion () =
         promise {
-            let! msbuild = Binaries.msbuild ()
+            let! msbuild = 
+                Binaries.msbuild ()
+                |> Promise.bind (fun msb -> match msb with Some msb -> Promise.lift msb | None -> Promise.reject "MsBuild not found")
+                
             let! version = execCommand msbuild [ "/version" ]
             return version.Trim()
         }

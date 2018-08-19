@@ -352,8 +352,13 @@ module Project =
     let buildWithMsbuild outputChannel (project : Project) =
         promise {
             let! msbuild = Binaries.msbuild ()
-            return! Process.spawnWithNotification msbuild "" (String.quote project.Project) outputChannel
-            |> Process.toPromise
+            match msbuild with
+            | Some msbuild -> 
+                return! Process.spawnWithNotification msbuild "" (String.quote project.Project) outputChannel
+                |> Process.toPromise
+            | None ->
+                // TODO: fire notification that msbuild isn't available so....
+                return { Code = None; Signal = None }
         }
 
     let buildWithDotnet outputChannel (project : Project) =
