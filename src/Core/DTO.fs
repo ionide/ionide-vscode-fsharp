@@ -15,6 +15,7 @@ module DTO =
         { FileName : string
           Lines : string[]
           Version : int }
+
     type HelptextRequest = { Symbol : string }
 
     type PositionRequest =
