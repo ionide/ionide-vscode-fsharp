@@ -16,15 +16,15 @@ module node = Fable.Import.Node.Exports
 module LaunchJsonVersion2 =
 
     type [<Pojo>] RequestLaunch =
-        { name: string
-          ``type``: string
-          request: string
-          preLaunchTask: string option
-          program: string
-          args: string array
-          cwd: string
-          console: string
-          stopAtEntry: bool }
+        { name : string
+          ``type`` : string
+          request : string
+          preLaunchTask : string option
+          program : string
+          args : string array
+          cwd : string
+          console : string
+          stopAtEntry : bool }
 
     let createRequestLaunch () =
         { RequestLaunch.name = ".NET Core Launch (console)"
@@ -38,10 +38,10 @@ module LaunchJsonVersion2 =
           stopAtEntry = false }
 
     type [<Pojo>] RequestAttach =
-        { name: string
-          ``type``: string
-          request: string
-          processId: string }
+        { name : string
+          ``type`` : string
+          request : string
+          processId : string }
 
     let createAttachLaunch () =
         { RequestAttach.name = ".NET Core Attach"
