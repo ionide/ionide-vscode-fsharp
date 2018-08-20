@@ -30,14 +30,13 @@ module Errors =
             |> ResizeArray
         ev.Data.File, errors
 
-    type DocumentParsedEvent = {
-        fileName: string
-        text: string
-        version: float
-        /// BEWARE: Live object, might have changed since the parsing
-        document: TextDocument
-        result: ParseResult
-    }
+    type DocumentParsedEvent =
+        { fileName : string
+          text : string
+          version : float
+          /// BEWARE: Live object, might have changed since the parsing
+          document : TextDocument
+          result : ParseResult }
 
     let private onDocumentParsedEmitter = EventEmitter<DocumentParsedEvent>()
     let onDocumentParsed = onDocumentParsedEmitter.event;
