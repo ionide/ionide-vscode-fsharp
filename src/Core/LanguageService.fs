@@ -19,7 +19,12 @@ module LanguageService =
     let devMode = false
 
     [<RequireQualifiedAccess>]
-    type LogConfigSetting = None | Output | DevConsole | Both
+    type LogConfigSetting =
+        | None
+        | Output
+        | DevConsole
+        | Both
+
     let logLanguageServiceRequestsConfigSetting =
         try
             match "FSharp.logLanguageServiceRequests" |> Configuration.get "output" with
@@ -518,7 +523,9 @@ module LanguageService =
             |> vscode.window.showErrorMessage
             |> ignore)
 
-    type [<RequireQualifiedAccess>] FSACTargetRuntime = NET | NetcoreFdd
+    type [<RequireQualifiedAccess>] FSACTargetRuntime =
+        | NET
+        | NetcoreFdd
 
     let targetRuntime =
         match "FSharp.fsacRuntime" |> Configuration.get "net" with
