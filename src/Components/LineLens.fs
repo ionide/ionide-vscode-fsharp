@@ -19,9 +19,9 @@ module LineLensConfig =
     open System.Text.RegularExpressions
 
     type EnabledMode =
-    | Never
-    | ReplaceCodeLens
-    | Always
+        | Never
+        | ReplaceCodeLens
+        | Always
 
     let private parseEnabledMode (s: string) =
         match s.ToLowerInvariant() with
@@ -30,12 +30,11 @@ module LineLensConfig =
         | "replacecodelens"
         | _ -> ReplaceCodeLens
 
-    type LineLensConfig = {
-        enabled: EnabledMode
-        prefix: string
-    }
+    type LineLensConfig =
+        { enabled : EnabledMode
+          prefix : string }
 
-    let defaultConfig = {
+    let defaultConfig ={
         enabled = ReplaceCodeLens
         prefix = " //  "
     }
@@ -57,21 +56,19 @@ module LineLensConfig =
         | _ -> false
 
 module Documents =
-    type Cached = {
-        /// vscode document version that was parsed
-        version: Number
-        /// Decorations
-        decorations: ResizeArray<DecorationOptions>
-        /// Text editors where the decorations are shown
-        textEditors: ResizeArray<TextEditor>
-    }
+    type Cached =
+        { /// vscode document version that was parsed
+          version : Number
+          /// Decorations
+          decorations : ResizeArray<DecorationOptions>
+          /// Text editors where the decorations are shown
+          textEditors : ResizeArray<TextEditor> }
 
-    type DocumentInfo = {
-        /// Full path of the document
-        fileName: string
-        /// Current decoration cache
-        cache: Cached option
-    }
+    type DocumentInfo =
+        { /// Full path of the document
+          fileName : string
+          /// Current decoration cache
+          cache : Cached option }
 
     type Documents = Dictionary<string, DocumentInfo>
 
@@ -137,11 +134,10 @@ module LineLensDecorations =
         opt.isWholeLine <- Some true
         opt
 
-type State = {
-    documents: Documents.Documents
-    decorationType: TextEditorDecorationType
-    disposables: ResizeArray<Disposable>
-    }
+type State =
+    { documents : Documents.Documents
+      decorationType : TextEditorDecorationType
+      disposables : ResizeArray<Disposable> }
 
 module DecorationUpdate =
     let private lineRange (doc: TextDocument) (range: DTO.Range) : CodeRange.CodeRange =
