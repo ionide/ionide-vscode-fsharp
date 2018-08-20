@@ -13,7 +13,9 @@ module node = Fable.Import.Node.Exports
 
 module Forge =
 
-    type Template = {name : string; value : string}
+    type Template =
+        { name : string
+          value : string }
 
     type TemplateFile = { Templates : Template[] }
 
