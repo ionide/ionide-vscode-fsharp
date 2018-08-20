@@ -15,24 +15,23 @@ module node = Fable.Import.Node.Exports
 module SolutionExplorer =
     type Model =
         | Workspace of Projects : Model list
-        | Solution of parent: Model option ref * path: string * name: string * items: Model list
-        | WorkspaceFolder of parent: Model option ref * name: string * items: Model list
-        | ReferenceList of parent: Model option ref * References: Model list * projectPath : string
-        | ProjectReferencesList of parent: Model option ref * Projects : Model list * ProjectPath : string
-        | ProjectNotLoaded of parent: Model option ref * path: string * name: string
-        | ProjectLoading of parent: Model option ref * path: string * name: string
-        | ProjectFailedToLoad of parent: Model option ref * path: string * name: string * error: string
-        | ProjectNotRestored of parent: Model option ref * path: string * name: string * error: string
-        | Project of parent: Model option ref * path: string * name: string * Files: Model list * ProjectReferencesList : Model  * ReferenceList: Model * isExe : bool * project : DTO.Project
-        | Folder of parent: Model option ref * name : string * path: string * Files : Model list * projectPath : string
-        | File of parent: Model option ref * path: string * name: string * projectPath : string
-        | Reference of parent: Model option ref * path: string * name: string * projectPath : string
-        | ProjectReference of parent: Model option ref * path: string * name: string * projectPath : string
+        | Solution of parent : Model option ref * path : string * name : string * items : Model list
+        | WorkspaceFolder of parent : Model option ref * name : string * items : Model list
+        | ReferenceList of parent : Model option ref * References : Model list * projectPath : string
+        | ProjectReferencesList of parent : Model option ref * Projects : Model list * ProjectPath : string
+        | ProjectNotLoaded of parent : Model option ref * path : string * name : string
+        | ProjectLoading of parent : Model option ref * path : string * name : string
+        | ProjectFailedToLoad of parent : Model option ref * path : string * name : string * error : string
+        | ProjectNotRestored of parent : Model option ref * path : string * name : string * error : string
+        | Project of parent : Model option ref * path : string * name : string * Files : Model list * ProjectReferencesList : Model  * ReferenceList : Model * isExe : bool * project : DTO.Project
+        | Folder of parent : Model option ref * name : string * path : string * Files : Model list * projectPath : string
+        | File of parent : Model option ref * path : string * name : string * projectPath : string
+        | Reference of parent : Model option ref * path : string * name : string * projectPath : string
+        | ProjectReference of parent : Model option ref * path : string * name : string * projectPath : string
 
-    type NodeEntry = {
-        Key : string
-        Children : Dictionary<string, NodeEntry>
-    }
+    type NodeEntry =
+        { Key : string
+          Children : Dictionary<string, NodeEntry> }
 
     let rec add' (state : NodeEntry) (entry : string) index =
         let sep = node.path.sep
@@ -387,10 +386,9 @@ module SolutionExplorer =
             if inFsharpActivity then "ionide.projectExplorerInActivity" else "ionide.projectExplorer"
 
     module AutoReveal =
-        type private State = {
-            RootModel: Model
-            ModelPerFile: Map<string, Model>
-        }
+        type private State =
+            { RootModel : Model
+              ModelPerFile : Map<string, Model> }
 
         let private onDidChangeActiveTextEditor (tree: TreeView<Model>) (state: State option ref) (textEditor: TextEditor) =
             if JS.isDefined textEditor then
