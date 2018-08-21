@@ -49,11 +49,10 @@ module Environment =
 
     let configFSIPath =
         Configuration.tryGet "FSharp.fsiFilePath"
-        |> Option.map (fun path -> path </> fsiFileName)
 
     let configFSCPath =
         Configuration.tryGet "FSharp.fsiFilePath"
-        |> Option.map (fun path -> path </> fscFileName)
+        |> Option.bind (fun path -> try Some (node.path.dirname path </> fscFileName) with _ -> None) //dirname could fail so wrap that
 
     // because the buffers from console output contain newlines, we need to trim them out if we want to have usable path inputs
     let spawnAndGetTrimmedOutput location linuxCmd command =
