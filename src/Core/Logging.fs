@@ -9,12 +9,26 @@ module Logging =
     open Ionide.VSCode.FSharp.Node.Util
     open System
 
-    type Level = DEBUG|INFO|WARN|ERROR
+    type Level =
+        | DEBUG
+        | INFO
+        | WARN
+        | ERROR
         with
-            static member GetLevelNum = function DEBUG->10|INFO->20|WARN->30|ERROR->40
-            override this.ToString() = match this with ERROR->"ERROR"|INFO->"INFO"|WARN->"WARN"|DEBUG->"DEBUG"
-            member this.isGreaterOrEqualTo level = Level.GetLevelNum(this) >= Level.GetLevelNum(level)
-            member this.isLessOrEqualTo level = Level.GetLevelNum(this) <= Level.GetLevelNum(level)
+        static member GetLevelNum =
+            function
+            | DEBUG -> 10
+            | INFO -> 20
+            | WARN -> 30
+            | ERROR -> 40
+        override this.ToString() =
+            match this with
+            | ERROR -> "ERROR"
+            | INFO -> "INFO"
+            | WARN -> "WARN"
+            | DEBUG -> "DEBUG"
+        member this.isGreaterOrEqualTo level = Level.GetLevelNum(this) >= Level.GetLevelNum(level)
+        member this.isLessOrEqualTo level = Level.GetLevelNum(this) <= Level.GetLevelNum(level)
 
     let mutable private ionideLogsMemory = []
 
@@ -85,15 +99,17 @@ module Logging =
 
     /// The templates may use node util.format placeholders: %s, %d, %j, %%
     /// https://nodejs.org/api/util.html#util_util_format_format
-    type ConsoleAndOutputChannelLogger(source: string option, chanDefaultMinLevel: Level, out:OutputChannel option, consoleMinLevel: Level option) =
+    type ConsoleAndOutputChannelLogger(source : string option,
+                                       chanDefaultMinLevel : Level,
+                                       out : OutputChannel option,
+                                       consoleMinLevel : Level option) =
         member val ChanMinLevel = chanDefaultMinLevel with get, set
 
         /// Logs a different message in either DEBUG (if enabled) or INFO (otherwise).
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
-        member this.DebugOrInfo
-                        (debugTemplateAndArgs: string * obj[])
-                        (infoTemplateAndArgs: string * obj[]) =
+        member this.DebugOrInfo (debugTemplateAndArgs : string * obj[])
+                                (infoTemplateAndArgs : string * obj[]) =
             // OutputChannel: when at DEBUG level, use the DEBUG template and args, otherwise INFO
             if out.IsSome then
                 if this.ChanMinLevel.isLessOrEqualTo(Level.DEBUG) then
@@ -111,26 +127,26 @@ module Logging =
         /// Logs a message that should/could be seen by developers when diagnosing problems.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
-        member this.Debug (template, [<ParamArray>]args:obj[]) =
+        member this.Debug (template, [<ParamArray>] args : obj[]) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel DEBUG source template args
         /// Logs a message that should/could be seen by the user in the output channel.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
-        member this.Info (template, [<ParamArray>]args:obj[]) =
+        member this.Info (template, [<ParamArray>] args : obj[]) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel INFO source template args
         /// Logs a message that should/could be seen by the user in the output channel when a problem happens.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
-        member this.Error (template, [<ParamArray>]args:obj[]) =
+        member this.Error (template, [<ParamArray>] args : obj[]) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel ERROR source template args
         /// Logs a message that should/could be seen by the user in the output channel when a problem happens.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
-        member this.Warn (template, [<ParamArray>]args:obj[]) =
+        member this.Warn (template, [<ParamArray>] args : obj[]) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel WARN source template args
         /// Logs a message that should/could be seen by the user in the output channel if the promise fail.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
-        member this.ErrorOnFailed text (p: Fable.Import.JS.Promise<_>) =
+        member this.ErrorOnFailed text (p : Fable.Import.JS.Promise<_>) =
             p.catch(Func<obj,unit>(fun err -> this.Error(text + ": %O", err)))
             |> ignore

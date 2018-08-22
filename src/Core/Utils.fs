@@ -118,47 +118,47 @@ module JS =
 
     type JsObject =
         [<Emit("$0[$1]")>]
-        member __.get<'a>(key: string): 'a = jsNative
+        member __.get<'a>(key : string) : 'a = jsNative
 
         [<Emit("$0.hasOwnProperty($1)?$0[$1]:null")>]
-        member __.tryGet<'a>(key: string): Option<'a> = jsNative
+        member __.tryGet<'a>(key : string) : Option<'a> = jsNative
 
         [<Emit("$0.hasOwnProperty($1)")>]
-        member __.hasOwnProperty(key: string): bool = jsNative
+        member __.hasOwnProperty(key : string) : bool = jsNative
 
         [<Emit("$0[$1]=$2")>]
-        member __.set<'a>(key: string, value: 'a) = jsNative
+        member __.set<'a>(key : string, value : 'a) = jsNative
 
         [<Emit("$0[$1]=$2")>]
-        member __.set<'a>(key: string, value: 'a option) = jsNative
+        member __.set<'a>(key : string, value : 'a option) = jsNative
 
         [<Emit("delete $0[$1]")>]
-        member __.delete(key: string): unit = jsNative
+        member __.delete(key : string) : unit = jsNative
 
         [<Emit("{}")>]
-        static member empty: JsObject = jsNative
+        static member empty : JsObject = jsNative
 
     type JsObjectAsDictionary<'a> =
         [<Emit("$0[$1]")>]
-        member __.get(key: string): 'a = jsNative
+        member __.get(key : string) : 'a = jsNative
 
         [<Emit("$0.hasOwnProperty($1)?$0[$1]:null")>]
-        member __.tryGet(key: string): Option<'a> = jsNative
+        member __.tryGet(key : string) : Option<'a> = jsNative
 
         [<Emit("$0.hasOwnProperty($1)")>]
-        member __.hasOwnProperty(key: string): bool = jsNative
+        member __.hasOwnProperty(key : string) : bool = jsNative
 
         [<Emit("$0[$1]=$2")>]
-        member __.set(key: string, value: 'a) = jsNative
+        member __.set(key : string, value : 'a) = jsNative
 
         [<Emit("$0[$1]=$2")>]
-        member __.set(key: string, value: 'a option) = jsNative
+        member __.set(key : string, value : 'a option) = jsNative
 
         [<Emit("delete $0[$1]")>]
-        member __.delete(key: string): unit = jsNative
+        member __.delete(key : string) : unit = jsNative
 
         [<Emit("{}")>]
-        static member empty: JsObjectAsDictionary<'a> = jsNative
+        static member empty : JsObjectAsDictionary<'a> = jsNative
 
     let inline undefined<'a> = unbox<'a> ()
 

@@ -12,12 +12,13 @@ open DTO
 module node = Fable.Import.Node.Exports
 
 module Project =
+
     [<RequireQualifiedAccess>]
     type ProjectLoadingState =
-        | Loading of path: string
-        | Loaded of proj: Project
-        | Failed of path: string * error: string
-        | NotRestored of path: string * error: string
+        | Loading of path : string
+        | Loaded of proj : Project
+        | Failed of path : string * error : string
+        | NotRestored of path : string * error : string
 
     [<RequireQualifiedAccess>]
     type FSharpWorkspaceMode =

@@ -27,11 +27,10 @@ module CodeOutline =
         | Type of name : string * typ : string * range : Range * entries : Model list
         | Function of name : string * typ : string * range : Range
 
-    type NodeEntry = {
-        Key : string
-        Children : Dictionary<string, NodeEntry>
-        Symbol : Symbol
-    }
+    type NodeEntry =
+        { Key : string
+          Children : Dictionary<string, NodeEntry>
+          Symbol : Symbol }
 
     let refresh = EventEmitter<Uri> ()
     let private reallyRefresh = EventEmitter<Model option> ()
