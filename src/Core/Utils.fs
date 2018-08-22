@@ -268,9 +268,22 @@ module Markdown =
             res.Replace(oldValue, newValue)
         ) res
 
+    let private normalizeLeadingSpace (content : string) =
+        content
+            .Replace("\r\n", "\n")
+            .Split('\n')
+        |> Array.map(fun line ->
+            if line.Length > 1 && line.[0] = ' ' then
+                line.[1..]
+            else
+                line
+        )
+        |> String.concat "\n"
+
     let createCommentBlock (comment: string) : MarkdownString =
         comment
         |> replaceXml
+        |> normalizeLeadingSpace
         |> (fun v -> MarkdownString v)
 
 module Promise =
