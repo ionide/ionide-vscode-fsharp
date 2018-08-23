@@ -155,28 +155,34 @@ Error: %s
 
     let getMonoVersion () =
         promise {
-            let mono = "FSharp.monoPath" |> Configuration.get "mono"
-            let! version = execCommand mono [ "--version" ]
-            return version.Trim()
+            let! mono = Environment.mono
+            match mono with 
+            | Some mono -> 
+                let! version = execCommand mono [ "--version" ]
+                return version.Trim()
+            | None -> return "No mono installation found"
         }
 
     let getRuntimeInfos () =
-        promise {
-            let fsacRuntime = "FSharp.fsacRuntime" |> Configuration.get "net"
-
-            if fsacRuntime = "netcore" then
-                let! dotnet = Environment.dotnet
+        let netcoreInfos = promise {
+            let! dotnet = Environment.dotnet
+            match dotnet with
+            | Some dotnet -> 
                 let! version = execCommand dotnet [ "--version" ]
                 return Templates.netcoreRuntime version
-            else
-                if Process.isMono () then
-                    let! monoVersion = getMonoVersion()
-                    let! msbuildVersion = getMSBuildVersion ()
-                    return Templates.monoRuntime monoVersion msbuildVersion
-                else
-                    let! msbuildVersion = getMSBuildVersion ()
-                    return Templates.msbuildInfo msbuildVersion
+            | None -> return "No dotnet installation found"
         }
+        let monoInfos = promise {
+            if Process.isMono () then
+                let! monoVersion = getMonoVersion()
+                let! msbuildVersion = getMSBuildVersion ()
+                return Templates.monoRuntime monoVersion msbuildVersion
+            else
+                let! msbuildVersion = getMSBuildVersion ()
+                return Templates.msbuildInfo msbuildVersion
+        }
+        Promise.all [netcoreInfos; monoInfos]
+        |> Promise.map (String.concat "\n")
 
     let writeToFile (text : string) =
         promise {

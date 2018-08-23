@@ -330,7 +330,9 @@ module Project =
     let execWithDotnet outputChannel cmd =
         promise {
             let! dotnet = Environment.dotnet
-            return Process.spawnWithNotification dotnet "" cmd outputChannel
+            match dotnet with
+            | Some dotnet -> return Process.spawnWithNotification dotnet "" cmd outputChannel
+            | None -> return! Promise.reject "dotnet binary not found"
         }
 
     let exec exe outputChannel cmd =
@@ -341,7 +343,9 @@ module Project =
     let private execWithDotnetWithShell cmd =
         promise {
             let! dotnet = Environment.dotnet
-            return Process.spawnWithShell (sprintf "\"%s\"" dotnet) "" cmd
+            match dotnet with
+            | Some dotnet -> return Process.spawnWithShell (sprintf "\"%s\"" dotnet) "" cmd
+            | None -> return! Promise.reject "dotnet binary not found"
         }
 
     let private execWithShell exe cmd =
