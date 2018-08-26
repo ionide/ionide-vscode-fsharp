@@ -10,8 +10,8 @@ open Ionide.VSCode.Helpers
 open DTO
 
 module ResolveNamespaces =
-    let private createProvider () =
 
+    let private createProvider () =
         { new CodeActionProvider
           with
             member __.provideCodeActions(doc, range, context, _) =
@@ -62,7 +62,6 @@ module ResolveNamespaces =
 
     let private getLineStr (doc : TextDocument) line = doc.getText(Range(line, 0., line, 1000.)).Trim()
 
-
     /// Corrects insertion line number based on kind of scope and text surrounding the insertion point.
     let private adjustInsertionPoint (doc : TextDocument) (ctx : OpenNamespace)  =
         let line =
@@ -98,7 +97,6 @@ module ResolveNamespaces =
         edit.insert(uri, position, lineStr)
         workspace.applyEdit edit
 
-
     let private applyQualify(doc : TextDocument, range : vscode.Range, suggestion : string) =
         let edit = WorkspaceEdit()
         let uri = Uri.file doc.fileName
@@ -128,13 +126,9 @@ module ResolveNamespaces =
         }
 
 
-
-
-
-    let activate selector (context: ExtensionContext) =
+    let activate selector (context : ExtensionContext) =
         languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
         commands.registerCommand("fsharp.openNamespace",Func<obj,obj,obj,obj>(fun a b c -> applyOpen(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add
         commands.registerCommand("fsharp.useNamespace",Func<obj,obj,obj,obj>(fun a b c -> applyQualify(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add
-
 
         ()
