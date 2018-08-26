@@ -12,8 +12,8 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module UnionCaseGenerator =
-    let private createProvider () =
 
+    let private createProvider () =
         { new CodeActionProvider
           with
             member this.provideCodeActions(doc, range, context, ct) =
@@ -47,7 +47,8 @@ module UnionCaseGenerator =
         edit.insert(uri, position, text)
         workspace.applyEdit edit
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
         commands.registerCommand("fsharp.insertUnionCases",Func<obj,obj,obj,obj>(fun a b c -> insertText(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add
 
