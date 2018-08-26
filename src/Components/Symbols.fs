@@ -13,9 +13,7 @@ open Ionide.VSCode.Helpers
 
 module Symbols =
 
-
     let private createProvider () =
-
         let convertToKind code =
             match code with
             | "C" -> SymbolKind.Class     (*  CompletionItemKind.Class      *)
@@ -66,7 +64,8 @@ module Symbols =
                 } |> U2.Case2
         }
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         languages.registerDocumentSymbolProvider(selector, createProvider())
         |> context.subscriptions.Add
         ()
