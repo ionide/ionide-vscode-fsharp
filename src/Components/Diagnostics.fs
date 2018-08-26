@@ -33,7 +33,7 @@ module Diagnostics =
                 return! window.showInformationMessage("Diagnostic activated, please reload the window.")
         }
 
-    let execCommand path (args: string list) : JS.Promise<string> =
+    let execCommand path (args : string list) : JS.Promise<string> =
         Promise.create (fun resolve reject ->
 
             node.childProcess.spawn(path, args |> ResizeArray)
@@ -82,7 +82,7 @@ Error: %s
 <!-- 2. Ctrl + P > "F# Add Reference" -->
             """.Trim()
 
-        let machineInfos os arch vscode=
+        let machineInfos os arch vscode =
             let txt =
                 sprintf
                     """
@@ -242,7 +242,8 @@ Error: %s
             vscode.window.showErrorMessage("Couldn't retrieved the FSAC logs file") |> ignore
         )
 
-    let activate (context: ExtensionContext) =
+
+    let activate (context : ExtensionContext) =
         commands.registerCommand("fsharp.diagnostics.toggle", toggleDiagnosticsMode |> unbox<Func<obj,obj>> )
         |> context.subscriptions.Add
 
