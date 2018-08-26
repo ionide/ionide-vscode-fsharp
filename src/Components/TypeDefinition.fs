@@ -13,6 +13,7 @@ open DTO
 module node = Fable.Import.Node.Exports
 
 module TypeDefinition =
+
     let private mapFindDeclarationResult (doc : TextDocument) (pos : Position) (o : FindDeclarationResult) : Definition option =
         if isNotNull o then
             if node.fs.existsSync !!o.Data.File then
@@ -27,10 +28,11 @@ module TypeDefinition =
         else
             None
 
-    let private provide (doc : TextDocument) (pos : Position) = promise {
-        let! res = LanguageService.findTypeDeclaration (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-        return mapFindDeclarationResult doc pos res
-    }
+    let private provide (doc : TextDocument) (pos : Position) =
+        promise {
+            let! res = LanguageService.findTypeDeclaration (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+            return mapFindDeclarationResult doc pos res
+        }
 
     let private createProvider () =
         { new TypeDefinitionProvider
@@ -41,7 +43,8 @@ module TypeDefinition =
                 } |> unbox
         }
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         languages.registerTypeDefinitionProvider(selector, createProvider())
         |> context.subscriptions.Add
 
