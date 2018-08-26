@@ -8,6 +8,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Tooltip =
+
     let private createProvider () =
         let mapResult (doc : TextDocument) (pos : Position) o =
             let range = doc.getWordRangeAtPosition pos
@@ -64,7 +65,8 @@ module Tooltip =
 
         }
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         languages.registerHoverProvider(selector, createProvider())
         |> context.subscriptions.Add
         ()
