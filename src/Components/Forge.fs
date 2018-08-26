@@ -29,6 +29,7 @@ module Forge =
             (VSCode.getPluginPath "Ionide.ionide-fsharp") </> "bin_forge" </> "Forge.exe"
         with
         | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "bin_forge" </> "Forge.exe"
+
     let private templateLocation =
         try
             (VSCode.getPluginPath "Ionide.ionide-fsharp") </> "bin_forge" </> "templates" </> "templates.json"
@@ -61,6 +62,7 @@ module Forge =
             if path = "" || path.Contains " " then "\"" + path + "\"" else path
         else
             path
+
     let moveFileUpPath path =
         sprintf "move file -n %s -u" (quotePath path) |> spawnForge |> ignore
 
@@ -85,7 +87,8 @@ module Forge =
             opts.placeHolder <- Some "Reference"
             let! name = window.showInputBox(opts)
             if JS.isDefined name && JS.isDefined path then
-                sprintf "add reference -n %s -p %s" (quotePath name) (quotePath path) |> spawnForge |> ignore }
+                sprintf "add reference -n %s -p %s" (quotePath name) (quotePath path) |> spawnForge |> ignore
+        }
 
     let addProjectReferencePath path =
         promise {
@@ -95,7 +98,8 @@ module Forge =
                 opts.placeHolder <- Some "Reference"
                 let! n = window.showQuickPick(projects |> U2.Case1, opts)
                 if JS.isDefined n && JS.isDefined path then
-                    sprintf "add project -n %s -p %s" (quotePath n) (quotePath path) |> spawnForge |> ignore }
+                    sprintf "add project -n %s -p %s" (quotePath n) (quotePath path) |> spawnForge |> ignore
+        }
 
     let removeProjectReferencePath ref proj =
         sprintf "remove project -n %s -p %s" (quotePath ref) (quotePath proj) |> spawnForge |> ignore
@@ -171,7 +175,8 @@ module Forge =
                 opts.placeHolder <- Some "Reference"
                 let! name = window.showInputBox(opts)
                 if JS.isDefined name && JS.isDefined edit then
-                    sprintf "add reference -n %s -p %s" (quotePath name) (quotePath edit) |> spawnForge |> ignore }
+                    sprintf "add reference -n %s -p %s" (quotePath name) (quotePath edit) |> spawnForge |> ignore
+        }
 
     let removeReference () =
         promise {
@@ -191,7 +196,8 @@ module Forge =
                     opts.placeHolder <- Some "Reference"
                     let! ref = window.showQuickPick(n |> U2.Case1,opts)
                     if JS.isDefined ref && JS.isDefined edit then
-                        sprintf "remove reference -n %s -p %s" (quotePath ref) (quotePath edit) |> spawnForge |> ignore }
+                        sprintf "remove reference -n %s -p %s" (quotePath ref) (quotePath edit) |> spawnForge |> ignore
+        }
 
 
     let addProjectReference () =
@@ -206,7 +212,8 @@ module Forge =
                 opts.placeHolder <- Some "Reference"
                 let! n = window.showQuickPick(projects |> U2.Case1, opts)
                 if JS.isDefined n && JS.isDefined edit then
-                    sprintf "add project -n %s -p %s" (quotePath n) (quotePath edit) |> spawnForge |> ignore }
+                    sprintf "add project -n %s -p %s" (quotePath n) (quotePath edit) |> spawnForge |> ignore
+        }
 
 
     let removeProjectReference () =
@@ -227,7 +234,8 @@ module Forge =
                     opts.placeHolder <- Some "Reference"
                     let! ref = window.showQuickPick(n |> U2.Case1,opts)
                     if JS.isDefined ref && JS.isDefined edit then
-                        sprintf "remove project -n %s -p %s" (quotePath ref) (quotePath edit) |> spawnForge |> ignore }
+                        sprintf "remove project -n %s -p %s" (quotePath ref) (quotePath edit) |> spawnForge |> ignore
+        }
 
     let private logger = ConsoleAndOutputChannelLogger(Some "Forge", Level.DEBUG, None, Some Level.DEBUG)
 
@@ -342,12 +350,10 @@ module Forge =
                     window.showInformationMessage "Project created"
             )
             |> ignore
-
         }
 
 
-
-    let activate (context: ExtensionContext) =
+    let activate (context : ExtensionContext) =
         let watcher = workspace.createFileSystemWatcher ("**/*.fs")
 
         commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox<Func<obj,obj>> ) |> context.subscriptions.Add
