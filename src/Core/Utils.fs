@@ -5,31 +5,31 @@ open Fable.Import.vscode
 
 [<RequireQualifiedAccess>]
 module CodeRange =
+
     type CodeRange = Fable.Import.vscode.Range
 
     /// Converts Range DTO to VS Code Range.
-    let fromDTO (range: DTO.Range) : CodeRange =
+    let fromDTO (range : DTO.Range) : CodeRange =
         CodeRange (float range.StartLine - 1.,
                    float range.StartColumn - 1.,
                    float range.EndLine - 1.,
                    float range.EndColumn - 1.)
 
-    let fromSimplifiedNameRange (range: DTO.Range) : CodeRange =
+    let fromSimplifiedNameRange (range : DTO.Range) : CodeRange =
         CodeRange (float range.StartLine - 1.,
                    float range.StartColumn - 2.,
                    float range.EndLine - 1.,
                    float range.EndColumn - 2.)
 
-
     /// Converts Declaration DTO of a specific `length` to VS Code Range.
-    let fromDeclaration (decl: DTO.Declaration) (length: float) : CodeRange =
+    let fromDeclaration (decl : DTO.Declaration) (length : float) : CodeRange =
         CodeRange (float decl.Line - 1.,
                    float decl.Column - 1.,
                    float decl.Line - 1.,
                    float decl.Column + length - 1.)
 
     /// Converts SymbolUse DTO to VS Code Range.
-    let fromSymbolUse (su: DTO.SymbolUse) : CodeRange =
+    let fromSymbolUse (su : DTO.SymbolUse) : CodeRange =
         CodeRange (float su.StartLine - 1.,
                    float su.StartColumn - 1.,
                    float su.EndLine - 1.,
@@ -43,16 +43,20 @@ module CodeRange =
 
 [<RequireQualifiedAccess>]
 module String =
-    let trim (s: string) = s.Trim()
-    let replace (oldVal: string) (newVal: string) (str: string) : string =
+
+    let trim (s : string) = s.Trim()
+    
+    let replace (oldVal : string) (newVal : string) (str : string) : string =
         match str with
         | null -> null
         | _ -> str.Replace (oldVal, newVal)
+    
     let split separator (s : string) = s.Split separator
 
     let endWith ending (s : string) = s.EndsWith ending
 
     let startWith ending (s : string) = s.StartsWith ending
+    
     let quote (s : string) =
         let isQuoted (s : string) = s.StartsWith @"""" && s.EndsWith @""""
         let containsWhitespace = Seq.exists (fun c -> c = ' ' || c = '\t' || c = '\n'  )
@@ -64,13 +68,15 @@ module String =
 
 [<RequireQualifiedAccess>]
 module Option =
-    let fill (def: 'a) (x: 'a option) : 'a =
+
+    let fill (def : 'a) (x : 'a option) : 'a =
         match x with
         | Some x -> x
         | None -> def
 
 [<RequireQualifiedAccess>]
 module Document =
+
     let (|FSharp|CSharp|VB|Other|) (document : TextDocument) =
         if document.languageId = "fsharp" then FSharp
         else if document.languageId = "csharp" then CSharp
@@ -79,6 +85,7 @@ module Document =
 
 [<RequireQualifiedAccess>]
 module Configuration =
+
     let tryGet key =
         let configuredValue = workspace.getConfiguration().get(key)
         if configuredValue = "" then None else Some configuredValue
@@ -107,11 +114,11 @@ module JS =
     /// Schedules execution of a one-time callback after delay milliseconds.
     /// Returns a Timeout for use with `clearTimeout`.
     [<Emit("setTimeout($0, $1)")>]
-    let setTimeout (callback: unit -> unit) (delay: float): Base.NodeJS.Timer = jsNative
+    let setTimeout (callback : unit -> unit) (delay : float) : Base.NodeJS.Timer = jsNative
 
     /// Cancels a Timeout object created by `setTimeout`.
     [<Emit("clearTimeout($0)")>]
-    let clearTimeout (timeout: Base.NodeJS.Timer): unit = jsNative
+    let clearTimeout (timeout : Base.NodeJS.Timer) : unit = jsNative
 
     [<Emit("debugger")>]
     let debugger () : unit = failwith "JS Only"
@@ -164,13 +171,14 @@ module JS =
 
 [<AutoOpen>]
 module Patterns =
-    let (|StartsWith|_|) (pat: string) (str: string)  =
+
+    let (|StartsWith|_|) (pat : string) (str : string)  =
         match str with
         | null -> None
         | _ when str.StartsWith pat -> Some str
         | _ -> None
 
-    let (|Contains|_|) (pat: string) (str: string)  =
+    let (|Contains|_|) (pat : string) (str : string)  =
         match str with
         | null -> None
         | _ when str.Contains pat -> Some str
@@ -178,13 +186,15 @@ module Patterns =
 
 [<RequireQualifiedAccess>]
 module Array =
-    let splitAt (n: int) (xs: 'a[]) : 'a[] * 'a[] =
+
+    let splitAt (n : int) (xs : 'a[]) : 'a[] * 'a[] =
         match xs with
         | [||] | [|_|] -> xs, [||]
         | _ when n >= xs.Length || n < 0 -> xs, [||]
         | _ -> xs.[0..n-1], xs.[n..]
 
 module Markdown =
+
     open System.Text.RegularExpressions
 
     let private stringReplacePatterns =
@@ -202,6 +212,7 @@ module Markdown =
 
     let private regexReplacePatterns =
         let r pat = Regex(pat, RegexOptions.Compiled ||| RegexOptions.IgnoreCase)
+        
         let code (strings : string array) =
             let str = strings.[0]
             if str.Contains("\n") then
@@ -209,16 +220,16 @@ module Markdown =
             else
                 "`" + str + "`"
         let returns = Array.item 0 >> sprintf "\n**Returns**\n\n%s"
-        let param (s: string[]) = sprintf "* `%s`: %s"(s.[0].Substring(1, s.[0].Length - 2)) s.[1]
+
+        let param (s : string[]) = sprintf "* `%s`: %s"(s.[0].Substring(1, s.[0].Length - 2)) s.[1]
+        
         [ r"<c>((?:(?!<c>)(?!<\/c>)[\s\S])*)<\/c>", code
           r"""<see\s+cref=(?:'[^']*'|"[^"]*")>((?:(?!<\/see>)[\s\S])*)<\/see>""", code
           r"""<param\s+name=('[^']*'|"[^"]*")>((?:(?!<\/param>)[\s\S])*)<\/param>""", param
           r"""<typeparam\s+name=('[^']*'|"[^"]*")>((?:(?!<\/typeparam>)[\s\S])*)<\/typeparam>""", param
           r"""<exception\s+cref=('[^']*'|"[^"]*")>((?:(?!<\/exception>)[\s\S])*)<\/exception>""", param
           r"""<a\s+href=('[^']*'|"[^"]*")>((?:(?!<\/a>)[\s\S])*)<\/a>""", fun s -> (s.[0].Substring(1, s.[0].Length - 2))
-
-          r"<returns>((?:(?!<\/returns>)[\s\S])*)<\/returns>", returns
-        ]
+          r"<returns>((?:(?!<\/returns>)[\s\S])*)<\/returns>", returns ]
 
     /// Helpers to create a new section in the markdown comment
     let private suffixXmlKey (tag : string) (value : string) (str : string) =
@@ -233,12 +244,14 @@ module Markdown =
         | _ -> str
 
     let private suffixTypeparam = suffixXmlKey "<typeparam" "\n**Type parameters**\n\n"
+    
     let private suffixException = suffixXmlKey "<exception" "\n**Exceptions**\n\n"
+    
     let private suffixParam = suffixXmlKey "<param" "\n**Parameters**\n\n"
 
     /// Replaces XML tags with Markdown equivalents.
     /// List of standard tags: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/xml-documentation
-    let private replaceXml (str: string) : string =
+    let private replaceXml (str : string) : string =
         let str =
             str
             |> suffixTypeparam
@@ -247,7 +260,7 @@ module Markdown =
 
         let res =
             regexReplacePatterns
-            |> List.fold (fun res (regex: Regex, formatter: string[] -> string) ->
+            |> List.fold (fun res (regex : Regex, formatter : string[] -> string) ->
                 // repeat replacing with same pattern to handle nested tags, like `<c>..<c>..</c>..</c>`
                 let rec loop res : string =
                     match regex.Match res with
@@ -264,7 +277,7 @@ module Markdown =
             ) str
 
         stringReplacePatterns
-        |> List.fold (fun (res: string) (oldValue, newValue) ->
+        |> List.fold (fun (res : string) (oldValue, newValue) ->
             res.Replace(oldValue, newValue)
         ) res
 
@@ -280,17 +293,18 @@ module Markdown =
         )
         |> String.concat "\n"
 
-    let createCommentBlock (comment: string) : MarkdownString =
+    let createCommentBlock (comment : string) : MarkdownString =
         comment
         |> replaceXml
         |> normalizeLeadingSpace
         |> (fun v -> MarkdownString v)
 
 module Promise =
+
     open Fable.Import.JS
     open Ionide.VSCode.Helpers
 
-    let suppress (pr:Promise<'T>) =
+    let suppress (pr : Promise<'T>) =
         pr |> Ionide.VSCode.Helpers.Promise.catch (fun _ -> promise { () })
 
     let executeForAll f items =
@@ -302,23 +316,25 @@ module Promise =
 
 module Event =
 
-    let invoke (listener: 'T -> _) (event: Fable.Import.vscode.Event<'T>) =
+    let invoke (listener : 'T -> _) (event : Fable.Import.vscode.Event<'T>) =
         event.Invoke(unbox<System.Func<_, _>>(fun a -> listener a))
 
 module Context =
+
     open Fable.Import
 
-    let set<'a> (name: string) (value: 'a) =
+    let set<'a> (name : string) (value : 'a) =
         vscode.commands.executeCommand("setContext", name, value) |> ignore
 
-    let cachedSetter<'a when 'a : equality> (name: string) =
-        let mutable current: 'a option = None
-        fun (value:'a) ->
+    let cachedSetter<'a when 'a : equality> (name : string) =
+        let mutable current : 'a option = None
+        fun (value : 'a) ->
             if current <> Some value then
                 set name value
                 current <- Some value
 
 module Preview =
+
     open Fable.Import
 
     let private projectStatusUri projectPath = vscode.Uri.parse(sprintf "fsharp-workspace://authority/projects/status?path=%s" (JS.encodeURIComponent(projectPath)))
