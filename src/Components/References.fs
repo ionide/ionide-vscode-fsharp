@@ -11,8 +11,8 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Reference =
-    let private createProvider () =
 
+    let private createProvider () =
         let mapResult (doc : TextDocument) (o : SymbolUseResult) =
             if isNotNull o then
                 o.Data.Uses |> Array.map (fun s ->
@@ -33,7 +33,8 @@ module Reference =
                 } |> U2.Case2
         }
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         languages.registerReferenceProvider(selector, createProvider())
         |> context.subscriptions.Add
         ()
