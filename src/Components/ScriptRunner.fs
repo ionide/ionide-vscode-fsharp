@@ -7,6 +7,7 @@ open Ionide.VSCode.Helpers
 module node = Fable.Import.Node.Exports
 
 module ScriptRunner =
+
     let private runFile () =
         let scriptFile = window.activeTextEditor.document.fileName
         let scriptDir = node.path.dirname(scriptFile)
@@ -30,6 +31,6 @@ module ScriptRunner =
             terminal.show ()
         }
 
-    let activate (context: ExtensionContext) =
-        commands.registerCommand("fsharp.scriptrunner.run", runFile |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
 
+    let activate (context : ExtensionContext) =
+        commands.registerCommand("fsharp.scriptrunner.run", runFile |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
