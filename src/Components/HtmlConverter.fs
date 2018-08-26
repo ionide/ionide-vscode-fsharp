@@ -23,6 +23,7 @@ module HtmlConverter =
                 builder.replace(!^editor.selection, htmlToElmish (selectedText))
             )
 
-    let activate (context: ExtensionContext) =
+
+    let activate (context : ExtensionContext) =
         commands.registerCommand("fsharp.htmlConverter.convert", convert |> unbox<Func<obj,obj>>)
         |> context.subscriptions.Add
