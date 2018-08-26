@@ -8,8 +8,8 @@ open Fable.Import.vscode
 open DTO
 open Ionide.VSCode.Helpers
 
-
 module Help =
+
     let getHelp () =
         let te = window.activeTextEditor
         let doc = te.document
@@ -26,12 +26,12 @@ module Help =
 
             let uri' = uri?``with``(change)
 
-            return! commands.executeCommand("vscode.open", uri',3)
+            return! commands.executeCommand("vscode.open", uri', 3)
         } |> ignore
 
 
-    let activate (context: ExtensionContext) =
-        let registerCommand com (f: unit-> _) =
+    let activate (context : ExtensionContext) =
+        let registerCommand com (f : unit -> _) =
             vscode.commands.registerCommand(com, unbox<Func<obj,obj>> f)
             |> context.subscriptions.Add
 
