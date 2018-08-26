@@ -35,9 +35,9 @@ module Logging =
     let getIonideLogs () = ionideLogsMemory |> String.concat "\n"
 
     [<Emit("console[$0] ? console[$0]($1...) : void 0")>]
-    let private consoleLog (_level: string, [<ParamListAttribute>] _args: obj list): unit = failwith "JS only"
+    let private consoleLog (_level : string, [<ParamListAttribute>] _args : obj list) : unit = failwith "JS only"
 
-    let getConsoleLogArgs (level: Level) (source: string option) (template: string) (args: obj[]) =
+    let getConsoleLogArgs (level : Level) (source : string option) (template : string) (args : obj[]) =
         // just replace %j (Util.format->JSON specifier --> console->OBJECT %O specifier)
         // the other % specifiers are basically the same
         let browserLogTemplate = String.Format("[{0}] {1}", source.ToString(), template.Replace("%j", "%O"))
@@ -50,11 +50,11 @@ module Logging =
         let argList = args |> List.ofArray
         nameOnConsoleObject, (List.append [ box browserLogTemplate ] argList)
 
-    let inline private writeDevToolsConsole (level: Level) (source: string option) (template: string) (args: obj[]) =
+    let inline private writeDevToolsConsole (level : Level) (source : string option) (template : string) (args : obj[]) =
         let nameOnConsoleObject, logArgs = getConsoleLogArgs level source template args
         consoleLog(nameOnConsoleObject, logArgs)
 
-    let private writeOutputChannel (out: OutputChannel) level source template args =
+    let private writeOutputChannel (out : OutputChannel) level source template args =
         let formattedMessage = Util.format(template, args)
         let formattedLogLine = String.Format("[{0:HH:mm:ss} {1,-5}] {2}", DateTime.Now, string level, formattedMessage)
         out.appendLine (formattedLogLine)
@@ -68,12 +68,12 @@ module Logging =
         else
             ionideLogsMemory <- ionideLogsMemory @ [formattedLogLine]
 
-    let private writeOutputChannelIfConfigured (out: OutputChannel option)
-              (chanMinLevel: Level)
-              (level: Level)
-              (source: string option)
-              (template: string)
-              (args: obj[]) =
+    let private writeOutputChannelIfConfigured (out : OutputChannel option)
+                                               (chanMinLevel : Level)
+                                               (level : Level)
+                                               (source : string option)
+                                               (template : string)
+                                               (args : obj[]) =
         if out.IsSome && level.isGreaterOrEqualTo(chanMinLevel) then
             writeOutputChannel out.Value level source template args
 
@@ -85,13 +85,13 @@ module Logging =
             with
                 | _ -> () // Do nothing
 
-    let inline private writeBothIfConfigured (out: OutputChannel option)
-              (chanMinLevel: Level)
-              (consoleMinLevel: Level option)
-              (level: Level)
-              (source: string option)
-              (template: string)
-              (args: obj[]) =
+    let inline private writeBothIfConfigured (out : OutputChannel option)
+                                             (chanMinLevel : Level)
+                                             (consoleMinLevel : Level option)
+                                             (level : Level)
+                                             (source : string option)
+                                             (template : string)
+                                             (args : obj[]) =
         if consoleMinLevel.IsSome && level.isGreaterOrEqualTo(consoleMinLevel.Value) then
             writeDevToolsConsole level source template args
 
