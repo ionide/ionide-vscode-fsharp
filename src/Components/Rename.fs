@@ -11,6 +11,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Rename =
+
     let private createProvider () =
         let mapResult (doc : TextDocument) (newName : string) (o : SymbolUseResult) =
             let res = WorkspaceEdit ()
@@ -30,7 +31,8 @@ module Rename =
                     return mapResult doc newName res
                 } |> U2.Case2}
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         languages.registerRenameProvider(selector, createProvider())
         |> context.subscriptions.Add
         ()
