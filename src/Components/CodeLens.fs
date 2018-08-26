@@ -116,6 +116,7 @@ module CodeLens =
         let cfg = workspace.getConfiguration()
         replacedByLineLens <- (cfg.get("FSharp.lineLens.enabled", "never").ToLowerInvariant()) = "replacecodelens"
 
+
     let activate selector (context : ExtensionContext) =
         workspace.onDidChangeConfiguration $ (configChangedHandler, (), context.subscriptions) |> ignore
         refresh.event.Invoke(fun n -> (version <- n ) |> unbox) |> context.subscriptions.Add
