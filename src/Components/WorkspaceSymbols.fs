@@ -12,8 +12,8 @@ open Ionide.VSCode.Helpers
 module node = Fable.Import.Node.Exports
 
 module WorkspaceSymbols =
-    let private createProvider () =
 
+    let private createProvider () =
         let convertToKind code =
             match code with
             | "C" -> SymbolKind.Class     (*  CompletionItemKind.Class      *)
@@ -64,7 +64,8 @@ module WorkspaceSymbols =
                 } |> U2.Case2
         }
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         languages.registerWorkspaceSymbolProvider(createProvider())
         |> context.subscriptions.Add
         ()
