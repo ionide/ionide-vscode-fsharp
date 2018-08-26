@@ -77,6 +77,7 @@ module Autocomplete =
                 } |> U2.Case2
             }
 
+
     let activate selector (context : ExtensionContext) =
         languages.registerCompletionItemProvider (selector, createProvider(), ".")
         |> context.subscriptions.Add
