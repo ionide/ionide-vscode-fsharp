@@ -6,6 +6,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module SignatureData =
+
     let generateDoc () =
         let editor = window.activeTextEditor.document
         match editor with
@@ -37,7 +38,7 @@ module SignatureData =
             ()
 
 
-    let activate (context: ExtensionContext) =
+    let activate (context : ExtensionContext) =
         commands.registerCommand("fsharp.generateDoc", generateDoc |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
 
         ()
