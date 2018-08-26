@@ -13,6 +13,7 @@ open Ionide.VSCode.Helpers.Process
 module node = Fable.Import.Node.Exports
 
 module MSBuild =
+
     let outputChannel = window.createOutputChannel "msbuild"
     let private logger = ConsoleAndOutputChannelLogger(Some "msbuild", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
 
@@ -61,15 +62,16 @@ module MSBuild =
         }
 
 
-    let loadMSBuildHostCfg () = promise {
-        let cfg = vscode.workspace.getConfiguration()
-        return
-            match cfg.get ("FSharp.msbuildHost", "auto") with
-            | ".net" -> Some MSbuildHost.MSBuildExe
-            | ".net core" -> Some MSbuildHost.DotnetCli
-            | "auto" -> Some MSbuildHost.Auto
-            | "ask at first use" -> None
-            | _ -> None
+    let loadMSBuildHostCfg () =
+        promise {
+            let cfg = vscode.workspace.getConfiguration()
+            return
+                match cfg.get ("FSharp.msbuildHost", "auto") with
+                | ".net" -> Some MSbuildHost.MSBuildExe
+                | ".net core" -> Some MSbuildHost.DotnetCli
+                | "auto" -> Some MSbuildHost.Auto
+                | "ask at first use" -> None
+                | _ -> None
         }
 
     let switchMSbuildHostType () =
@@ -228,19 +230,20 @@ module MSBuild =
         let host = tryGetRightHost' path
         invokeMSBuild path target (Some host)
 
-    let restoreMailBox = MailboxProcessor.Start(fun inbox->
-        let rec messageLoop() = async {
-            let! (path,continuation) = inbox.Receive()
-            let host = tryGetRightHost' path
-            do!
-                invokeMSBuild path "Restore" (Some host)
-                |> Promise.bind continuation
-                |> Async.AwaitPromise
+    let restoreMailBox =
+        MailboxProcessor.Start(fun inbox->
+            let rec messageLoop() = async {
+                let! (path,continuation) = inbox.Receive()
+                let host = tryGetRightHost' path
+                do!
+                    invokeMSBuild path "Restore" (Some host)
+                    |> Promise.bind continuation
+                    |> Async.AwaitPromise
 
-            return! messageLoop()
-        }
-        messageLoop()
-    )
+                return! messageLoop()
+            }
+            messageLoop()
+        )
 
     let restoreProject (projOpt: string option) hostOpt =
         buildProject "Restore" projOpt hostOpt
@@ -295,7 +298,8 @@ module MSBuild =
             window.showWarningMessage "Solution not loaded"
             |> ignore
 
-    let activate (context: ExtensionContext) =
+
+    let activate (context : ExtensionContext) =
         let solutionWatcher = vscode.workspace.createFileSystemWatcher("**/*.sln")
         solutionWatcher.onDidCreate.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
         solutionWatcher.onDidChange.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
