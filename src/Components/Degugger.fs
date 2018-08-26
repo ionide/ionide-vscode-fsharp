@@ -1,7 +1,5 @@
 namespace Ionide.VSCode.FSharp
 
-
-
 open System
 open Fable.Core
 open Fable.Core.JsInterop
@@ -49,7 +47,7 @@ module LaunchJsonVersion2 =
           request = "attach"
           processId = "${command:pickProcess}" }
 
-    let assertVersion2 (cfg: WorkspaceConfiguration) =
+    let assertVersion2 (cfg : WorkspaceConfiguration) =
         promise {
             do! cfg.update("version", "0.2.0", false)
             do! cfg.update("configurations", ResizeArray<obj>(), false)
@@ -69,7 +67,7 @@ module Debugger =
                 l "" |> ignore
         }
 
-    let setProgramPath project (cfg: LaunchJsonVersion2.RequestLaunch) =
+    let setProgramPath project (cfg : LaunchJsonVersion2.RequestLaunch) =
         let relativeOutPath = node.path.relative(workspace.rootPath, project.Output).Replace("\\", "/")
         let programPath = sprintf "${workspaceRoot}/%s" relativeOutPath
 
@@ -170,7 +168,6 @@ module Debugger =
                     return None
         }
 
-
     let buildAndRunDefault () =
         match startup with
         | None ->
@@ -184,6 +181,7 @@ module Debugger =
             chooseDefaultProject ()
             |> Promise.map (Option.map (buildAndDebug) >> ignore)
         | Some p -> buildAndDebug p
+
 
     let activate (c : ExtensionContext) =
         commands.registerCommand("fsharp.runDefaultProject", (buildAndRunDefault) |> unbox<Func<obj,obj>> ) |> c.subscriptions.Add
