@@ -8,15 +8,16 @@ open Fable.Import.Node
 open Fable.Core.JsInterop
 open DTO
 open Ionide.VSCode.Helpers
-open System
 
 module CodeLens =
+
     let refresh = EventEmitter<int>()
     let mutable private version = 0
     let mutable private replacedByLineLens = false    
 
     let formatSignature (sign : SignatureData) : string =
-        let formatType = function
+        let formatType =
+            function
             | Contains "->" t -> sprintf "(%s)" t
             | t -> t
 
@@ -31,21 +32,23 @@ module CodeLens =
 
         if String.IsNullOrEmpty args then sign.OutputType else args + " -> " + sign.OutputType
 
-    let interestingSymbolPositions (symbols: Symbols[]): DTO.Range[] =
+    let interestingSymbolPositions (symbols : Symbols[]) : DTO.Range[] =
         symbols |> Array.collect(fun syms ->
-            let interestingNested = syms.Nested |> Array.choose (fun sym ->
-                if sym.GlyphChar <> "Fc"
-                   && sym.GlyphChar <> "M"
-                   && sym.GlyphChar <> "F"
-                   && sym.GlyphChar <> "P"
-                   || sym.IsAbstract
-                   || sym.EnclosingEntity = "I"  // interface
-                   || sym.EnclosingEntity = "R"  // record
-                   || sym.EnclosingEntity = "D"  // DU
-                   || sym.EnclosingEntity = "En" // enum
-                   || sym.EnclosingEntity = "E"  // exception
-                then None
-                else Some sym.BodyRange)
+            let interestingNested =
+                syms.Nested
+                |> Array.choose (fun sym ->
+                    if sym.GlyphChar <> "Fc"
+                       && sym.GlyphChar <> "M"
+                       && sym.GlyphChar <> "F"
+                       && sym.GlyphChar <> "P"
+                       || sym.IsAbstract
+                       || sym.EnclosingEntity = "I"  // interface
+                       || sym.EnclosingEntity = "R"  // record
+                       || sym.EnclosingEntity = "D"  // DU
+                       || sym.EnclosingEntity = "En" // enum
+                       || sym.EnclosingEntity = "E"  // exception
+                    then None
+                    else Some sym.BodyRange)
 
             if syms.Declaration.GlyphChar <> "Fc" then
                 interestingNested
@@ -53,7 +56,7 @@ module CodeLens =
                 interestingNested |> Array.append [|syms.Declaration.BodyRange|])
 
     let private createProvider () =
-        let symbolsToCodeLens (doc : TextDocument) (symbols: Symbols[]) : CodeLens[] =
+        let symbolsToCodeLens (doc : TextDocument) (symbols : Symbols[]) : CodeLens[] =
             interestingSymbolPositions symbols
                 |> Array.map (CodeRange.fromDTO >> CodeLens)
 
@@ -113,7 +116,7 @@ module CodeLens =
         let cfg = workspace.getConfiguration()
         replacedByLineLens <- (cfg.get("FSharp.lineLens.enabled", "never").ToLowerInvariant()) = "replacecodelens"
 
-    let activate selector (context: ExtensionContext) =
+    let activate selector (context : ExtensionContext) =
         workspace.onDidChangeConfiguration $ (configChangedHandler, (), context.subscriptions) |> ignore
         refresh.event.Invoke(fun n -> (version <- n ) |> unbox) |> context.subscriptions.Add
         languages.registerCodeLensProvider(selector, createProvider()) |> context.subscriptions.Add
