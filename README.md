@@ -82,3 +82,11 @@ The project is hosted on [GitHub](https://github.com/ionide/ionide-vscode-fsharp
 the project and submit pull requests.
 
 The library is available under [MIT license](https://github.com/ionide/ionide-vscode-fsharp/blob/master/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.
+
+## Sponsors
+
+<a href="https://lambdafactory.io"><img src="https://cdn-images-1.medium.com/max/332/1*la7_YvDFvrtA720P5bYWBQ@2x.png" alt="drawing" width="100"/></a> 
+
+Ionide couldn't be created without support of [Lambda Factory](https://lambdafactory.io). If you'd be interested in rich F# test integration check out our VSCode plugin - [Neptune](https://github.com/LambdaFactory/Neptune-public).
+
+If your company would be interested in supporting development of Ionide, or acquiring commercial support sent us email - lambda_factory@outlook.com
