@@ -1,3 +1,11 @@
+### 3.25.4 - 31.08.2018
+* Update FSAC - VS 2017 breaking changes
+* Update Grammar
+* restore behavior of FSharp.fsiFilePath
+* Improved the word pattern regex.
+* Normalize leading space for docs tooltips
+* Ionide code base refactoring to follow F# style guidelines
+
 ### 3.25.3 - 20.08.2018
 * Update FSAC - VS 2017 breaking changes
 

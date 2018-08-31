@@ -1,54 +1,22 @@
 # [Ionide-VSCode: FSharp](https://marketplace.visualstudio.com/items/Ionide.Ionide-fsharp)
 **Enhanced F# Language Features for Visual Studio Code**
 
-_Part of the [Ionide](http://ionide.io) plugin suite._
+_Part of the [Ionide](http://ionide.io) plugin suite._ Read detailed documentation at [Ionide docs page](http://ionide.io/docs).
 
 [![Version](https://vsmarketplacebadge.apphb.com/version/Ionide.Ionide-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp) [![Installs](https://vsmarketplacebadge.apphb.com/installs-short/Ionide.Ionide-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp)
 [![Join the chat at https://gitter.im/ionide/ionide-project](https://img.shields.io/badge/gitter-join%20chat%20%E2%86%92-brightgreen.svg?style=flat-square)](https://gitter.im/ionide/ionide-project?utm_source=share-link&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-# Getting Started
+# Requirements
 
-F# 4.0 needs to be installed on your system in order to use Ionide
+* F# (Windows) - Easiest way to install latest versions of F# on Windows is using [VS Build Tools 2017](https://visualstudio.microsoft.com/downloads/?utm_medium=microsoft&utm_source=docs.microsoft.com&utm_campaign=button+cta&utm_content=download+vs2017#build-tools-for-visual-studio-2017). If you use VS 2017, make sure that you've installed workload adding F# support.
 
-For more detailed instructions on installing F# :
+* F# (Linux/MacOS) - F# on non-Windows platform is distributed as part of the `mono`. Installation guide and recent version of `mono` can be found on the [project webpage](https://www.mono-project.com/download/stable/) and on the F# Software Foundation ["Use on Linux" page](https://fsharp.org/use/linux/)
 
-* [Installing F# on Linux](http://fsharp.org/use/linux/)
-* [Installing F# on OSX](http://fsharp.org/use/mac/)
-* [Installing F# on Windows](http://fsharp.org/use/windows/)
+* .Net Core SDK - .Net Core is modern, cross platform implementation of .Net Framework. Ionide is requiring it for set of features such as project modifications or debugging. The core part of SDK is `dotnet` CLI tool that provides easy way to create, build and run F# projects. What's important - the `dotnet` tool can be used also to create applications targeting also Full Framewok (like `net461`). For detailed instructions on installing .Net Core visit [official step-by-step installation guide](https://www.microsoft.com/net/core)
 
+* VSCode C# plugin (optional) - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. To get it install [C# extension from VSCode marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp)
 
-**FSC** _(F# Compiler)_ and **FSI/fsharpi** on Mono _(F# Interactive)_ need to be added to your system **PATH**.
-The default location on Windows is
-```
-  64-bit - C:\Program Files (x86)\Microsoft SDKs\F#\4.0\Framework\v4.0\
-  32-bit - C:\Program Files\Microsoft SDKs\F#\4.0\Framework\v4.0
-```
-
-Add **MSBUILD_PATH** environment variable which points to the home of **Microsoft Build Tools**, e.g., `MSBUILD_PATH = C:\Program Files (x86)\MSBuild\14.0\Bin`.
-
-## Quick Install Guide
-
-### Windows
-
-[You can download F# 4.0 here for Windows](https://www.microsoft.com/en-us/download/details.aspx?id=48179)
-
-[Install the Microsoft Build Tools 2015](https://www.microsoft.com/en-us/download/details.aspx?id=48159&wa=wsignin1.0)
-
-If you use [chocolatey](https://chocolatey.org/), you can install all the pre-requisites easily:
-
-```batch
-choco install visualfsharptools -y
-choco install microsoft-build-tools --version 14.0.25420.1 -y
-choco install visualstudiocode -y
-```
-
-* Recommended: `dotnet` CLI >= 2.0
-
-### Mono
-
-* Required: Mono >= 4.8
-* Recommended: Mono >= 5.2
-* Recommended: `dotnet` CLI >= 2.0
+* MsBuild 2015 (Windows only, optional) - For old, verbose `.fsproj` files on Windows MsBuild 2015 (14.0) needs to be additionally installed. You can download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48159). However, we highly recommend using new, SDK-based project files.
 
 ## Features
 
@@ -114,3 +82,11 @@ The project is hosted on [GitHub](https://github.com/ionide/ionide-vscode-fsharp
 the project and submit pull requests.
 
 The library is available under [MIT license](https://github.com/ionide/ionide-vscode-fsharp/blob/master/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.
+
+## Sponsors
+
+<a href="https://lambdafactory.io"><img src="https://cdn-images-1.medium.com/max/332/1*la7_YvDFvrtA720P5bYWBQ@2x.png" alt="drawing" width="100"/></a> 
+
+Ionide couldn't be created without support of [Lambda Factory](https://lambdafactory.io). If you'd be interested in rich F# test integration check out our VSCode plugin - [Neptune](https://github.com/LambdaFactory/Neptune-public).
+
+If your company would be interested in supporting development of Ionide, or acquiring commercial support sent us email - lambda_factory@outlook.com
