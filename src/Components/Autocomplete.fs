@@ -10,8 +10,8 @@ open Ionide.VSCode.Helpers
 open DTO
 
 module Autocomplete =
-    let private createProvider () =
 
+    let private createProvider () =
         let convertToKind code =
             match code with
             | "C" -> CompletionItemKind.Class
@@ -77,7 +77,8 @@ module Autocomplete =
                 } |> U2.Case2
             }
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         languages.registerCompletionItemProvider (selector, createProvider(), ".")
         |> context.subscriptions.Add
         ()

@@ -32,23 +32,34 @@ module Project =
         | WorkspaceLoad // send to FSAC the workspaceLoad and use notifications
 
     let private emptyProjectsMap : Map<ProjectFilePath,ProjectLoadingState> = Map.empty
+    
     let mutable private loadedProjects = emptyProjectsMap
+    
     let mutable private loadedWorkspace : WorkspacePeekFound option = None
+    
     let mutable workspaceNotificationAvaiable = false
+    
     let setAnyProjectContext = Context.cachedSetter<bool> "fsharp.project.any"
+    
     let workspaceChanged = EventEmitter<WorkspacePeekFound>()
+    
     let projectNotRestoredLoaded = EventEmitter<string>()
+    
     let projectLoaded = EventEmitter<Project>()
+    
     let workspaceLoaded = EventEmitter<unit>()
 
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files" |]
+    
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
 
     let getInWorkspace () =
         loadedProjects |> Map.toList |> List.map snd
-    let tryFindInWorkspace (path:string) =
+    
+    let tryFindInWorkspace (path : string) =
         loadedProjects |> Map.tryFind (path.ToUpperInvariant ())
-    let updateInWorkspace (path: string) state =
+    
+    let updateInWorkspace (path : string) state =
         loadedProjects <- loadedProjects |> Map.add (path.ToUpperInvariant ()) state
 
     let private guessFor p =
@@ -118,17 +129,18 @@ module Project =
         loadedProjects <- emptyProjectsMap
         setAnyProjectContext false
 
-    let load commingFromRestore (path:string) =
+    let load commingFromRestore (path : string) =
         updateInWorkspace path (ProjectLoadingState.Loading path)
 
-        let loaded (pr:ProjectResult) =
+        let loaded (pr : ProjectResult) =
             if isNotNull pr then
                 projectLoaded.fire (pr.Data)
                 Some (pr.Data.Project, (ProjectLoadingState.Loaded pr.Data))
             else
                 None
-        let failed (b: obj) =
-            let (msg: string), (err: ErrorData) = unbox b
+
+        let failed (b : obj) =
+            let (msg : string), (err : ErrorData) = unbox b
             match err with
             | ErrorData.ProjectNotRestored _d when not commingFromRestore ->
                 projectNotRestoredLoaded.fire path
@@ -152,9 +164,10 @@ module Project =
     let private chooseLoaded = function ProjectLoadingState.Loaded p -> Some p | _ -> None
 
     let getLoaded = getInWorkspace >> List.choose chooseLoaded
+    
     let tryFindLoadedProject = tryFindInWorkspace >> Option.bind chooseLoaded
 
-    let tryFindLoadedProjectByFile (filePath:string) =
+    let tryFindLoadedProjectByFile (filePath : string) =
         getLoaded ()
         |> List.tryPick (fun v ->
             let len =
@@ -163,7 +176,7 @@ module Project =
                 |> List.length
             if len > 0 then Some v else None )
 
-    let rec foldFsproj (item: WorkspacePeekFoundSolutionItem) =
+    let rec foldFsproj (item : WorkspacePeekFoundSolutionItem) =
         match item.Kind with
         | WorkspacePeekFoundSolutionItemKind.Folder folder ->
             folder.Items |> Array.collect foldFsproj
@@ -212,7 +225,6 @@ module Project =
     let getLoadedSolution () = loadedWorkspace
 
     let getCaches () =
-
         let rec findProjs dir =
             let files = node.fs.readdirSync (U2.Case1 dir)
             files
@@ -242,16 +254,17 @@ module Project =
                 printfn "Cache outdated %s" p
                 node.fs.unlinkSync (U2.Case1 p)
         )
+
     let clearCache () =
         let cached = getCaches ()
         cached |> Seq.iter (U2.Case1 >> node.fs.unlinkSync)
         window.showInformationMessage("Cache cleared")
 
-    let countProjectsInSln (sln: WorkspacePeekFoundSolution) =
+    let countProjectsInSln (sln : WorkspacePeekFoundSolution) =
         sln.Items |> Array.map foldFsproj |> Array.sumBy Array.length
 
-    let pickFSACWorkspace (ws: WorkspacePeekFound list) =
-        let text (x: WorkspacePeekFound) =
+    let pickFSACWorkspace (ws : WorkspacePeekFound list) =
+        let text (x : WorkspacePeekFound) =
             match x with
             | WorkspacePeekFound.Directory dir ->
                 sprintf "[DIR] %s     (%i projects)" dir.Directory dir.Fsprojs.Length
@@ -272,43 +285,43 @@ module Project =
                        else None
             }
 
-    let isANetCoreAppProject (project:Project) =
+    let isANetCoreAppProject (project : Project) =
         let projectContent = (node.fs.readFileSync project.Project).toString()
         let netCoreTargets =
             [ "<TargetFramework>netcoreapp"
               "<Project Sdk=\"" ]
 
-        let findInProject (toFind:string) =
+        let findInProject (toFind : string) =
             projectContent.IndexOf(toFind) >= 0
 
         netCoreTargets |> Seq.exists findInProject
 
-    let isNetCoreApp (project:Project) =
+    let isNetCoreApp (project : Project) =
         let projectContent = (node.fs.readFileSync project.Project).toString()
         let core = "<TargetFramework>netcoreapp"
         projectContent.IndexOf(core) >= 0
 
-    let isNetCoreApp2 (project:Project) =
+    let isNetCoreApp2 (project : Project) =
         let projectContent = (node.fs.readFileSync project.Project).toString()
         let core = "<TargetFramework>netcoreapp2"
         projectContent.IndexOf(core) >= 0
 
-    let isSDKProject (project:Project) =
+    let isSDKProject (project : Project) =
         match project.Info with
         | ProjectResponseInfo.DotnetSdk _ -> true
         |  _ -> false
 
-    let isSDKProjectPath (project:string) =
+    let isSDKProjectPath (project : string) =
         let projectContent = (node.fs.readFileSync project).toString()
         let sdk = "<Project Sdk=\""
         projectContent.IndexOf(sdk) >= 0
 
-    let isPortablePdbProject (project:Project) =
+    let isPortablePdbProject (project : Project) =
         let projectContent = (node.fs.readFileSync project.Project).toString()
         let portable = """<DebugType>portable</DebugType>"""
         projectContent.IndexOf(portable) >= 0
 
-    let isExeProject (project:Project) =
+    let isExeProject (project : Project) =
         match project.Output, isANetCoreAppProject project with
         | _, true -> true
         | out, _ when out |> String.endWith ".exe" -> true
@@ -336,14 +349,14 @@ module Project =
             return Process.spawnWithShell exe "mono" cmd
         }
 
-    let buildWithMsbuild outputChannel (project:Project) =
+    let buildWithMsbuild outputChannel (project : Project) =
         promise {
             let! msbuild = Binaries.msbuild ()
             return! Process.spawnWithNotification msbuild "" (String.quote project.Project) outputChannel
             |> Process.toPromise
         }
 
-    let buildWithDotnet outputChannel (project:Project) =
+    let buildWithDotnet outputChannel (project : Project) =
         promise {
             let! childProcess = execWithDotnet outputChannel ("build " + (String.quote project.Project))
             return!
@@ -351,7 +364,7 @@ module Project =
                 |> Process.toPromise
         }
 
-    let getLauncher outputChannel (project:Project) =
+    let getLauncher outputChannel (project : Project) =
         let execDotnet = fun args ->
             let cmd = "run -p " + (String.quote project.Project) + if String.IsNullOrEmpty args then "" else " -- " + args
             execWithDotnet outputChannel cmd
@@ -361,7 +374,7 @@ module Project =
         | _ , true -> Some execDotnet
         | _ -> None
 
-    let getLauncherWithShell  (project:Project) =
+    let getLauncherWithShell  (project : Project) =
         let execDotnet = fun args ->
             let cmd = "run -p " + (String.quote project.Project) + if String.IsNullOrEmpty args then "" else " -- " + args
             execWithDotnetWithShell cmd
@@ -380,16 +393,17 @@ module Project =
             return WorkspacePeekFound.Directory wdir
         }
 
-    let private workspacePeek () = promise {
-        let! ws = LanguageService.workspacePeek (vscode.workspace.rootPath) deepLevel (excluded |> List.ofArray)
-        return
-            ws.Found
-            |> Array.sortBy (fun x ->
-                match x with
-                | WorkspacePeekFound.Solution sln -> countProjectsInSln sln
-                | WorkspacePeekFound.Directory _ -> -1)
-           |> Array.rev
-           |> List.ofArray
+    let private workspacePeek () =
+        promise {
+            let! ws = LanguageService.workspacePeek (vscode.workspace.rootPath) deepLevel (excluded |> List.ofArray)
+            return
+                ws.Found
+                |> Array.sortBy (fun x ->
+                    match x with
+                    | WorkspacePeekFound.Solution sln -> countProjectsInSln sln
+                    | WorkspacePeekFound.Directory _ -> -1)
+               |> Array.rev
+               |> List.ofArray
         }
 
     let private getWorkspaceForMode mode =
@@ -538,7 +552,8 @@ module Project =
         |> Promise.bind (function Some x -> Promise.lift x | None -> getWorkspaceForModeIonideSearch ())
         |> Promise.bind (initWorkspaceHelper parseVisibleTextEditors)
 
-    let activate (context: ExtensionContext) parseVisibleTextEditors =
+
+    let activate (context : ExtensionContext) parseVisibleTextEditors =
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
         |> context.subscriptions.Add
 

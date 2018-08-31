@@ -10,6 +10,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Errors =
+
     let private logger = ConsoleAndOutputChannelLogger(Some "Errors", Level.DEBUG, None, Some Level.DEBUG)
 
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
@@ -124,7 +125,6 @@ module Errors =
         else
             Promise.lift ()
 
-
     let private handleNotification res =
         let (file, errors) = mapResult res
         let notActive =
@@ -156,7 +156,8 @@ module Errors =
 
     let private deleteWatcher = workspace.createFileSystemWatcher("**/*.{fs,fsx}", true, true, false)
 
-    let activate (context: ExtensionContext) =
+
+    let activate (context : ExtensionContext) =
         let allowBackgroundParsing = not ("FSharp.minimizeBackgroundParsing" |> Configuration.get false)
         Project.projectLoaded.event $ (parseVisibleFileInProject, (), context.subscriptions) |> ignore
 

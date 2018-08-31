@@ -11,6 +11,7 @@ open Ionide.VSCode.Helpers
 module node = Fable.Import.Node.Exports
 
 module Fsi =
+
     let mutable fsiOutput : Terminal option = None
     let mutable fsiOutputPID : int option = None
     let mutable lastSelectionSent : string option = None
@@ -22,7 +23,7 @@ module Fsi =
         let t = "terminal.integrated.shell.windows" |> Configuration.get ""
         t.ToLower().Contains "powershell"
 
-    let sendCd (textEditor: TextEditor) =
+    let sendCd (textEditor : TextEditor) =
         let file, dir =
             if JS.isDefined textEditor then
                 let file = textEditor.document.fileName
@@ -148,7 +149,7 @@ module Fsi =
         |> Promise.suppress // prevent unhandled promise exception
         |> ignore
 
-    let private referenceAssembly (path:ProjectReferencePath) = path |> sprintf "#r @\"%s\"" |> send
+    let private referenceAssembly (path : ProjectReferencePath) = path |> sprintf "#r @\"%s\"" |> send
     let private referenceAssemblies = Promise.executeForAll referenceAssembly
 
     let private sendReferences () =
@@ -162,7 +163,7 @@ module Fsi =
             |> Promise.suppress
             |> ignore)
 
-    let private handleCloseTerminal (terminal:Terminal) =
+    let private handleCloseTerminal (terminal : Terminal) =
         fsiOutputPID
         |> Option.iter (fun currentTerminalPID ->
             terminal.processId
@@ -222,9 +223,7 @@ module Fsi =
             return () }
 
 
-
-
-    let activate (context: ExtensionContext) =
+    let activate (context : ExtensionContext) =
         window.onDidCloseTerminal $ (handleCloseTerminal, (), context.subscriptions) |> ignore
 
         commands.registerCommand("fsi.Start", start |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
@@ -235,4 +234,3 @@ module Fsi =
         commands.registerCommand("fsi.SendText", sendText |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-

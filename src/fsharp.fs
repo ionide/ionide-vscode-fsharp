@@ -17,7 +17,7 @@ type Api =
       GetProjectLauncher : OutputChannel -> DTO.Project -> (string -> Fable.Import.JS.Promise<ChildProcess>) option
       DebugProject : DTO.Project -> string [] -> Fable.Import.JS.Promise<unit> }
 
-let activate (context: ExtensionContext) : Api =
+let activate (context : ExtensionContext) : Api =
     let df = createEmpty<DocumentFilter>
     df.language <- Some "fsharp"
     let df' : DocumentSelector = df |> U3.Case2
@@ -128,6 +128,6 @@ let activate (context: ExtensionContext) : Api =
       GetProjectLauncher = Project.getLauncher
       DebugProject = debugProject }
 
-let deactivate(disposables: Disposable[]) =
+let deactivate(disposables : Disposable[]) =
     LanguageService.stop ()
     ()

@@ -16,6 +16,7 @@ let private logger = ConsoleAndOutputChannelLogger(Some "LineLens", Level.DEBUG,
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 module LineLensConfig =
+
     open System.Text.RegularExpressions
 
     type EnabledMode =
@@ -23,7 +24,7 @@ module LineLensConfig =
         | ReplaceCodeLens
         | Always
 
-    let private parseEnabledMode (s: string) =
+    let private parseEnabledMode (s : string) =
         match s.ToLowerInvariant() with
         | "never" -> Never
         | "always" -> Always
@@ -34,20 +35,18 @@ module LineLensConfig =
         { enabled : EnabledMode
           prefix : string }
 
-    let defaultConfig ={
-        enabled = ReplaceCodeLens
-        prefix = " //  "
-    }
+    let defaultConfig =
+        { enabled = ReplaceCodeLens
+          prefix = " //  " }
 
     let private themeRegex = Regex("\s*theme\((.+)\)\s*")
 
     let getConfig () =
         let cfg = workspace.getConfiguration()
         let fsharpCodeLensConfig = cfg.get("[fsharp]", JsObject.empty).tryGet<bool>("editor.codeLens")
-        {
-            enabled = cfg.get("FSharp.lineLens.enabled", "replacecodelens") |> parseEnabledMode
-            prefix = cfg.get("FSharp.lineLens.prefix", defaultConfig.prefix)
-        }
+        
+        { enabled = cfg.get("FSharp.lineLens.enabled", "replacecodelens") |> parseEnabledMode
+          prefix = cfg.get("FSharp.lineLens.prefix", defaultConfig.prefix) }
 
     let isEnabled conf =
         match conf.enabled with
@@ -56,6 +55,7 @@ module LineLensConfig =
         | _ -> false
 
 module Documents =
+
     type Cached =
         { /// vscode document version that was parsed
           version : Number
@@ -74,9 +74,9 @@ module Documents =
 
     let inline create () = Documents()
 
-    let inline tryGet fileName (documents: Documents) = documents.TryGet fileName
+    let inline tryGet fileName (documents : Documents) = documents.TryGet fileName
 
-    let inline getOrAdd fileName (documents: Documents) =
+    let inline getOrAdd fileName (documents : Documents) =
         match tryGet fileName documents with
         | Some x -> x
         | None ->
@@ -84,9 +84,9 @@ module Documents =
             documents.Add(fileName, value)
             value
 
-    let inline set fileName value (documents: Documents) = documents.Add(fileName, value)
+    let inline set fileName value (documents : Documents) = documents.Add(fileName, value)
 
-    let update info (decorations: ResizeArray<DecorationOptions>) version (documents: Documents) =
+    let update info (decorations : ResizeArray<DecorationOptions>) version (documents : Documents) =
         let updated =
             { info with
                 cache =
@@ -97,12 +97,12 @@ module Documents =
         documents |> set info.fileName updated
         updated
 
-    let inline tryGetCached fileName (documents: Documents) =
+    let inline tryGetCached fileName (documents : Documents) =
         documents
         |> tryGet fileName
         |> Option.bind(fun info -> info.cache |> Option.map(fun c -> info, c))
 
-    let inline tryGetCachedAtVersion fileName version (documents: Documents) =
+    let inline tryGetCachedAtVersion fileName version (documents : Documents) =
         documents
         |> tryGet fileName
         |> Option.bind(fun info ->
@@ -114,6 +114,7 @@ module Documents =
 let mutable private config = LineLensConfig.defaultConfig
 
 module LineLensDecorations =
+
     let create range text =
         // What we add after the range
         let attachment = createEmpty<ThemableDecorationAttachmentRenderOptions>
@@ -140,71 +141,74 @@ type State =
       disposables : ResizeArray<Disposable> }
 
 module DecorationUpdate =
-    let private lineRange (doc: TextDocument) (range: DTO.Range) : CodeRange.CodeRange =
+
+    let private lineRange (doc : TextDocument) (range : DTO.Range) : CodeRange.CodeRange =
         let lineNumber = float range.StartLine - 1.
         let textLine = doc.lineAt lineNumber
         textLine.range
 
-    let private getSignature (fileName: string) (range: DTO.Range) = promise {
-        let! signaturesResult =
-            LanguageService.signatureData
-                fileName
-                range.StartLine
-                range.StartColumn
-        let signaturesResult = if isNotNull signaturesResult then Some signaturesResult else None
-        return signaturesResult |> Option.map (fun r -> range, CodeLens.formatSignature r.Data)
-    }
+    let private getSignature (fileName : string) (range : DTO.Range) =
+        promise {
+            let! signaturesResult =
+                LanguageService.signatureData
+                    fileName
+                    range.StartLine
+                    range.StartColumn
+            let signaturesResult = if isNotNull signaturesResult then Some signaturesResult else None
+            return signaturesResult |> Option.map (fun r -> range, CodeLens.formatSignature r.Data)
+        }
 
-    let private signatureToDecoration (doc: TextDocument) (range:DTO.Range, signature:string) =
+    let private signatureToDecoration (doc : TextDocument) (range : DTO.Range, signature : string) =
         LineLensDecorations.create (lineRange doc range) (config.prefix + signature)
 
-    let private onePerLine (ranges: Range[]) =
+    let private onePerLine (ranges : Range[]) =
         ranges
         |> Array.groupBy(fun r -> r.StartLine)
         |> Array.choose (fun (_, ranges) -> if ranges.Length = 1 then Some (ranges.[0]) else None)
 
-    let private needUpdate (fileName: string) (version: Number) { documents = documents }=
+    let private needUpdate (fileName : string) (version : Number) { documents = documents }=
         (documents |> Documents.tryGetCachedAtVersion fileName version).IsSome
 
-
-    let private declarationsResultToSignatures declarationsResult fileName = promise {
+    let private declarationsResultToSignatures declarationsResult fileName =
+        promise {
             let interesting = declarationsResult.Data |> CodeLens.interestingSymbolPositions
             let interesting = onePerLine interesting
             let! signatures = interesting |> Array.map (getSignature fileName) |> Promise.all
             return signatures |> Seq.choose id
-    }
+        }
 
     /// Update the decorations stored for the document.
     /// * If the info is already in cache, return that
     /// * If it change during the process nothing is done and it return None, if a real change is done it return the new state
-    let updateDecorationsForDocument (document: TextDocument) (version: float) state = promise {
-        let fileName = document.fileName
+    let updateDecorationsForDocument (document : TextDocument) (version : float) state =
+        promise {
+            let fileName = document.fileName
 
-        match state.documents |> Documents.tryGetCachedAtVersion fileName version with
-        | Some (info, _) ->
-            logger.Debug("Found existing decorations in cache for '%s' @%d", fileName, version)
-            return Some info
-        | None when document.version = version ->
-            let text = document.getText()
-            let! declarationsResult = LanguageService.declarations fileName text (unbox version)
-            if document.version = version && isNotNull declarationsResult then
-                let! signatures = declarationsResultToSignatures declarationsResult fileName
-                let info = state.documents |> Documents.getOrAdd fileName
-                if document.version = version && info.cache.IsNone || info.cache.Value.version <> version then
-                    let decorations = signatures |> Seq.map (signatureToDecoration document) |> ResizeArray
+            match state.documents |> Documents.tryGetCachedAtVersion fileName version with
+            | Some (info, _) ->
+                logger.Debug("Found existing decorations in cache for '%s' @%d", fileName, version)
+                return Some info
+            | None when document.version = version ->
+                let text = document.getText()
+                let! declarationsResult = LanguageService.declarations fileName text (unbox version)
+                if document.version = version && isNotNull declarationsResult then
+                    let! signatures = declarationsResultToSignatures declarationsResult fileName
+                    let info = state.documents |> Documents.getOrAdd fileName
+                    if document.version = version && info.cache.IsNone || info.cache.Value.version <> version then
+                        let decorations = signatures |> Seq.map (signatureToDecoration document) |> ResizeArray
 
-                    logger.Debug("New decorations generated for '%s' @%d", fileName, version)
-                    return Some (state.documents |> Documents.update info decorations version)
+                        logger.Debug("New decorations generated for '%s' @%d", fileName, version)
+                        return Some (state.documents |> Documents.update info decorations version)
+                    else
+                        return None
                 else
                     return None
-            else
+            | _ ->
                 return None
-        | _ ->
-            return None
-    }
+        }
 
     /// Set the decorations for the editor, filtering lines where the user recently typed
-    let setDecorationsForEditor (textEditor : TextEditor) (info: Documents.DocumentInfo) state =
+    let setDecorationsForEditor (textEditor : TextEditor) (info : Documents.DocumentInfo) state =
         match info.cache with
         | Some cache when not (cache.textEditors.Contains(textEditor))->
             cache.textEditors.Add(textEditor)
@@ -221,12 +225,12 @@ module DecorationUpdate =
         | None -> () // An event will arrive later when we have generated decorations
         | Some (info, _) -> setDecorationsForEditor textEditor info state
 
-    let documentClosed (fileName: string) state =
+    let documentClosed (fileName : string) state =
         // We can/must drop all caches as versions are unique only while a document is open.
         // If it's re-opened later versions will start at 1 again.
         state.documents.Remove(fileName) |> ignore
 
-let inline private isFsharpFile (doc: TextDocument) =
+let inline private isFsharpFile (doc : TextDocument) =
     match doc with
     | Document.FSharp when doc.uri.scheme = "file" -> true
     | _ -> false
@@ -241,7 +245,7 @@ let private textEditorsChangedHandler (textEditors : ResizeArray<TextEditor>) =
                 DecorationUpdate.setDecorationsForEditorIfCurrentVersion textEditor state
     | None -> ()
 
-let private documentParsedHandler (event: Errors.DocumentParsedEvent) =
+let private documentParsedHandler (event : Errors.DocumentParsedEvent) =
     match state with
     | None -> ()
     | Some state ->
@@ -256,7 +260,7 @@ let private documentParsedHandler (event: Errors.DocumentParsedEvent) =
             | _ -> ()
         } |> logger.ErrorOnFailed "Updating after parse failed"
 
-let private closedTextDocumentHandler (textDocument: TextDocument) =
+let private closedTextDocumentHandler (textDocument : TextDocument) =
     state |> Option.iter (DecorationUpdate.documentClosed textDocument.fileName)
 
 let install () =
@@ -302,7 +306,8 @@ let configChangedHandler () =
         else
             uninstall ()
 
-let activate (context: ExtensionContext) =
+
+let activate (context : ExtensionContext) =
     logger.Info "Activating"
 
     workspace.onDidChangeConfiguration $ (configChangedHandler, (), context.subscriptions) |> ignore

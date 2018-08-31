@@ -10,10 +10,9 @@ open Fable.Import.Node
 open DTO
 open Ionide.VSCode.Helpers
 
-
 module ParameterHints =
-    let private createProvider () =
 
+    let private createProvider () =
         let mapResult o =
             let res = SignatureHelp ()
             if isNotNull o then
@@ -49,7 +48,8 @@ module ParameterHints =
 
                 } |> U2.Case2 }
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         languages.registerSignatureHelpProvider(selector, createProvider(), "(", ",")
         |> context.subscriptions.Add
 

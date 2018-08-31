@@ -7,7 +7,7 @@ open Ionide.VSCode.Helpers
 
 module LanguageConfiguration =
 
-    let activate (context: ExtensionContext) =
+    let activate (context : ExtensionContext) =
         let config =
             jsOptions<LanguageConfiguration> (fun o ->
                 o.onEnterRules <- Some <| ResizeArray<OnEnterRule>(

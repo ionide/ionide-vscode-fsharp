@@ -7,14 +7,12 @@ open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
 
-
-
 open DTO
 open Ionide.VSCode.Helpers
 
 module Highlights =
-    let private createProvider () =
 
+    let private createProvider () =
         let mapResult (o : SymbolUseResult) =
             if isNotNull o then
                 o.Data.Uses |> Array.map (fun d ->
@@ -36,7 +34,8 @@ module Highlights =
                 } |> U2.Case2
         }
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         languages.registerDocumentHighlightProvider(selector, createProvider())
         |> context.subscriptions.Add
 

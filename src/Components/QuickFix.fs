@@ -33,7 +33,6 @@ module QuickFix =
         | None -> [||]
         | Some d -> f d
 
-
     let private getSuggestions doc (diagnostics : Diagnostic seq) =
         diagnostics
         |> ifDiagnostic "Maybe you want one of the following:" (fun d ->
@@ -63,7 +62,6 @@ module QuickFix =
             [| mkQuickFix doc d.range "Replace with _" s
                mkQuickFix doc d.range "Prefix with _" s2 |] )
 
-
     let upercaseDU (doc : TextDocument) (diagnostics : Diagnostic seq) =
         diagnostics
         |> ifDiagnostic "Discriminated union cases and exception labels must be uppercase identifiers" (fun d ->
@@ -74,7 +72,6 @@ module QuickFix =
             let s = String(chars)
 
             [| mkRenameFix doc d.range (sprintf "Replace with %s" s) s |] )
-
 
     let private createProvider () =
         { new CodeActionProvider
@@ -99,11 +96,9 @@ module QuickFix =
         |> Promise.bind (workspace.applyEdit)
 
 
-    let activate selector (context: ExtensionContext) =
+    let activate selector (context : ExtensionContext) =
         languages.registerCodeActionsProvider (selector, createProvider()) |> context.subscriptions.Add
         commands.registerCommand("fsharp.quickFix",Func<obj,obj,obj,obj>(fun a b c -> applyQuickFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add
         commands.registerCommand("fsharp.renameFix",Func<obj,obj,obj,obj>(fun a b c -> applyRenameFix(a |> unbox, b |> unbox, c |> unbox) |> unbox )) |> context.subscriptions.Add
 
         ()
-
-

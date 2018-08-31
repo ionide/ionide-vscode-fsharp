@@ -14,6 +14,7 @@ open Ionide.VSCode.Helpers
 module node = Fable.Import.Node.Exports
 
 module CodeOutline =
+
     let private configurationKey = "FSharp.codeOutline"
     let private isEnabledFor uri = configurationKey |> Configuration.getInContext uri true
 
@@ -92,6 +93,7 @@ module CodeOutline =
             match input |> Seq.tryFind (fun n -> n.Declaration.IsTopLevel) with
             | None when input.Length = 1 -> Some (input.[0])
             | result -> result
+
         match topLevelDeclarationOrOnlyDeclaration with
         | None -> TopLevelNamespace ("", [])
         | Some topLevel ->
@@ -231,12 +233,12 @@ module CodeOutline =
 
     let setShowCodeOutline = Context.cachedSetter<bool> "fsharp.showCodeOutline"
 
-    let inline private isFsharpFile (doc: TextDocument) =
+    let inline private isFsharpFile (doc : TextDocument) =
         match doc with
         | Document.FSharp when doc.uri.scheme = "file" -> true
         | _ -> false
 
-    let private setShowCodeOutlineForEditor (textEditor: TextEditor) =
+    let private setShowCodeOutlineForEditor (textEditor : TextEditor) =
         let newValue =
             if textEditor <> undefined then
                 if isFsharpFile textEditor.document || ShowInActivity.showInFsharpActivity() then
@@ -247,18 +249,19 @@ module CodeOutline =
                 false
         setShowCodeOutline newValue
 
-    let onDidChangeConfiguration (evt: ConfigurationChangeEvent) =
+    let onDidChangeConfiguration (evt : ConfigurationChangeEvent) =
         let textEditor = window.activeTextEditor
         if textEditor <> undefined && evt.affectsConfiguration(configurationKey, textEditor.document.uri) then
             setShowCodeOutlineForEditor window.activeTextEditor
             refresh.fire textEditor.document.uri
 
-    let private onDidChangeActiveTextEditor (textEditor: TextEditor) =
+    let private onDidChangeActiveTextEditor (textEditor : TextEditor) =
         setShowCodeOutlineForEditor textEditor
         if textEditor = undefined || (not (isFsharpFile textEditor.document)) then
             reallyRefresh.fire(None)
 
-    let activate (context: ExtensionContext) =
+
+    let activate (context : ExtensionContext) =
         setShowCodeOutlineForEditor window.activeTextEditor
 
         let treeViewId = ShowInActivity.initializeAndGetId ()

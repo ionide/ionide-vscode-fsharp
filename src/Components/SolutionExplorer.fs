@@ -13,6 +13,7 @@ open DTO
 module node = Fable.Import.Node.Exports
 
 module SolutionExplorer =
+
     type Model =
         | Workspace of Projects : Model list
         | Solution of parent : Model option ref * path : string * name : string * items : Model list
@@ -52,7 +53,7 @@ module SolutionExplorer =
                 let item = state.Children.[key]
                 add' item entry (endIndex + 1)
 
-    let private getParentRef (model: Model) =
+    let private getParentRef (model : Model) =
         match model with
         | Workspace _ -> ref None
         | Solution (parent, _, _, _) -> parent
@@ -69,11 +70,11 @@ module SolutionExplorer =
         | Reference (parent, _, _, _) -> parent
         | ProjectReference (parent, _, _, _) -> parent
 
-    let inline private setParentRef (model: Model) (parent: Model) =
+    let inline private setParentRef (model : Model) (parent : Model) =
         let parentRef = getParentRef model
         parentRef := Some parent
 
-    let private setParentRefs (models: #seq<Model>) (parent: Model) =
+    let private setParentRefs (models : #seq<Model>) (parent : Model) =
         for model in models do
             setParentRef model parent
 
@@ -153,6 +154,7 @@ module SolutionExplorer =
             | Folder (_, _, f, fls, _) ->
                 fls |> List.collect (fun x -> loop x lst@[f] )
             | _ -> []
+
         let lst =
             loop model []
             |> List.distinct
@@ -161,7 +163,7 @@ module SolutionExplorer =
 
         "."::lst
 
-    let private getSolutionModel (ws: WorkspacePeekFound) : Model =
+    let private getSolutionModel (ws : WorkspacePeekFound) : Model =
         let getProjItem projPath =
             match Project.tryFindInWorkspace projPath with
             | None ->
@@ -169,7 +171,7 @@ module SolutionExplorer =
             | Some p ->
                 getProjectModelByState p
 
-        let rec getItem (item: WorkspacePeekFoundSolutionItem) =
+        let rec getItem (item : WorkspacePeekFoundSolutionItem) =
             match item.Kind with
             | WorkspacePeekFoundSolutionItemKind.Folder folder ->
                 let files =
@@ -246,7 +248,7 @@ module SolutionExplorer =
     let private getRoot () =
         defaultArg (getSolution ()) (Workspace [])
 
-    let private createProvider (event: Event<Model option>) (rootChanged: EventEmitter<Model>) : TreeDataProvider<Model> =
+    let private createProvider (event : Event<Model option>) (rootChanged : EventEmitter<Model>) : TreeDataProvider<Model> =
         let plugPath =
             try
                 (VSCode.getPluginPath "Ionide.ionide-fsharp")
@@ -374,10 +376,11 @@ module SolutionExplorer =
         }
 
     module private ShowInActivity =
+
         let private setInFsharpActivity = Context.cachedSetter<bool> "fsharp.showProjectExplorerInFsharpActivity"
         let private setInExplorerActivity = Context.cachedSetter<bool> "fsharp.showProjectExplorerInExplorerActivity"
 
-        let initializeAndGetId (): string =
+        let initializeAndGetId () : string =
             let showIn = "FSharp.showProjectExplorerIn" |> Configuration.get "fsharp"
             let inFsharpActivity = (showIn = "fsharp")
             setInFsharpActivity inFsharpActivity
@@ -386,11 +389,12 @@ module SolutionExplorer =
             if inFsharpActivity then "ionide.projectExplorerInActivity" else "ionide.projectExplorer"
 
     module AutoReveal =
+
         type private State =
             { RootModel : Model
               ModelPerFile : Map<string, Model> }
 
-        let private onDidChangeActiveTextEditor (tree: TreeView<Model>) (state: State option ref) (textEditor: TextEditor) =
+        let private onDidChangeActiveTextEditor (tree : TreeView<Model>) (state : State option ref) (textEditor : TextEditor) =
             if JS.isDefined textEditor then
                 let uri = textEditor.document.uri
                 if uri.scheme = "file" && JS.isDefined uri.fsPath then
@@ -404,7 +408,7 @@ module SolutionExplorer =
                         tree.reveal(model, options) |> ignore
                     | _ -> ()
 
-        let rec private getModelPerFile (model: Model) : (string * Model) list =
+        let rec private getModelPerFile (model : Model) : (string * Model) list =
             match model with
             | File (_, path, _, _)
             | ProjectNotLoaded (_, path, _)
@@ -427,7 +431,7 @@ module SolutionExplorer =
             | ProjectReferencesList _->
                 []
 
-        let private onEvent (state: State option ref) (newValue: Model) =
+        let private onEvent (state : State option ref) (newValue : Model) =
             let modelPerFile = getModelPerFile newValue |> Map.ofList
             printfn "------------------------------"
             printfn "UPDATED STATE = %A" modelPerFile
@@ -435,7 +439,8 @@ module SolutionExplorer =
             let newState = Some { RootModel = newValue; ModelPerFile = modelPerFile }
             state := newState
 
-        let activate (context: ExtensionContext) (rootChanged: Event<Model>) (treeView: TreeView<Model>) =
+
+        let activate (context : ExtensionContext) (rootChanged : Event<Model>) (treeView : TreeView<Model>) =
             let state: State option ref = ref None
 
             let onDidChangeActiveTextEditor = onDidChangeActiveTextEditor treeView state
@@ -446,7 +451,8 @@ module SolutionExplorer =
             rootChanged.Invoke(unbox onEvent)
                 |> context.subscriptions.Add
 
-    let activate (context: ExtensionContext) =
+
+    let activate (context : ExtensionContext) =
         let emiter = EventEmitter<Model option>()
         let rootChanged = EventEmitter<Model>()
 
@@ -575,7 +581,6 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-
         commands.registerCommand("fsharp.explorer.addProjecRef", Func<obj, obj>(fun m ->
             match unbox m with
             | ProjectReferencesList (_, _, p) ->
@@ -602,6 +607,7 @@ module SolutionExplorer =
         let wsProvider =
             let viewLoading path =
                 "<b>Status:</b> loading.."
+
             let viewParsed (proj: Project) =
                 [ yield "<b>Status:</b> parsed correctly"
                   yield ""
@@ -636,6 +642,7 @@ module SolutionExplorer =
                       yield sprintf "<b>Project Type</b>: project.json"
                   ]
                 |> String.concat "<br />"
+
             let viewFailed path error =
                 [ "<b>Status:</b> failed to load"; ""
                   "<b>Error:</b>"
@@ -687,7 +694,6 @@ module SolutionExplorer =
                 Promise.empty
 
         let setLaunchSettingsCommand m =
-
             let findCoreclrLaunch debuggerRuntime cfg : LaunchJsonVersion2.RequestLaunch option =
                 match unbox cfg?``type``, unbox cfg?request with
                 | debuggerRuntime, "launch" -> Some (cfg |> unbox)

@@ -11,6 +11,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module UnusedOpens =
+
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
     let refresh = EventEmitter<string>()
 
@@ -45,7 +46,6 @@ module UnusedOpens =
         analyzeDocument filename
 
     let private createProvider () =
-
         { new CodeActionProvider
           with
             member this.provideCodeActions(doc, range, context, ct) =
@@ -65,7 +65,7 @@ module UnusedOpens =
                 res |> ResizeArray |> U2.Case1
             }
 
-    let private applyQuickFix(doc : TextDocument, range: vscode.Range) =
+    let private applyQuickFix(doc : TextDocument, range : vscode.Range) =
         let previousLine = doc.lineAt (float range.start.line - 1.)
         let currentLine = doc.lineAt (float range.start.line)
         // The range to remove goes from the end of previous line to the end of the current line.
@@ -76,7 +76,8 @@ module UnusedOpens =
         workspace.applyEdit edit
         |> Promise.onSuccess (fun _ -> analyzeDocument doc.fileName)
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         refresh.event $ (handler,(), context.subscriptions) |> ignore
         if JS.isDefined window.activeTextEditor then
             match window.activeTextEditor.document with

@@ -11,6 +11,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Linter =
+
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
     let private fixes = ResizeArray<Fix>()
     let refresh = EventEmitter<string>()
@@ -46,7 +47,6 @@ module Linter =
         lintDocument filename
 
     let private createProvider () =
-
         { new CodeActionProvider
           with
             member this.provideCodeActions(doc, range, context, ct) =
@@ -84,7 +84,9 @@ module Linter =
     let applyRenameFix(doc : TextDocument, range : vscode.Range, suggestion : string) =
         commands.executeCommand("vscode.executeDocumentRenameProvider", Uri.file doc.fileName, range.start, suggestion)
         |> Promise.bind (workspace.applyEdit)
-    let activate selector (context: ExtensionContext) =
+
+
+    let activate selector (context : ExtensionContext) =
         refresh.event $ (handler,(), context.subscriptions) |> ignore
         if JS.isDefined window.activeTextEditor then
             match window.activeTextEditor.document with

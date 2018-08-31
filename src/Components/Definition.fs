@@ -11,7 +11,9 @@ open DTO
 module node = Fable.Import.Node.Exports
 
 module Definition =
+
     module FromFindDeclaration =
+
         let private mapFindDeclarationResult (doc : TextDocument) (pos : Position) (o : FindDeclarationResult) : Definition option =
             if isNotNull o then
                 if node.fs.existsSync !!o.Data.File then
@@ -26,14 +28,15 @@ module Definition =
             else
                 None
 
-        let provide (doc : TextDocument) (pos : Position) = promise {
-            let! res = LanguageService.findDeclaration (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-            return mapFindDeclarationResult doc pos res
-        }
+        let provide (doc : TextDocument) (pos : Position) =
+            promise {
+                let! res = LanguageService.findDeclaration (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+                return mapFindDeclarationResult doc pos res
+            }
 
     module FromLoad =
         /// Remove escaping from standard (non verbatim & non triple quotes) string
-        let private unescapeStandardString (s: string) =
+        let private unescapeStandardString (s : string) =
             let mutable result = ""
             let mutable escaped = false
             let mutable unicodeHeaderChar = '?'
@@ -90,7 +93,7 @@ module Definition =
         let private tripleStringRegex = Regex(@"^""""""(.*?)""""""")
 
         /// Get the string starting at index in any of the string forms (standard, verbatim or triple quotes)
-        let private tryParseStringFromStart (s: string) (index: int) =
+        let private tryParseStringFromStart (s : string) (index : int) =
             let s = s.Substring(index)
             let verbatim = verbatimStringRegex.Match(s)
             if verbatim.Success then
@@ -110,14 +113,15 @@ module Definition =
                         None
 
         /// Parse the content of a "#load" instruction that start somewhere before `startPoint`
-        let private tryParseLoad (line: string) (startPoint: int) =
-            let potential = seq {
-                let matches = loadRegex.Matches(line)
-                for i in [0 .. matches.Count - 1] do
-                    let m = matches.[i]
-                    if m.Index <= startPoint then
-                        yield m
-            }
+        let private tryParseLoad (line : string) (startPoint : int) =
+            let potential =
+                seq {
+                    let matches = loadRegex.Matches(line)
+                    for i in [0 .. matches.Count - 1] do
+                        let m = matches.[i]
+                        if m.Index <= startPoint then
+                            yield m
+                }
 
             match potential |> Seq.tryLast with
             | Some m ->
@@ -150,7 +154,8 @@ module Definition =
                 } |> U2.Case2
         }
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         languages.registerDefinitionProvider(selector, createProvider())
         |> context.subscriptions.Add
 

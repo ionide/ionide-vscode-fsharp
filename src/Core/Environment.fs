@@ -5,6 +5,7 @@ namespace Ionide.VSCode.FSharp
 //---------------------------------------------------
 // Below code adapted from similar in FSSutoComplete project
 module Environment =
+
     open Fable.Core
     open Fable.Core.JsInterop
     open Fable.Import.vscode

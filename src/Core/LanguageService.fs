@@ -14,6 +14,7 @@ open Fable.Import.Axios
 module node = Fable.Import.Node.Exports
 
 module LanguageService =
+
     let ax =  Globals.require.Invoke "axios" |> unbox<Axios.AxiosStatic>
 
     let devMode = false
@@ -37,7 +38,6 @@ module LanguageService =
 
     // note: always log to the loggers, and let it decide where/if to write the message
     let createConfiguredLoggers source channelName =
-
         let logLanguageServiceRequestsOutputWindowLevel () =
             try
                 match "FSharp.logLanguageServiceRequestsOutputWindowLevel" |> Configuration.get "INFO" with
@@ -96,22 +96,30 @@ module LanguageService =
         r'.ToString().Substring(0,4)
 
     let port = if devMode then "8088" else genPort ()
+
     let private url fsacAction requestId = (sprintf "http://127.0.0.1:%s/%s?requestId=%i" port fsacAction requestId)
     /// because node 7.x doesn't give us the signal used if a process dies, we have to set up our own signal to show if we died via our own `stop()` call.
-    let mutable private exitRequested: bool = false
+    let mutable private exitRequested : bool = false
+
     let mutable private service : ChildProcess.ChildProcess option =  None
+
     let mutable private socketNotify : WebSocket option = None
+
     let mutable private socketNotifyWorkspace : WebSocket option = None
+
     let private platformPathSeparator = if Process.isMono () then "/" else "\\"
+
     let private makeRequestId =
         let mutable requestId = 0
         fun () -> (requestId <- requestId + 1); requestId
-    let private relativePathForDisplay (path: string) =
-        path.Replace(vscode.workspace.rootPath + platformPathSeparator, "~" + platformPathSeparator)
-    let private makeOutgoingLogPrefix (requestId:int) = String.Format("REQ ({0:000}) ->", requestId)
-    let private makeIncomingLogPrefix (requestId:int) = String.Format("RES ({0:000}) <-", requestId)
 
-    let private logOutgoingRequest requestId (fsacAction:string) obj =
+    let private relativePathForDisplay (path : string) =
+        path.Replace(vscode.workspace.rootPath + platformPathSeparator, "~" + platformPathSeparator)
+
+    let private makeOutgoingLogPrefix (requestId : int) = String.Format("REQ ({0:000}) ->", requestId)
+    let private makeIncomingLogPrefix (requestId : int) = String.Format("RES ({0:000}) <-", requestId)
+
+    let private logOutgoingRequest requestId (fsacAction : string) obj =
         // At the INFO level, it's nice to see only the key data to get an overview of
         // what's happening, without being bombarded with too much detail
         let extraPropInfo =
@@ -125,7 +133,7 @@ module LanguageService =
         | Some extraTmpl, Some extraArg -> log.Debug (makeOutgoingLogPrefix(requestId) + " {%s}" + extraTmpl + "\nData=%j", fsacAction, extraArg, obj)
         | _, _ -> failwithf "cannot happen %A" extraPropInfo
 
-    let private logIncomingResponse requestId fsacAction (started: DateTime) (r: Axios.AxiosXHR<_>) (res: _ option) (ex: exn option) =
+    let private logIncomingResponse requestId fsacAction (started : DateTime) (r : Axios.AxiosXHR<_>) (res : _ option) (ex : exn option) =
         let elapsed = DateTime.Now - started
         match res, ex with
         | Some res, None ->
@@ -134,7 +142,7 @@ module LanguageService =
             log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: {%j}, Data=%j", fsacAction, elapsed.TotalMilliseconds, ex.ToString(), obj)
         | _, _ -> log.Error(makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %j, %j, %j", fsacAction, elapsed.TotalMilliseconds, res, ex.ToString(), obj)
 
-    let private logIncomingResponseError requestId fsacAction (started: DateTime) (r: obj) =
+    let private logIncomingResponseError requestId fsacAction (started : DateTime) (r : obj) =
         let elapsed = DateTime.Now - started
         log.Error (makeIncomingLogPrefix(requestId) + " {%s} ERROR in %s ms: %s Data=%j",
                     fsacAction, elapsed.TotalMilliseconds, r.ToString(), obj)
@@ -145,7 +153,7 @@ module LanguageService =
         | Kind of string * 'b
         | Invalid
 
-    let parseError (err: obj) =
+    let parseError (err : obj) =
         let data =
             match err?Code |> unbox with
             | ErrorCodes.GenericError ->
@@ -159,11 +167,12 @@ module LanguageService =
                 ErrorData.GenericError
         (err?Message |> unbox<string>), data
 
-    let prettyPrintError fsacAction (msg: string) (err: ErrorData) =
+    let prettyPrintError fsacAction (msg : string) (err : ErrorData) =
         let whenMsg =
             match fsacAction with
             | "project" -> "Project loading failed"
             | a -> sprintf "Cannot execute %s" a
+
         let d =
             match err with
             | ErrorData.GenericError ->
@@ -174,7 +183,7 @@ module LanguageService =
                 sprintf "'%s'" data.Project
         sprintf "%s, %s %s" whenMsg msg d
 
-    let private requestRaw<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+    let private requestRaw<'a, 'b> (fsacAction : string) id requestId (obj : 'a) =
         let started = DateTime.Now
         let fullRequestUrl = url fsacAction requestId
         logOutgoingRequest requestId fsacAction obj
@@ -202,9 +211,9 @@ module LanguageService =
                 FSACResponse.Invalid
         )
 
-    let private request<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+    let private request<'a, 'b> (fsacAction : string) id requestId (obj : 'a) =
          requestRaw fsacAction id requestId obj
-         |> Promise.map(fun (r: FSACResponse<'b>) ->
+         |> Promise.map(fun (r : FSACResponse<'b>) ->
              match r with
              | FSACResponse.Error (msg, err) ->
                 log.Error (prettyPrintError fsacAction msg err)
@@ -214,9 +223,9 @@ module LanguageService =
              | FSACResponse.Invalid -> null |> unbox
           )
 
-    let private requestCanFail<'a, 'b> (fsacAction: string) id requestId (obj : 'a) =
+    let private requestCanFail<'a, 'b> (fsacAction : string) id requestId (obj : 'a) =
          requestRaw fsacAction id requestId obj
-         |> Promise.bind(fun (r: FSACResponse<'b>) ->
+         |> Promise.bind(fun (r : FSACResponse<'b>) ->
              match r with
              | FSACResponse.Error (msg, err) ->
                 log.Error (prettyPrintError fsacAction msg err)
@@ -230,8 +239,8 @@ module LanguageService =
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
-    let private deserializeProjectResult (res: ProjectResult) =
-        let parseInfo (f: obj) =
+    let private deserializeProjectResult (res : ProjectResult) =
+        let parseInfo (f : obj) =
             match f?SdkType |> unbox with
             | "dotnet/sdk" ->
                 ProjectResponseInfo.DotnetSdk (f?Data |> unbox)
@@ -248,7 +257,7 @@ module LanguageService =
                         Info = parseInfo(res.Data.Info) } }
 
     let project s =
-        {ProjectRequest.FileName = s}
+        { ProjectRequest.FileName = s }
         |> requestCanFail "project" 0 (makeRequestId())
         |> Promise.map deserializeProjectResult
         |> Promise.onFail(fun _ ->
@@ -271,62 +280,61 @@ module LanguageService =
         |> request "parse" 1 (makeRequestId())
 
     let helptext s =
-        {HelptextRequest.Symbol = s}
+        { HelptextRequest.Symbol = s }
         |> request "helptext" 0 (makeRequestId())
 
     let completion fn sl line col keywords external =
-        {CompletionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "Contains"; SourceLine = sl; IncludeKeywords = keywords; IncludeExternal = external}
+        { CompletionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "Contains"; SourceLine = sl; IncludeKeywords = keywords; IncludeExternal = external }
         |> request "completion" 1 (makeRequestId())
 
     let symbolUse fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "symboluse" 0 (makeRequestId())
 
     let symbolUseProject fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "symboluseproject" 0 (makeRequestId())
 
     let methods fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "methods" 0 (makeRequestId())
 
     let tooltip fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "tooltip" 0 (makeRequestId())
 
     let documentation fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "documentation" 0 (makeRequestId())
 
     let toolbar fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "tooltip" 0 (makeRequestId())
 
     let signature fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request<_, Result<string>> "signature" 0 (makeRequestId())
 
     let findDeclaration fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "finddeclaration" 0 (makeRequestId())
 
     let findTypeDeclaration fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "findtypedeclaration" 0 (makeRequestId())
 
     let f1Help fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "help" 0 (makeRequestId())
 
     let signatureData fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "signatureData" 0 (makeRequestId())
 
     let declarations fn (text : string) version =
         let lines = text.Replace("\uFEFF", "").Split('\n')
-        {DeclarationsRequest.FileName = handleUntitled fn; Lines = lines; Version = version}
+        { DeclarationsRequest.FileName = handleUntitled fn; Lines = lines; Version = version }
         |> request<_, Result<Symbols[]>> "declarations" 0 (makeRequestId())
-
 
     let declarationsProjects () =
         "" |> request "declarationsProjects" 0 (makeRequestId())
@@ -335,24 +343,24 @@ module LanguageService =
         "" |> request<string, CompilerLocationResult> "compilerlocation" 0 (makeRequestId())
 
     let lint s =
-        {ProjectRequest.FileName = s}
+        { ProjectRequest.FileName = s }
         |> request "lint" 0 (makeRequestId())
 
     let resolveNamespaces fn line col =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "namespaces" 0 (makeRequestId())
 
     let unionCaseGenerator fn line col : JS.Promise<Result<UnionCaseGenerator>> =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "unionCaseGenerator" 0 (makeRequestId())
 
     let recordStubGenerator fn line col : JS.Promise<Result<RecordStubCaseGenerator>> =
-        {PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = ""}
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "recordStubGenerator" 0 (makeRequestId())
 
     let workspacePeek dir deep excludedDirs =
-        let rec mapItem (f: WorkspacePeekFoundSolutionItem) : WorkspacePeekFoundSolutionItem option =
-            let mapItemKind (i: obj) : WorkspacePeekFoundSolutionItemKind option =
+        let rec mapItem (f : WorkspacePeekFoundSolutionItem) : WorkspacePeekFoundSolutionItem option =
+            let mapItemKind (i : obj) : WorkspacePeekFoundSolutionItemKind option =
                 let data = i?Data
                 match i?Kind |> unbox with
                 | "folder" ->
@@ -372,7 +380,8 @@ module LanguageService =
                      Name = f.Name
                      Kind = kind }
             | None -> None
-        let mapFound (f: obj) : WorkspacePeekFound option =
+
+        let mapFound (f : obj) : WorkspacePeekFound option =
             let data = f?Data
             match f?Type |> unbox with
             | "directory" ->
@@ -385,10 +394,11 @@ module LanguageService =
                 Some (WorkspacePeekFound.Solution sln)
             | _ ->
                 None
-        let parse (ws: obj) =
+
+        let parse (ws : obj) =
             { WorkspacePeek.Found = ws?Found |> unbox |> Array.choose mapFound }
 
-        {WorkspacePeekRequest.Directory = dir; Deep = deep; ExcludedDirs = excludedDirs |> Array.ofList}
+        { WorkspacePeekRequest.Directory = dir; Deep = deep; ExcludedDirs = excludedDirs |> Array.ofList }
         |> request "workspacePeek" 0 (makeRequestId())
         |> Promise.map (fun res -> parse (res?Data |> unbox))
 
@@ -397,23 +407,23 @@ module LanguageService =
         |> request "workspaceLoad" 0 (makeRequestId())
 
     let unusedDeclarations s =
-        {ProjectRequest.FileName = s}
+        { ProjectRequest.FileName = s }
         |> request "unusedDeclarations" 0 (makeRequestId())
 
     let unusedOpens s =
-        {ProjectRequest.FileName = s}
+        { ProjectRequest.FileName = s }
         |> request "unusedOpens" 0 (makeRequestId())
 
     let simplifiedNames s =
-        {ProjectRequest.FileName = s}
+        { ProjectRequest.FileName = s }
         |> request "simplifiedNames" 0 (makeRequestId())
 
     let projectsInBackground s =
-        {ProjectRequest.FileName = s}
+        { ProjectRequest.FileName = s }
         |> request "projectsInBackground" 0 (makeRequestId())
 
     let compile s =
-        {ProjectRequest.FileName = s}
+        { ProjectRequest.FileName = s }
         |> request "compile" 0 (makeRequestId())
 
     let enableSymbolCache () =
@@ -422,9 +432,8 @@ module LanguageService =
     let buildBackgroundSymbolCache () =
         "" |> request "buildBackgroundSymbolCache" 0 (makeRequestId())
 
-
     [<PassGenerics>]
-    let private registerNotifyAll (cb : 'a -> unit) (ws: WebSocket) =
+    let private registerNotifyAll (cb : 'a -> unit) (ws : WebSocket) =
         ws.on_message((fun (res : string) ->
             log.Debug(sprintf "WebSocket message: '%s'" res)
             let n = res |> JS.JSON.parse

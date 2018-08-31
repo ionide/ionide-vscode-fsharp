@@ -11,6 +11,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module UnusedDeclarations =
+
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
     let refresh = EventEmitter<string>()
     let private isAnalyzerEnabled () = "FSharp.unusedDeclarationsAnalyzer" |> Configuration.get true
@@ -45,7 +46,6 @@ module UnusedDeclarations =
         analyzeDocument filename
 
     let private createProvider () =
-
         { new CodeActionProvider
           with
             member __.provideCodeActions(doc, range, context, _) =
@@ -78,7 +78,8 @@ module UnusedDeclarations =
         workspace.applyEdit edit
         |> Promise.onSuccess (fun _ -> analyzeDocument doc.fileName)
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         refresh.event $ (handler,(), context.subscriptions) |> ignore
         if JS.isDefined window.activeTextEditor then
             match window.activeTextEditor.document with

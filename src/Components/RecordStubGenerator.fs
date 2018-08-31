@@ -9,6 +9,7 @@ open Ionide.VSCode.Helpers
 open DTO
 
 module RecordStubGenerator =
+
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
     // We can only have one suggestion at a time so using an Option field is enough
     let mutable private suggestion : RecordStubCaseGenerator option = None
@@ -81,7 +82,8 @@ module RecordStubGenerator =
         suggestion <- None
         currentDiagnostic.clear()
 
-    let activate selector (context: ExtensionContext) =
+
+    let activate selector (context : ExtensionContext) =
         let isEnabled = "FSharp.recordStubGeneration" |> Configuration.get true
 
         if isEnabled then
