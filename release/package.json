@@ -1307,6 +1307,11 @@
 					"default": false,
 					"description": "EXPERIMENTAL. Enables background symbol cache. Requires restart."
 				},
+				"FSharp.enableReferenceCodeLens": {
+					"type": "boolean",
+					"default": false,
+					"description": "EXPERIMENTAL. Enables additional code lenses showing number of references. Requires experimental background symbol cache"
+				},
 				"FSharp.showCodeOutlineIn": {
 					"type": "string",
 					"default": "fsharp",
