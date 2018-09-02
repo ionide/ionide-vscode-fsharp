@@ -17,8 +17,8 @@ module Help =
 
         promise {
             let! res = LanguageService.f1Help (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-            let uri = Uri.parse "https://msdn.microsoft.com/query/dev14.query"
-            let query = res.Data |> JS.encodeURIComponent |> sprintf "appId=Dev14IDEF1&l=EN-US&k=k(%s);k(DevLang-fsharp);k(TargetFrameworkMoniker-.NETFramework,Version%%3Dv4.5)&rd=true"
+            let uri = Uri.parse "https://msdn.microsoft.com/query/dev15.query"
+            let query = res.Data |> JS.encodeURIComponent |> sprintf "appId=Dev15IDEF1&l=EN-US&k=k(%s);k(DevLang-FSharp)&rd=true"
             let change =
                 createObj [
                     "query" ==> query
