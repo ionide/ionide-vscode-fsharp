@@ -1,11 +1,7 @@
 namespace Ionide.VSCode.FSharp
 
-open System
 open Fable.Core
-open Fable.Core.JsInterop
-open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
@@ -40,11 +36,11 @@ module ParameterHints =
 
         { new SignatureHelpProvider
           with
-            member this.provideSignatureHelp(doc,pos, ct) =
+            member __.provideSignatureHelp(doc,pos, ct) =
                 promise {
-                   let! _ = LanguageService.parse doc.fileName (doc.getText ()) doc.version
-                   let! res = LanguageService.methods (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-                   return mapResult res
+                    let! _ = LanguageService.parse doc.fileName (doc.getText ()) doc.version
+                    let! res = LanguageService.methods (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+                    return mapResult res
 
                 } |> U2.Case2 }
 
