@@ -30,10 +30,10 @@ module ParameterHints =
                     | e -> None) |> ResizeArray
                 res.activeParameter <- float (o.Data.CurrentParameter)
                 res.activeSignature <-
+                    let sigs = sigs |> Seq.sortBy (fun n -> n.parameters.Count)
                     sigs
-                    |> Seq.sortBy (fun n -> n.parameters.Count)
                     |> Seq.findIndex (fun s -> s.parameters.Count >= o.Data.CurrentParameter )
-                    |> (+) 1
+                    |> fun index -> if index + 1 >= (sigs |> Seq.length) then index else index + 1
                     |> float
                 res.signatures <- sigs
             res
@@ -50,7 +50,7 @@ module ParameterHints =
 
 
     let activate selector (context : ExtensionContext) =
-        languages.registerSignatureHelpProvider(selector, createProvider(), "(", ",")
+        languages.registerSignatureHelpProvider(selector, createProvider(), "(", ",", " ")
         |> context.subscriptions.Add
 
         ()
