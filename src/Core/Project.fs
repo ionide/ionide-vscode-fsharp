@@ -49,7 +49,7 @@ module Project =
     
     let workspaceLoaded = EventEmitter<unit>()
 
-    let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files" |]
+    let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files"; ".fable" |]
     
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
 
