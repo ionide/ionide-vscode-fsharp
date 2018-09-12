@@ -1,3 +1,9 @@
+### 3.26.0 - 12.09.2018
+* EXPERIMENTAL. Enable references code lenses with `FSharp.enableReferenceCodeLens`. Requires experimental `FSharp.enableBackgroundSymbolCache`
+* Add `.fable` folder to excluded folders by default
+* Fix parameter hints
+* Fix MSDN query link
+
 ### 3.25.4 - 31.08.2018
 * Update FSAC - VS 2017 breaking changes
 * Update Grammar
