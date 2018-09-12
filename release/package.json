@@ -1267,7 +1267,8 @@
 					"type": "array",
 					"default": [
 						".git",
-						"paket-files"
+						"paket-files",
+						".fable"
 					],
 					"description": "Directories in the array are excluded from project file search. Requires restart"
 				},
