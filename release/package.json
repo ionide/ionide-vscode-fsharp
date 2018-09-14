@@ -1332,6 +1332,19 @@
 						"fsharp"
 					],
 					"scope": "application"
+				},
+				"FSharp.enableAnalyzers": {
+					"type": "boolean",
+					"default": false,
+					"description": "EXPERIMENTAL. Enables custom analyzers. Requires restart."
+				},
+				"FSharp.analyzersPath": {
+					"type": "array",
+					"default": [
+						"packages/Analyzers",
+						"analyzers"
+					],
+					"description": "Directories in the array are used as a source of custom analyzers. Requires restart"
 				}
 			}
 		},

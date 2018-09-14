@@ -22,7 +22,6 @@ module Linter =
 
     let private diagnosticFromLintWarning file (warning : Lint) =
         let range = CodeRange.fromDTO warning.Range
-        let loc = Location (Uri.file file, range |> U2.Case1)
         Diagnostic(range, "Lint: " + warning.Info, DiagnosticSeverity.Information), file
 
     let private mapResult file (ev : LintResult) =

@@ -54,6 +54,7 @@
     <Compile Include="Components/ResolveNamespaces.fs" />
     <Compile Include="Components/UnionCaseGenerator.fs" />
     <Compile Include="Components/RecordStubGenerator.fs" />
+    <Compile Include="Components/Analyzers.fs" />
     <Compile Include="Components/Errors.fs" />
     <Compile Include="Components/LineLens.fs" />
     <Compile Include="Components/QuickInfo.fs" />

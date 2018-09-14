@@ -168,6 +168,7 @@ module Errors =
             UnusedOpens.deleteDiagnostic uri
             UnusedDeclarations.deleteDiagnostic uri
             SimplifyName.deleteDiagnostic uri
+            Analyzers.deleteDiagnostic uri
         ) |> ignore
 
         workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore

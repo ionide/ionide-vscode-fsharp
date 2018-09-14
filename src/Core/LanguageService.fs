@@ -107,6 +107,8 @@ module LanguageService =
 
     let mutable private socketNotifyWorkspace : WebSocket option = None
 
+    let mutable private socketNotifyAnalyzer : WebSocket option = None
+
     let private platformPathSeparator = if Process.isMono () then "/" else "\\"
 
     let private makeRequestId =
@@ -432,6 +434,10 @@ module LanguageService =
     let buildBackgroundSymbolCache () =
         "" |> request "buildBackgroundSymbolCache" 0 (makeRequestId())
 
+    let registerAnalyzer s =
+        { ProjectRequest.FileName = s }
+        |> request "registerAnalyzer" 0 (makeRequestId())
+
     [<PassGenerics>]
     let private registerNotifyAll (cb : 'a -> unit) (ws : WebSocket) =
         ws.on_message((fun (res : string) ->
@@ -447,6 +453,14 @@ module LanguageService =
             if unbox n?Kind = "errors" then
                 n |> unbox |> cb
         socketNotify
+        |> Option.iter (registerNotifyAll onParseResult)
+
+    [<PassGenerics>]
+    let registerNotifyAnalyzer (cb : AnalyzerResult -> unit) =
+        let onParseResult n =
+            if unbox n?Kind = "analyzer" then
+                n |> unbox |> cb
+        socketNotifyAnalyzer
         |> Option.iter (registerNotifyAll onParseResult)
 
     [<PassGenerics>]
@@ -586,6 +600,7 @@ module LanguageService =
         |> Promise.onSuccess (fun _ ->
             socketNotify <- startSocket "notify"
             socketNotifyWorkspace <- startSocket "notifyWorkspace"
+            socketNotifyAnalyzer <- startSocket "notifyAnalyzer"
             ()
         )
 

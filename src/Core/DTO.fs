@@ -3,7 +3,7 @@
 [<ReflectedDefinition>]
 module DTO =
 
-    type ParseRequest = 
+    type ParseRequest =
         { FileName : string
           IsAsync : bool
           Lines : string[]
@@ -131,7 +131,7 @@ module DTO =
           Parameters : OverloadParameter []
           IsStaticArguments : bool }
 
-    type Method = 
+    type Method =
         { Name : string
           CurrentParameter : int
           Overloads : Overload [] }
@@ -177,6 +177,19 @@ module DTO =
           Input : string
           Range : Range
           Fix : Fix }
+
+    type AnalyzerMsg =
+        { Type: string
+          Message: string
+          Code: string
+          Severity: string
+          Range: Range
+          Fixes: Fix [] }
+
+    type AnalyzerResponse =
+        { File: string
+          Messages: AnalyzerMsg []}
+
 
     type ProjectFilePath = string
     type SourceFilePath = string
@@ -335,4 +348,5 @@ module DTO =
     type UnusedDeclarationsResult = Result<UnusedDeclarations>
     type SimplifiedNameResult = Result<SimplifiedName>
     type CompileResult = Result<CompileData>
+    type AnalyzerResult = Result<AnalyzerResponse>
 

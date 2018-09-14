@@ -26,6 +26,7 @@ let activate (context : ExtensionContext) : Api =
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
 
     let backgroundSymbolCache = "FSharp.enableBackgroundSymbolCache" |> Configuration.get false
+    let analyzers = "FSharp.enableAnalyzers" |> Configuration.get false
 
     let init = DateTime.Now
 
@@ -43,6 +44,7 @@ let activate (context : ExtensionContext) : Api =
                 pm.message <- "Loading all projects"
                 p.report pm
                 CodeLens.activate df' context
+
                 Linter.activate df' context
                 UnusedOpens.activate df' context
                 UnusedDeclarations.activate df' context
@@ -52,7 +54,9 @@ let activate (context : ExtensionContext) : Api =
             )
             |> Promise.onSuccess(fun _ -> if solutionExplorer then SolutionExplorer.activate context)
             |> Promise.bind(fun parseVisibleTextEditors -> Project.activate context parseVisibleTextEditors)
-            |> Promise.onSuccess(fun _ -> QuickInfoProject.activate context )
+            |> Promise.onSuccess(fun _ ->
+                QuickInfoProject.activate context
+                if analyzers then Analyzers.activate df' context )
 
         ))
         |> Promise.onSuccess (fun _ ->
