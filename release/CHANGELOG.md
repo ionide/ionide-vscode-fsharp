@@ -1,3 +1,6 @@
+### 3.27.0 - 14.09.2018
+* EXPERIMENTAL. Add custom analyzers support
+
 ### 3.26.0 - 12.09.2018
 * EXPERIMENTAL. Enable references code lenses with `FSharp.enableReferenceCodeLens`. Requires experimental `FSharp.enableBackgroundSymbolCache`
 * Add `.fable` folder to excluded folders by default
