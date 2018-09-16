@@ -582,9 +582,21 @@ module LanguageService =
         | NetcoreFdd
 
     let targetRuntime =
-        match "FSharp.fsacRuntime" |> Configuration.get "net" with
-        | "netcore" -> FSACTargetRuntime.NetcoreFdd
-        | "net" | _ -> FSACTargetRuntime.NET
+        let configured = Configuration.tryGet "FSharp.fsacRuntime"
+
+        match configured with
+        | Some "netcore" ->
+            log.Info("Netcore runtime specified")
+            FSACTargetRuntime.NetcoreFdd
+        | Some "net" ->
+            log.Info(".Net runtime specified")
+            FSACTargetRuntime.NET
+        | Some v ->
+            log.Warn("Unknown configured runtime '%s', defaulting to .Net", v)
+            FSACTargetRuntime.NET
+        | None ->
+            log.Info("No runtime specified, defaulting to .Net")
+            FSACTargetRuntime.NET
 
     let spawnFSACForRuntime runtime rootPath =
         let spawnNetFSAC mono =
@@ -638,6 +650,7 @@ module LanguageService =
         promise {
             let! mono = Environment.mono
             let! dotnet = Environment.dotnet
+            log.Info(sprintf "finding FSAC for\n\truntime: %O\n\tmono: %O\n\tdotnet: %O" runtime mono dotnet)
             match runtime, mono, dotnet with
             | FSACTargetRuntime.NET, Some mono, Some _dotnet ->
                 suggestNetCore()
