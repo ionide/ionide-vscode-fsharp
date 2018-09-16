@@ -438,8 +438,8 @@ module LanguageService =
         { ProjectRequest.FileName = s }
         |> request "registerAnalyzer" 0 (makeRequestId())
 
-    let private fsacConfig () = 
-        compilerLocation () 
+    let private fsacConfig () =
+        compilerLocation ()
         |> Promise.map (fun c -> c.Data)
 
     let fsi () =
@@ -597,9 +597,18 @@ module LanguageService =
                 else
                     path, []
             start' fsacExe fsacArgs
-        | FSACTargetRuntime.NetcoreFdd ->
-            let path = rootPath + "/bin_netcore/fsautocomplete.dll"
-            start' "dotnet" [ path ]
+        | FSACTargetRuntime.NetcoreFdd -> promise {
+            let! dotnetPath = Environment.dotnet
+            match dotnetPath with
+            | Some dotnet ->
+                let path = rootPath + "/bin_netcore/fsautocomplete.dll"
+                return! start' dotnet [ path ]
+            | None ->
+                "Cannot start .Net Core language services because `dotnet` was not found. Consider setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary, including `dotnet` in your PATH, or installing .Net Core into one of the default locations."
+                |> vscode.window.showErrorMessage
+                |> ignore
+                return failwith "no `dotnet` binary found"
+        }
 
     let ensurePrereqsForRuntime runtime =
         match runtime with
