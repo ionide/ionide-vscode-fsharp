@@ -587,27 +587,74 @@ module LanguageService =
         | "net" | _ -> FSACTargetRuntime.NET
 
     let spawnFSACForRuntime runtime rootPath =
-        match runtime with
-        | FSACTargetRuntime.NET ->
+        let spawnNetFSAC mono =
             let path = rootPath + "/bin/fsautocomplete.exe"
             let fsacExe, fsacArgs =
                 if Process.isMono () then
-                    let mono = "FSharp.monoPath" |> Configuration.get "mono"
                     mono, [ yield path ]
                 else
                     path, []
             start' fsacExe fsacArgs
-        | FSACTargetRuntime.NetcoreFdd -> promise {
-            let! dotnetPath = Environment.dotnet
-            match dotnetPath with
-            | Some dotnet ->
-                let path = rootPath + "/bin_netcore/fsautocomplete.dll"
-                return! start' dotnet [ path ]
-            | None ->
-                "Cannot start .Net Core language services because `dotnet` was not found. Consider setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary, including `dotnet` in your PATH, or installing .Net Core into one of the default locations."
-                |> vscode.window.showErrorMessage
-                |> ignore
-                return failwith "no `dotnet` binary found"
+
+        let spawnNetcoreFSAC dotnet =
+            let path = rootPath + "/bin_netcore/fsautocomplete.dll"
+            start' dotnet [ path ]
+
+        let suggestNet () =
+            "Consider using the .Net Framework/Mono language services by setting `FSharp.fsacRuntime` to `net` and installing .Net/Mono as appropriate for your system."
+            |> vscode.window.showInformationMessage
+            |> ignore
+
+        let suggestNetCore () =
+            """Consider using the .Net Core language services by setting `FSharp.fsacRuntime` to `netcore`"""
+            |> vscode.window.showInformationMessage
+            |> ignore
+
+        let monoNotFound () =
+            """
+            Cannot start .Net Framework/Mono language services because `mono` was not found.
+            Consider:
+            * setting the `FSharp.monoPath` settings key to a `mono` binary,
+            * including `mono` in your PATH, or
+            * installing the .Net Core SDK and using the `FSharp.fsacRuntime` `netcore` language settings
+            """
+            |> vscode.window.showErrorMessage
+            |> ignore
+            failwith "no `mono` binary found"
+
+        let dotnetNotFound () =
+            """
+            Cannot start .Net Core language services because `dotnet` was not found.
+            Consider:
+            * setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary,
+            * including `dotnet` in your PATH,
+            * installing .Net Core into one of the default locations, or
+            * using the `net` `FSharp.fsacRuntime` to use mono instead
+            """
+            |> vscode.window.showErrorMessage
+            |> ignore
+            failwith "no `dotnet` binary found"
+
+        promise {
+            let! mono = Environment.mono
+            let! dotnet = Environment.dotnet
+            match runtime, mono, dotnet with
+            | FSACTargetRuntime.NET, Some mono, Some _dotnet ->
+                suggestNetCore()
+                return! spawnNetFSAC mono
+            | FSACTargetRuntime.NET, None, Some _dotnet when not Environment.isWin ->
+                suggestNetCore()
+                return! monoNotFound ()
+            | FSACTargetRuntime.NET, None, Some _dotnet ->
+                suggestNetCore()
+                return! spawnNetFSAC ""
+            | FSACTargetRuntime.NetcoreFdd, _, Some dotnet ->
+                return! spawnNetcoreFSAC dotnet
+            | FSACTargetRuntime.NetcoreFdd, Some _mono, None ->
+                suggestNet ()
+                return! dotnetNotFound ()
+            | runtime, mono, dotnet ->
+                return failwithf "unsupported combination of runtime/mono/dotnet: %O/%O/%O" runtime mono dotnet
         }
 
     let ensurePrereqsForRuntime runtime =
