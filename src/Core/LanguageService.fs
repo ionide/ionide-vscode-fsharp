@@ -438,6 +438,37 @@ module LanguageService =
         { ProjectRequest.FileName = s }
         |> request "registerAnalyzer" 0 (makeRequestId())
 
+    let private fsacConfig () =
+        compilerLocation ()
+        |> Promise.map (fun c -> c.Data)
+
+    let fsi () =
+        promise {
+            match Environment.configFSIPath with
+            | Some path -> return Some path
+            | None ->
+                let! fsacPaths = fsacConfig ()
+                return fsacPaths.Fsi
+        }
+
+    let fsc () =
+        promise {
+            match Environment.configFSCPath with
+            | Some path -> return Some path
+            | None ->
+                let! fsacPaths = fsacConfig ()
+                return fsacPaths.Fsc
+        }
+
+    let msbuild () =
+        promise {
+            match Environment.configMSBuildPath with
+            | Some path -> return Some path
+            | None ->
+                let! fsacPaths = fsacConfig ()
+                return fsacPaths.MSBuild
+        }
+
     [<PassGenerics>]
     let private registerNotifyAll (cb : 'a -> unit) (ws : WebSocket) =
         ws.on_message((fun (res : string) ->
@@ -551,30 +582,117 @@ module LanguageService =
         | NetcoreFdd
 
     let targetRuntime =
-        match "FSharp.fsacRuntime" |> Configuration.get "net" with
-        | "netcore" -> FSACTargetRuntime.NetcoreFdd
-        | "net" | _ -> FSACTargetRuntime.NET
+        let configured = Configuration.tryGet "FSharp.fsacRuntime"
+
+        match configured with
+        | Some "netcore" ->
+            log.Info("Netcore runtime specified")
+            FSACTargetRuntime.NetcoreFdd
+        | Some "net" ->
+            log.Info(".Net runtime specified")
+            FSACTargetRuntime.NET
+        | Some v ->
+            log.Warn("Unknown configured runtime '%s', defaulting to .Net", v)
+            FSACTargetRuntime.NET
+        | None ->
+            log.Info("No runtime specified, defaulting to .Net")
+            FSACTargetRuntime.NET
+
+    let spawnFSACForRuntime runtime rootPath =
+        let spawnNetFSAC mono =
+            let path = rootPath + "/bin/fsautocomplete.exe"
+            let fsacExe, fsacArgs =
+                if Process.isMono () then
+                    mono, [ yield path ]
+                else
+                    path, []
+            start' fsacExe fsacArgs
+
+        let spawnNetcoreFSAC dotnet =
+            let path = rootPath + "/bin_netcore/fsautocomplete.dll"
+            start' dotnet [ path ]
+
+        let suggestNet () =
+            "Consider using the .Net Framework/Mono language services by setting `FSharp.fsacRuntime` to `net` and installing .Net/Mono as appropriate for your system."
+            |> vscode.window.showInformationMessage
+            |> ignore
+
+        let suggestNetCore () =
+            """Consider using the .Net Core language services by setting `FSharp.fsacRuntime` to `netcore`"""
+            |> vscode.window.showInformationMessage
+            |> ignore
+
+        let monoNotFound () =
+            """
+            Cannot start .Net Framework/Mono language services because `mono` was not found.
+            Consider:
+            * setting the `FSharp.monoPath` settings key to a `mono` binary,
+            * including `mono` in your PATH, or
+            * installing the .Net Core SDK and using the `FSharp.fsacRuntime` `netcore` language settings
+            """
+            |> vscode.window.showErrorMessage
+            |> ignore
+            failwith "no `mono` binary found"
+
+        let dotnetNotFound () =
+            """
+            Cannot start .Net Core language services because `dotnet` was not found.
+            Consider:
+            * setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary,
+            * including `dotnet` in your PATH,
+            * installing .Net Core into one of the default locations, or
+            * using the `net` `FSharp.fsacRuntime` to use mono instead
+            """
+            |> vscode.window.showErrorMessage
+            |> ignore
+            failwith "no `dotnet` binary found"
+
+        promise {
+            let! mono = Environment.mono
+            let! dotnet = Environment.dotnet
+            log.Info(sprintf "finding FSAC for\n\truntime: %O\n\tmono: %O\n\tdotnet: %O" runtime mono dotnet)
+            match runtime, mono, dotnet with
+            | FSACTargetRuntime.NET, Some mono, Some _dotnet ->
+                suggestNetCore()
+                return! spawnNetFSAC mono
+            | FSACTargetRuntime.NET, None, Some _dotnet when not Environment.isWin ->
+                suggestNetCore()
+                return! monoNotFound ()
+            | FSACTargetRuntime.NET, None, Some _dotnet ->
+                suggestNetCore()
+                return! spawnNetFSAC ""
+            | FSACTargetRuntime.NetcoreFdd, _, Some dotnet ->
+                return! spawnNetcoreFSAC dotnet
+            | FSACTargetRuntime.NetcoreFdd, Some _mono, None ->
+                suggestNet ()
+                return! dotnetNotFound ()
+            | runtime, mono, dotnet ->
+                return failwithf "unsupported combination of runtime/mono/dotnet: %O/%O/%O" runtime mono dotnet
+        }
+
+    let ensurePrereqsForRuntime runtime =
+        match runtime with
+        | FSACTargetRuntime.NET ->
+            promise {
+                let! fsc = fsc ()
+                let! msbuild = msbuild ()
+                match fsc, msbuild with
+                | Some _, Some _ -> return ()
+                | _, _ ->
+                    if Environment.isWin
+                    then return! vscode.window.showErrorMessage "Visual Studio Build Tools not found. Please install them from the [Visual Studio Download Page](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)" |> Promise.map ignore
+                    else return! vscode.window.showErrorMessage "Mono installation not found. Please install the latest version for your operating system from the [Mono Project](https://www.mono-project.com/download/stable/)" |> Promise.map ignore
+            }
+        | FSACTargetRuntime.NetcoreFdd ->
+            Promise.lift ()
 
     let startFSAC () =
-         let ionidePluginPath =
+        let ionidePluginPath =
             try
                 (VSCode.getPluginPath "Ionide.ionide-fsharp")
             with
             | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp")
-
-         match targetRuntime with
-         | FSACTargetRuntime.NET ->
-             let path = ionidePluginPath + "/bin/fsautocomplete.exe"
-             let fsacExe, fsacArgs =
-                if Process.isMono () then
-                    let mono = "FSharp.monoPath" |> Configuration.get "mono"
-                    mono, [ yield path ]
-                else
-                    path, []
-             start' fsacExe fsacArgs
-         | FSACTargetRuntime.NetcoreFdd ->
-             let path = ionidePluginPath + "/bin_netcore/fsautocomplete.dll"
-             start' "dotnet" [ path ]
+        spawnFSACForRuntime targetRuntime ionidePluginPath
 
     let start () =
         let rec doRetry procPromise =
@@ -603,6 +721,7 @@ module LanguageService =
             socketNotifyAnalyzer <- startSocket "notifyAnalyzer"
             ()
         )
+        |> Promise.bind (fun _ -> ensurePrereqsForRuntime targetRuntime)
 
     let stop () =
         exitRequested <- true

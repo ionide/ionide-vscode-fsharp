@@ -13,7 +13,13 @@ module ScriptRunner =
         let scriptDir = node.path.dirname(scriptFile)
 
         promise {
-            let! fsi = Binaries.fsi ()
+            let! fsi =
+                LanguageService.fsi ()
+                |> Promise.bind (fun p ->
+                    match p with
+                    | Some fsi -> Promise.lift fsi
+                    | None -> Promise.reject "FSI not found"
+                )
             let (shellCmd, shellArgs, textToSend) =
                 match node.os.``type``() with
                 | "Windows_NT" ->

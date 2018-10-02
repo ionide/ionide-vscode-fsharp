@@ -72,25 +72,28 @@ module Environment =
     let configMSBuildPath = Configuration.tryGet "FSharp.msbuildLocation"
 
     let dotnet =
-        let configured = Configuration.get "" "FSharp.dotnetLocation"
-        if configured <> ""
-        then configured |> Promise.lift
-        else
-            promise {
-                let! dotnet = tryGetTool "dotnet"
-                return
-                    match dotnet with
-                    | Some tool -> tool
-                    | None ->
-                        if isWin then
-                            let dotnetPath =
-                                [ (platformProgramFiles </> @"dotnet")
-                                  (programFilesX86 </> @"dotnet") ]
-
-                            defaultArg (findFirstValidFilePath "dotnet.exe" dotnetPath) "dotnet.exe"
-                        else
-                            "dotnet" // at this point nothing really matters because we don't have a sane default at all :(
-            }
+        Configuration.tryGet "FSharp.dotnetLocation"
+        |> Option.map (Some >> Promise.lift)
+        |> Option.defaultWith (fun () -> promise {
+            let! dotnet = tryGetTool "dotnet"
+            match dotnet with
+            | Some tool -> return Some tool
+            | None ->
+                let basePaths, binary = 
+                    if isWin then
+                        [ platformProgramFiles </> @"dotnet"
+                          programFilesX86 </> @"dotnet" ], "dotnet.exe"
+                    else 
+                        [ "/usr/local/share" </> "dotnet"
+                          (unbox Globals.``process``.env?``HOME``) </> ".dotnet" ], "dotnet"
+                
+                return findFirstValidFilePath binary basePaths
+        })
+    
+    let mono = 
+        Configuration.tryGet "FSharp.monoPath"
+        |> Option.map (Some >> Promise.lift)
+        |> Option.defaultWith (fun () -> tryGetTool "mono")
 
     let ensureDirectory (path : string) =
         let root =

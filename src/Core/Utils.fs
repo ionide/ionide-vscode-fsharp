@@ -211,7 +211,7 @@ module Markdown =
           "</remarks>", "\n" ]
 
     let private regexReplacePatterns =
-        let r pat = Regex(pat, RegexOptions.Compiled ||| RegexOptions.IgnoreCase)
+        let r pat = Regex(pat, RegexOptions.IgnoreCase)
         
         let code (strings : string array) =
             let str = strings.[0]

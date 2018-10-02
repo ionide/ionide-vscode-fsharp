@@ -61,7 +61,10 @@ module Fsi =
                 else
                     fsiParams
                 |> Array.ofList
-            let! fsiPath = Binaries.fsi ()
+            let! fsiPath =
+                LanguageService.fsi ()
+                |> Promise.bind (fun fsi -> match fsi with Some fsi -> Promise.lift fsi | None -> Promise.reject "FSI not found")
+
             let terminal = window.createTerminal("F# Interactive", fsiPath, parms)
             terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
             lastCd <- None
