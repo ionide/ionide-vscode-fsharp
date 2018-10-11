@@ -3,16 +3,16 @@ version 5.169.0
 source https://www.nuget.org/api/v2
 storage:none
 
-clitool dotnet-fable
-nuget Fable.Core
-nuget Fable.HtmlConverter
-nuget Fable.Import.Node
-nuget Fable.Import.Browser
+clitool dotnet-fable < 2.0
+nuget Fable.Core < 2.0
+nuget Fable.HtmlConverter < 2.0
+nuget Fable.Import.Node < 2.0
+nuget Fable.Import.Browser < 2.0
 
-git https://github.com/fsharp/FsAutoComplete.git analyzers build:"build.cmd LocalRelease", OS: windows
+git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd LocalRelease", OS: windows
 git https://github.com/fsharp-editing/Forge.git master build:"build.cmd Build", OS: windows
 
-git https://github.com/fsharp/FsAutoComplete.git analyzers build:"build.sh LocalRelease", OS: mono
+git https://github.com/fsharp/FsAutoComplete.git master build:"build.sh LocalRelease", OS: mono
 git https://github.com/fsharp-editing/Forge.git master build:"build.sh Build", OS: mono
 
 git https://github.com/ionide/ionide-fsgrammar.git
