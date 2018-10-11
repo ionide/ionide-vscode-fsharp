@@ -1,3 +1,8 @@
+### 3.28.0 - 12.10.2018
+* Improvements for the getting started UX (error messages about mono/.Net SDK etc)
+* Fixed too aggressive parameter hints bug
+* Autocomplete improvements - fixed autocomplete for literal values
+
 ### 3.27.0 - 14.09.2018
 * EXPERIMENTAL. Add custom analyzers support
 
