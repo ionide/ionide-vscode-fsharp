@@ -31,7 +31,8 @@ module DTO =
           Column : int
           Filter : string
           IncludeKeywords : bool
-          IncludeExternal : bool }
+          IncludeExternal : bool
+          Version : int }
 
     type WorkspacePeekRequest =
         { Directory : string

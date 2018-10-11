@@ -285,8 +285,8 @@ module LanguageService =
         { HelptextRequest.Symbol = s }
         |> request "helptext" 0 (makeRequestId())
 
-    let completion fn sl line col keywords external =
-        { CompletionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "Contains"; SourceLine = sl; IncludeKeywords = keywords; IncludeExternal = external }
+    let completion fn sl line col keywords external version =
+        { CompletionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "Contains"; SourceLine = sl; IncludeKeywords = keywords; IncludeExternal = external; Version = version }
         |> request "completion" 1 (makeRequestId())
 
     let symbolUse fn line col =
