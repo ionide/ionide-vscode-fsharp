@@ -30,7 +30,7 @@ module CodeLens =
             )
             |> String.concat " -> "
 
-        if String.IsNullOrEmpty args then sign.OutputType else args + " -> " + sign.OutputType
+        if String.IsNullOrEmpty args then sign.OutputType else args + " -> " + formatType sign.OutputType
 
     let interestingSymbolPositions (symbols : Symbols[]) : DTO.Range[] =
         symbols |> Array.collect(fun syms ->
