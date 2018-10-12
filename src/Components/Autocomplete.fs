@@ -92,12 +92,10 @@ module Autocomplete =
                     let ln = doc.lineAt pos.line
                     let r = doc.getWordRangeAtPosition pos
                     let word = doc.getText r
-                    printfn "WORD: %s" word
                     if not (ln.text.StartsWith "#" && (hashDirectives |> List.exists (fun (n,_) -> n.StartsWith word ) || word.Contains "\n" ))  then
                         let! res = LanguageService.completion (doc.fileName) ln.text (int pos.line + 1) (int pos.character + 1) setting external (int doc.version)
                         return mapCompletion res
                     else
-                        printfn "Return hash completions"
                         return hashCompletions
                 } |> U2.Case2
 
