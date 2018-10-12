@@ -1345,6 +1345,11 @@
 						"analyzers"
 					],
 					"description": "Directories in the array are used as a source of custom analyzers. Requires restart"
+				},
+				"FSharp.customTypecheckingDelay": {
+					"type": "number",
+					"default": -1,
+					"description": "Custom delay for error type checking. Use -1 for default behavior. Requires restart"
 				}
 			}
 		},

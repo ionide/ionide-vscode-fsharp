@@ -13,6 +13,8 @@ module Errors =
 
     let private logger = ConsoleAndOutputChannelLogger(Some "Errors", Level.DEBUG, None, Some Level.DEBUG)
 
+    let mutable customDelay = -1.
+
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
 
     let private mapResult (ev : ParseResult) =
@@ -79,10 +81,13 @@ module Errors =
     let mutable private timer = None
 
     let timeout (lines : float) =
-        if lines < 200. then 10.
-        elif lines < 1000. then 100.
-        elif lines < 2000. then 200.
-        else 500.
+        if customDelay = -1. then
+            if lines < 200. then 50.
+            elif lines < 1000. then 200.
+            elif lines < 2000. then 400.
+            else 800.
+        else
+            customDelay
 
     let private handler (event : TextDocumentChangeEvent) =
         let t = timeout event.document.lineCount
@@ -146,7 +151,6 @@ module Errors =
             window.visibleTextEditors
             |> Seq.where (fun te -> proj.Files |> List.contains te.document.fileName)
             |> Seq.toList
-        // printfn "FILES FOR PROJECT %A: %A" proj vs
         setTimeout (fun _ ->
             match vs with
             | [] -> ()
@@ -158,6 +162,8 @@ module Errors =
 
 
     let activate (context : ExtensionContext) =
+        let d = ("FSharp.customTypecheckingDelay" |> Configuration.get -1. )
+        customDelay <- d
         let allowBackgroundParsing = not ("FSharp.minimizeBackgroundParsing" |> Configuration.get false)
         Project.projectLoaded.event $ (parseVisibleFileInProject, (), context.subscriptions) |> ignore
 
