@@ -37,7 +37,7 @@ module ResolveNamespaces =
                                     let opens =
                                         res.Data.Opens
                                         |> Array.map (fun suggestion ->
-                                            let existingText = doc.getText(range)
+                                            let existingText = res.Data.Word
                                             let s =
                                                 if suggestion.Name.EndsWith existingText && suggestion.Name <> existingText then
                                                     let prefix = suggestion.Name.Substring(0, suggestion.Name.Length - existingText.Length).TrimEnd('.')
