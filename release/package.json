@@ -1120,7 +1120,7 @@
 				"FSharp.fsacRuntime": {
 					"type": "string",
 					"default": "net",
-					"description": "Choose the runtime of FsAutocomplete (FSAC). Require restart",
+					"description": "Choose the runtime of FsAutocomplete (FSAC). Requires restart",
 					"enum": [
 						"net",
 						"netcore"
