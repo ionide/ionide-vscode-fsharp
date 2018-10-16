@@ -629,9 +629,8 @@ module SolutionExplorer =
                       let crossgen = not (info.TargetFrameworks |> Seq.isEmpty)
                       yield sprintf "<b>Crossgen (multiple target frameworks)</b>: %s" (crossgen |> boolToString)
                       if crossgen then
-                        yield "<b>NOTE atm the target framework choosen by the language service is the first one in the list (transitive targer framework of libs should be ok). Is not possibile "
-                            + "yet to choose, but you can change the position it in the fsproj</b>"
-                        yield "TODO add link to wiki/issue "
+                        yield "<b>NOTE: You're using multiple target frameworks. As of now you can't choose which target framework should be used by FSAC. Instead, the first target framework from the list is selected. To change the target framework used by FSAC, simply place it on the first position on the &lt;TargetFrameworks&gt; list.</b>"
+                        yield "For more info see this issue: https://github.com/ionide/ionide-vscode-fsharp/issues/278"
                       yield "<ul>"
                       for tfm in info.TargetFrameworks do
                         yield sprintf "<li>%s</li>" tfm
