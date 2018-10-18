@@ -152,6 +152,7 @@ module CodeLens =
                         cmd.title <-
                             if isNotNull signaturesResult then
                                 if signaturesResult.Data.Uses.Length - 1 = 1 then "1 Reference"
+                                elif signaturesResult.Data.Uses.Length = 0 then "0 References"
                                 else sprintf "%d References" (signaturesResult.Data.Uses.Length - 1)
                             else ""
                         let locations =
