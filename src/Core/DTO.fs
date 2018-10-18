@@ -113,7 +113,8 @@ module DTO =
     type AdditionalEdit =
         { Text : string
           Line : int
-          Column : int }
+          Column : int
+          Type : string }
 
     type Helptext =
         { Name : string
