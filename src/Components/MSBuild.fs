@@ -308,13 +308,22 @@ module MSBuild =
 
 
     let activate (context : ExtensionContext) =
+        let unlessIgnored (n: Uri) f =
+            if Project.isIgnored n.fsPath then
+                unbox ()
+            else
+                f n
+
+        let initWorkspace _n = Project.initWorkspace (fun _ -> Promise.empty)
+        let loadProject (n: Uri) = Project.load false n.fsPath
+
         let solutionWatcher = vscode.workspace.createFileSystemWatcher("**/*.sln")
-        solutionWatcher.onDidCreate.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
-        solutionWatcher.onDidChange.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
+        solutionWatcher.onDidCreate.Invoke(fun n -> unlessIgnored n initWorkspace |> unbox) |> ignore
+        solutionWatcher.onDidChange.Invoke(fun n -> unlessIgnored n initWorkspace |> unbox) |> ignore
 
         let projectWatcher = vscode.workspace.createFileSystemWatcher("**/*.fsproj")
-        projectWatcher.onDidCreate.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
-        projectWatcher.onDidChange.Invoke(fun n -> Project.load false n.fsPath |> unbox) |> ignore
+        projectWatcher.onDidCreate.Invoke(fun n -> unlessIgnored n initWorkspace |> unbox) |> ignore
+        projectWatcher.onDidChange.Invoke(fun n -> unlessIgnored n loadProject |> unbox) |> ignore
 
         let assetWatcher = vscode.workspace.createFileSystemWatcher("**/project.assets.json")
 

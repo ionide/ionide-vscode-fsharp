@@ -62,6 +62,17 @@ module Project =
     let updateInWorkspace (path : string) state =
         loadedProjects <- loadedProjects |> Map.add (path.ToUpperInvariant ()) state
 
+    let isIgnored (path: string) =
+        let relativePath = node.path.relative (workspace.rootPath, path)
+
+        let isSubDir p =
+            let relativeToDir = node.path.relative(p, relativePath)
+            let isSubdir = not (relativeToDir.StartsWith(".."))
+            isSubdir
+
+        excluded
+        |> Array.exists isSubDir
+
     let private guessFor p =
         let rec findFsProj dir =
             if node.fs.lstatSync(U2.Case1 dir).isDirectory() then
