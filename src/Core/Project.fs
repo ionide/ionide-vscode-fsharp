@@ -32,33 +32,33 @@ module Project =
         | WorkspaceLoad // send to FSAC the workspaceLoad and use notifications
 
     let private emptyProjectsMap : Map<ProjectFilePath,ProjectLoadingState> = Map.empty
-    
+
     let mutable private loadedProjects = emptyProjectsMap
-    
+
     let mutable private loadedWorkspace : WorkspacePeekFound option = None
-    
+
     let mutable workspaceNotificationAvaiable = false
-    
+
     let setAnyProjectContext = Context.cachedSetter<bool> "fsharp.project.any"
-    
+
     let workspaceChanged = EventEmitter<WorkspacePeekFound>()
-    
+
     let projectNotRestoredLoaded = EventEmitter<string>()
-    
+
     let projectLoaded = EventEmitter<Project>()
-    
+
     let workspaceLoaded = EventEmitter<unit>()
 
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files"; ".fable" |]
-    
+
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
 
     let getInWorkspace () =
         loadedProjects |> Map.toList |> List.map snd
-    
+
     let tryFindInWorkspace (path : string) =
         loadedProjects |> Map.tryFind (path.ToUpperInvariant ())
-    
+
     let updateInWorkspace (path : string) state =
         loadedProjects <- loadedProjects |> Map.add (path.ToUpperInvariant ()) state
 
@@ -164,7 +164,7 @@ module Project =
     let private chooseLoaded = function ProjectLoadingState.Loaded p -> Some p | _ -> None
 
     let getLoaded = getInWorkspace >> List.choose chooseLoaded
-    
+
     let tryFindLoadedProject = tryFindInWorkspace >> Option.bind chooseLoaded
 
     let tryFindLoadedProjectByFile (filePath : string) =
@@ -508,6 +508,7 @@ module Project =
             ()
 
     let private initWorkspaceHelper parseVisibleTextEditors x  =
+        let disableInMemoryProject = "FSharp.disableInMemoryProjectReferences" |> Configuration.get false
         clearLoadedProjects ()
         loadedWorkspace <- Some x
         workspaceChanged.fire x
@@ -541,7 +542,7 @@ module Project =
             | FSharpWorkspaceLoader.Projects ->
                 Promise.executeForAll (load false)
             | FSharpWorkspaceLoader.WorkspaceLoad ->
-                LanguageService.workspaceLoad
+                LanguageService.workspaceLoad disableInMemoryProject
 
         projs
         |> List.ofArray

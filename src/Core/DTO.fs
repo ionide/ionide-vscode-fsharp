@@ -39,7 +39,7 @@ module DTO =
           Deep : int
           ExcludedDirs : string[] }
 
-    type WorkspaceLoadRequest = { Files : string[] }
+    type WorkspaceLoadRequest = { Files : string[]; DisableInMemoryProjectReferences: bool }
 
     type OverloadSignature =
         { Signature : string

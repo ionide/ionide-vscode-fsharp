@@ -7,7 +7,7 @@ NUGET
       Fable.Core (>= 1.3.17) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.2.3) - restriction: >= netcoreapp2.0
       Microsoft.NETCore.App (>= 2.0) - restriction: >= netcoreapp2.0
-    Dotnet.ProjInfo (0.11) - restriction: >= netcoreapp2.0
+    Dotnet.ProjInfo (0.12.2) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.1.18) - restriction: && (< net45) (>= netstandard2.0)
     Fable.Compiler (1.3.18) - restriction: >= netcoreapp2.0
       Fable.Core (>= 1.3.17) - restriction: >= netstandard1.6
@@ -602,10 +602,10 @@ NUGET
       FSharp.Core (>= 4.3.4) - restriction: >= netstandard2.0
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (e7b5c72cd5f26dc56855b27605d6730a91f098f8)
+     (66339777d9ac2399e324c8951cbc1d1caf25f36f)
       build: build.cmd LocalRelease
       os: windows
-     (e7b5c72cd5f26dc56855b27605d6730a91f098f8)
+     (66339777d9ac2399e324c8951cbc1d1caf25f36f)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
@@ -616,13 +616,13 @@ GIT
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (c443b82ec96b796b3e4c94110a59efbb12833dc7)
+     (a20d836fa67d6daf81fd63e8baa97aa5e1516006)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Axios.fs (472e725da9c0bff61fe10c42c891f39fd2d23b91)
-    src/Fable.Import.VSCode.fs (472e725da9c0bff61fe10c42c891f39fd2d23b91)
-    src/Fable.Import.ws.fs (472e725da9c0bff61fe10c42c891f39fd2d23b91)
-    src/Helpers.fs (472e725da9c0bff61fe10c42c891f39fd2d23b91)
+    src/Fable.Import.Axios.fs (22572ed1a772fae2b99a346a391e4a2b2a060c43)
+    src/Fable.Import.VSCode.fs (22572ed1a772fae2b99a346a391e4a2b2a060c43)
+    src/Fable.Import.ws.fs (22572ed1a772fae2b99a346a391e4a2b2a060c43)
+    src/Helpers.fs (22572ed1a772fae2b99a346a391e4a2b2a060c43)
 GROUP build
 NUGET
   remote: https://www.nuget.org/api/v2

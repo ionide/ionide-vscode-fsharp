@@ -1350,6 +1350,11 @@
 					"type": "number",
 					"default": -1,
 					"description": "Custom delay for error type checking. Use -1 for default behavior. Requires restart"
+				},
+				"FSharp.disableInMemoryProjectReferences": {
+					"type": "boolean",
+					"default": false,
+					"description": "EXPERIMENTAL. Enables disabling in-memory project references. It means that cross-project changes will be picked up only after building project. It can be useful for big solutions (like F# compiler). Requires workspace loading mode. Requires restart"
 				}
 			}
 		},

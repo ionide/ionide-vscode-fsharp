@@ -404,8 +404,8 @@ module LanguageService =
         |> request "workspacePeek" 0 (makeRequestId())
         |> Promise.map (fun res -> parse (res?Data |> unbox))
 
-    let workspaceLoad projects =
-        { WorkspaceLoadRequest.Files = projects |> List.toArray }
+    let workspaceLoad disableInMemoryProject projects  =
+        { WorkspaceLoadRequest.Files = projects |> List.toArray; DisableInMemoryProjectReferences = disableInMemoryProject }
         |> request "workspaceLoad" 0 (makeRequestId())
 
     let unusedDeclarations s =
