@@ -1,3 +1,19 @@
+### 3.29.0 - 20.10.2018
+* Format output type in CodeLenses correctly
+* Fix wrong namespace suggestion
+* Add autocomplete for # directives
+* Add custom delay for the type checking (`FSharp.customTypecheckingDelay`)
+* Remove unnecessary logging
+* package.json: small grammar improvements
+* Reword Multiple Target Framework warning
+* Handle autocomplete open insert correctly
+* Fix CodeLens reference counter bug
+* Fixes and workaround for the ProjectCracker - result of investigating FSAC behavior on visualfsharp/FSharp.sln
+* Add support for disabling in-memory project references
+* Add to tooltip type description if the symbol is constructor
+* Support keywords in helptext command (keyword documentation in autocomplete)
+* Update grammar definition
+
 ### 3.28.0 - 12.10.2018
 * Improvements for the getting started UX (error messages about mono/.Net SDK etc)
 * Fixed too aggressive parameter hints bug
