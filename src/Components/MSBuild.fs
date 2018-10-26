@@ -308,13 +308,22 @@ module MSBuild =
 
 
     let activate (context : ExtensionContext) =
+        let unlessIgnored (path: string) f =
+            if Project.isIgnored path then
+                unbox ()
+            else
+                f path
+
+        let initWorkspace _n = Project.initWorkspace (fun _ -> Promise.empty)
+        let loadProject path = Project.load false path
+
         let solutionWatcher = vscode.workspace.createFileSystemWatcher("**/*.sln")
-        solutionWatcher.onDidCreate.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
-        solutionWatcher.onDidChange.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
+        solutionWatcher.onDidCreate.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox) |> ignore
+        solutionWatcher.onDidChange.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox) |> ignore
 
         let projectWatcher = vscode.workspace.createFileSystemWatcher("**/*.fsproj")
-        projectWatcher.onDidCreate.Invoke(fun n -> (Project.initWorkspace (fun _ -> Promise.empty)) |> unbox) |> ignore
-        projectWatcher.onDidChange.Invoke(fun n -> Project.load false n.fsPath |> unbox) |> ignore
+        projectWatcher.onDidCreate.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox) |> ignore
+        projectWatcher.onDidChange.Invoke(fun n -> unlessIgnored n.fsPath loadProject |> unbox) |> ignore
 
         let assetWatcher = vscode.workspace.createFileSystemWatcher("**/project.assets.json")
 
@@ -322,7 +331,18 @@ module MSBuild =
             let objDir = node.path.dirname n.fsPath
             let fsprojDir = node.path.join(objDir, "..")
             let files = node.fs.readdirSync (U2.Case1 fsprojDir)
-            files |> Seq.tryFind(fun n -> n.EndsWith ".fsproj"), fsprojDir
+            let fsprojOpt = files |> Seq.tryFind(fun n -> n.EndsWith ".fsproj")
+            let fsprojOptNotIgnored =
+                match fsprojOpt with
+                | Some fsproj ->
+                    let p = node.path.join(fsprojDir, fsproj)
+                    if Project.isIgnored p then
+                        None
+                    else
+                        Some fsproj
+                | None ->
+                    None
+            fsprojOptNotIgnored, fsprojDir
 
         assetWatcher.onDidDelete.Invoke(fun n ->
             let (fsprojOpt, fsprojDir) = getFsProjFromAssets n
