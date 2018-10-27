@@ -609,12 +609,24 @@ module SolutionExplorer =
                 "<b>Status:</b> loading.."
 
             let viewParsed (proj: Project) =
+                let (Project(_,_,_, files, ProjectReferencesList(_,projRefs,_), ReferenceList(_, refs,_), _, _)) = getProjectModel proj
+
+                let files =
+                    files |> List.map (function (File(_,p, _, _)) -> p)
+
+                let projRefs =
+                    projRefs |> List.map (function (ProjectReference(_,p, _, _)) -> p)
+
+                let refs =
+                    refs |> List.map (function (Reference(_,p, _, _)) -> p)
+
                 [ yield "<b>Status:</b> parsed correctly"
                   yield ""
                   yield sprintf "<b>Project</b>: %s" proj.Project
                   yield ""
                   yield sprintf "<b>Output Type</b>: %s" proj.OutputType
                   yield sprintf "<b>Output</b>: %s" proj.Output
+
                   yield ""
                   match proj.Info with
                   | ProjectResponseInfo.DotnetSdk info ->
@@ -639,6 +651,15 @@ module SolutionExplorer =
                       yield sprintf "<b>Project Type</b>: old/verbose sdk"
                   | ProjectResponseInfo.ProjectJson ->
                       yield sprintf "<b>Project Type</b>: project.json"
+                  yield ""
+                  yield "<b>Files</b>:"
+                  yield! files
+                  yield ""
+                  yield "<b>Project References</b>:"
+                  yield! projRefs
+                  yield ""
+                  yield "<b>References</b>:"
+                  yield! refs
                   ]
                 |> String.concat "<br />"
 
@@ -876,3 +897,5 @@ module SolutionExplorer =
         )) |> context.subscriptions.Add
 
         ()
+
+
