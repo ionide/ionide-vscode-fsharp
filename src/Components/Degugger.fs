@@ -64,7 +64,8 @@ module Debugger =
                 window.showWarningMessage "Can't start project"
                 |> ignore
             | Some l ->
-                l "" |> ignore
+                let! terminal = l ""
+                terminal.show()
         }
 
     let setProgramPath project (cfg : LaunchJsonVersion2.RequestLaunch) =
