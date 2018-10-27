@@ -9,6 +9,7 @@ open Fable.Import.Node
 open Ionide.VSCode.Helpers
 
 open DTO
+open System.Collections.Generic
 module node = Fable.Import.Node.Exports
 
 module Project =
@@ -31,7 +32,7 @@ module Project =
         | Projects // send to FSAC multiple "project" command
         | WorkspaceLoad // send to FSAC the workspaceLoad and use notifications
 
-    let private emptyProjectsMap : Map<ProjectFilePath,ProjectLoadingState> = Map.empty
+    let private emptyProjectsMap : Dictionary<ProjectFilePath,ProjectLoadingState> = Dictionary()
 
     let mutable private loadedProjects = emptyProjectsMap
 
@@ -54,13 +55,14 @@ module Project =
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
 
     let getInWorkspace () =
-        loadedProjects |> Map.toList |> List.map snd
+        loadedProjects |> Seq.toList |> List.map (fun n -> n.Value)
 
     let tryFindInWorkspace (path : string) =
-        loadedProjects |> Map.tryFind (path.ToUpperInvariant ())
+        loadedProjects |> Seq.tryFind (fun n -> n.Key = path.ToUpperInvariant ()) |> Option.map (fun n -> n.Value)
 
     let updateInWorkspace (path : string) state =
-        loadedProjects <- loadedProjects |> Map.add (path.ToUpperInvariant ()) state
+        // loadedProjects <- loadedProjects |> Map.add (path.ToUpperInvariant ()) state
+        loadedProjects.Add ((path.ToUpperInvariant ()), state)
 
     let isIgnored (path: string) =
         let relativePath = node.path.relative (workspace.rootPath, path)
@@ -355,7 +357,9 @@ module Project =
         promise {
             let! dotnet = Environment.dotnet
             match dotnet with
-            | Some dotnet -> return Process.spawnWithShell (sprintf "\"%s\"" dotnet) "" cmd
+            | Some dotnet ->
+                let dotnet = if Environment.isWin then (sprintf "\"%s\"" dotnet) else dotnet
+                return Process.spawnWithShell dotnet "" cmd
             | None -> return! Promise.reject "dotnet binary not found"
         }
 
