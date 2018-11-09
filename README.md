@@ -16,7 +16,7 @@ _Part of the [Ionide](http://ionide.io) plugin suite._ Read detailed documentati
 
 * VSCode C# plugin (optional) - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. To get it install [C# extension from VSCode marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp)
 
-* MsBuild 2015 (Windows only, optional) - For old, verbose `.fsproj` files on Windows MsBuild 2015 (14.0) needs to be additionally installed. You can download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48159). However, we highly recommend using new, SDK-based project files.
+* MSBuild 2015 (Windows only, optional) - For old, verbose `.fsproj` files on Windows MSBuild 2015 (14.0) needs to be additionally installed. You can download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48159). However, we highly recommend using new, SDK-based project files.
 
 ## Features
 
@@ -42,7 +42,7 @@ _Part of the [Ionide](http://ionide.io) plugin suite._ Read detailed documentati
 - Integration with F# Interactive
 - Integration with Forge (Project scaffolding and modification)
 - Integration with FSharpLint (additional hints and quick fixes)
-- Integration with MsBuild (Build, Rebuild, Clean project)
+- Integration with MSBuild (Build, Rebuild, Clean project)
 - Solution / project explorer
 
 ## How to get logs for debugging / issue reporting
