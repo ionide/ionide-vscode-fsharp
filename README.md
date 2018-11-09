@@ -12,11 +12,11 @@ _Part of the [Ionide](http://ionide.io) plugin suite._ Read detailed documentati
 
 * F# (Linux/MacOS) - F# on non-Windows platform is distributed as part of the `mono`. Installation guide and recent version of `mono` can be found on the [project webpage](https://www.mono-project.com/download/stable/) and on the F# Software Foundation ["Use on Linux" page](https://fsharp.org/use/linux/)
 
-* .Net Core SDK - .Net Core is modern, cross platform implementation of .Net Framework. Ionide is requiring it for set of features such as project modifications or debugging. The core part of SDK is `dotnet` CLI tool that provides easy way to create, build and run F# projects. What's important - the `dotnet` tool can be used also to create applications targeting also Full Framewok (like `net461`). For detailed instructions on installing .Net Core visit [official step-by-step installation guide](https://www.microsoft.com/net/core)
+* .Net Core SDK - .Net Core is modern, cross platform implementation of .Net Framework. Ionide is requiring it for set of features such as project modifications or debugging. The core part of SDK is `dotnet` CLI tool that provides easy way to create, build and run F# projects. What's important - the `dotnet` tool can be used also to create applications targeting also Full Framework (like `net461`). For detailed instructions on installing .Net Core visit [official step-by-step installation guide](https://www.microsoft.com/net/core)
 
 * VSCode C# plugin (optional) - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. To get it install [C# extension from VSCode marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp)
 
-* MsBuild 2015 (Windows only, optional) - For old, verbose `.fsproj` files on Windows MsBuild 2015 (14.0) needs to be additionally installed. You can download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48159). However, we highly recommend using new, SDK-based project files.
+* MSBuild 2015 (Windows only, optional) - For old, verbose `.fsproj` files on Windows MSBuild 2015 (14.0) needs to be additionally installed. You can download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48159). However, we highly recommend using new, SDK-based project files.
 
 ## Features
 
@@ -42,7 +42,7 @@ _Part of the [Ionide](http://ionide.io) plugin suite._ Read detailed documentati
 - Integration with F# Interactive
 - Integration with Forge (Project scaffolding and modification)
 - Integration with FSharpLint (additional hints and quick fixes)
-- Integration with MsBuild (Build, Rebuild, Clean project)
+- Integration with MSBuild (Build, Rebuild, Clean project)
 - Solution / project explorer
 
 ## How to get logs for debugging / issue reporting
@@ -85,7 +85,7 @@ The library is available under [MIT license](https://github.com/ionide/ionide-vs
 
 ## Sponsors
 
-<a href="https://lambdafactory.io"><img src="https://cdn-images-1.medium.com/max/332/1*la7_YvDFvrtA720P5bYWBQ@2x.png" alt="drawing" width="100"/></a> 
+<a href="https://lambdafactory.io"><img src="https://cdn-images-1.medium.com/max/332/1*la7_YvDFvrtA720P5bYWBQ@2x.png" alt="drawing" width="100"/></a>
 
 Ionide couldn't be created without support of [Lambda Factory](https://lambdafactory.io). If you'd be interested in rich F# test integration check out our VSCode plugin - [Neptune](https://github.com/LambdaFactory/Neptune-public).
 

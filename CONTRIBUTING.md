@@ -29,7 +29,7 @@ your Operating System, as well as your `dotnet` (or `mono` \ .Net Framework), an
 reproduce the issue as well as the outcome you were expecting! All these details
 will help developers to fix any potential bugs.
 
-Ionide provide an easy way to gather all this informations:
+Ionide provide an easy way to gather all this information:
 
 Do `Ctrl+Shift+P > F#: Get info for diagnostics`, this will open a file with something like:
 
@@ -94,7 +94,7 @@ accurate comments, etc.).
 ### Building
 
 Fork, from the github interface https://github.com/ionide/ionide-vscode-fsharp
- - if you don't use a certificate for commiting to github:
+ - if you don't use a certificate for committing to github:
 ```bash
 git clone https://github.com/YOUR_GITHUB_USER/ionide-vscode-fsharp.git
 ```
