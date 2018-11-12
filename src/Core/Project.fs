@@ -400,12 +400,13 @@ module Project =
             | None -> false
 
         let text (x : WorkspacePeekFound) =
+            let check = if isDefault x then "✔ " else ""
             match x with
             | WorkspacePeekFound.Directory dir ->
-                sprintf "[DIR] %s     (%i projects)" dir.Directory dir.Fsprojs.Length
+                sprintf "%s[DIR] %s     (%i projects)" check dir.Directory dir.Fsprojs.Length
             | WorkspacePeekFound.Solution sln ->
                 let relativeSln = node.path.relative (workspace.rootPath, sln.Path)
-                sprintf "[SLN] %s     (%i projects)" relativeSln (countProjectsInSln sln)
+                sprintf "%s[SLN] %s     (%i projects)" check relativeSln (countProjectsInSln sln)
         match ws |> List.map (fun x -> (text x), x) with
         | [] ->
             None |> Promise.lift
