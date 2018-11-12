@@ -1355,6 +1355,11 @@
 					"type": "boolean",
 					"default": false,
 					"description": "EXPERIMENTAL. Enables disabling in-memory project references. It means that cross-project changes will be picked up only after building project. It can be useful for big solutions (like F# compiler). Requires workspace loading mode. Requires restart"
+				},
+				"FSharp.workspacePath": {
+					"type": "string",
+					"description": "Path to the directory or solution file that should be loaded as a workspace.",
+					"scope": "window"
 				}
 			}
 		},
