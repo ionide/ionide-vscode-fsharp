@@ -286,8 +286,13 @@ module Project =
     module private CurrentWorkspaceConfiguration =
         let private key = "FSharp.workspacePath"
 
-        let private parseConfiguredWorkspace (value: string) =
-          let fullPath = path.join(workspace.rootPath, value)
+        let mutable extensionWorkspaceState: Memento option = None
+
+        let setContext (context : ExtensionContext) =
+            extensionWorkspaceState <- Some context.workspaceState
+
+        let private parse (value: string) =
+          let fullPath = path.resolve(workspace.rootPath, value)
           if value.ToLowerInvariant().EndsWith(".sln") then
               ConfiguredWorkspace.Solution fullPath
           else
@@ -308,35 +313,54 @@ module Project =
                 with
                 | _ -> false
 
-        let get () =
-            let config = workspace.getConfiguration().get<string option>(key)
+        let private parseAndValidate (config: string option) =
             match config with
             | None
             | Some "" -> None
             | Some ws ->
-                let configured = parseConfiguredWorkspace ws
+                let configured = parse ws
                 if pathExists configured then
                     Some configured
                 else
-                    logger.Warn("Ignoring configured workspace '%s' as the file or directory can't be resolved", ws)
+                    logger.Warn("Ignoring configured workspace '%s' as the file or directory can't be resolved (From '%s')", ws, sprintf "%A" configured)
                     None
+
+        let private getStringFromWorkspaceConfig () =
+            workspace.getConfiguration().get<string option>(key)
+
+        let private getStringFromExtensionState () =
+            extensionWorkspaceState.Value.get<string>(key)
+
+        let get () =
+            match parseAndValidate (getStringFromWorkspaceConfig()) with
+            | Some c -> Some c
+            | None -> parseAndValidate (getStringFromExtensionState())
 
         let private getWorkspacePath (value: ConfiguredWorkspace) =
             match value with
             | ConfiguredWorkspace.Solution path -> path
             | ConfiguredWorkspace.Directory path -> path
 
+        let private isConfiguredInWorkspace () =
+            match getStringFromWorkspaceConfig () with
+            | None
+            | Some "" -> false
+            | Some _ -> true
+
         let set (value: ConfiguredWorkspace) =
             let configuredPath = getWorkspacePath value
-            let relativePath =
-                let raw = path.relative(workspace.rootPath, configuredPath)
-                if not (path.isAbsolute raw) && not (raw.StartsWith "..") then
-                    "./" + raw
-                else
-                    raw
+            if isConfiguredInWorkspace () then
+                let relativePath =
+                    let raw = path.relative(workspace.rootPath, configuredPath)
+                    if not (path.isAbsolute raw) && not (raw.StartsWith "..") then
+                        "./" + raw
+                    else
+                        raw
 
-            let config = workspace.getConfiguration()
-            config.update(key, relativePath, false)
+                let config = workspace.getConfiguration()
+                config.update(key, relativePath, false)
+            else
+                extensionWorkspaceState.Value.update(key, configuredPath)
 
         let setFromPeek (value: WorkspacePeekFound) =
             match value with
@@ -688,8 +712,8 @@ module Project =
         |> Promise.bind (function Some x -> Promise.lift x | None -> getWorkspaceForModeIonideSearch ())
         |> Promise.bind (initWorkspaceHelper parseVisibleTextEditors)
 
-
     let activate (context : ExtensionContext) parseVisibleTextEditors =
+        CurrentWorkspaceConfiguration.setContext context
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
         |> context.subscriptions.Add
 
