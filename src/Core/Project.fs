@@ -421,7 +421,7 @@ module Project =
         | projects ->
             promise {
                 let opts = createEmpty<QuickPickOptions>
-                opts.placeHolder <- Some "Place"
+                opts.placeHolder <- Some "Workspace or Solution"
                 let chooseFrom = projects |> List.map fst |> ResizeArray
                 let! chosen = window.showQuickPick(chooseFrom |> U2.Case1, opts)
                 if JS.isDefined chosen then
