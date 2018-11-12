@@ -401,12 +401,20 @@ module Project =
 
         let text (x : WorkspacePeekFound) =
             let check = if isDefault x then "✔ " else ""
+
             match x with
             | WorkspacePeekFound.Directory dir ->
-                sprintf "%s[DIR] %s     (%i projects)" check dir.Directory dir.Fsprojs.Length
+                let item = createEmpty<QuickPickItem>
+                item.label <- sprintf "%s%s" check dir.Directory
+                item.description <- sprintf "Directory with %i projects" dir.Fsprojs.Length
+                item
             | WorkspacePeekFound.Solution sln ->
-                let relativeSln = node.path.relative (workspace.rootPath, sln.Path)
-                sprintf "%s[SLN] %s     (%i projects)" check relativeSln (countProjectsInSln sln)
+                let relative = path.relative (workspace.rootPath, sln.Path)
+                let item = createEmpty<QuickPickItem>
+                item.label <- sprintf "%s%s" check relative
+                item.description <- sprintf "Solution with %i projects" (countProjectsInSln sln)
+                item
+
         match ws |> List.map (fun x -> (text x), x) with
         | [] ->
             None |> Promise.lift
