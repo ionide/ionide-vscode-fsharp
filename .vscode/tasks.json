@@ -10,7 +10,7 @@
             "windows": {
                 "command": "${workspaceRoot}/build.cmd"
             },
-            "taskName": "Build",
+            "label": "Build",
             "args": [
                 "Default"
             ],
@@ -24,7 +24,7 @@
             "windows": {
                 "command": "${workspaceRoot}/build.cmd"
             },
-            "taskName": "Full Build",
+            "label": "Full Build",
             "args": [
                 "Build"
             ],
@@ -35,7 +35,7 @@
             "windows": {
                 "command": "${workspaceRoot}/build.cmd"
             },
-            "taskName": "Watch",
+            "label": "Watch",
             "args": [
                 "Watch"
             ],

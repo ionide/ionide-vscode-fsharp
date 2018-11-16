@@ -1360,6 +1360,11 @@
 					"type": "string",
 					"description": "Path to the directory or solution file that should be loaded as a workspace.",
 					"scope": "window"
+				},
+				"FSharp.showExplorerOnStartup": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically shows solution explorer on plugin startup"
 				}
 			}
 		},

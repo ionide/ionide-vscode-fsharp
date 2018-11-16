@@ -9,6 +9,7 @@ open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
 open Fable.Import.Node.ChildProcess
 open Debugger
+open Fable.Import.vscode
 
 type Api =
     { ProjectLoadedEvent : Event<DTO.Project>
@@ -24,9 +25,9 @@ let activate (context : ExtensionContext) : Api =
 
     let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
-
     let backgroundSymbolCache = "FSharp.enableBackgroundSymbolCache" |> Configuration.get false
     let analyzers = "FSharp.enableAnalyzers" |> Configuration.get false
+    let showExplorer = "FSharp.showExplorerOnStartup" |> Configuration.get true
 
     let init = DateTime.Now
 
@@ -59,6 +60,11 @@ let activate (context : ExtensionContext) : Api =
                 if analyzers then Analyzers.activate df' context )
 
         ))
+        |> Promise.onSuccess (fun _ ->
+            if showExplorer then
+                commands.executeCommand("workbench.view.extension.ionide-fsharp")
+                |> ignore
+        )
         |> Promise.onSuccess (fun _ ->
             let e = DateTime.Now - init
             printfn "Startup took: %f ms" e.TotalMilliseconds
