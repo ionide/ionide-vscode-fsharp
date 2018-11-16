@@ -58,7 +58,6 @@ module Errors =
                 UnusedOpens.refresh.fire fileName
                 UnusedDeclarations.refresh.fire fileName
                 SimplifyName.refresh.fire fileName
-                CodeOutline.refresh.fire uri
                 (Uri.file fileName, (mapResult result |> snd |> Seq.map fst |> ResizeArray)) |> currentDiagnostic.set
                 Some fileName
             else
