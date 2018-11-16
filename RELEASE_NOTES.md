@@ -1,3 +1,15 @@
+### 3.30.0 - 16.11.2018
+* Fix file watchers that doesn't consider `FSharp.excludeProjectDirectories`
+* Automatically show terminal used for debugging
+* Add more info to the solution explorer
+* Try to fix project loading race condition
+* Save default solution to workspace configuration
+* Nicer display for the solution picker
+* Make sure projects are loaded on the plugin startup (additional fix for project loading race condition)
+* Show project explorer on startup (`FSharp.showExplorerOnStartup`)
+* Update grammar definition
+* Add option to control TouchBar integration (`FSharp.enableTouchBar`)
+
 ### 3.29.0 - 20.10.2018
 * Format output type in CodeLenses correctly
 * Fix wrong namespace suggestion
