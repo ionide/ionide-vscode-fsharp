@@ -1035,27 +1035,27 @@
 				{
 					"command": "fsharp.debugDefaultProject",
 					"group": "fsharp",
-					"when": "fsharp.project.any"
+					"when": "fsharp.project.any && config.FSharp.enableTouchBar"
 				},
 				{
 					"command": "fsharp.runDefaultProject",
 					"group": "fsharp",
-					"when": "fsharp.project.any"
+					"when": "fsharp.project.any && config.FSharp.enableTouchBar"
 				},
 				{
 					"command": "fsharp.NewProject",
 					"group": "fsharp",
-					"when": "fsharp.project.any"
+					"when": "fsharp.project.any && config.FSharp.enableTouchBar"
 				},
 				{
 					"command": "fsi.Start",
 					"group": "fsharp",
-					"when": "fsharp.project.any || editorLangId == 'fsharp'"
+					"when": "editorLangId == 'fsharp' && config.FSharp.enableTouchBar"
 				},
 				{
 					"command": "fsi.SendFile",
 					"group": "fsharp",
-					"when": "editorLangId == 'fsharp'"
+					"when": "editorLangId == 'fsharp' && config.FSharp.enableTouchBar"
 				}
 			]
 		},
@@ -1365,6 +1365,11 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Automatically shows solution explorer on plugin startup"
+				},
+				"FSharp.enableTouchBar": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enables TouchBar integration"
 				}
 			}
 		},
