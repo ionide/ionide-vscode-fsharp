@@ -66,6 +66,34 @@ module Project =
         // loadedProjects <- loadedProjects |> Map.add (path.ToUpperInvariant ()) state
         loadedProjects.Add ((path.ToUpperInvariant ()), state)
 
+    let getProjectsFromWorkspacePeek () =
+        match loadedWorkspace with
+        | None -> []
+        | Some (WorkspacePeekFound.Solution sln) ->
+            let rec getProjs (item : WorkspacePeekFoundSolutionItem) =
+                match item.Kind with
+                | MsbuildFormat _proj ->
+                    [|item.Name |]
+                | Folder folder ->
+                    folder.Items |> Array.collect getProjs
+            sln.Items
+            |> Array.collect getProjs
+            |> Array.toList
+        | Some(WorkspacePeekFound.Directory dir) ->
+            dir.Fsprojs
+            |> Array.toList
+
+
+    let getNotLoaded () =
+        let lst =
+            getProjectsFromWorkspacePeek ()
+            |> List.choose (fun n ->
+                match tryFindInWorkspace n with
+                | None -> Some n
+                | Some _ -> None
+            )
+        lst
+
     let isIgnored (path: string) =
         let relativePath = node.path.relative (workspace.rootPath, path)
 
@@ -737,3 +765,10 @@ module Project =
         |> context.subscriptions.Add
 
         initWorkspace parseVisibleTextEditors
+        |> Promise.onSuccess (fun _ ->
+            setTimeout (fun _ ->
+                getNotLoaded ()
+                |> List.iter (fun n -> load false n |> ignore)
+            ) 1000.
+            |> ignore
+        )
