@@ -1280,7 +1280,7 @@
 						"replaceCodeLens",
 						"always"
 					],
-					"default": "never"
+					"default": "replaceCodeLens"
 				},
 				"FSharp.lineLens.prefix": {
 					"type": "string",
@@ -1419,8 +1419,8 @@
 				"id": "fsharp.linelens",
 				"description": "Foreground color for F# LineLenses",
 				"defaults": {
-					"dark": "#525252",
-					"light": "#C2C2C2",
+					"dark": "#696969",
+					"light": "#919191",
 					"highContrast": "#A2E2A2"
 				}
 			}
