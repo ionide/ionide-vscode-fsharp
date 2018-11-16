@@ -50,8 +50,6 @@ let activate (context : ExtensionContext) : Api =
                 UnusedOpens.activate df' context
                 UnusedDeclarations.activate df' context
                 SimplifyName.activate df' context
-                CodeOutline.activate context
-
             )
             |> Promise.onSuccess(fun _ -> if solutionExplorer then SolutionExplorer.activate context)
             |> Promise.bind(fun parseVisibleTextEditors -> Project.activate context parseVisibleTextEditors)

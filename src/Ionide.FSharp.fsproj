@@ -40,7 +40,6 @@
     <Compile Include="Components/Rename.fs" />
     <Compile Include="Components/WorkspaceSymbols.fs" />
     <Compile Include="Components/SignatureData.fs" />
-    <Compile Include="Components/CodeOutline.fs" />
     <Compile Include="Components/Fsi.fs" />
     <Compile Include="Components/ScriptRunner.fs" />
     <Compile Include="Components/Forge.fs" />

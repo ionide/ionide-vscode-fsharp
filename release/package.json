@@ -125,30 +125,6 @@
 				}
 			},
 			{
-				"command": "ionide.codeOutline.collapseAll",
-				"title": "Collapse all",
-				"icon": {
-					"light": "./images/collapse-all-light.svg",
-					"dark": "./images/collapse-all-dark.svg"
-				}
-			},
-			{
-				"command": "ionide.codeOutline.expandAll",
-				"title": "Expand all",
-				"icon": {
-					"light": "./images/expand-all-light.svg",
-					"dark": "./images/expand-all-dark.svg"
-				}
-			},
-			{
-				"command": "ionide.codeOutline.collapseDefault",
-				"title": "Collapse to default state",
-				"icon": {
-					"light": "./images/refresh-light.svg",
-					"dark": "./images/refresh-dark.svg"
-				}
-			},
-			{
 				"command": "fsharp.NewProjectNoFake",
 				"title": "F#: New Project (Without FAKE)",
 				"icon": {
@@ -440,11 +416,6 @@
 					"id": "ionide.projectExplorer",
 					"name": "F# Project Explorer",
 					"when": "fsharp.project.any && fsharp.showProjectExplorerInExplorerActivity"
-				},
-				{
-					"id": "ionide.codeOutline",
-					"name": "F# Code Outline",
-					"when": "fsharp.showCodeOutline && fsharp.showCodeOutlineInExplorerActivity"
 				}
 			],
 			"ionide-fsharp": [
@@ -452,11 +423,6 @@
 					"id": "ionide.projectExplorerInActivity",
 					"name": "Project Explorer",
 					"when": "fsharp.project.any && fsharp.showProjectExplorerInFsharpActivity"
-				},
-				{
-					"id": "ionide.codeOutlineInActivity",
-					"name": "Code Outline",
-					"when": "fsharp.showCodeOutline && fsharp.showCodeOutlineInFsharpActivity"
 				}
 			]
 		},
@@ -572,18 +538,6 @@
 				},
 				{
 					"command": "fsharp.explorer.solution.addProject",
-					"when": "false"
-				},
-				{
-					"command": "ionide.codeOutline.collapseAll",
-					"when": "false"
-				},
-				{
-					"command": "ionide.codeOutline.expandAll",
-					"when": "false"
-				},
-				{
-					"command": "ionide.codeOutline.collapseDefault",
 					"when": "false"
 				},
 				{
@@ -725,28 +679,6 @@
 					"command": "fsharp.explorer.clearCache",
 					"group": "modification@5",
 					"when": "view == ionide.projectExplorerInActivity"
-				},
-				{
-					"command": "ionide.codeOutline.collapseDefault",
-					"group": "navigation@1",
-					"when": "view == ionide.codeOutline"
-				},
-				{
-					"command": "ionide.codeOutline.collapseDefault",
-					"group": "navigation@1",
-					"when": "view == ionide.codeOutlineInActivity"
-				},
-				{
-					"command": "ionide.codeOutline.collapseAll",
-					"alt": "ionide.codeOutline.expandAll",
-					"group": "navigation@2",
-					"when": "view == ionide.codeOutline"
-				},
-				{
-					"command": "ionide.codeOutline.collapseAll",
-					"alt": "ionide.codeOutline.expandAll",
-					"group": "navigation@2",
-					"when": "view == ionide.codeOutlineInActivity"
 				}
 			],
 			"view/item/context": [
@@ -1287,12 +1219,6 @@
 					"description": "The prefix displayed before the signature",
 					"default": "  // "
 				},
-				"FSharp.codeOutline": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enables Code Outline tree view.",
-					"scope": "resource"
-				},
 				"FSharp.minimizeBackgroundParsing": {
 					"type": "boolean",
 					"default": false,
@@ -1312,16 +1238,6 @@
 					"type": "boolean",
 					"default": false,
 					"description": "EXPERIMENTAL. Enables additional code lenses showing number of references. Requires experimental background symbol cache"
-				},
-				"FSharp.showCodeOutlineIn": {
-					"type": "string",
-					"default": "fsharp",
-					"description": "Set the activity (left bar) where the code outline view will be displayed.\nRequires restart.",
-					"enum": [
-						"explorer",
-						"fsharp"
-					],
-					"scope": "application"
 				},
 				"FSharp.showProjectExplorerIn": {
 					"type": "string",
