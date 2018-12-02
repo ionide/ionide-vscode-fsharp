@@ -398,6 +398,15 @@
 				"title": "Convert html to Elmish",
 				"description": "Converts your selection to Elmish by assuming that your selection is HTML code",
 				"category": "F#"
+			},
+			{
+				"command": "fsharp.revealInSolutionExplorer",
+				"title": "F#: Reveal in solution explorer",
+				"category": "F#",
+				"icon": {
+					"light": "./images/auto-reveal-light.svg",
+					"dark": "./images/auto-reveal-dark.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -628,6 +637,16 @@
 					"command": "fsharp.debugDefaultProject",
 					"group": "navigation@2",
 					"alt": "fsharp.runDefaultProject",
+					"when": "view == ionide.projectExplorerInActivity"
+				},
+				{
+					"command": "fsharp.revealInSolutionExplorer",
+					"group": "navigation@3",
+					"when": "view == ionide.projectExplorer"
+				},
+				{
+					"command": "fsharp.revealInSolutionExplorer",
+					"group": "navigation@3",
 					"when": "view == ionide.projectExplorerInActivity"
 				},
 				{

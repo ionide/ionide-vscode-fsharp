@@ -410,8 +410,8 @@ module SolutionExplorer =
             else
                 None
 
-        let private revealUri (tree : TreeView<Model>) (state : State option ref) (uri : Uri) =
-            if tree.visible then
+        let private revealUri (tree : TreeView<Model>) (state : State option ref) (uri : Uri) (showTreeIfHidden: bool) =
+            if showTreeIfHidden || tree.visible then
                 let model = findModelFromUri state uri
                 match model with
                 | Some model ->
@@ -421,13 +421,13 @@ module SolutionExplorer =
                     tree.reveal(model, options) |> ignore
                 | _ -> ()
 
-        let private revealTextEditor (tree : TreeView<Model>) (state : State option ref) (textEditor : TextEditor) =
+        let private revealTextEditor (tree : TreeView<Model>) (state : State option ref) (textEditor : TextEditor) (showTreeIfHidden: bool) =
             if JS.isDefined textEditor then
-                revealUri tree state textEditor.document.uri
+                revealUri tree state textEditor.document.uri showTreeIfHidden
 
         let private onDidChangeActiveTextEditor (tree : TreeView<Model>) (state : State option ref) (textEditor : TextEditor) =
             if RevealConfiguration.getAutoReveal () then
-                revealTextEditor tree state textEditor
+                revealTextEditor tree state textEditor false
 
         let rec private getModelPerFile (model : Model) : (string * Model) list =
             match model with
@@ -459,7 +459,7 @@ module SolutionExplorer =
 
         let private onDidChangeTreeVisibility (tree : TreeView<Model>) (state : State option ref) (change: TreeViewVisibilityChangeEvent) =
             if change.visible && RevealConfiguration.getAutoReveal () then
-                revealTextEditor tree state window.activeTextEditor
+                revealTextEditor tree state window.activeTextEditor true
 
         let activate (context : ExtensionContext) (rootChanged : Event<Model>) (treeView : TreeView<Model>) =
             let state: State option ref = ref None
@@ -475,6 +475,11 @@ module SolutionExplorer =
             let onDidChangeTreeVisibility' = onDidChangeTreeVisibility treeView state
             treeView.onDidChangeVisibility.Invoke(unbox onDidChangeTreeVisibility')
                 |> context.subscriptions.Add
+
+            commands.registerCommand("fsharp.revealInSolutionExplorer", Func<obj, obj>(fun m ->
+                revealTextEditor treeView state window.activeTextEditor true
+                unbox ()
+            )) |> context.subscriptions.Add
 
     let activate (context : ExtensionContext) =
         let emiter = EventEmitter<Model option>()
