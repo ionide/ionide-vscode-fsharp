@@ -3,12 +3,11 @@ namespace Ionide.VSCode.FSharp
 //---------------------------------------------------
 //Find path of F# install and FSI path
 //---------------------------------------------------
-// Below code adapted from similar in FSSutoComplete project
+// Below code adapted from similar in FSAutoComplete project
 module Environment =
 
     open Fable.Core
     open Fable.Core.JsInterop
-    open Fable.Import.vscode
     open Fable.Import.Node
     open Ionide.VSCode.Helpers
     module node = Fable.Import.Node.Exports
@@ -45,7 +44,6 @@ module Environment =
         |> List.map (fun v -> v </> exeName)
         |> List.tryFind fileExists
 
-    let private fsiFileName = if isWin then "FsiAnyCpu.exe" else "fsharpi"
     let private fscFileName = if isWin then "Fsc.exe" else "fsharpc"
 
     let configFSIPath =
@@ -79,18 +77,18 @@ module Environment =
             match dotnet with
             | Some tool -> return Some tool
             | None ->
-                let basePaths, binary = 
+                let basePaths, binary =
                     if isWin then
                         [ platformProgramFiles </> @"dotnet"
                           programFilesX86 </> @"dotnet" ], "dotnet.exe"
-                    else 
+                    else
                         [ "/usr/local/share" </> "dotnet"
                           (unbox Globals.``process``.env?``HOME``) </> ".dotnet" ], "dotnet"
-                
+
                 return findFirstValidFilePath binary basePaths
         })
-    
-    let mono = 
+
+    let mono =
         Configuration.tryGet "FSharp.monoPath"
         |> Option.map (Some >> Promise.lift)
         |> Option.defaultWith (fun () -> tryGetTool "mono")
