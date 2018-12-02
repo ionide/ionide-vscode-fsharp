@@ -259,10 +259,8 @@ module SolutionExplorer =
           with
             member __.getParent =
                 Some (fun node ->
-                    printfn "GET PARENT %A" (getLabel node)
                     if JS.isDefined node then
                         let parentRef = getParentRef node
-                        printfn "PARENT = %A" (!parentRef |> Option.map getLabel)
                         !parentRef
                     else
                         None)
@@ -415,7 +413,6 @@ module SolutionExplorer =
         let private revealUri (tree : TreeView<Model>) (state : State option ref) (uri : Uri) =
             if tree.visible then
                 let model = findModelFromUri state uri
-                printfn "FOUND %A for %s" model uri.fsPath
                 match model with
                 | Some model ->
                     let options = createEmpty<TreeViewRevealOptions>
@@ -457,9 +454,6 @@ module SolutionExplorer =
 
         let private onModelChanged (state : State option ref) (newValue : Model) =
             let modelPerFile = getModelPerFile newValue |> Map.ofList
-            printfn "------------------------------"
-            printfn "UPDATED STATE = %A" modelPerFile
-            printfn "------------------------------"
             let newState = Some { RootModel = newValue; ModelPerFile = modelPerFile }
             state := newState
 
