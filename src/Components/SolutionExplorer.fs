@@ -459,8 +459,8 @@ module SolutionExplorer =
 
         let private onDidChangeTreeVisibility (tree : TreeView<Model>) (state : State option ref) (change: TreeViewVisibilityChangeEvent) =
             if change.visible && RevealConfiguration.getAutoReveal () then
-                // Done on a small timeout to avoid VSCode double-selecting due to a race-condition
-                JS.setTimeout (fun () -> revealTextEditor tree state window.activeTextEditor true) 10
+                // Done out of the event call to avoid VSCode double-selecting due to a race-condition
+                JS.setTimeout (fun () -> revealTextEditor tree state window.activeTextEditor true) 0
                 |> ignore
 
         let activate (context : ExtensionContext) (rootChanged : Event<Model>) (treeView : TreeView<Model>) =
