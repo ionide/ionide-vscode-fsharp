@@ -388,25 +388,49 @@ module SolutionExplorer =
 
             if inFsharpActivity then "ionide.projectExplorerInActivity" else "ionide.projectExplorer"
 
-    module AutoReveal =
+    module NodeReveal =
+        module private RevealConfiguration =
+            [<Literal>]
+            let private autoKey = "FSharp.autoRevealInExplorer"
+
+            [<Literal>]
+            let private autoCodeExplorerKey = "explorer.autoReveal"
+
+            let getAutoReveal () =
+                match Configuration.get "sameAsFileExplorer" autoKey with
+                | "enabled" -> true
+                | "disabled" -> false
+                | _ -> Configuration.get true autoCodeExplorerKey
 
         type private State =
             { RootModel : Model
               ModelPerFile : Map<string, Model> }
 
-        let private onDidChangeActiveTextEditor (tree : TreeView<Model>) (state : State option ref) (textEditor : TextEditor) =
+        let private findModelFromUri (state : State option ref) (uri : Uri) =
+            if uri.scheme = "file" && JS.isDefined uri.fsPath then
+                !state |> Option.bind(fun s -> s.ModelPerFile |> Map.tryFind uri.fsPath)
+            else
+                None
+
+        let private revealUri (tree : TreeView<Model>) (state : State option ref) (uri : Uri) =
+            if tree.visible then
+                let model = findModelFromUri state uri
+                printfn "FOUND %A for %s" model uri.fsPath
+                match model with
+                | Some model ->
+                    let options = createEmpty<TreeViewRevealOptions>
+                    options.select <- Some true
+                    options.expand <- Some !^false
+                    tree.reveal(model, options) |> ignore
+                | _ -> ()
+
+        let private revealTextEditor (tree : TreeView<Model>) (state : State option ref) (textEditor : TextEditor) =
             if JS.isDefined textEditor then
-                let uri = textEditor.document.uri
-                if uri.scheme = "file" && JS.isDefined uri.fsPath then
-                    let path = uri.fsPath
-                    let model = !state |> Option.bind(fun s -> s.ModelPerFile |> Map.tryFind path)
-                    printfn "FOUND %A for %s" model path
-                    match model with
-                    | Some model ->
-                        let options = createEmpty<TreeViewRevealOptions>
-                        options.select <- Some false
-                        tree.reveal(model, options) |> ignore
-                    | _ -> ()
+                revealUri tree state textEditor.document.uri
+
+        let private onDidChangeActiveTextEditor (tree : TreeView<Model>) (state : State option ref) (textEditor : TextEditor) =
+            if RevealConfiguration.getAutoReveal () then
+                revealTextEditor tree state textEditor
 
         let rec private getModelPerFile (model : Model) : (string * Model) list =
             match model with
@@ -431,7 +455,7 @@ module SolutionExplorer =
             | ProjectReferencesList _->
                 []
 
-        let private onEvent (state : State option ref) (newValue : Model) =
+        let private onModelChanged (state : State option ref) (newValue : Model) =
             let modelPerFile = getModelPerFile newValue |> Map.ofList
             printfn "------------------------------"
             printfn "UPDATED STATE = %A" modelPerFile
@@ -439,18 +463,24 @@ module SolutionExplorer =
             let newState = Some { RootModel = newValue; ModelPerFile = modelPerFile }
             state := newState
 
+        let private onDidChangeTreeVisibility (tree : TreeView<Model>) (state : State option ref) (change: TreeViewVisibilityChangeEvent) =
+            if change.visible && RevealConfiguration.getAutoReveal () then
+                revealTextEditor tree state window.activeTextEditor
 
         let activate (context : ExtensionContext) (rootChanged : Event<Model>) (treeView : TreeView<Model>) =
             let state: State option ref = ref None
 
-            let onDidChangeActiveTextEditor = onDidChangeActiveTextEditor treeView state
-            window.onDidChangeActiveTextEditor.Invoke(unbox onDidChangeActiveTextEditor)
+            let onDidChangeActiveTextEditor' = onDidChangeActiveTextEditor treeView state
+            window.onDidChangeActiveTextEditor.Invoke(unbox onDidChangeActiveTextEditor')
                 |> context.subscriptions.Add
 
-            let onEvent = onEvent state
-            rootChanged.Invoke(unbox onEvent)
+            let onModelChanged' = onModelChanged state
+            rootChanged.Invoke(unbox onModelChanged')
                 |> context.subscriptions.Add
 
+            let onDidChangeTreeVisibility' = onDidChangeTreeVisibility treeView state
+            treeView.onDidChangeVisibility.Invoke(unbox onDidChangeTreeVisibility')
+                |> context.subscriptions.Add
 
     let activate (context : ExtensionContext) =
         let emiter = EventEmitter<Model option>()
@@ -602,7 +632,7 @@ module SolutionExplorer =
         let treeView = window.createTreeView(treeViewId, treeOptions)
         context.subscriptions.Add treeView
 
-        // AutoReveal.activate context rootChanged.event treeView
+        NodeReveal.activate context rootChanged.event treeView
 
         let wsProvider =
             let viewLoading path =

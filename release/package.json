@@ -414,14 +414,14 @@
 			"explorer": [
 				{
 					"id": "ionide.projectExplorer",
-					"name": "F# Project Explorer",
+					"name": "F# Solution Explorer",
 					"when": "fsharp.project.any && fsharp.showProjectExplorerInExplorerActivity"
 				}
 			],
 			"ionide-fsharp": [
 				{
 					"id": "ionide.projectExplorerInActivity",
-					"name": "Project Explorer",
+					"name": "Solution Explorer",
 					"when": "fsharp.project.any && fsharp.showProjectExplorerInFsharpActivity"
 				}
 			]
@@ -1193,7 +1193,7 @@
 				"FSharp.enableTreeView": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables project explorer."
+					"description": "Enables solution explorer."
 				},
 				"FSharp.excludeProjectDirectories": {
 					"type": "array",
@@ -1286,6 +1286,17 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Enables TouchBar integration"
+				},
+				"FSharp.autoRevealInExplorer": {
+					"type": "string",
+					"description": "Controls whether the solution explorer should automatically reveal and select files when opening them.",
+					"enum": [
+						"sameAsFileExplorer",
+						"enabled",
+						"disabled"
+					],
+					"default": "sameAsFileExplorer",
+					"scope": "window"
 				}
 			}
 		},
