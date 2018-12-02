@@ -452,10 +452,13 @@ module SolutionExplorer =
             | ProjectReferencesList _->
                 []
 
-        let private onModelChanged (state : State option ref) (newValue : Model) =
+        let private onModelChanged (tree : TreeView<Model>) (state : State option ref) (newValue : Model) =
             let modelPerFile = getModelPerFile newValue |> Map.ofList
             let newState = Some { RootModel = newValue; ModelPerFile = modelPerFile }
             state := newState
+
+            if RevealConfiguration.getAutoReveal () then
+                revealTextEditor tree state window.activeTextEditor false
 
         let private onDidChangeTreeVisibility (tree : TreeView<Model>) (state : State option ref) (change: TreeViewVisibilityChangeEvent) =
             if change.visible && RevealConfiguration.getAutoReveal () then
@@ -470,7 +473,7 @@ module SolutionExplorer =
             window.onDidChangeActiveTextEditor.Invoke(unbox onDidChangeActiveTextEditor')
                 |> context.subscriptions.Add
 
-            let onModelChanged' = onModelChanged state
+            let onModelChanged' = onModelChanged treeView state
             rootChanged.Invoke(unbox onModelChanged')
                 |> context.subscriptions.Add
 
