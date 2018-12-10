@@ -589,13 +589,13 @@ module LanguageService =
             log.Info("Netcore runtime specified")
             FSACTargetRuntime.NetcoreFdd
         | Some "net" ->
-            log.Info(".Net runtime specified")
+            log.Info(".NET runtime specified")
             FSACTargetRuntime.NET
         | Some v ->
-            log.Warn("Unknown configured runtime '%s', defaulting to .Net", v)
+            log.Warn("Unknown configured runtime '%s', defaulting to .NET", v)
             FSACTargetRuntime.NET
         | None ->
-            log.Info("No runtime specified, defaulting to .Net")
+            log.Info("No runtime specified, defaulting to .NET")
             FSACTargetRuntime.NET
 
     let spawnFSACForRuntime runtime rootPath =
@@ -613,22 +613,22 @@ module LanguageService =
             start' dotnet [ path ]
 
         let suggestNet () =
-            "Consider using the .Net Framework/Mono language services by setting `FSharp.fsacRuntime` to `net` and installing .Net/Mono as appropriate for your system."
+            "Consider using the .NET Framework/Mono language services by setting `FSharp.fsacRuntime` to `net` and installing .NET/Mono as appropriate for your system."
             |> vscode.window.showInformationMessage
             |> ignore
 
         let suggestNetCore () =
-            """Consider using the .Net Core language services by setting `FSharp.fsacRuntime` to `netcore`"""
+            """Consider using the .NET Core language services by setting `FSharp.fsacRuntime` to `netcore`"""
             |> vscode.window.showInformationMessage
             |> ignore
 
         let monoNotFound () =
             """
-            Cannot start .Net Framework/Mono language services because `mono` was not found.
+            Cannot start .NET Framework/Mono language services because `mono` was not found.
             Consider:
             * setting the `FSharp.monoPath` settings key to a `mono` binary,
             * including `mono` in your PATH, or
-            * installing the .Net Core SDK and using the `FSharp.fsacRuntime` `netcore` language settings
+            * installing the .NET Core SDK and using the `FSharp.fsacRuntime` `netcore` language settings
             """
             |> vscode.window.showErrorMessage
             |> ignore
@@ -636,11 +636,11 @@ module LanguageService =
 
         let dotnetNotFound () =
             """
-            Cannot start .Net Core language services because `dotnet` was not found.
+            Cannot start .NET Core language services because `dotnet` was not found.
             Consider:
             * setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary,
             * including `dotnet` in your PATH,
-            * installing .Net Core into one of the default locations, or
+            * installing .NET Core into one of the default locations, or
             * using the `net` `FSharp.fsacRuntime` to use mono instead
             """
             |> vscode.window.showErrorMessage
