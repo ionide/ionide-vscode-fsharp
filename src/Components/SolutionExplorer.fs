@@ -669,6 +669,12 @@ module SolutionExplorer =
                   error ]
                 |> String.concat "<br />"
 
+            let viewNotRestored path error =
+                [ "<b>Status:</b> failed to load. not restored"; ""
+                  "<b>Error:</b>"
+                  error ]
+                |> String.concat "<br />"
+
             { new TextDocumentContentProvider with
                   member this.provideTextDocumentContent (uri: Uri) =
                       match uri.path with
@@ -683,7 +689,7 @@ module SolutionExplorer =
                           | Some (Project.ProjectLoadingState.Loaded proj) ->
                               viewParsed proj
                           | Some (Project.ProjectLoadingState.NotRestored (path,error)) ->
-                              viewFailed path error
+                              viewNotRestored path error
                           | Some (Project.ProjectLoadingState.Failed (path, error)) ->
                               viewFailed path error
                       | _ ->
