@@ -134,8 +134,8 @@ module MSBuild =
                     | MSbuildHost.MSBuildExe ->
                         LanguageService.msbuild ()
                         |> Promise.bind (function Some msbuild -> Promise.lift msbuild
-                                                | None -> Promise.reject "MsBuild binary not found. Please install it from the [Visual Studio Download Page](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)")
-                    | MSbuildHost.DotnetCli -> 
+                                                | None -> Promise.reject "MSBuild binary not found. Please install it from the [Visual Studio Download Page](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)")
+                    | MSbuildHost.DotnetCli ->
                         Environment.dotnet
                         |> Promise.bind (function Some msbuild -> Promise.lift msbuild
                                                 | None -> Promise.reject "dotnet sdk not found. Please install it from the [Dotnet SDK Download Page](https://www.microsoft.com/net/download)")
