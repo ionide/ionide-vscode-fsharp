@@ -40,7 +40,7 @@ module Project =
 
     let mutable private loadedWorkspace : WorkspacePeekFound option = None
 
-    let mutable workspaceNotificationAvaiable = false
+    let mutable workspaceNotificationAvailable = false
 
     let setAnyProjectContext = Context.cachedSetter<bool> "fsharp.project.any"
 
@@ -716,7 +716,7 @@ module Project =
 
         let loadProjects =
             let loader =
-                match workspaceNotificationAvaiable, getWorkspaceLoaderFromConfig () with
+                match workspaceNotificationAvailable, getWorkspaceLoaderFromConfig () with
                 | false, FSharpWorkspaceLoader.Projects ->
                     FSharpWorkspaceLoader.Projects
                 | false, FSharpWorkspaceLoader.WorkspaceLoad ->
@@ -754,7 +754,7 @@ module Project =
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
         |> context.subscriptions.Add
 
-        workspaceNotificationAvaiable <- LanguageService.registerNotifyWorkspace handleProjectParsedNotification
+        workspaceNotificationAvailable <- LanguageService.registerNotifyWorkspace handleProjectParsedNotification
 
         commands.registerCommand("fsharp.changeWorkspace", (fun _ ->
             workspacePeek ()
