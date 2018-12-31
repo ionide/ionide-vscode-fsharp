@@ -11,7 +11,6 @@ open Fable.Import.ws
 
 open DTO
 open Fable.Import.Axios
-module node = Fable.Import.Node.Exports
 
 module LanguageService =
 
@@ -442,13 +441,36 @@ module LanguageService =
         compilerLocation ()
         |> Promise.map (fun c -> c.Data)
 
+    let private fileExists (path: string): JS.Promise<bool> =
+        Promise.create(fun success _failure ->
+            fs.access(!^path, fs.constants.F_OK, fun err -> success(err.IsNone)))
+
+    let private getAnyCpuFsiPathFromCompilerLocation (location: CompilerLocation) = promise {
+        match location.Fsi with
+        | Some fsi ->
+            // Only rewrite if FSAC returned 'fsi.exe' (For future-proofing)
+            if path.basename fsi = "fsi.exe" then
+                // If there is an anyCpu variant in the same dir we do the rewrite
+                let anyCpuFile = path.join [| path.dirname fsi; "fsiAnyCpu.exe"|]
+                let! anyCpuExists = fileExists anyCpuFile
+                if anyCpuExists then
+                    return Some anyCpuFile
+                else
+                    return Some fsi
+            else
+                return Some fsi
+        | None ->
+            return None
+    }
+
     let fsi () =
         promise {
             match Environment.configFSIPath with
             | Some path -> return Some path
             | None ->
                 let! fsacPaths = fsacConfig ()
-                return fsacPaths.Fsi
+                let! fsiPath = getAnyCpuFsiPathFromCompilerLocation fsacPaths
+                return fsiPath
         }
 
     let fsc () =
@@ -531,7 +553,7 @@ module LanguageService =
             let child =
                 let spawnLogged path (args: string list) =
                     fsacStdoutWriter (sprintf "Running: %s %s\n" path (args |> String.concat " "))
-                    node.childProcess.spawn(path, args |> ResizeArray)
+                    childProcess.spawn(path, args |> ResizeArray)
                 spawnLogged fsacExe
                   [ yield! fsacArgs
                     yield! ["--mode"; "http"]
