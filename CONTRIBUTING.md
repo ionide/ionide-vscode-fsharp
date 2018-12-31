@@ -25,7 +25,7 @@ Guidelines for bug reports:
 3. **Isolate and report the problem** &mdash; ideally create a reduced test case.
 
 Please try to be as detailed as possible in your report. Include information about
-your Operating System, as well as your `dotnet` (or `mono` \ .Net Framework), and F# versions. Please provide steps to
+your Operating System, as well as your `dotnet` (or `mono` \ .NET Framework), and F# versions. Please provide steps to
 reproduce the issue as well as the outcome you were expecting! All these details
 will help developers to fix any potential bugs.
 
@@ -86,7 +86,7 @@ accurate comments, etc.).
 
 - [Visual Studio Code][vscode] 🙄
 - [Mono][mono]
-- [.Net Core 2.0][dotnet]
+- [.NET Core 2.0][dotnet]
 - [Node.js][nodejs]
 - [Yarn][yarn]
 - [MSBuildTools2015][msbuildtools2015]
