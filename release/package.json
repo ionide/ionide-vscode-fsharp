@@ -1219,7 +1219,8 @@
 					"default": [
 						".git",
 						"paket-files",
-						".fable"
+						".fable",
+						"node_modules"
 					],
 					"description": "Directories in the array are excluded from project file search. Requires restart"
 				},
