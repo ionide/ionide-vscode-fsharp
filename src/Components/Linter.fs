@@ -10,6 +10,7 @@ open Fable.Import.Node
 open DTO
 open Ionide.VSCode.Helpers
 
+
 module Linter =
 
     let mutable private currentDiagnostic = languages.createDiagnosticCollection ()
@@ -28,6 +29,7 @@ module Linter =
         if isNotNull ev then
             ev.Data
             |> Seq.map (diagnosticFromLintWarning file)
+            |> Seq.filter (fun (d,_) -> not (d.message.Contains "Prefer namespaces at top level" || d.message.Contains "Separate module declarations with 2 blank lines" )) //disable false positives, TODO: investigate
             |> ResizeArray
         else
             ResizeArray ()
@@ -86,7 +88,7 @@ module Linter =
 
 
     let activate selector (context : ExtensionContext) =
-        refresh.event $ (handler,(), context.subscriptions) |> ignore
+        refresh.event $ (handler, (), context.subscriptions) |> ignore
         if JS.isDefined window.activeTextEditor then
             match window.activeTextEditor.document with
             | Document.FSharp -> refresh.fire window.activeTextEditor.document.fileName
