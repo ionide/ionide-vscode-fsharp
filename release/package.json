@@ -1317,7 +1317,12 @@
 					],
 					"default": "sameAsFileExplorer",
 					"scope": "window"
-				}
+                },
+                "FSharp.smartIndent": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enables smart indent feature"
+                }
 			}
 		},
 		"jsonValidation": [
