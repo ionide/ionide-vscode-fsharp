@@ -1,6 +1,6 @@
 {
 	"name": "Ionide-fsharp",
-	"version": "3.30.0",
+	"version": "3.31.0",
 	"publisher": "Ionide",
 	"contributors": [
 		{
@@ -1332,7 +1332,12 @@
 					],
 					"default": "sameAsFileExplorer",
 					"scope": "window"
-				}
+                },
+                "FSharp.smartIndent": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enables smart indent feature"
+                }
 			}
 		},
 		"jsonValidation": [

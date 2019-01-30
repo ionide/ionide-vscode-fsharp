@@ -1,3 +1,14 @@
+### 3.31.0 - 27.01.2019
+* Remove CodeOutline feature
+* Enable LineLens by default when CodeLens is disabled
+* Use fsiAnyCpu when getting FSI path from FSAC
+* Enable auto reveal of solution explorer
+* update .NET branding
+* Add node_modules to default excludeProjectDirs
+* Add smart indent support
+* Update FSAC - updated FSharpLint, fix `.fsx` support on `netcore` runtime.
+
+
 ### 3.30.0 - 16.11.2018
 * Fix file watchers that doesn't consider `FSharp.excludeProjectDirectories`
 * Automatically show terminal used for debugging
