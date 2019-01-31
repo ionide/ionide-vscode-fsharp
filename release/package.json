@@ -1157,6 +1157,21 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Enables record stub generation"
+                },
+                "FSharp.interfaceStubGeneration": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enables interface stub generation"
+                },
+                "FSharp.interfaceStubGenerationObjectIdentifier": {
+					"type": "string",
+					"default": "this",
+					"description": "Generated member default object identifier"
+                },
+                "FSharp.interfaceStubGenerationMethodBody": {
+					"type": "string",
+					"default": "failwith \"Not Implemented\"",
+					"description": "Generated member default body"
 				},
 				"FSharp.unusedOpensAnalyzer": {
 					"type": "boolean",

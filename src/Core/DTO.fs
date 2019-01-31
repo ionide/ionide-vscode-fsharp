@@ -253,6 +253,10 @@ module DTO =
         { Text : string
           Position : Pos }
 
+    type InterfaceStubGenerator =
+        { Text : string
+          Position : Pos }
+
     type Parameter =
         { Name : string
           Type : string }
@@ -350,4 +354,3 @@ module DTO =
     type SimplifiedNameResult = Result<SimplifiedName>
     type CompileResult = Result<CompileData>
     type AnalyzerResult = Result<AnalyzerResponse>
-

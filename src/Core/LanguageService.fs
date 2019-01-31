@@ -359,6 +359,10 @@ module LanguageService =
         { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "recordStubGenerator" 0 (makeRequestId())
 
+    let interfaceStubGenerator fn line col : JS.Promise<Result<InterfaceStubGenerator>> =
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
+        |> request "interfaceStubGenerator" 0 (makeRequestId())
+
     let workspacePeek dir deep excludedDirs =
         let rec mapItem (f : WorkspacePeekFoundSolutionItem) : WorkspacePeekFoundSolutionItem option =
             let mapItemKind (i : obj) : WorkspacePeekFoundSolutionItemKind option =
