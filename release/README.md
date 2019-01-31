@@ -6,6 +6,10 @@ _Part of the [Ionide](http://ionide.io) plugin suite._ Read detailed documentati
 [![Version](https://vsmarketplacebadge.apphb.com/version/Ionide.Ionide-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp) [![Installs](https://vsmarketplacebadge.apphb.com/installs-short/Ionide.Ionide-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp)
 [![Join the chat at https://gitter.im/ionide/ionide-project](https://img.shields.io/badge/gitter-join%20chat%20%E2%86%92-brightgreen.svg?style=flat-square)](https://gitter.im/ionide/ionide-project?utm_source=share-link&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+You can support Ionide development on [Open Collective](https://opencollective.com/ionide).
+
+[![Open Collective](https://opencollective.com/webpack/donate/button.png?color=blue)](https://opencollective.com/ionide)
+
 # Requirements
 
 * F# (Windows) - Easiest way to install latest versions of F# on Windows is using [VS Build Tools 2017](https://visualstudio.microsoft.com/downloads/?utm_medium=microsoft&utm_source=docs.microsoft.com&utm_campaign=button+cta&utm_content=download+vs2017#build-tools-for-visual-studio-2017). If you use VS 2017, make sure that you've installed workload adding F# support.
@@ -90,3 +94,7 @@ The library is available under [MIT license](https://github.com/ionide/ionide-vs
 Ionide couldn't be created without support of [Lambda Factory](https://lambdafactory.io). If you'd be interested in rich F# test integration check out our VSCode plugin - [Neptune](https://github.com/LambdaFactory/Neptune-public).
 
 If your company would be interested in supporting development of Ionide, or acquiring commercial support sent us email - lambda_factory@outlook.com
+
+You can also support Ionide development on [Open Collective](https://opencollective.com/ionide).
+
+[![Open Collective](https://opencollective.com/webpack/donate/button.png?color=blue)](https://opencollective.com/ionide)

@@ -1,3 +1,8 @@
+### 3.32.0 - 31.01.2019
+* Add interface stub generation
+* Fix build script - FSharp.Compiler.Service.ProjectCrackerTool path
+* Add Open Collective link to readme
+
 ### 3.31.0 - 27.01.2019
 * Remove CodeOutline feature
 * Enable LineLens by default when CodeLens is disabled
