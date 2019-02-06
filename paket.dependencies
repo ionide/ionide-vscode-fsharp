@@ -17,7 +17,7 @@ git https://github.com/fsharp-editing/Forge.git master build:"build.sh Build", O
 
 git https://github.com/ionide/ionide-fsgrammar.git
 
-github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
+github MangelMaxime/ionide-vscode-helpers:webview_api src/Fable.Import.VSCode.fs
 github ionide/ionide-vscode-helpers src/Helpers.fs
 github ionide/ionide-vscode-helpers src/Fable.Import.Axios.fs
 github ionide/ionide-vscode-helpers src/Fable.Import.ws.fs
