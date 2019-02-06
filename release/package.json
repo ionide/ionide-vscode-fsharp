@@ -791,11 +791,6 @@
 					"group": "inline@99"
 				},
 				{
-					"command": "fsharp.explorer.openProjectFile",
-					"when": "viewItem == ionide.projectExplorer.projectNotRestored",
-					"group": "inline@99"
-				},
-				{
 					"command": "fsharp.explorer.showProjectStatus",
 					"when": "viewItem == ionide.projectExplorer.projectNotRestored"
 				},
