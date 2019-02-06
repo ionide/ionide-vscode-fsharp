@@ -333,18 +333,8 @@ module Context =
                 set name value
                 current <- Some value
 
-module Preview =
-
-    open Fable.Import
-
-    let private projectStatusUri projectPath = vscode.Uri.parse(sprintf "fsharp-workspace://authority/projects/status?path=%s" (JS.encodeURIComponent(projectPath)))
-
-    let showStatus path name =
-        vscode.commands.executeCommand("vscode.previewHtml", projectStatusUri path, vscode.ViewColumn.One, (sprintf "Project %s status" name))
-
 open Fable.Import
 open Fable.Core
-open Fable.Core.JsInterop
 open Ionide.VSCode.Helpers
 
 [<AllowNullLiteral>]
