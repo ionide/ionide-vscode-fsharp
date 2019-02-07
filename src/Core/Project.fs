@@ -56,6 +56,49 @@ module Project =
 
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
 
+    let isANetCoreAppProject (project : Project) =
+        let projectContent = (node.fs.readFileSync project.Project).toString()
+        let netCoreTargets =
+            [ "<TargetFramework>netcoreapp"
+              "<Project Sdk=\"" ]
+
+        let findInProject (toFind : string) =
+            projectContent.IndexOf(toFind) >= 0
+
+        netCoreTargets |> Seq.exists findInProject
+
+    let isNetCoreApp (project : Project) =
+        let projectContent = (node.fs.readFileSync project.Project).toString()
+        let core = "<TargetFramework>netcoreapp"
+        projectContent.IndexOf(core) >= 0
+
+    let isNetCoreApp2 (project : Project) =
+        let projectContent = (node.fs.readFileSync project.Project).toString()
+        let core = "<TargetFramework>netcoreapp2"
+        projectContent.IndexOf(core) >= 0
+
+    let isSDKProject (project : Project) =
+        match project.Info with
+        | ProjectResponseInfo.DotnetSdk _ -> true
+        | _ -> false
+
+    let isSDKProjectPath (project : string) =
+        let projectContent = (node.fs.readFileSync project).toString()
+        let sdk = "<Project Sdk=\""
+        projectContent.IndexOf(sdk) >= 0
+
+    let isPortablePdbProject (project : Project) =
+        let projectContent = (node.fs.readFileSync project.Project).toString()
+        let portable = """<DebugType>portable</DebugType>"""
+        projectContent.IndexOf(portable) >= 0
+
+    let isExeProject (project : Project) =
+        match project.Output, isANetCoreAppProject project with
+        | _, true ->
+            project.OutputType.ToLowerInvariant() <> "lib"
+        | out, _ when out |> String.endWith ".exe" -> true
+        | _ -> false
+
     let getInWorkspace () =
         loadedProjects |> Seq.toList |> List.map (fun n -> n.Value)
 
@@ -188,7 +231,7 @@ module Project =
             | ErrorData.ProjectNotRestored _d when not commingFromRestore ->
                 projectNotRestoredLoaded.fire path
                 Some (path, ProjectLoadingState.NotRestored (path, msg) )
-            | _ when not commingFromRestore ->
+            | _ when not commingFromRestore && isSDKProjectPath path ->
                 projectNotRestoredLoaded.fire path
                 Some (path, (ProjectLoadingState.Failed (path, msg)))
             | _ ->
@@ -465,49 +508,6 @@ module Project =
                 else
                     return ws |> List.tryFind isDefault
             }
-
-    let isANetCoreAppProject (project : Project) =
-        let projectContent = (node.fs.readFileSync project.Project).toString()
-        let netCoreTargets =
-            [ "<TargetFramework>netcoreapp"
-              "<Project Sdk=\"" ]
-
-        let findInProject (toFind : string) =
-            projectContent.IndexOf(toFind) >= 0
-
-        netCoreTargets |> Seq.exists findInProject
-
-    let isNetCoreApp (project : Project) =
-        let projectContent = (node.fs.readFileSync project.Project).toString()
-        let core = "<TargetFramework>netcoreapp"
-        projectContent.IndexOf(core) >= 0
-
-    let isNetCoreApp2 (project : Project) =
-        let projectContent = (node.fs.readFileSync project.Project).toString()
-        let core = "<TargetFramework>netcoreapp2"
-        projectContent.IndexOf(core) >= 0
-
-    let isSDKProject (project : Project) =
-        match project.Info with
-        | ProjectResponseInfo.DotnetSdk _ -> true
-        |  _ -> false
-
-    let isSDKProjectPath (project : string) =
-        let projectContent = (node.fs.readFileSync project).toString()
-        let sdk = "<Project Sdk=\""
-        projectContent.IndexOf(sdk) >= 0
-
-    let isPortablePdbProject (project : Project) =
-        let projectContent = (node.fs.readFileSync project.Project).toString()
-        let portable = """<DebugType>portable</DebugType>"""
-        projectContent.IndexOf(portable) >= 0
-
-    let isExeProject (project : Project) =
-        match project.Output, isANetCoreAppProject project with
-        | _, true ->
-            project.OutputType.ToLowerInvariant() <> "lib"
-        | out, _ when out |> String.endWith ".exe" -> true
-        | _ -> false
 
     let execWithDotnet outputChannel cmd =
         promise {
