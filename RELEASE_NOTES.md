@@ -1,3 +1,14 @@
+### 3.33.0 - 07.02.2019
+* Only display smart indent notification if affected
+* Upgrade to VS Code's webview API and fix show project status
+* Improve the error message if the error is about SDK version
+* Add automatic restore retry for any failure that's not caused by `dotnet restore`
+* Remove duplicate openProjectFile icon when project not restore
+* Add icon to see the status of failed project
+* Do not consider all NetCore projects as executable
+* Switch the Get Help URL to the new website
+* Automatic restore retry only for the SDK projects
+
 ### 3.32.0 - 31.01.2019
 * Add interface stub generation
 * Fix build script - FSharp.Compiler.Service.ProjectCrackerTool path
