@@ -188,6 +188,9 @@ module Project =
             | ErrorData.ProjectNotRestored _d when not commingFromRestore ->
                 projectNotRestoredLoaded.fire path
                 Some (path, ProjectLoadingState.NotRestored (path, msg) )
+            | _ when not commingFromRestore ->
+                projectNotRestoredLoaded.fire path
+                Some (path, (ProjectLoadingState.Failed (path, msg)))
             | _ ->
                 Some (path, (ProjectLoadingState.Failed (path, msg)))
         if path.EndsWith ".fsproj" then
