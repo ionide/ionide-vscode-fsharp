@@ -188,6 +188,9 @@ module Project =
             | ErrorData.ProjectNotRestored _d when not commingFromRestore ->
                 projectNotRestoredLoaded.fire path
                 Some (path, ProjectLoadingState.NotRestored (path, msg) )
+            | _ when not commingFromRestore ->
+                projectNotRestoredLoaded.fire path
+                Some (path, (ProjectLoadingState.Failed (path, msg)))
             | _ ->
                 Some (path, (ProjectLoadingState.Failed (path, msg)))
         if path.EndsWith ".fsproj" then
@@ -668,8 +671,7 @@ module Project =
                         vscode.window.showErrorMessage(msg, "Show status")
                         |> Promise.map(fun res ->
                             if res = "Show status" then
-                                Preview.showStatus d.Project (path.basename(d.Project))
-                                |> ignore
+                                ShowStatus.CreateOrShow(d.Project, (path.basename(d.Project)))
                         )
                         |> ignore
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )

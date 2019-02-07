@@ -8,7 +8,7 @@ _Part of the [Ionide](http://ionide.io) plugin suite._ Read detailed documentati
 
 You can support Ionide development on [Open Collective](https://opencollective.com/ionide).
 
-[![Open Collective](https://opencollective.com/webpack/donate/button.png?color=blue)](https://opencollective.com/ionide)
+[![Open Collective](https://opencollective.com/ionide/donate/button.png?color=blue)](https://opencollective.com/ionide)
 
 # Requirements
 
@@ -89,12 +89,24 @@ The library is available under [MIT license](https://github.com/ionide/ionide-vs
 
 ## Sponsors
 
-<a href="https://lambdafactory.io"><img src="https://cdn-images-1.medium.com/max/332/1*la7_YvDFvrtA720P5bYWBQ@2x.png" alt="drawing" width="100"/></a>
-
-Ionide couldn't be created without support of [Lambda Factory](https://lambdafactory.io). If you'd be interested in rich F# test integration check out our VSCode plugin - [Neptune](https://github.com/LambdaFactory/Neptune-public).
-
-If your company would be interested in supporting development of Ionide, or acquiring commercial support sent us email - lambda_factory@outlook.com
+Ionide couldn't be created without support of [Lambda Factory](https://lambdafactory.io). If your company would be interested in supporting development of Ionide, or acquiring commercial support sent us email - lambda_factory@outlook.com
 
 You can also support Ionide development on [Open Collective](https://opencollective.com/ionide).
 
-[![Open Collective](https://opencollective.com/webpack/donate/button.png?color=blue)](https://opencollective.com/ionide)
+[![Open Collective](https://opencollective.com/ionide/donate/button.png?color=blue)](https://opencollective.com/ionide)
+
+### Partners
+
+<div align="center">
+
+<a href="https://lambdafactory.io"><img src="https://cdn-images-1.medium.com/max/332/1*la7_YvDFvrtA720P5bYWBQ@2x.png" alt="drawing" width="100"/></a>
+
+</div>
+
+### Sponsors
+
+[Become a sponsor](https://opencollective.com/ionide) and get your logo on our README on Github, description in VSCode marketplace and on [ionide.io](http://ionide.io) with a link to your site.
+
+<div align="center">
+<a href="https://opencollective.com/ionide/sponsor/0/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/0/avatar.svg?requireActive=false"></a>
+</div>

@@ -8,6 +8,7 @@ open Fable.Import.vscode
 open Fable.Import.Node
 open Ionide.VSCode.Helpers
 open System.Collections.Generic
+open System.Text.RegularExpressions
 
 open DTO
 module node = Fable.Import.Node.Exports
@@ -643,102 +644,153 @@ module SolutionExplorer =
                 "<b>Status:</b> loading.."
 
             let viewParsed (proj: Project) =
-                let (Project(_,_,_, files, ProjectReferencesList(_,projRefs,_), ReferenceList(_, refs,_), _, _)) = getProjectModel proj
+                match getProjectModel proj with
+                | (Project(_,_,_, files, ProjectReferencesList(_,projRefs,_), ReferenceList(_, refs,_), _, _)) ->
+                    let files =
+                        files
+                        |> List.filter (function
+                            | File _ -> true
+                            | _ -> false)
+                        |> List.map (function
+                            | File(_,p, _, _) -> p
+                            | _ -> failwith "Should not happend, we filtered the `files` list before"
+                        )
 
-                let files =
-                    files |> List.map (function (File(_,p, _, _)) -> p)
+                    let projRefs =
+                        projRefs
+                        |> List.filter (function
+                            | ProjectReference _ -> true
+                            | _ -> false
+                        )
+                        |> List.map (function
+                            | ProjectReference(_,p, _, _) -> p
+                            | _ -> failwith "Should not happend, we filtered the `projRefs` list before"
+                        )
 
-                let projRefs =
-                    projRefs |> List.map (function (ProjectReference(_,p, _, _)) -> p)
+                    let refs =
+                        refs
+                        |> List.filter (function
+                            | Reference _ -> true
+                            | _ -> false
+                        )
+                        |> List.map (function
+                            | Reference(_,p, _, _) -> p
+                            | _ -> failwith "Should not happend, we filtered the `refs` list before"
+                        )
 
-                let refs =
-                    refs |> List.map (function (Reference(_,p, _, _)) -> p)
-
-                [ yield "<b>Status:</b> parsed correctly"
-                  yield ""
-                  yield sprintf "<b>Project</b>: %s" proj.Project
-                  yield ""
-                  yield sprintf "<b>Output Type</b>: %s" proj.OutputType
-                  yield sprintf "<b>Output</b>: %s" proj.Output
-
-                  yield ""
-                  match proj.Info with
-                  | ProjectResponseInfo.DotnetSdk info ->
-                      yield sprintf "<b>Project Type</b>: .NET Sdk (dotnet/sdk)"
+                    [ yield "<b>Status:</b> parsed correctly"
                       yield ""
-                      yield sprintf "<b>Configuration</b>: %s" info.Configuration
-                      yield sprintf "<b>Target Framework</b>: %s (%s %s)" info.TargetFramework info.TargetFrameworkIdentifier info.TargetFrameworkVersion
+                      yield sprintf "<b>Project</b>: %s" proj.Project
                       yield ""
-                      let boolToString x = if x then "yes" else "no"
-                      yield sprintf "<b>Restored successfully</b>: %s" (info.RestoreSuccess |> boolToString)
+                      yield sprintf "<b>Output Type</b>: %s" proj.OutputType
+                      yield sprintf "<b>Output</b>: %s" proj.Output
+
                       yield ""
-                      let crossgen = not (info.TargetFrameworks |> Seq.isEmpty)
-                      yield sprintf "<b>Crossgen (multiple target frameworks)</b>: %s" (crossgen |> boolToString)
-                      if crossgen then
-                        yield "<b>NOTE: You're using multiple target frameworks. As of now you can't choose which target framework should be used by FSAC. Instead, the first target framework from the list is selected. To change the target framework used by FSAC, simply place it on the first position on the &lt;TargetFrameworks&gt; list.</b>"
-                        yield "For more info see this issue: https://github.com/ionide/ionide-vscode-fsharp/issues/278"
-                      yield "<ul>"
-                      for tfm in info.TargetFrameworks do
-                        yield sprintf "<li>%s</li>" tfm
-                      yield "</ul>"
-                  | ProjectResponseInfo.Verbose ->
-                      yield sprintf "<b>Project Type</b>: old/verbose sdk"
-                  | ProjectResponseInfo.ProjectJson ->
-                      yield sprintf "<b>Project Type</b>: project.json"
-                  yield ""
-                  yield "<b>Files</b>:"
-                  yield! files
-                  yield ""
-                  yield "<b>Project References</b>:"
-                  yield! projRefs
-                  yield ""
-                  yield "<b>References</b>:"
-                  yield! refs
-                  ]
-                |> String.concat "<br />"
+                      match proj.Info with
+                      | ProjectResponseInfo.DotnetSdk info ->
+                          yield sprintf "<b>Project Type</b>: .NET Sdk (dotnet/sdk)"
+                          yield ""
+                          yield sprintf "<b>Configuration</b>: %s" info.Configuration
+                          yield sprintf "<b>Target Framework</b>: %s (%s %s)" info.TargetFramework info.TargetFrameworkIdentifier info.TargetFrameworkVersion
+                          yield ""
+                          let boolToString x = if x then "yes" else "no"
+                          yield sprintf "<b>Restored successfully</b>: %s" (info.RestoreSuccess |> boolToString)
+                          yield ""
+                          let crossgen = not (info.TargetFrameworks |> Seq.isEmpty)
+                          yield sprintf "<b>Crossgen (multiple target frameworks)</b>: %s" (crossgen |> boolToString)
+                          if crossgen then
+                            yield "<b>NOTE: You're using multiple target frameworks. As of now you can't choose which target framework should be used by FSAC. Instead, the first target framework from the list is selected. To change the target framework used by FSAC, simply place it on the first position on the &lt;TargetFrameworks&gt; list.</b>"
+                            yield "For more info see this issue: https://github.com/ionide/ionide-vscode-fsharp/issues/278"
+                          yield "<ul>"
+                          for tfm in info.TargetFrameworks do
+                            yield sprintf "<li>%s</li>" tfm
+                          yield "</ul>"
+                      | ProjectResponseInfo.Verbose ->
+                          yield sprintf "<b>Project Type</b>: old/verbose sdk"
+                      | ProjectResponseInfo.ProjectJson ->
+                          yield sprintf "<b>Project Type</b>: project.json"
+                      yield ""
+                      yield "<b>Files</b>:"
+                      yield! files
+                      yield ""
+                      yield "<b>Project References</b>:"
+                      yield! projRefs
+                      yield ""
+                      yield "<b>References</b>:"
+                      yield! refs
+                      ]
+                    |> String.concat "<br />"
+                | _ ->
+                    "Failed to generate status report..."
 
             let viewFailed path error =
-                [ "<b>Status:</b> failed to load"; ""
-                  "<b>Error:</b>"
-                  error ]
+                let sdkErrorRegex = Regex("A compatible SDK version for global\.json version: \[([\d.]+)\].*was not found.*", RegexOptions.IgnoreCase)
+
+                let errorMsg =
+                    match sdkErrorRegex.Match error with
+                    | m when m.Success ->
+                        let version = m.Groups.[1].Value
+                        [ sprintf "A compatible SDK version for global.json version: <b>%s</b> was not found." version
+                          ""
+                          "If you haven't installed a compatible version on your computer, you can go to: <a href=\"https://dotnet.microsoft.com/download/archives\">https://dotnet.microsoft.com/download/archives</a> to download it."
+                          ""
+                          "<hr/>"
+                          "<b>Original error:</b>"
+                          ""
+                          error ]
+                    | _ ->
+                        [ error ]
+
+                [ "<b>Status:</b> failed to load"
+                  ""
+                  "<b>Error:</b>" ] @ errorMsg
                 |> String.concat "<br />"
 
             { new TextDocumentContentProvider with
-                  member this.provideTextDocumentContent (uri: Uri) =
-                      match uri.path with
-                      | "/projects/status" ->
-                          let q = node.querystring.parse(uri.query)
-                          let path : string = q?path |> unbox
-                          match Project.tryFindInWorkspace path with
-                          | None ->
-                              sprintf "Project '%s' not found" path
-                          | Some (Project.ProjectLoadingState.Loading path) ->
-                              viewLoading path
-                          | Some (Project.ProjectLoadingState.Loaded proj) ->
-                              viewParsed proj
-                          | Some (Project.ProjectLoadingState.NotRestored (path,error)) ->
-                              viewFailed path error
-                          | Some (Project.ProjectLoadingState.Failed (path, error)) ->
-                              viewFailed path error
-                      | _ ->
-                          sprintf "Requested uri: %s" (uri.toString())
+                member this.provideTextDocumentContent (uri: Uri) =
+                    match uri.path with
+                    | "projects/status" ->
+                        let q = node.querystring.parse(uri.query)
+                        let path : string = q?path |> unbox
+                        match Project.tryFindInWorkspace path with
+                        | None ->
+                            sprintf "Project '%s' not found" path
+                        | Some (Project.ProjectLoadingState.Loading path) ->
+                            viewLoading path
+                        | Some (Project.ProjectLoadingState.Loaded proj) ->
+                            viewParsed proj
+                        | Some (Project.ProjectLoadingState.NotRestored (path,error)) ->
+                            viewFailed path error
+                        | Some (Project.ProjectLoadingState.Failed (path, error)) ->
+                            viewFailed path error
+                    | _ ->
+                        sprintf "Requested uri: %s" (uri.toString())
             }
 
         vscode.workspace.registerTextDocumentContentProvider(DocumentSelector.Case1 "fsharp-workspace", wsProvider)
         |> context.subscriptions.Add
 
+        let getStatusText (path : string) =
+            promise {
+                // let! res = vscode.window.showInputBox()
+                let url = sprintf "fsharp-workspace:projects/status?path=%s" path
+                let uri = vscode.Uri.parse(url)
+                let! doc = vscode.workspace.openTextDocument(uri)
+                return doc.getText()
+            }
+
         let projectStatusCommand m =
             match m with
             | ProjectFailedToLoad (_, path, name, _) ->
-                Preview.showStatus path name
+                ShowStatus.CreateOrShow(path, name)
             | ProjectNotRestored (_, path, name, _) ->
-                Preview.showStatus path name
+                ShowStatus.CreateOrShow(path, name)
             | Model.ProjectLoading (_, path, name) ->
-                Preview.showStatus path name
-            | Model.Project (_, path, name, _, _, _, _, _) ->
-                Preview.showStatus path name
+                ShowStatus.CreateOrShow(path, name)
+            | Model.Project (_, path, name, _, _, _, _, proj) ->
+                ShowStatus.CreateOrShow(path, name)
             | _ ->
-                Promise.empty
+                ()
 
         let runDebug m =
             match m with
@@ -931,5 +983,3 @@ module SolutionExplorer =
         )) |> context.subscriptions.Add
 
         ()
-
-

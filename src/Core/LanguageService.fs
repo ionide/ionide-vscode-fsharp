@@ -266,8 +266,7 @@ module LanguageService =
             vscode.window.showErrorMessage(msg, "Show status")
             |> Promise.map(fun res ->
                 if res = "Show status" then
-                    Preview.showStatus s (path.basename(s))
-                    |> ignore
+                    ShowStatus.CreateOrShow(s, (path.basename(s)))
             )
             |> ignore
         )

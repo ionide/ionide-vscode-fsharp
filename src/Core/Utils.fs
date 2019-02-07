@@ -45,18 +45,18 @@ module CodeRange =
 module String =
 
     let trim (s : string) = s.Trim()
-    
+
     let replace (oldVal : string) (newVal : string) (str : string) : string =
         match str with
         | null -> null
         | _ -> str.Replace (oldVal, newVal)
-    
+
     let split separator (s : string) = s.Split separator
 
     let endWith ending (s : string) = s.EndsWith ending
 
     let startWith ending (s : string) = s.StartsWith ending
-    
+
     let quote (s : string) =
         let isQuoted (s : string) = s.StartsWith @"""" && s.EndsWith @""""
         let containsWhitespace = Seq.exists (fun c -> c = ' ' || c = '\t' || c = '\n'  )
@@ -212,7 +212,7 @@ module Markdown =
 
     let private regexReplacePatterns =
         let r pat = Regex(pat, RegexOptions.IgnoreCase)
-        
+
         let code (strings : string array) =
             let str = strings.[0]
             if str.Contains("\n") then
@@ -222,7 +222,7 @@ module Markdown =
         let returns = Array.item 0 >> sprintf "\n**Returns**\n\n%s"
 
         let param (s : string[]) = sprintf "* `%s`: %s"(s.[0].Substring(1, s.[0].Length - 2)) s.[1]
-        
+
         [ r"<c>((?:(?!<c>)(?!<\/c>)[\s\S])*)<\/c>", code
           r"""<see\s+cref=(?:'[^']*'|"[^"]*")>((?:(?!<\/see>)[\s\S])*)<\/see>""", code
           r"""<param\s+name=('[^']*'|"[^"]*")>((?:(?!<\/param>)[\s\S])*)<\/param>""", param
@@ -244,9 +244,9 @@ module Markdown =
         | _ -> str
 
     let private suffixTypeparam = suffixXmlKey "<typeparam" "\n**Type parameters**\n\n"
-    
+
     let private suffixException = suffixXmlKey "<exception" "\n**Exceptions**\n\n"
-    
+
     let private suffixParam = suffixXmlKey "<param" "\n**Parameters**\n\n"
 
     /// Replaces XML tags with Markdown equivalents.
@@ -333,11 +333,74 @@ module Context =
                 set name value
                 current <- Some value
 
-module Preview =
+open Fable.Import
+open Fable.Core
+open Ionide.VSCode.Helpers
 
-    open Fable.Import
+[<AllowNullLiteral>]
+type ShowStatus private (panel : WebviewPanel, body : string) as this =
+    let renderPage (body : string) =
+        sprintf
+            """<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body>
+%s
+</body>
+</html>""" body
 
-    let private projectStatusUri projectPath = vscode.Uri.parse(sprintf "fsharp-workspace://authority/projects/status?path=%s" (JS.encodeURIComponent(projectPath)))
+    let mutable _disposables : ResizeArray<Disposable> = ResizeArray<Disposable>()
 
-    let showStatus path name =
-        vscode.commands.executeCommand("vscode.previewHtml", projectStatusUri path, vscode.ViewColumn.One, (sprintf "Project %s status" name))
+    static let mutable instance : ShowStatus = null
+
+    do
+        panel.onDidDispose.Invoke((fun () ->
+            this.Dispose()
+            null
+        ), this, _disposables)
+        |> ignore
+
+        panel.onDidChangeViewState.Invoke((fun _ev ->
+            if panel.visible then
+                this.Update()
+            null
+        ), this, _disposables)
+        |> ignore
+
+        this.Update()
+
+    static member ViewType = "project_status"
+
+    static member CreateOrShow(projectPath : string, projectName : string) =
+        let title = sprintf "Project %s status" projectName
+        let panel = vscode.window.createWebviewPanel(ShowStatus.ViewType, title, U2.Case1 vscode.ViewColumn.One)
+
+        promise {
+            let uri = vscode.Uri.parse(sprintf "fsharp-workspace:projects/status?path=%s" (JS.encodeURIComponent(projectPath)))
+            let! doc = vscode.workspace.openTextDocument uri
+            return doc.getText()
+        }
+        |> Promise.onSuccess (fun bodyStr ->
+            printfn "%s" bodyStr
+            instance <- new ShowStatus(panel, bodyStr)
+        )
+        |> Promise.onFail (fun err ->
+            JS.console.error("ShowStatus.CreateOrShow failed:\n", err)
+            vscode.window.showErrorMessage("We couldn't generate the status report")
+            |> ignore
+        )
+        |> ignore
+
+    member __.Dispose() =
+        instance <- null
+        panel.dispose() |> ignore
+
+        for disposable in _disposables do
+            if isNotNull disposable then
+                disposable.dispose() |> ignore
+
+        _disposables <- ResizeArray<Disposable>()
+
+    member __.Update() =
+        panel.webview.html <- renderPage body

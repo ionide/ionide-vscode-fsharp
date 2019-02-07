@@ -111,7 +111,7 @@ Target "CopyFSACNetcore" (fun _ ->
     CleanDir releaseBinNetcore
 
     CopyDir releaseBinNetcore fsacBinNetcore (fun _ -> true)
-    CopyFiles releaseBinNetcore !!"paket-files/github.com/fsharp/FsAutoComplete/src/FsAutoComplete.SymbolCache/bin/Release/netcoreapp2.0/*.json"
+    CopyFiles releaseBinNetcore !!"paket-files/github.com/fsharp/FsAutoComplete/src/FsAutoComplete.SymbolCache/bin/Release/netcoreapp2.1/*.json"
 
     let mainfestFile = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
