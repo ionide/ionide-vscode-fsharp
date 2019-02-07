@@ -16,7 +16,7 @@ module LanguageConfiguration =
             o.decreaseIndentPattern <- JS.RegExp.Create("""^(\s*(else|elif|and)).*$""")
         )
 
-    let setLanguageConfiguration (context : ExtensionContext) =
+    let setLanguageConfiguration (triggerNotification : bool) (context : ExtensionContext) =
         // Config always setted
         let config =
             jsOptions<LanguageConfiguration> (fun o ->
@@ -41,14 +41,12 @@ module LanguageConfiguration =
         if activateSmartIndent then
             config.indentationRules <- Some indentationRules
 
-        let triggerNotification =
-            match reference with
-            | Some oldReference ->
-                // Disable previous language configuration if there was one
-                oldReference.dispose() |> ignore
-                true
-            | None ->
-                false
+        match reference with
+        | Some oldReference ->
+            // Disable previous language configuration if there was one
+            oldReference.dispose() |> ignore
+        | None ->
+            ()
 
         reference <- Some <| vscode.languages.setLanguageConfiguration("fsharp", config)
 
@@ -64,8 +62,12 @@ module LanguageConfiguration =
 
         context.subscriptions.Add(reference)
 
+    let onDidChangeConfiguration (ev : ConfigurationChangeEvent) (context : ExtensionContext) =
+        let triggerNotification = ev.affectsConfiguration("FSharp.smartIndent")
+        setLanguageConfiguration triggerNotification context
+
     let activate (context : ExtensionContext) =
         // We listen for config change so we can update on the fly the language configuration
-        workspace.onDidChangeConfiguration $ (setLanguageConfiguration, context, context.subscriptions) |> ignore
+        workspace.onDidChangeConfiguration $ (onDidChangeConfiguration, context, context.subscriptions) |> ignore
 
-        setLanguageConfiguration context
+        setLanguageConfiguration false context
