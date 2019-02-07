@@ -407,7 +407,7 @@
 					"light": "./images/auto-reveal-light.svg",
 					"dark": "./images/auto-reveal-dark.svg"
 				}
-			}
+            }
 		],
 		"viewsContainers": {
 			"activitybar": [

@@ -668,8 +668,7 @@ module Project =
                         vscode.window.showErrorMessage(msg, "Show status")
                         |> Promise.map(fun res ->
                             if res = "Show status" then
-                                Preview.showStatus d.Project (path.basename(d.Project))
-                                |> ignore
+                                ShowStatus.CreateOrShow(d.Project, (path.basename(d.Project)))
                         )
                         |> ignore
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
