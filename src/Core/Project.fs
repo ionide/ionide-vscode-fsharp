@@ -504,7 +504,8 @@ module Project =
 
     let isExeProject (project : Project) =
         match project.Output, isANetCoreAppProject project with
-        | _, true -> true
+        | _, true ->
+            project.OutputType.ToLowerInvariant() <> "lib"
         | out, _ when out |> String.endWith ".exe" -> true
         | _ -> false
 
