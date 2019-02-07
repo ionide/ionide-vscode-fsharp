@@ -8,6 +8,7 @@ open Fable.Import.vscode
 open Fable.Import.Node
 open Ionide.VSCode.Helpers
 open System.Collections.Generic
+open System.Text.RegularExpressions
 
 open DTO
 module node = Fable.Import.Node.Exports
@@ -723,9 +724,26 @@ module SolutionExplorer =
                     "Failed to generate status report..."
 
             let viewFailed path error =
-                [ "<b>Status:</b> failed to load"; ""
-                  "<b>Error:</b>"
-                  error ]
+                let sdkErrorRegex = Regex("A compatible SDK version for global\.json version: \[([\d.]+)\].*was not found.*", RegexOptions.IgnoreCase)
+
+                let errorMsg =
+                    match sdkErrorRegex.Match error with
+                    | m when m.Success ->
+                        let version = m.Groups.[1].Value
+                        [ sprintf "A compatible SDK version for global.json version: <b>%s</b> was not found." version
+                          ""
+                          "If you haven't installed a compatible version on your computer, you can go to: <a href=\"https://dotnet.microsoft.com/download/archives\">https://dotnet.microsoft.com/download/archives</a> to download it."
+                          ""
+                          "<hr/>"
+                          "<b>Original error:</b>"
+                          ""
+                          error ]
+                    | _ ->
+                        [ error ]
+
+                [ "<b>Status:</b> failed to load"
+                  ""
+                  "<b>Error:</b>" ] @ errorMsg
                 |> String.concat "<br />"
 
             { new TextDocumentContentProvider with
