@@ -323,7 +323,7 @@ module LanguageService =
         { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "findtypedeclaration" 0 (makeRequestId())
 
-    let f1Help fn line col =
+    let f1Help fn line col : JS.Promise<Result<string>> =
         { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "help" 0 (makeRequestId())
 
