@@ -17,16 +17,12 @@ module Help =
 
         promise {
             let! res = LanguageService.f1Help (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-            let uri = Uri.parse "https://msdn.microsoft.com/query/dev15.query"
-            let query = res.Data |> JS.encodeURIComponent |> sprintf "appId=Dev15IDEF1&l=EN-US&k=k(%s);k(DevLang-FSharp)&rd=true"
-            let change =
-                createObj [
-                    "query" ==> query
-                ]
+            let api =
+                res.Data.Replace("#ctor", "-ctor")
 
-            let uri' = uri?``with``(change)
+            let uri = Uri.parse (sprintf "https://docs.microsoft.com/en-us/dotnet/api/%s" api)
 
-            return! commands.executeCommand("vscode.open", uri', 3)
+            return! commands.executeCommand("vscode.open", uri)
         } |> ignore
 
 
