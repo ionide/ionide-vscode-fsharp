@@ -320,10 +320,10 @@ module SolutionExplorer =
                 let context =
                     match node with
                     | File _  -> "file"
-                    | ProjectReferencesList _  -> "projectRefList"
-                    | ReferenceList _  -> "referencesList"
-                    | Project (_, _, _, _, _, _, false, _)  -> "project"
-                    | Project (_, _, _, _, _, _, true, _)  -> "projectExe"
+                    | ProjectReferencesList _ -> "projectRefList"
+                    | ReferenceList _ -> "referencesList"
+                    | Project (_, _, _, _, _, _, false, _) -> "project"
+                    | Project (_, _, _, _, _, _, true, _) -> "projectExe"
                     | ProjectReference _  -> "projectRef"
                     | Reference _  -> "reference"
                     | Folder _ -> "folder"

@@ -262,11 +262,19 @@
 			},
 			{
 				"command": "fsharp.explorer.showProjectLoadFailedInfo",
-				"title": "Show info about failed project loading"
+                "title": "Show info about failed project loading",
+                "icon": {
+					"light": "./images/icon-status-light.svg",
+					"dark": "./images/icon-status-dark.svg"
+				}
 			},
 			{
 				"command": "fsharp.explorer.showProjectStatus",
-				"title": "Show project status"
+                "title": "Show project status",
+                "icon": {
+					"light": "./images/icon-status-light.svg",
+					"dark": "./images/icon-status-dark.svg"
+				}
 			},
 			{
 				"command": "fsharp.explorer.renameFile",
@@ -757,7 +765,8 @@
 				},
 				{
 					"command": "fsharp.explorer.showProjectLoadFailedInfo",
-					"when": "viewItem == ionide.projectExplorer.projectLoadFailed"
+                    "when": "viewItem == ionide.projectExplorer.projectLoadFailed",
+                    "group": "inline@98"
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
@@ -792,7 +801,8 @@
 				},
 				{
 					"command": "fsharp.explorer.showProjectStatus",
-					"when": "viewItem == ionide.projectExplorer.projectNotRestored"
+                    "when": "viewItem == ionide.projectExplorer.projectNotRestored",
+                    "group": "inline@98"
 				},
 				{
 					"command": "fsharp.explorer.addProjecRef",
