@@ -259,8 +259,8 @@ Target "Default" DoNothing
 Target "Build" DoNothing
 Target "Release" DoNothing
 
-"YarnInstall" ?=> "RunScript"
-"DotNetRestore" ?=> "RunScript"
+"YarnInstall" ==> "RunScript"
+"DotNetRestore" ==> "RunScript"
 
 "Clean"
 ==> "RunScript"
