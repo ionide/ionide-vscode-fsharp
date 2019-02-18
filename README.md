@@ -30,7 +30,7 @@ You can support Ionide development on [Open Collective](https://opencollective.c
 - Tooltips
 - Method parameter hints
 - Go to Definition
-- Peak Definition
+- Peek Definition
 - Find all references
 - Highlighting usages
 - Rename
