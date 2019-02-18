@@ -265,13 +265,16 @@ module Markdown =
                 let rec loop res : string =
                     match regex.Match res with
                     | m when m.Success ->
-                        let [| firstGroup |], otherGroups =
+                        let splitted =
                             m.Groups
                             |> Seq.cast<Group>
                             |> Seq.map (fun g -> g.Value)
                             |> Seq.toArray
                             |> Array.splitAt 1
-                        loop <| res.Replace(firstGroup, formatter otherGroups)
+                        match splitted with
+                        | [| firstGroup |], otherGroups ->
+                            loop <| res.Replace(firstGroup, formatter otherGroups)
+                        | _ -> failwithf "Error in regex pattern for nested xml tags with %s" res
                     | _ -> res
                 loop res
             ) str
