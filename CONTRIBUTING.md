@@ -106,11 +106,6 @@ git clone git@github.com:YOUR_GITHUB_USER/ionide-vscode-fsharp.git
 #### First time build:
 ```bash
 cd ionide-vscode-fsharp
-yarn install
-dotnet restore
-cd src
-dotnet restore
-cd ..
 ./build.sh  # or build.cmd if your OS is Windows  (might need ./build Build here)
 ```
 
