@@ -134,11 +134,11 @@ module MSBuild =
                     | MSbuildHost.MSBuildExe ->
                         LanguageService.msbuild ()
                         |> Promise.bind (function Some msbuild -> Promise.lift msbuild
-                                                | None -> Promise.reject "MsBuild binary not found. Please install it from the [Visual Studio Download Page](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)")
-                    | MSbuildHost.DotnetCli -> 
+                                                | None -> Promise.reject "MSBuild binary not found. Please install it from the [Visual Studio Download Page](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)")
+                    | MSbuildHost.DotnetCli ->
                         Environment.dotnet
                         |> Promise.bind (function Some msbuild -> Promise.lift msbuild
-                                                | None -> Promise.reject "dotnet sdk not found. Please install it from the [Dotnet SDK Download Page](https://www.microsoft.com/net/download)")
+                                                | None -> Promise.reject "dotnet SDK not found. Please install it from the [Dotnet SDK Download Page](https://www.microsoft.com/net/download)")
                     | MSbuildHost.Auto -> Promise.lift ""
 
                 let cmd =
@@ -165,7 +165,9 @@ module MSBuild =
     let buildCurrentProject target =
         logger.Debug("discovering project")
         match window.activeTextEditor.document with
-        | Document.FSharp | Document.CSharp | Document.VB ->
+        | Document.FSharp
+        | Document.CSharp
+        | Document.VB ->
             let currentProject = Project.getLoaded () |> Seq.where (fun p -> p.Files |> List.exists (String.endWith window.activeTextEditor.document.fileName)) |> Seq.tryHead
             match currentProject with
             | Some p ->
@@ -175,8 +177,8 @@ module MSBuild =
                 logger.Debug("could not find a project that contained the file %s", window.activeTextEditor.document.fileName)
                 Promise.empty
         | Document.Other ->
-                logger.Debug("I don't know how to handle a project of type %s", window.activeTextEditor.document.languageId)
-                Promise.empty
+            logger.Debug("I don't know how to handle a project of type %s", window.activeTextEditor.document.languageId)
+            Promise.empty
 
     /// prompts the user to choose a project
     let pickProject placeHolder =
@@ -406,7 +408,7 @@ module MSBuild =
             Environment.dotnet
             |> Promise.bind (fun p ->
                 match p with
-                | Some p -> logger.Info("Dotnet cli (.NET Core) found at %s", p)
+                | Some p -> logger.Info("Dotnet CLI (.NET Core) found at %s", p)
                             Promise.lift p
                 | None -> Promise.reject "dotnet not found"
             )
@@ -417,11 +419,11 @@ module MSBuild =
             | Some MSbuildHost.MSBuildExe ->
                 logger.Info("MSBuild (.NET) activated")
             | Some MSbuildHost.DotnetCli ->
-                logger.Info("Dotnet cli (.NET Core) activated")
+                logger.Info("Dotnet CLI (.NET Core) activated")
             | Some MSbuildHost.Auto ->
-                logger.Info("Automatic msbuild detection")
+                logger.Info("Automatic MSBuild detection")
             | None ->
-                logger.Info("Active msbuild: not choosen yet") )
+                logger.Info("Active MSBuild: not choosen yet") )
         |> context.subscriptions.Add
 
         let reloadCfg _ = promise {

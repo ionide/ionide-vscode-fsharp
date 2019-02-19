@@ -161,7 +161,7 @@ module Errors =
 
 
     let activate (context : ExtensionContext) =
-        let d = ("FSharp.customTypecheckingDelay" |> Configuration.get -1. )
+        let d = ("FSharp.customTypecheckingDelay" |> Configuration.get -1.)
         customDelay <- d
         let allowBackgroundParsing = not ("FSharp.minimizeBackgroundParsing" |> Configuration.get false)
         Project.projectLoaded.event $ (parseVisibleFileInProject, (), context.subscriptions) |> ignore
@@ -176,7 +176,7 @@ module Errors =
             Analyzers.deleteDiagnostic uri
         ) |> ignore
 
-        workspace.onDidChangeTextDocument $ (handler,(), context.subscriptions) |> ignore
+        workspace.onDidChangeTextDocument $ (handler, (), context.subscriptions) |> ignore
         window.onDidChangeActiveTextEditor $ (handlerOpen allowBackgroundParsing, (), context.subscriptions) |> ignore
         workspace.onDidSaveTextDocument $ (handlerSave allowBackgroundParsing, (), context.subscriptions) |> ignore
         LanguageService.registerNotify handleNotification
