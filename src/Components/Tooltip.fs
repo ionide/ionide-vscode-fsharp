@@ -13,7 +13,7 @@ module Tooltip =
         let mapResult (doc : TextDocument) (pos : Position) o =
             let range = doc.getWordRangeAtPosition pos
             if isNotNull o then
-                let res = (o.Data |> Array.collect id).[0]
+                let res = (o.Data |> Array.concat).[0]
                 if JS.isDefined res.Signature then
                     let markStr lang (value:string) : MarkedString =
                         createObj [

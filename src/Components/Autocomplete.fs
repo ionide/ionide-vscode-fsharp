@@ -73,7 +73,7 @@ module Autocomplete =
 
         let mapHelptext (doc : TextDocument) (sug : CompletionItem) (o : HelptextResult) =
             if isNotNull o then
-                let res = (o.Data.Overloads |> Array.collect id).[0]
+                let res = (o.Data.Overloads |> Array.concat).[0]
                 sug.documentation <- res.Comment |> Markdown.createCommentBlock |> U2.Case2
                 sug.detail <- res.Signature
                 if JS.isDefined o.Data.AdditionalEdit then

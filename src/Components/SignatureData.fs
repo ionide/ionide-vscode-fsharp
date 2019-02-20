@@ -17,8 +17,8 @@ module SignatureData =
             |> Promise.bind (fun (p : SignatureDataResult)  ->
                 let pms =
                     p.Data.Parameters
-                    |> Seq.collect id
-                    |> Seq.where (fun prm -> String.IsNullOrWhiteSpace prm.Name |> not )
+                    |> Seq.concat
+                    |> Seq.where (fun prm -> String.IsNullOrWhiteSpace prm.Name |> not)
                     |> Seq.map (fun prm -> sprintf "///   * `%s` - parameter of type `%s`" prm.Name prm.Type)
                     |> String.concat "\n"
                 let pms = if pms = "" then "///" else pms
