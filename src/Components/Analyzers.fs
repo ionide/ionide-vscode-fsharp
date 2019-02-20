@@ -6,10 +6,7 @@ open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
 open Fable.Import.Node
-
-
 open DTO
-open Ionide.VSCode.Helpers
 module node = Fable.Import.Node.Exports
 
 module Analyzers =
@@ -77,7 +74,9 @@ module Analyzers =
 
     let activate selector (context : ExtensionContext) =
         let analyzerPaths = "FSharp.analyzersPath" |> Configuration.get [| "packages/Analyzers"; "analyzers" |]
-        let p = node.path.join(workspace.rootPath, "analyzers") //TODO: configure set of paths for loading analyzers
+        // TODO: configure set of paths for loading analyzers
+        // let p = node.path.join(workspace.rootPath, "analyzers")
+
         analyzerPaths
         |> Array.iter (fun p ->
             let p = node.path.join(workspace.rootPath, p)
