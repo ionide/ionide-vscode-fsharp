@@ -1,3 +1,7 @@
+### Unreleased
+* Update FSAC to 0.36.0 for speed/features
+* Update Dotnet.ProjInfo to 0.31 for improved project loading and detection
+
 ### 3.33.0 - 07.02.2019
 * Only display smart indent notification if affected
 * Upgrade to VS Code's webview API and fix show project status
