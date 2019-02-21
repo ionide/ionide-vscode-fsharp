@@ -1,21 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="../paket-files/ionide/ionide-vscode-helpers/src/Fable.Import.VSCode.fs">
+    <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Fable.Import.VSCode.fs">
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.VSCode.fs</Link>
     </Compile>
-    <Compile Include="../paket-files/ionide/ionide-vscode-helpers/src/Helpers.fs">
+    <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Helpers.fs">
       <Paket>True</Paket>
       <Link>paket-files/Helpers.fs</Link>
     </Compile>
-    <Compile Include="../paket-files/ionide/ionide-vscode-helpers/src/Fable.Import.Axios.fs">
+    <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Fable.Import.Axios.fs">
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.Axios.fs</Link>
     </Compile>
-    <Compile Include="../paket-files/ionide/ionide-vscode-helpers/src/Fable.Import.ws.fs">
+    <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Fable.Import.ws.fs">
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.ws.fs</Link>
     </Compile>

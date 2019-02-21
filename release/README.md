@@ -30,7 +30,7 @@ You can support Ionide development on [Open Collective](https://opencollective.c
 - Tooltips
 - Method parameter hints
 - Go to Definition
-- Peak Definition
+- Peek Definition
 - Find all references
 - Highlighting usages
 - Rename
@@ -87,6 +87,8 @@ the project and submit pull requests.
 
 The library is available under [MIT license](https://github.com/ionide/ionide-vscode-fsharp/blob/master/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.
 
+Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
+
 ## Sponsors
 
 Ionide couldn't be created without support of [Lambda Factory](https://lambdafactory.io). If your company would be interested in supporting development of Ionide, or acquiring commercial support sent us email - lambda_factory@outlook.com
@@ -108,5 +110,6 @@ You can also support Ionide development on [Open Collective](https://opencollect
 [Become a sponsor](https://opencollective.com/ionide) and get your logo on our README on Github, description in VSCode marketplace and on [ionide.io](http://ionide.io) with a link to your site.
 
 <div align="center">
-<a href="https://opencollective.com/ionide/sponsor/0/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/0/avatar.svg?requireActive=false"></a>
+<a href="https://opencollective.com/ionide/sponsor/1/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/1/avatar.svg?requireActive=false"></a>
+ <a href="https://opencollective.com/ionide/sponsor/2/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/2/avatar.svg?requireActive=false"></a>
 </div>
