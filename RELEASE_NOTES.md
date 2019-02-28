@@ -1,6 +1,9 @@
-### Unreleased
-* Update FSAC to 0.36.0 for speed/features
+### 3.34.0 - 28.02.2019
+* Update FSAC to 0.37.0:
+    - performance improvements
+    - support for Anonymous Records
 * Update Dotnet.ProjInfo to 0.31 for improved project loading and detection
+* Minor fixes (typos etc.)
 
 ### 3.33.0 - 07.02.2019
 * Only display smart indent notification if affected
