@@ -606,24 +606,28 @@ module LanguageService =
         | NET
         | NetcoreFdd
 
-    let targetRuntime =
+    type ConfigValue<'a> =
+        | UserSpecified of 'a
+        | Implied of 'a
+
+    let targetRuntime: ConfigValue<FSACTargetRuntime> =
         let configured = Configuration.tryGet "FSharp.fsacRuntime"
 
         match configured with
         | Some "netcore" ->
             log.Info("Netcore runtime specified")
-            FSACTargetRuntime.NetcoreFdd
+            UserSpecified FSACTargetRuntime.NetcoreFdd
         | Some "net" ->
             log.Info(".NET runtime specified")
-            FSACTargetRuntime.NET
+            UserSpecified FSACTargetRuntime.NET
         | Some v ->
             log.Warn("Unknown configured runtime '%s', defaulting to .NET", v)
-            FSACTargetRuntime.NET
+            Implied FSACTargetRuntime.NET
         | None ->
             log.Info("No runtime specified, defaulting to .NET")
-            FSACTargetRuntime.NET
+            Implied FSACTargetRuntime.NET
 
-    let spawnFSACForRuntime runtime rootPath =
+    let spawnFSACForRuntime (runtime: ConfigValue<FSACTargetRuntime>) rootPath =
         let spawnNetFSAC mono =
             let path = rootPath + "/bin/fsautocomplete.exe"
             let fsacExe, fsacArgs =
@@ -676,28 +680,54 @@ module LanguageService =
             let! mono = Environment.mono
             let! dotnet = Environment.dotnet
             log.Info(sprintf "finding FSAC for\n\truntime: %O\n\tmono: %O\n\tdotnet: %O" runtime mono dotnet)
+
+
+            // The matrix here is a 2x3 table: .Net/.Net Core target on one axis, Windows/Mono/Dotnet execution environment on the other
             match runtime, mono, dotnet with
-            | FSACTargetRuntime.NET, Some mono, Some _dotnet ->
-                suggestNetCore()
+            // for any configuration, if the user specifies the framework to use do not suggest another framework for them
+
+            // .Net framework handling
+            | UserSpecified FSACTargetRuntime.NET, None, _ when Environment.isWin ->
+                return! spawnNetFSAC ""
+            | UserSpecified FSACTargetRuntime.NET, Some mono, _ ->
                 return! spawnNetFSAC mono
-            | FSACTargetRuntime.NET, None, Some _dotnet when not Environment.isWin ->
-                suggestNetCore()
+            | UserSpecified FSACTargetRuntime.NET, None, _ ->
                 return! monoNotFound ()
-            | FSACTargetRuntime.NET, None, Some _dotnet ->
+
+            // dotnet SDK handling
+            | UserSpecified FSACTargetRuntime.NetcoreFdd, _, Some dotnet ->
+                return! spawnNetcoreFSAC dotnet
+            | UserSpecified FSACTargetRuntime.NetcoreFdd, _, None ->
+                return! dotnetNotFound ()
+
+            // when we infer a runtime then we can suggest to the user our other options
+            // .NET framework handling (looks similar to above just with suggestion)
+            | Implied FSACTargetRuntime.NET, None, Some _dotnet when Environment.isWin ->
                 suggestNetCore()
                 return! spawnNetFSAC ""
-            | FSACTargetRuntime.NetcoreFdd, _, Some dotnet ->
-                return! spawnNetcoreFSAC dotnet
-            | FSACTargetRuntime.NetcoreFdd, Some _mono, None ->
+            | Implied FSACTargetRuntime.NET, Some mono, Some _dotnet ->
+                suggestNetCore()
+                return! spawnNetFSAC mono
+            | Implied FSACTargetRuntime.NET, None, Some _dotnet ->
+                suggestNetCore()
+                return! monoNotFound ()
+
+            // these case actually never happens right now (see the `targetRuntime` calculation above), but it's here for completeness,
+            // IE a scenario in which dotnet isn't found but we have located the proper execution environment for .Net framework
+            | Implied FSACTargetRuntime.NetcoreFdd, None, None when Environment.isWin ->
                 suggestNet ()
                 return! dotnetNotFound ()
+            | Implied FSACTargetRuntime.NetcoreFdd, Some mono, None when not Environment.isWin ->
+                suggestNet ()
+                return! dotnetNotFound ()
+
             | runtime, mono, dotnet ->
                 return failwithf "unsupported combination of runtime/mono/dotnet: %O/%O/%O" runtime mono dotnet
         }
 
     let ensurePrereqsForRuntime runtime =
         match runtime with
-        | FSACTargetRuntime.NET ->
+        | UserSpecified FSACTargetRuntime.NET | Implied FSACTargetRuntime.NET ->
             promise {
                 let! fsc = fsc ()
                 let! msbuild = msbuild ()
@@ -708,7 +738,7 @@ module LanguageService =
                     then return! vscode.window.showErrorMessage "Visual Studio Build Tools not found. Please install them from the [Visual Studio Download Page](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)" |> Promise.map ignore
                     else return! vscode.window.showErrorMessage "Mono installation not found. Please install the latest version for your operating system from the [Mono Project](https://www.mono-project.com/download/stable/)" |> Promise.map ignore
             }
-        | FSACTargetRuntime.NetcoreFdd ->
+        | UserSpecified FSACTargetRuntime.NetcoreFdd | Implied FSACTargetRuntime.NetcoreFdd ->
             Promise.lift ()
 
     let startFSAC () =
