@@ -635,6 +635,8 @@ module LanguageService =
             | FSACTargetRuntime.NET -> "net"
             | FSACTargetRuntime.NetcoreFdd -> "netcore"
         Configuration.set runtimeSettingsKey value
+        |> Promise.bind (fun _ -> vscode.window.showInformationMessage("Please reload your VSCode instance for this change to take effect"))
+        |> Promise.map (fun _ -> ())
 
     let spawnFSACForRuntime (runtime: ConfigValue<FSACTargetRuntime>) rootPath =
         let spawnNetFSAC mono =
