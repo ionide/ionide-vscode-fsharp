@@ -31,80 +31,79 @@ let activate (context : ExtensionContext) : Api =
 
     let init = DateTime.Now
 
+    LanguageService.Ready.Add(
+        fun () ->
+            let progressOpts = createEmpty<ProgressOptions>
+            progressOpts.location <- ProgressLocation.Window
+            window.withProgress(progressOpts, (fun p ->
+                let pm = createEmpty<ProgressMessage>
+                pm.message <- "Loading current project"
+                p.report pm
+                Errors.activate context
+                |> Promise.onSuccess(fun _ ->
+                    pm.message <- "Loading all projects"
+                    p.report pm
+                )
+                |> Promise.onSuccess(fun _ -> if solutionExplorer then SolutionExplorer.activate context)
+                |> Promise.bind(fun parseVisibleTextEditors -> Project.activate context parseVisibleTextEditors)
+                |> Promise.onSuccess(fun _ ->
+                    QuickInfoProject.activate context
+                    if analyzers then Analyzers.activate df' context )
+            ))
+            |> Promise.onSuccess (fun _ ->
+                if backgroundSymbolCache then
+                    let progressOpts = createEmpty<ProgressOptions>
+                    progressOpts.location <- ProgressLocation.Window
+                    window.withProgress(progressOpts, (fun p ->
+                        let pm = createEmpty<ProgressMessage>
+                        pm.message <- "Building background symbol cache"
+                        p.report pm
+                        LanguageService.enableSymbolCache ()
+                        |> Promise.bind (fun _ -> LanguageService.buildBackgroundSymbolCache ())
+                    )) |> ignore
+            ) |> ignore
+    )
+
     LanguageService.start ()
     |> Promise.onSuccess (fun _ ->
-        let progressOpts = createEmpty<ProgressOptions>
-        progressOpts.location <- ProgressLocation.Window
-        window.withProgress(progressOpts, (fun p ->
-            let pm = createEmpty<ProgressMessage>
-            pm.message <- "Loading current project"
-            p.report pm
-            LineLens.activate context
-            Errors.activate context
-            |> Promise.onSuccess(fun _ ->
-                pm.message <- "Loading all projects"
-                p.report pm
-                CodeLens.activate df' context
-
-                Linter.activate df' context
-                UnusedOpens.activate df' context
-                UnusedDeclarations.activate df' context
-                SimplifyName.activate df' context
-            )
-            |> Promise.onSuccess(fun _ -> if solutionExplorer then SolutionExplorer.activate context)
-            |> Promise.bind(fun parseVisibleTextEditors -> Project.activate context parseVisibleTextEditors)
-            |> Promise.onSuccess(fun _ ->
-                QuickInfoProject.activate context
-                if analyzers then Analyzers.activate df' context )
-
-        ))
-        |> Promise.onSuccess (fun _ ->
-            if showExplorer then
-                commands.executeCommand("workbench.view.extension.ionide-fsharp")
-                |> ignore
-        )
-        |> Promise.onSuccess (fun _ ->
-            let e = DateTime.Now - init
-            printfn "Startup took: %f ms" e.TotalMilliseconds
-        )
-        |> Promise.onSuccess (fun _ ->
-            if backgroundSymbolCache then
-                let progressOpts = createEmpty<ProgressOptions>
-                progressOpts.location <- ProgressLocation.Window
-                window.withProgress(progressOpts, (fun p ->
-                    let pm = createEmpty<ProgressMessage>
-                    pm.message <- "Building background symbol cache"
-                    p.report pm
-                    LanguageService.enableSymbolCache ()
-                    |> Promise.bind (fun _ -> LanguageService.buildBackgroundSymbolCache ())
-                )) |> ignore
-        )
-        |> ignore
-
-        Tooltip.activate df' context
-        Autocomplete.activate df' context
-        ParameterHints.activate df' context
-        Definition.activate df' context
-        TypeDefinition.activate df' context
-        Reference.activate df' context
-        Symbols.activate df' context
-        Highlights.activate df' context
-        Rename.activate df' context
-        WorkspaceSymbols.activate df' context
-        QuickInfo.activate context
-        QuickFix.activate df' context
-        if resolve then ResolveNamespaces.activate df' context
-        UnionCaseGenerator.activate df' context
-        RecordStubGenerator.activate df' context
-        InterfaceStubGenerator.activate df' context
-        Help.activate context
-        MSBuild.activate context
-        SignatureData.activate context
-        Debugger.activate context
-        Diagnostics.activate context
+        if showExplorer then
+            commands.executeCommand("workbench.view.extension.ionide-fsharp")
+            |> ignore
+    )
+    |> Promise.onSuccess (fun _ ->
+        let e = DateTime.Now - init
+        printfn "Startup took: %f ms" e.TotalMilliseconds
     )
     |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
     |> ignore
+
+    CodeLens.activate df' context
+    Linter.activate df' context
+    UnusedOpens.activate df' context
+    UnusedDeclarations.activate df' context
+    SimplifyName.activate df' context
+    LineLens.activate context
+    Tooltip.activate df' context
+    Autocomplete.activate df' context
+    ParameterHints.activate df' context
+    Definition.activate df' context
+    TypeDefinition.activate df' context
+    Reference.activate df' context
+    Symbols.activate df' context
+    Highlights.activate df' context
+    Rename.activate df' context
+    WorkspaceSymbols.activate df' context
+    QuickInfo.activate context
+    QuickFix.activate df' context
+    if resolve then ResolveNamespaces.activate df' context
+    UnionCaseGenerator.activate df' context
+    RecordStubGenerator.activate df' context
+    InterfaceStubGenerator.activate df' context
+    Help.activate context
+    MSBuild.activate context
+    SignatureData.activate context
+    Debugger.activate context
+    Diagnostics.activate context
 
     Forge.activate context
     Fsi.activate context

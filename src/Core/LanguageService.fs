@@ -719,10 +719,15 @@ module LanguageService =
             | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp")
         spawnFSACForRuntime targetRuntime ionidePluginPath
 
+    let private fsacStarted = new FSharp.Control.Event<unit>()
+
+    let Ready = fsacStarted.Publish
+
     let start () =
         let rec doRetry procPromise =
             procPromise ()
             |> Promise.onSuccess (fun (childProcess: ChildProcess.ChildProcess) ->
+                log.Info("FSAC started")
                 childProcess.on("exit", fun () ->
                     if exitRequested
                     then
@@ -736,8 +741,11 @@ module LanguageService =
 
         let startByDevMode =
             if devMode
-            then Promise.empty
-            else doRetry startFSAC
+            then
+                fsacStarted.Trigger () // local FSAC is always 'ready'
+                Promise.empty
+            else
+                doRetry (startFSAC >> (Promise.onSuccess (fun _ -> fsacStarted.Trigger ())))
 
         startByDevMode
         |> Promise.onSuccess (fun _ ->
