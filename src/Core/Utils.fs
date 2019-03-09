@@ -96,6 +96,9 @@ module Configuration =
     let getInContext context defaultValue key =
         workspace.getConfiguration(?resource = Some context).get(key, defaultValue)
 
+    let set key value =
+        workspace.getConfiguration().update(key, value, false)
+
 [<AutoOpen>]
 module Utils =
     open Fable.Core

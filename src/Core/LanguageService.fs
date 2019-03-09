@@ -610,8 +610,10 @@ module LanguageService =
         | UserSpecified of 'a
         | Implied of 'a
 
+    let runtimeSettingsKey = "FSharp.fsacRuntime"
+
     let targetRuntime: ConfigValue<FSACTargetRuntime> =
-        let configured = Configuration.tryGet "FSharp.fsacRuntime"
+        let configured = Configuration.tryGet runtimeSettingsKey
 
         match configured with
         | Some "netcore" ->
@@ -626,6 +628,13 @@ module LanguageService =
         | None ->
             log.Info("No runtime specified, defaulting to .NET")
             Implied FSACTargetRuntime.NET
+
+    let setRuntime runtime =
+        let value =
+            match runtime with
+            | FSACTargetRuntime.NET -> "net"
+            | FSACTargetRuntime.NetcoreFdd -> "netcore"
+        Configuration.set runtimeSettingsKey value
 
     let spawnFSACForRuntime (runtime: ConfigValue<FSACTargetRuntime>) rootPath =
         let spawnNetFSAC mono =
@@ -642,29 +651,37 @@ module LanguageService =
             start' dotnet [ path ]
 
         let suggestNet () =
-            "Consider using the .NET Framework/Mono language services by setting `FSharp.fsacRuntime` to `net` and installing .NET/Mono as appropriate for your system."
-            |> vscode.window.showInformationMessage
-            |> ignore
+            promise {
+                let! result = vscode.window.showInformationMessage("Consider using the .NET Framework/Mono language services by setting `FSharp.fsacRuntime` to `net` and installing .NET/Mono as appropriate for your system.", "Use .Net Framework")
+                match result with
+                | "Use .Net Framework" -> do! setRuntime FSACTargetRuntime.NET
+                | _ -> ()
+            }
 
-        let suggestNetCore () =
-            """Consider using the .NET Core language services by setting `FSharp.fsacRuntime` to `netcore`"""
-            |> vscode.window.showInformationMessage
-            |> ignore
+        let suggestNetCore () = promise {
+            let! result = vscode.window.showInformationMessage("Consider using the .NET Core language services by setting `FSharp.fsacRuntime` to `netcore`", "Use .Net Core")
+            match result with
+            | "Use .Net Core" -> do! setRuntime FSACTargetRuntime.NetcoreFdd
+            | _ -> ()
+        }
 
-        let monoNotFound () =
-            """
+        let monoNotFound () = promise {
+            let msg = """
             Cannot start .NET Framework/Mono language services because `mono` was not found.
             Consider:
             * setting the `FSharp.monoPath` settings key to a `mono` binary,
             * including `mono` in your PATH, or
             * installing the .NET Core SDK and using the `FSharp.fsacRuntime` `netcore` language settings
             """
-            |> vscode.window.showErrorMessage
-            |> ignore
-            failwith "no `mono` binary found"
+            let! result = vscode.window.showErrorMessage(msg, "Use .Net Core")
+            match result with
+            | "Use .Net Core" -> do! setRuntime FSACTargetRuntime.NetcoreFdd
+            | _ -> ()
+            return failwith "no `mono` binary found"
+        }
 
-        let dotnetNotFound () =
-            """
+        let dotnetNotFound () = promise {
+            let msg = """
             Cannot start .NET Core language services because `dotnet` was not found.
             Consider:
             * setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary,
@@ -672,9 +689,12 @@ module LanguageService =
             * installing .NET Core into one of the default locations, or
             * using the `net` `FSharp.fsacRuntime` to use mono instead
             """
-            |> vscode.window.showErrorMessage
-            |> ignore
-            failwith "no `dotnet` binary found"
+            let! result = vscode.window.showErrorMessage(msg, "Use .Net Framework")
+            match result with
+            | "Use .Net Framework" -> do! setRuntime FSACTargetRuntime.NET
+            | _ -> ()
+            return failwith "no `dotnet` binary found"
+        }
 
         promise {
             let! mono = Environment.mono
@@ -703,22 +723,22 @@ module LanguageService =
             // when we infer a runtime then we can suggest to the user our other options
             // .NET framework handling (looks similar to above just with suggestion)
             | Implied FSACTargetRuntime.NET, None, Some _dotnet when Environment.isWin ->
-                suggestNetCore()
+                suggestNetCore() |> ignore
                 return! spawnNetFSAC ""
             | Implied FSACTargetRuntime.NET, Some mono, Some _dotnet ->
-                suggestNetCore()
+                suggestNetCore() |> ignore
                 return! spawnNetFSAC mono
             | Implied FSACTargetRuntime.NET, None, Some _dotnet ->
-                suggestNetCore()
+                suggestNetCore() |> ignore
                 return! monoNotFound ()
 
             // these case actually never happens right now (see the `targetRuntime` calculation above), but it's here for completeness,
             // IE a scenario in which dotnet isn't found but we have located the proper execution environment for .Net framework
             | Implied FSACTargetRuntime.NetcoreFdd, None, None when Environment.isWin ->
-                suggestNet ()
+                suggestNet () |> ignore
                 return! dotnetNotFound ()
             | Implied FSACTargetRuntime.NetcoreFdd, Some mono, None when not Environment.isWin ->
-                suggestNet ()
+                suggestNet () |> ignore
                 return! dotnetNotFound ()
 
             | runtime, mono, dotnet ->
