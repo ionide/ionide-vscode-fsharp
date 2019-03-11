@@ -9,14 +9,22 @@ open Fable.Import.Node
 open Ionide.VSCode.Helpers
 open Fable.Import.ws
 
+
 open DTO
 open Fable.Import.Axios
+
+module URL =
+    /// Create a new URL from a url string
+    [<Emit("new URL($0)")>]
+    let create (urlString: string) : Fable.Import.Browser.URL = jsNative ""
+
+    /// Create a new URL with a relative path from some base URL
+    [<Emit("new URL($0, $1)")>]
+    let createFrom (relativeInput: string) (baseURL: Fable.Import.Browser.URL): Fable.Import.Browser.URL = jsNative ""
 
 module LanguageService =
 
     let ax =  Globals.require.Invoke "axios" |> unbox<Axios.AxiosStatic>
-
-    let devMode = false
 
     [<RequireQualifiedAccess>]
     type LogConfigSetting =
@@ -89,14 +97,29 @@ module LanguageService =
 
     let log, fsacStdoutWriter = createConfiguredLoggers "IONIDE-FSAC" "F# Language Service"
 
-    let genPort () =
+    let private genPort () =
         let r = JS.Math.random ()
         let r' = r * (8999. - 8100.) + 8100.
         r'.ToString().Substring(0,4)
 
-    let port = if devMode then "8088" else genPort ()
+    let private fsacUrlConfigured = Configuration.tryGet "FSharp.FSACUrl" |> Option.isSome
+    let private fsacUrl =
+        Configuration.tryGet "FSharp.fsacUrl"
+        |> Option.map URL.create
+        |> Option.map (fun url -> log.Info("FSAC Url was provided by configuration and is %s", url); url)
+        |> Option.defaultWith (fun _ ->
+            let port = genPort()
+            let url = URL.create (sprintf "http://127.0.0.1:%s" port)
+            log.Info ("No FSAC url provided, using %s", url)
+            url
+        )
 
-    let private url fsacAction requestId = (sprintf "http://127.0.0.1:%s/%s?requestId=%i" port fsacAction requestId)
+
+    let private url fsacAction requestId =
+        let baseUrl = URL.createFrom (sprintf "/%s" fsacAction) fsacUrl
+        baseUrl.search <- sprintf "requestId=%d" requestId
+        baseUrl.toString ()
+
     /// because node 7.x doesn't give us the signal used if a process dies, we have to set up our own signal to show if we died via our own `stop()` call.
     let mutable private exitRequested : bool = false
 
@@ -541,7 +564,9 @@ module LanguageService =
             true
 
     let private startSocket notificationEvent =
-        let address = sprintf "ws://localhost:%s/%s" port notificationEvent
+        let baseAddress = URL.createFrom (sprintf "/%s" notificationEvent) fsacUrl
+        baseAddress.protocol <- "ws"
+        let address = baseAddress.toString()
         try
             let sck = WebSocket address
             log.Info(sprintf "listening notification on /%s started" notificationEvent)
@@ -560,7 +585,7 @@ module LanguageService =
                 spawnLogged fsacExe
                   [ yield! fsacArgs
                     yield! ["--mode"; "http"]
-                    yield! ["--port"; port]
+                    yield! ["--port"; fsacUrl.port]
                     yield sprintf "--hostPID=%i" (int Globals.``process``.pid) ]
 
             let mutable isResolvedAsStarted = false
@@ -785,7 +810,7 @@ module LanguageService =
             )
 
         let startByDevMode =
-            if devMode
+            if fsacUrlConfigured
             then Promise.empty
             else doRetry startFSAC
 

@@ -1070,9 +1070,13 @@
 			"type": "object",
 			"title": "FSharp configuration",
 			"properties": {
+				"FSharp.fsacUrl": {
+					"type":"string",
+					"description": "The URL of an already-running instance of F# AutoComplete to use instead of the bundled version. Requires restart."
+				},
 				"FSharp.fsacRuntime": {
 					"type": "string",
-					"description": "Choose the runtime of FsAutocomplete (FSAC). Requires restart",
+					"description": "Choose the runtime of FsAutocomplete (FSAC). Requires restart.",
 					"enum": [
 						"net",
 						"netcore"
@@ -1238,7 +1242,7 @@
 						".fable",
 						"node_modules"
 					],
-					"description": "Directories in the array are excluded from project file search. Requires restart"
+					"description": "Directories in the array are excluded from project file search. Requires restart."
 				},
 				"FSharp.lineLens.enabled": {
 					"type": "string",
@@ -1296,12 +1300,12 @@
 						"packages/Analyzers",
 						"analyzers"
 					],
-					"description": "Directories in the array are used as a source of custom analyzers. Requires restart"
+					"description": "Directories in the array are used as a source of custom analyzers. Requires restart."
 				},
 				"FSharp.customTypecheckingDelay": {
 					"type": "number",
 					"default": -1,
-					"description": "Custom delay for error type checking. Use -1 for default behavior. Requires restart"
+					"description": "Custom delay for error type checking. Use -1 for default behavior. Requires restart."
 				},
 				"FSharp.disableInMemoryProjectReferences": {
 					"type": "boolean",
