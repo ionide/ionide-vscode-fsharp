@@ -112,4 +112,6 @@ You can also support Ionide development on [Open Collective](https://opencollect
 <div align="center">
 <a href="https://opencollective.com/ionide/sponsor/1/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/1/avatar.svg?requireActive=false"></a>
  <a href="https://opencollective.com/ionide/sponsor/2/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/2/avatar.svg?requireActive=false"></a>
+ <a href="https://opencollective.com/ionide/sponsor/4/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/4/avatar.svg?requireActive=false"></a>
+ <a href="https://opencollective.com/ionide/sponsor/0/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/0/avatar.svg?requireActive=false"></a>
 </div>
