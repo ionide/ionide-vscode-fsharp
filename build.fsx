@@ -278,7 +278,7 @@ Target "Release" DoNothing
 "YarnInstall" ==> "Build"
 "DotNetRestore" ==> "Build"
 
-"Default"
+"Build"
 ==> "SetVersion"
 // ==> "InstallVSCE"
 ==> "BuildPackage"
