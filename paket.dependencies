@@ -24,6 +24,7 @@ github ionide/ionide-vscode-helpers src/Fable.Import.ws.fs
 
 group build
     source https://www.nuget.org/api/v2
+    framework: net462
 
     github fsharp/FAKE modules/Octokit/Octokit.fsx
-    nuget Fake
+    nuget Fake ~> 4.0
