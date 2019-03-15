@@ -1034,16 +1034,6 @@
 				"when": "editorFocus && !findWidgetVisible && editorLangId == 'fsharp'"
 			},
 			{
-				"command": "fsharp.MoveFileUp",
-				"key": "ctrl+shift+up",
-				"when": "editorFocus  && editorLangId == 'fsharp'"
-			},
-			{
-				"command": "fsharp.MoveFileDown",
-				"key": "ctrl+shift+down",
-				"when": "editorFocus && editorLangId == 'fsharp'"
-			},
-			{
 				"command": "fsharp.generateDoc",
 				"key": "alt+shift+j",
 				"when": "editorFocus && editorLangId == 'fsharp'"
