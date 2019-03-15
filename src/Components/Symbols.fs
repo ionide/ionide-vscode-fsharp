@@ -29,29 +29,45 @@ module Symbols =
             | _   -> 0 |> unbox
 
         let mapRes (doc : TextDocument) o =
-             if isNotNull o then
-                o.Data |> Array.map (fun syms ->
-                    let oc = createEmpty<SymbolInformation>
-                    oc.name <- syms.Declaration.Name
-                    oc.kind <- syms.Declaration.GlyphChar |> convertToKind
-                    oc.containerName <- syms.Declaration.Glyph
-                    let loc = createEmpty<Location>
-                    loc.range <- CodeRange.fromDTO syms.Declaration.BodyRange
-                    loc.uri <- Uri.file doc.fileName
-                    oc.location <- loc
-                    let ocs =  syms.Nested |> Array.map (fun sym ->
-                        let oc = createEmpty<SymbolInformation>
-                        oc.name <- sym.Name
-                        oc.kind <- sym.GlyphChar |> convertToKind
-                        oc.containerName <- sym.Glyph
-                        let loc = createEmpty<Location>
-                        loc.range <- CodeRange.fromDTO sym.BodyRange
-                        loc.uri <- Uri.file doc.fileName
-                        oc.location <- loc
-                        oc )
-                    ocs |> Array.append (Array.create 1 oc)) |> Array.concat
-                else
-                    [||]
+            let data =
+                if isNotNull o then
+                    o.Data |> Array.map (fun syms ->
+                        let range = CodeRange.fromDTO syms.Declaration.BodyRange
+                        let oc = DocumentSymbol(syms.Declaration.Name, "", syms.Declaration.GlyphChar |> convertToKind, range, range) //TODO: Add signature
+                        let ocs =
+                            syms.Nested |> Array.map (fun sym ->
+                                let range = CodeRange.fromDTO sym.BodyRange
+                                let oc = DocumentSymbol(sym.Name, "", sym.GlyphChar |> convertToKind, range, range) //TODO: Add signature
+
+                                oc )
+                            |> Array.sortBy (fun n -> n.range.start.line)
+                            |> ResizeArray
+                        oc.children <- ocs
+                        oc)
+                    else
+                        [||]
+            let data = data |> Array.sortBy (fun n -> n.range.start.line)
+            let head,xs = data.[0], ResizeArray (data.[1..])
+
+            let relations =
+                data.[1..]
+                |> Seq.mapi (fun id n ->
+                    let parent = xs |> Seq.tryFindIndexBack (fun p -> p.range.contains (!^n.range) && not (p.range.isEqual n.range))
+                    parent |> Option.map (fun p -> id, p)
+                )
+                |> Seq.choose id
+
+            relations
+            |> Seq.iter (fun (i,p) ->
+                let i = xs.[i]
+                let p = xs.[p]
+                p.children.Add i
+            )
+            let toRemove = relations |> Seq.map (fun (i,p) -> xs.[i] )
+            let xs = xs |> Seq.filter (fun n -> not (toRemove |> Seq.contains n)) |> ResizeArray
+
+            head.children <- xs
+            [head]
 
         { new DocumentSymbolProvider
           with
@@ -61,7 +77,7 @@ module Symbols =
                     let! o = LanguageService.declarations doc.fileName text (unbox doc.version)
                     let data = mapRes doc o
                     return data |> ResizeArray
-                } |> U2.Case2
+                } |> unbox
         }
 
 
