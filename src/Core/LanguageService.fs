@@ -676,9 +676,10 @@ module LanguageService =
             * installing the .NET Core SDK and using the `FSharp.fsacRuntime` `netcore` language settings
             """
             let! result = vscode.window.showErrorMessage(msg, "Use .Net Core")
-            match result with
-            | "Use .Net Core" -> do! setRuntime FSACTargetRuntime.NetcoreFdd
-            | _ -> ()
+            let! _ =
+                match result with
+                | "Use .Net Core" -> setRuntime FSACTargetRuntime.NetcoreFdd
+                | _ -> promise.Return ()
             return failwith "no `mono` binary found"
         }
 
@@ -692,9 +693,10 @@ module LanguageService =
             * using the `net` `FSharp.fsacRuntime` to use mono instead
             """
             let! result = vscode.window.showErrorMessage(msg, "Use .Net Framework")
-            match result with
-            | "Use .Net Framework" -> do! setRuntime FSACTargetRuntime.NET
-            | _ -> ()
+            let! _ =
+                match result with
+                | "Use .Net Framework" -> setRuntime FSACTargetRuntime.NET
+                | _ -> promise.Return ()
             return failwith "no `dotnet` binary found"
         }
 
