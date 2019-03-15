@@ -1015,11 +1015,6 @@
 				}
 			]
 		},
-		"outputChannels": [
-			"F# Language Service",
-			"Forge",
-			"MSBuild"
-		],
 		"keybindings": [
 			{
 				"command": "fsi.SendLine",
