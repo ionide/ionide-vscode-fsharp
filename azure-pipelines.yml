@@ -31,3 +31,21 @@ jobs:
     inputs:
       pathtoPublish: 'temp'
       artifactName: 'ionide-fsharp-vscode-ext'
+- job: Linux
+  pool:
+    vmImage: 'ubuntu-16.04'
+  steps:
+  - script: echo "##vso[task.setvariable variable=FrameworkPathOverride]$(dirname $(which mono))/../lib/mono/4.5/"
+    displayName: Workaround .NET reference assemblies on linux
+  - task: NodeTool@0
+    displayName: Install Node
+    inputs:
+      versionSpec: "10.15.1"
+  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+    displayName: Install Yarn
+    inputs:
+      versionSpec: "1.10.1"
+  - script: ./build.sh InstallVSCE
+    displayName: Install VSCE
+  - script: ./build.sh BuildPackage
+    displayName: BuildPackage
