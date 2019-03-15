@@ -241,15 +241,21 @@ module MSBuild =
         invokeMSBuild path target (Some host)
 
     let restoreMailBox =
+        let progressOpts = createEmpty<ProgressOptions>
+        progressOpts.location <- ProgressLocation.Window
+
         MailboxProcessor.Start(fun inbox->
             let rec messageLoop() = async {
                 let! (path,continuation) = inbox.Receive()
                 let host = tryGetRightHost' path
                 do!
-                    invokeMSBuild path "Restore" (Some host)
-                    |> Promise.bind continuation
+                    window.withProgress(progressOpts, (fun p ->
+                        let pm = createEmpty<ProgressMessage>
+                        pm.message <- sprintf "Restoring: %s" path
+                        p.report pm
+                        invokeMSBuild path "Restore" (Some host)
+                        |> Promise.bind continuation))
                     |> Async.AwaitPromise
-
                 return! messageLoop()
             }
             messageLoop()
