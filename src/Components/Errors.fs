@@ -5,6 +5,7 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
+open Fable.Import.Node
 
 open DTO
 open Ionide.VSCode.Helpers
@@ -101,18 +102,44 @@ module Errors =
 
     let private handlerOpen allowBackgroundParsing (event : TextEditor) =
         if JS.isDefined event then
-            promise {
-                let! parseResult = parseFile event.document
+            match event.document with
+            | Document.FSharp ->
+                promise {
+                    let fileInProj =
+                        if path.extname event.document.fileName = ".fsx" then
+                            true
+                        else
+                            Project.getLoaded ()
+                            |> List.exists (fun n ->
+                                n.Files |> List.exists (fun p -> path.normalize p = path.normalize event.document.fileName ))
 
-                if allowBackgroundParsing then
-                    match parseResult with
-                    | Some _fileName ->
-                        return! LanguageService.projectsInBackground event.document.fileName
-                    | None ->
-                        return ()
-            }
+                    let notifyFsNotInProject = "FSharp.notifyFsNotInFsproj" |> Configuration.get true
+                    let! _ =
+                        if (not fileInProj) && notifyFsNotInProject then
+                            promise {
+                                let! res = window.showWarningMessage(sprintf "File %s can't be found in any parsed project. Usually .fs files should be included in .fsproj file" (path.basename event.document.fileName), "Disable notification", "OK"  )
+                                let! _ =
+                                    if res = "Disable notification" then
+                                        Configuration.set "FSharp.notifyFsNotInFsproj" false
+                                    else
+                                        Promise.empty
+                                return ()
+                            }
+                        else
+                            Promise.empty
+
+                    let! parseResult = parseFile event.document
+
+                    if allowBackgroundParsing then
+                        match parseResult with
+                        | Some _fileName ->
+                            return! LanguageService.projectsInBackground event.document.fileName
+                        | None ->
+                            return ()
+                }
+            | _ -> Promise.empty
         else
-            Promise.lift ()
+            Promise.empty
 
     let private handlerSave allowBackgroundParsing (event : TextDocument) =
         if JS.isDefined event then
