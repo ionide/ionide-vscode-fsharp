@@ -669,9 +669,12 @@ module Project =
                 | ErrorData.ProjectParsingFailed d ->
                     if not disableShowNotification then
                         let msg = "Project parsing failed: " + path.basename(d.Project)
-                        vscode.window.showErrorMessage(msg, "Show status")
+                        vscode.window.showErrorMessage(msg, "Disable notification", "Show status")
                         |> Promise.map(fun res ->
-                            if res = "Show status" then
+                            if res = "Disable notification" then
+                                Configuration.set "FSharp.disableFailedProjectNotifications" true
+                                |> ignore
+                            elif res = "Show status" then
                                 ShowStatus.CreateOrShow(d.Project, (path.basename(d.Project)))
                         )
                         |> ignore
