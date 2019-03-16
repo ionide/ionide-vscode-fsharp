@@ -24,6 +24,18 @@
 		"type": "git",
 		"url": "https://github.com/ionide/ionide-vscode-fsharp.git"
 	},
+	"badges": [
+		{
+			"description": "Open Collective Backers",
+			"url": "https://img.shields.io/opencollective/backers/ionide.svg?color=blue&style=for-the-badge",
+			"href": "https://opencollective.com/ionide"
+		},
+		{
+			"description": "Open Collective Sponsors",
+			"url": "https://img.shields.io/opencollective/sponsors/ionide.svg?color=Blue&style=for-the-badge",
+			"href": "https://opencollective.com/ionide"
+		}
+	],
 	"engines": {
 		"vscode": "^0.10.0"
 	},
