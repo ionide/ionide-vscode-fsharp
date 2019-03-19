@@ -25,16 +25,12 @@ module Forge =
         else a + "/" + b
 
     let private location =
-        try
-            (VSCode.getPluginPath "Ionide.ionide-fsharp") </> "bin_forge" </> "Forge.exe"
-        with
-        | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "bin_forge" </> "Forge.exe"
+        let ionidePath = VSCodeExtension.ionidePluginPath ()
+        ionidePath </> "bin_forge" </> "Forge.exe"
 
     let private templateLocation =
-        try
-            (VSCode.getPluginPath "Ionide.ionide-fsharp") </> "bin_forge" </> "templates" </> "templates.json"
-        with
-        | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp") </> "bin_forge" </> "templates" </> "templates.json"
+        let ionidePath = VSCodeExtension.ionidePluginPath ()
+        ionidePath </> "bin_forge" </> "templates" </> "templates.json"
 
     let outputChannel = window.createOutputChannel "Forge"
 

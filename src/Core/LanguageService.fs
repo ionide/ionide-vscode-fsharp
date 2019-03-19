@@ -766,11 +766,7 @@ module LanguageService =
             Promise.lift ()
 
     let startFSAC () =
-        let ionidePluginPath =
-            try
-                (VSCode.getPluginPath "Ionide.ionide-fsharp")
-            with
-            | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp")
+        let ionidePluginPath = VSCodeExtension.ionidePluginPath ()
         spawnFSACForRuntime targetRuntime ionidePluginPath
 
     let start () =
