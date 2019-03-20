@@ -250,11 +250,7 @@ module SolutionExplorer =
         defaultArg (getSolution ()) (Workspace [])
 
     let private createProvider (event : Event<Model option>) (rootChanged : EventEmitter<Model>) : TreeDataProvider<Model> =
-        let plugPath =
-            try
-                (VSCode.getPluginPath "Ionide.ionide-fsharp")
-            with
-            | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp")
+        let plugPath = VSCodeExtension.ionidePluginPath ()
 
         { new TreeDataProvider<Model>
           with

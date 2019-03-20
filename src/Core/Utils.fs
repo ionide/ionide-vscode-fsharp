@@ -410,3 +410,12 @@ type ShowStatus private (panel : WebviewPanel, body : string) as this =
 
     member __.Update() =
         panel.webview.html <- renderPage body
+
+[<RequireQualifiedAccess>]
+module VSCodeExtension =
+
+    let ionidePluginPath () =
+        try
+            (VSCode.getPluginPath "Ionide.ionide-fsharp")
+        with
+        | _ -> (VSCode.getPluginPath "Ionide.Ionide-fsharp")
