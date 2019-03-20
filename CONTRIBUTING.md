@@ -140,13 +140,15 @@ The new extension window will appear with window title `Extension development ho
 
 ### Working with FSAC
 
-1. Run `build.cmd Build` \ `build.sh Build`
-2. Open Ionide-vscode-fsharp in VSCode.
-3. Run FSAC:
-    - or from sources in your favorite editor: open the `FsAutoComplete.sln`, start debugging with  `.NET Core mode http (debug)` configuration
+1. Run FSAC:
+    - or from sources in your favorite editor: open the `FsAutoComplete.sln`, start debugging with  `.NET Core mode http (debug)` configuration (default to port `8088`)
     - or run it with `--mode http --port 8088` arguments
-4. Press F5 in VSCode to build Ionide and start experimental instance
-5. In the new instance, set the `FSharp.fsacUrl` setting to `http://127.0.0.1:8088` and reload the experimental instance. Note that if you have changed the standard FSAC configuration to use a different port you will need to update that port number in the `FSharp.fsacUrl` setting.
+2. In vscode, set the `FSharp.fsacUrl` setting to `http://localhost:8088`
+3. Reload the instance with `> Developer: Reload Window`.
+
+The port number can be changed as needed.
+
+Remove that setting to go back to FSAC bundled in Ionide extension.
 
 ### Dependencies
 
