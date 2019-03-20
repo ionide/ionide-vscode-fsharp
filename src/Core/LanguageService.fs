@@ -102,17 +102,17 @@ module LanguageService =
         let r' = r * (8999. - 8100.) + 8100.
         r'.ToString().Substring(0,4)
 
-    let private fsacUrlConfigured = Configuration.tryGet "FSharp.FSACUrl" |> Option.isSome
-    let private fsacUrl =
-        Configuration.tryGet "FSharp.fsacUrl"
-        |> Option.map URL.create
-        |> Option.map (fun url -> log.Info("FSAC Url was provided by configuration and is %s", url); url)
-        |> Option.defaultWith (fun _ ->
+    let private shouldStartFSAC, fsacUrl =
+        match Configuration.tryGet "FSharp.fsacUrl" with
+        | Some fsacUrlConfig ->
+            let url = URL.create fsacUrlConfig
+            log.Info("FSAC Url was provided by configuration and is %s", url)
+            false, url
+        | None ->
             let port = genPort()
             let url = URL.create (sprintf "http://127.0.0.1:%s" port)
             log.Info ("No FSAC url provided, using %s", url)
-            url
-        )
+            true, url
 
 
     let private url fsacAction requestId =
@@ -810,9 +810,10 @@ module LanguageService =
             )
 
         let startByDevMode =
-            if fsacUrlConfigured
-            then Promise.empty
-            else doRetry startFSAC
+            if shouldStartFSAC then
+                doRetry startFSAC
+            else
+                Promise.empty
 
         startByDevMode
         |> Promise.onSuccess (fun _ ->
