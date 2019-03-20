@@ -137,14 +137,18 @@ Once the initial build on the command line is completed, you should use vscode i
 These two options can be reached in VsCode in the bottom bar (look for triangle), or by typing `control-P Debug <space> ` and then selecting either `Build and Launch` or `Watch`
 
 The new extension window will appear with window title `Extension development host`
+
 ### Working with FSAC
 
-1. Run `build.cmd Build` \ `build.sh Build`
-1. Open Ionide-vscode-fsharp in VSCode.
-2. Set `devMode` to `true` in `src/Core/LanguageService.fs`
-3. Open FSAC in VS
-4. Start FSAC.Suave in VS
-5. Press F5 in VSCode to build Ionide and start experimental instance
+1. Run FSAC:
+    - or from sources in your favorite editor: open the `FsAutoComplete.sln`, start debugging with  `.NET Core mode http (debug)` configuration (default to port `8088`)
+    - or run it with `--mode http --port 8088` arguments
+2. In vscode, set the `FSharp.fsacUrl` setting to `http://localhost:8088`
+3. Reload the instance with `> Developer: Reload Window`.
+
+The port number can be changed as needed.
+
+Remove that setting to go back to FSAC bundled in Ionide extension.
 
 ### Dependencies
 
