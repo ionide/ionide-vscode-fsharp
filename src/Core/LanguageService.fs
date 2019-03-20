@@ -813,6 +813,9 @@ module LanguageService =
             if shouldStartFSAC then
                 doRetry startFSAC
             else
+                let msg = sprintf "Using FSAC from url %O provided by configuration 'FSharp.fsacUrl'." fsacUrl
+                log.Debug(msg)
+                vscode.window.showInformationMessage(msg) |> ignore
                 Promise.empty
 
         startByDevMode
