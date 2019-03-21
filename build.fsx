@@ -103,7 +103,6 @@ Target "CopyFSAC" (fun _ ->
 
 
     CopyDir releaseBin fsacBin (fun _ -> true)
-    CopyFiles releaseBin !!"paket-files/github.com/fsharp/FsAutoComplete/src/FsAutoComplete/bin/Release/net461/FSharp.Compiler.Service.ProjectCrackerTool.*"
 )
 
 Target "CopyFSACNetcore" (fun _ ->
