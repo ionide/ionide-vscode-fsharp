@@ -358,6 +358,28 @@ module ExperimentalExtension =
         buildPackage releaseExp
     )
 
+    // Read additional information from the release notes document
+    let releaseNotesExpData =
+        File.ReadAllLines "RELEASE_NOTES_EXPERIMENTAL.md"
+        |> parseAllReleaseNotes
+
+    let release = List.head releaseNotesExpData
+
+    let msg =  release.Notes |> List.fold (fun r s -> r + s + "\n") ""
+    let releaseMsg = (sprintf "Release %s\n" release.NugetVersion) + msg
+
+    Target "ExpSetVersion" (fun _ ->
+        setVersion release releaseExp
+    )
+
+    Target "ExpPublishToGallery" ( fun _ ->
+        publishToGallery releaseExp
+    )
+
+    Target "ExpReleaseGitHub" (fun _ ->
+        releaseGithub release
+    )
+
 
 // --------------------------------------------------------------------------------------
 // Run generator by default. Invoke 'build <Target>' to override
@@ -366,6 +388,7 @@ module ExperimentalExtension =
 Target "Default" DoNothing
 Target "Build" DoNothing
 Target "Release" DoNothing
+Target "ReleaseExp" DoNothing
 Target "BuildPackages" DoNothing
 
 "YarnInstall" ==> "RunScript"
@@ -399,6 +422,7 @@ Target "BuildPackages" DoNothing
 ==> "ExpCopyForge"
 ==> "ExpCopyGrammar"
 ==> "ExpCopySchemas"
+==> "ExpSetVersion"
 ==> "BuildPackageExp"
 
 "Build"
@@ -408,6 +432,11 @@ Target "BuildPackages" DoNothing
 ==> "ReleaseGitHub"
 ==> "PublishToGallery"
 ==> "Release"
+
+"BuildPackageExp"
+==> "ExpReleaseGitHub"
+==> "ExpPublishToGallery"
+==> "ReleaseExp"
 
 "BuildPackage" ==> "BuildPackages"
 "BuildPackageExp" ==> "BuildPackages"
