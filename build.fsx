@@ -286,6 +286,12 @@ module ExperimentalExtension =
         CopyDir (sprintf "%s/images" releaseExpDir) "release/images" (fun _ -> true)
     )
 
+    Target "ExpCopyDocs" (fun _ ->
+        CopyFiles releaseExpDir ["LICENSE.md"]
+        CopyFile (sprintf "%s/README.md" releaseExpDir) "README_EXPERIMENTAL.md"
+        CopyFile (sprintf "%s/CHANGELOG.md" releaseExpDir) "RELEASE_NOTES_EXPERIMENTAL.md"
+    )
+
     Target "ExpUpdatePackageId" (fun _ ->
         let dir = releaseExpDir
 
@@ -418,6 +424,7 @@ Target "BuildPackages" DoNothing
 "Clean"
 ==> "ExpRunScript"
 ==> "ExpCopyAssets"
+==> "ExpCopyDocs"
 ==> "ExpUpdatePackageId"
 ==> "ExpCopyFSAC"
 ==> "ExpCopyForge"
