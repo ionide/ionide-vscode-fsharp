@@ -1,3 +1,4 @@
+open Fake.IO
 // --------------------------------------------------------------------------------------
 // FAKE build script
 // --------------------------------------------------------------------------------------
@@ -70,6 +71,8 @@ Target "Clean" (fun _ ->
     CleanDir "./temp"
     CopyFiles "release" ["README.md"; "LICENSE.md"]
     CopyFile "release/CHANGELOG.md" "RELEASE_NOTES.md"
+
+    CleanDir "./release-exp"
 )
 
 Target "YarnInstall" <| fun () ->
@@ -241,6 +244,8 @@ module ExperimentalExtension =
         [ "release/package.json"
           "release/language-configuration.json" ]
         |> CopyFiles releaseExp
+
+        CopyDir (sprintf "%s/images" releaseExp) "release/images" (fun _ -> true)
     )
 
     Target "ExpUpdatePackageId" (fun _ ->
@@ -251,7 +256,7 @@ module ExperimentalExtension =
 
         fileName
         |> File.ReadAllText
-        |> fun text -> text.Replace("Ionide-fsharp", "Ionide-fsharp-vNext") // case sensitive is the only occurrence
+        |> fun text -> text.Replace("Ionide-fsharp", "Ionide-fsharp-experimental") // case sensitive is the only occurrence
         |> fun text -> File.WriteAllText(fileName, text)
     )
 
@@ -375,10 +380,11 @@ Target "BuildPackages" DoNothing
 ==> "SetVersion"
 // ==> "InstallVSCE"
 ==> "BuildPackage"
-==> "BuildPackageExp"
-==> "BuildPackages"
 ==> "ReleaseGitHub"
 ==> "PublishToGallery"
 ==> "Release"
+
+"BuildPackage" ==> "BuildPackages"
+"BuildPackageExp" ==> "BuildPackages"
 
 RunTargetOrDefault "Default"
