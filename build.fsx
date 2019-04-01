@@ -188,6 +188,11 @@ let releaseGithub (release: ReleaseNotes) =
     |> releaseDraft
     |> Async.RunSynchronously
 
+Target "InstallVSCE" ( fun _ ->
+    killProcess "npm"
+    run npmTool "install -g vsce" ""
+)
+
 module StableExtension =
 
     Target "CopyDocs" (fun _ ->
@@ -261,11 +266,6 @@ module StableExtension =
     Target "ReleaseGitHub" (fun _ ->
         releaseGithub release
     )
-
-Target "InstallVSCE" ( fun _ ->
-    killProcess "npm"
-    run npmTool "install -g vsce" ""
-)
 
 module ExperimentalExtension =
 
