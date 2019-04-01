@@ -30,16 +30,6 @@ let gitName = "ionide-vscode-fsharp"
 let gitRaw = environVarOrDefault "gitRaw" "https://raw.github.com/ionide"
 
 
-// Read additional information from the release notes document
-let releaseNotesData =
-    File.ReadAllLines "RELEASE_NOTES.md"
-    |> parseAllReleaseNotes
-
-let release = List.head releaseNotesData
-
-let msg =  release.Notes |> List.fold (fun r s -> r + s + "\n") ""
-let releaseMsg = (sprintf "Release %s\n" release.NugetVersion) + msg
-
 let run cmd args dir =
     if execProcess( fun info ->
         info.FileName <- cmd
@@ -144,7 +134,7 @@ let buildPackage dir =
     !! (sprintf "%s/*.vsix" dir)
     |> Seq.iter(MoveFile "./temp/")
 
-let setVersion releaseDir =
+let setVersion (release: ReleaseNotes) releaseDir =
     let fileName = sprintf "./%s/package.json" releaseDir
     let lines =
         File.ReadAllLines fileName
@@ -163,6 +153,40 @@ let publishToGallery releaseDir =
 
     killProcess "vsce"
     run vsceTool.Value (sprintf "publish --pat %s" token) releaseDir
+
+#load "paket-files/build/fsharp/FAKE/modules/Octokit/Octokit.fsx"
+open Octokit
+
+let releaseGithub (release: ReleaseNotes) =
+    let user =
+        match getBuildParam "github-user" with
+        | s when not (String.IsNullOrWhiteSpace s) -> s
+        | _ -> getUserInput "Username: "
+    let pw =
+        match getBuildParam "github-pw" with
+        | s when not (String.IsNullOrWhiteSpace s) -> s
+        | _ -> getUserPassword "Password: "
+    let remote =
+        Git.CommandHelper.getGitResult "" "remote -v"
+        |> Seq.filter (fun (s: string) -> s.EndsWith("(push)"))
+        |> Seq.tryFind (fun (s: string) -> s.Contains(gitOwner + "/" + gitName))
+        |> function None -> gitHome + "/" + gitName | Some (s: string) -> s.Split().[0]
+
+    StageAll ""
+    Git.Commit.Commit "" (sprintf "Bump version to %s" release.NugetVersion)
+    Branches.pushBranch "" remote (Information.getBranchName "")
+
+    Branches.tag "" release.NugetVersion
+    Branches.pushTag "" remote release.NugetVersion
+
+    let file = !! ("./temp" </> "*.vsix") |> Seq.head
+
+    // release on github
+    createClient user pw
+    |> createDraft gitOwner gitName release.NugetVersion (release.SemVer.PreRelease <> None) release.Notes
+    |> uploadFile file
+    |> releaseDraft
+    |> Async.RunSynchronously
 
 module StableExtension =
 
@@ -216,12 +240,26 @@ module StableExtension =
         buildPackage "release"
     )
 
+    // Read additional information from the release notes document
+    let releaseNotesData =
+        File.ReadAllLines "RELEASE_NOTES.md"
+        |> parseAllReleaseNotes
+
+    let release = List.head releaseNotesData
+
+    let msg =  release.Notes |> List.fold (fun r s -> r + s + "\n") ""
+    let releaseMsg = (sprintf "Release %s\n" release.NugetVersion) + msg
+
     Target "SetVersion" (fun _ ->
-        setVersion "release"
+        setVersion release "release"
     )
 
     Target "PublishToGallery" ( fun _ ->
         publishToGallery "release"
+    )
+
+    Target "ReleaseGitHub" (fun _ ->
+        releaseGithub release
     )
 
 Target "InstallVSCE" ( fun _ ->
@@ -320,43 +358,6 @@ module ExperimentalExtension =
         buildPackage releaseExp
     )
 
-
-#load "paket-files/build/fsharp/FAKE/modules/Octokit/Octokit.fsx"
-open Octokit
-
-
-
-Target "ReleaseGitHub" (fun _ ->
-    let user =
-        match getBuildParam "github-user" with
-        | s when not (String.IsNullOrWhiteSpace s) -> s
-        | _ -> getUserInput "Username: "
-    let pw =
-        match getBuildParam "github-pw" with
-        | s when not (String.IsNullOrWhiteSpace s) -> s
-        | _ -> getUserPassword "Password: "
-    let remote =
-        Git.CommandHelper.getGitResult "" "remote -v"
-        |> Seq.filter (fun (s: string) -> s.EndsWith("(push)"))
-        |> Seq.tryFind (fun (s: string) -> s.Contains(gitOwner + "/" + gitName))
-        |> function None -> gitHome + "/" + gitName | Some (s: string) -> s.Split().[0]
-
-    StageAll ""
-    Git.Commit.Commit "" (sprintf "Bump version to %s" release.NugetVersion)
-    Branches.pushBranch "" remote (Information.getBranchName "")
-
-    Branches.tag "" release.NugetVersion
-    Branches.pushTag "" remote release.NugetVersion
-
-    let file = !! ("./temp" </> "*.vsix") |> Seq.head
-
-    // release on github
-    createClient user pw
-    |> createDraft gitOwner gitName release.NugetVersion (release.SemVer.PreRelease <> None) release.Notes
-    |> uploadFile file
-    |> releaseDraft
-    |> Async.RunSynchronously
-)
 
 // --------------------------------------------------------------------------------------
 // Run generator by default. Invoke 'build <Target>' to override
