@@ -414,15 +414,19 @@ type ShowStatus private (panel : WebviewPanel, body : string) as this =
 [<RequireQualifiedAccess>]
 module VSCodeExtension =
 
-    let ionidePluginPath () =
-        let addSuffix s =
+    let private addSuffix s =
 #if IONIDE_EXPERIMENTAL
-            s + "-experimental"
+        s + "-experimental"
 #else
-            s
+        s
 #endif
+
+    let ionidePluginPath () =
 
         try
             (VSCode.getPluginPath (addSuffix "Ionide.ionide-fsharp"))
         with
         | _ -> (VSCode.getPluginPath (addSuffix "Ionide.Ionide-fsharp"))
+
+    let workbeachViewId () =
+        addSuffix "workbench.view.extension.ionide-fsharp"

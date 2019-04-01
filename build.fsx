@@ -301,6 +301,7 @@ module ExperimentalExtension =
         fileName
         |> File.ReadAllText
         |> fun text -> text.Replace("Ionide-fsharp", "Ionide-fsharp-experimental") // case sensitive is the only occurrence
+        |> fun text -> text.Replace("ionide-fsharp", "ionide-fsharp-experimental") // case sensitive is the only two occurrence
         |> fun text -> File.WriteAllText(fileName, text)
     )
 
