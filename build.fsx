@@ -269,7 +269,7 @@ module StableExtension =
 
 module ExperimentalExtension =
 
-    let releaseExp = "release-exp"
+    let releaseExpDir = "release-exp"
 
     Target "ExpRunScript" (fun _ ->
         // Ideally we would want a production (minized) build but UglifyJS fail on PerMessageDeflate.js as it contains non-ES6 javascript.
@@ -277,17 +277,17 @@ module ExperimentalExtension =
     )
 
     Target "ExpCopyAssets" (fun _ ->
-        ensureDirectory releaseExp
+        ensureDirectory releaseExpDir
 
         [ "release/package.json"
           "release/language-configuration.json" ]
-        |> CopyFiles releaseExp
+        |> CopyFiles releaseExpDir
 
-        CopyDir (sprintf "%s/images" releaseExp) "release/images" (fun _ -> true)
+        CopyDir (sprintf "%s/images" releaseExpDir) "release/images" (fun _ -> true)
     )
 
     Target "ExpUpdatePackageId" (fun _ ->
-        let dir = releaseExp
+        let dir = releaseExpDir
 
         // replace "name": "Ionide-fsharp" with "Ionide-fsharp-experimental"
         let fileName = Path.Combine(dir, "package.json")
@@ -318,10 +318,10 @@ module ExperimentalExtension =
 
         let fsacDir = "vendor/paket-files/github.com/fsharp/FsAutoComplete"
 
-        let releaseBin = sprintf "%s/bin" releaseExp
+        let releaseBin = sprintf "%s/bin" releaseExpDir
         let fsacBin = sprintf "%s/bin/release" fsacDir
 
-        let releaseBinNetcore = sprintf "%s/bin_netcore" releaseExp
+        let releaseBinNetcore = sprintf "%s/bin_netcore" releaseExpDir
         let fsacBinNetcore = sprintf "%s/bin/release" fsacDir
 
         ensureDirectory releaseBin
@@ -335,27 +335,27 @@ module ExperimentalExtension =
 
     Target "ExpCopyForge" (fun _ ->
         let forgeDir = "paket-files/github.com/fsharp-editing/Forge"
-        let releaseForge = sprintf "%s/bin_forge" releaseExp
+        let releaseForge = sprintf "%s/bin_forge" releaseExpDir
 
         copyForge forgeDir releaseForge
     )
 
     Target "ExpCopyGrammar" (fun _ ->
         let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammar"
-        let fsgrammarRelease = sprintf "%s/syntaxes" releaseExp
+        let fsgrammarRelease = sprintf "%s/syntaxes" releaseExpDir
 
         copyGrammar fsgrammarDir fsgrammarRelease
     )
 
     Target "ExpCopySchemas" (fun _ ->
         let fsschemaDir = "schemas"
-        let fsschemaRelease = sprintf "%s/schemas" releaseExp
+        let fsschemaRelease = sprintf "%s/schemas" releaseExpDir
 
         copySchemas fsschemaDir fsschemaRelease
     )
 
     Target "BuildPackageExp" ( fun _ ->
-        buildPackage releaseExp
+        buildPackage releaseExpDir
     )
 
     // Read additional information from the release notes document
@@ -369,11 +369,11 @@ module ExperimentalExtension =
     let releaseMsg = (sprintf "Release %s\n" release.NugetVersion) + msg
 
     Target "ExpSetVersion" (fun _ ->
-        setVersion release releaseExp
+        setVersion release releaseExpDir
     )
 
     Target "ExpPublishToGallery" ( fun _ ->
-        publishToGallery releaseExp
+        publishToGallery releaseExpDir
     )
 
     Target "ExpReleaseGitHub" (fun _ ->
