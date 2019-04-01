@@ -16,13 +16,18 @@ var babelOptions = fableUtils.resolveBabelOptions({
 var isProduction = process.argv.indexOf("-p") >= 0;
 console.log("Bundling for " + (isProduction ? "production" : "development") + "...");
 
-module.exports = {
+module.exports = function(env) {
+
+  var outputPath = (env && env.outputPath) || "release";
+  console.log("Output path: " + outputPath);
+
+  return {
   target: 'node',
   devtool: "source-map",
   entry: resolve('./src/Ionide.FSharp.fsproj'),
   output: {
     filename: 'fsharp.js',
-    path: resolve('./release'),
+    path: resolve('./' + outputPath),
     //library: 'IONIDEFSHARP',
     libraryTarget: 'commonjs'
   },
@@ -61,3 +66,4 @@ module.exports = {
     ]
   }
 };
+}
