@@ -414,19 +414,24 @@ type ShowStatus private (panel : WebviewPanel, body : string) as this =
 [<RequireQualifiedAccess>]
 module VSCodeExtension =
 
-    let private addSuffix s =
+    let private extensionName =
 #if IONIDE_EXPERIMENTAL
-        s + "-experimental"
+        "ionide-fsharp-experimental"
 #else
-        s
+        "ionide-fsharp"
 #endif
 
     let ionidePluginPath () =
 
+        let capitalize (s: string) =
+            sprintf "%c%s" (s.[0] |> Char.ToUpper) (s.Substring(1))
+
+        let oldExtensionName = capitalize extensionName
+
         try
-            (VSCode.getPluginPath (addSuffix "Ionide.ionide-fsharp"))
+            (VSCode.getPluginPath (sprintf "Ionide.%s" extensionName))
         with
-        | _ -> (VSCode.getPluginPath (addSuffix "Ionide.Ionide-fsharp"))
+        | _ -> (VSCode.getPluginPath (sprintf "Ionide.%s" oldExtensionName))
 
     let workbeachViewId () =
-        addSuffix "workbench.view.extension.ionide-fsharp"
+        sprintf "workbench.view.extension.%s" extensionName
