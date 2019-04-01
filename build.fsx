@@ -14,6 +14,7 @@ open Fake.ReleaseNotesHelper
 open Fake.YarnHelper
 open Fake.ZipHelper
 
+#nowarn "44"
 
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
@@ -97,19 +98,25 @@ Target "Watch" (fun _ ->
     runFable "--watch" true
 )
 
-Target "CopyFSAC" (fun _ ->
+let copyFSAC releaseBin fsacBin =
     ensureDirectory releaseBin
     CleanDir releaseBin
 
 
     CopyDir releaseBin fsacBin (fun _ -> true)
+
+Target "CopyFSAC" (fun _ ->
+    copyFSAC releaseBin fsacBin
 )
 
-Target "CopyFSACNetcore" (fun _ ->
+let copyFSACNetcore releaseBinNetcore fsacBinNetcore =
     ensureDirectory releaseBinNetcore
     CleanDir releaseBinNetcore
 
     CopyDir releaseBinNetcore fsacBinNetcore (fun _ -> true)
+
+Target "CopyFSACNetcore" (fun _ ->
+    copyFSACNetcore releaseBinNetcore fsacBinNetcore
 )
 
 let releaseForge = "release/bin_forge"
@@ -180,13 +187,72 @@ Target "SetVersion" (fun _ ->
     File.WriteAllLines(fileName,lines)
 )
 
-Target "BuildPackage" ( fun _ ->
+let buildPackage dir =
     killProcess "vsce"
-    run vsceTool.Value "package" "release"
-    !! "release/*.vsix"
+    run vsceTool.Value "package" dir
+    !! (sprintf "%s/*.vsix" dir)
     |> Seq.iter(MoveFile "./temp/")
+
+Target "BuildPackage" ( fun _ ->
+    buildPackage "release"
 )
 
+
+Target "DuplicateReleaseDir" (fun _ ->
+    ensureDirectory "release-vnext"
+    CleanDir "release-vnext"
+
+    CopyDir "release-vnext" "release" (fun _ -> true)
+)
+
+Target "UpdatePackageIdToVNext" (fun _ ->
+    let dir = "release-vnext"
+
+    // replace "name": "Ionide-fsharp" with "Ionide-fsharp-vNext"
+    let fileName = Path.Combine(dir, "package.json")
+
+    fileName
+    |> File.ReadAllText
+    |> fun text -> text.Replace("Ionide-fsharp", "Ionide-fsharp-vNext") // case sensitive is the only occurrence
+    |> fun text -> File.WriteAllText(fileName, text)
+)
+
+Target "CopyFSACVNext" (fun _ ->
+    let vendorDir = Path.Combine(__SOURCE_DIRECTORY__, "vendor") |> Path.GetFullPath
+    let fsacDir = Path.Combine(vendorDir, "paket-files", "github.com", "fsharp", "FsAutoComplete")
+
+    // restore git repo
+    run (Path.GetFullPath "paket.exe") "restore" vendorDir
+
+    // get vnext tag
+    run "git" "tag -l vnext" fsacDir
+
+    // checkout vnext or fail
+    run "git" "checkout vnext" fsacDir
+
+    // local release it
+    run (if isUnix then "build.sh" else "build.cmd") "LocalRelease" fsacDir
+
+    // copy to out dir
+
+    let releaseBin      = "release-vnext/bin"
+    let fsacBin         = "vendor/paket-files/github.com/fsharp/FsAutoComplete/bin/release"
+
+    let releaseBinNetcore = releaseBin + "_netcore"
+    let fsacBinNetcore = fsacBin + "_netcore"
+
+    ensureDirectory releaseBin
+    CleanDir releaseBin
+    copyFSAC releaseBin fsacBin
+
+    ensureDirectory releaseBinNetcore
+    CleanDir releaseBinNetcore
+    copyFSACNetcore releaseBinNetcore fsacBinNetcore
+)
+
+Target "BuildPackageVNext" ( fun _ ->
+    buildPackage "release-vnext"
+)
 
 Target "PublishToGallery" ( fun _ ->
     let token =
@@ -242,6 +308,7 @@ Target "ReleaseGitHub" (fun _ ->
 Target "Default" DoNothing
 Target "Build" DoNothing
 Target "Release" DoNothing
+Target "BuildPackages" DoNothing
 
 "YarnInstall" ==> "RunScript"
 "DotNetRestore" ==> "RunScript"
@@ -262,10 +329,18 @@ Target "Release" DoNothing
 "YarnInstall" ==> "Build"
 "DotNetRestore" ==> "Build"
 
+"BuildPackage"
+==> "DuplicateReleaseDir"
+==> "UpdatePackageIdToVNext"
+==> "CopyFSACVNext"
+==> "BuildPackageVNext"
+
 "Build"
 ==> "SetVersion"
 // ==> "InstallVSCE"
 ==> "BuildPackage"
+==> "BuildPackageVNext"
+==> "BuildPackages"
 ==> "ReleaseGitHub"
 ==> "PublishToGallery"
 ==> "Release"

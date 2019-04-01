@@ -23,8 +23,8 @@ jobs:
       versionSpec: "1.10.1"
   - script: .\build.cmd InstallVSCE
     displayName: Install VSCE
-  - script: .\build.cmd BuildPackage
-    displayName: BuildPackage
+  - script: .\build.cmd BuildPackages
+    displayName: BuildPackages
     env:
       VersionSuffix: '$(VersionSuffix)'
   - task: PublishBuildArtifacts@1
