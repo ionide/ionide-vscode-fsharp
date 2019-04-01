@@ -416,7 +416,7 @@ module VSCodeExtension =
 
     let private extensionName =
 #if IONIDE_EXPERIMENTAL
-        "ionide-fsharp-experimental"
+        "experimental-fsharp"
 #else
         "ionide-fsharp"
 #endif

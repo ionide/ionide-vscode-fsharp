@@ -270,7 +270,7 @@ module StableExtension =
 module ExperimentalExtension =
 
     let releaseExpDir = "release-exp"
-    let experimentalExtensionId = "ionide-fsharp-experimental"
+    let experimentalExtensionId = "experimental-fsharp"
 
     Target "ExpRunScript" (fun _ ->
         // Ideally we would want a production (minized) build but UglifyJS fail on PerMessageDeflate.js as it contains non-ES6 javascript.
@@ -303,7 +303,7 @@ module ExperimentalExtension =
 
         fileName
         |> File.ReadAllText
-        |> fun text -> text.Replace(capitalize "ionide-fsharp", capitalize experimentalExtensionId) // case sensitive is the only occurrence
+        |> fun text -> text.Replace(capitalize "ionide-fsharp", experimentalExtensionId) // case sensitive is the only occurrence
         |> fun text -> text.Replace("ionide-fsharp", experimentalExtensionId) // case sensitive is the only two occurrence
         |> fun text -> File.WriteAllText(fileName, text)
     )

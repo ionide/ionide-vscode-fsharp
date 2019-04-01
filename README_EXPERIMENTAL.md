@@ -1,10 +1,10 @@
-# [Ionide-VSCode: FSharp - Experimental](https://marketplace.visualstudio.com/items/Ionide.Ionide-fsharp-experimental)
+# [Ionide: Experimental FSharp](https://marketplace.visualstudio.com/items/Ionide.experimental-fsharp)
 **Enhanced F# Language Features for Visual Studio Code (EXPERIMENTAL VERSION)**
 
 _Part of the [Ionide](http://ionide.io) plugin suite._ Read detailed documentation at [Ionide docs page](http://ionide.io/docs).
 
-[![Version](https://vsmarketplacebadge.apphb.com/version/Ionide.Ionide-fsharp-experimental.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp-experimental) [![Installs](https://vsmarketplacebadge.apphb.com/downloads-short/Ionide.Ionide-fsharp-experimental.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp-experimental)
-[![Rating](https://vsmarketplacebadge.apphb.com/rating-star/Ionide.Ionide-fsharp-experimental.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp-experimental)
+[![Version](https://vsmarketplacebadge.apphb.com/version/Ionide.experimental-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.experimental-fsharp) [![Installs](https://vsmarketplacebadge.apphb.com/downloads-short/Ionide.experimental-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.experimental-fsharp)
+[![Rating](https://vsmarketplacebadge.apphb.com/rating-star/Ionide.experimental-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.experimental-fsharp)
 [![open collective backers](https://img.shields.io/opencollective/backers/ionide.svg?color=blue)](https://opencollective.com/ionide)
 [![open collective sponsors](https://img.shields.io/opencollective/sponsors/ionide.svg?color=blue)](https://opencollective.com/ionide)
 
@@ -14,7 +14,7 @@ You can support Ionide development on [Open Collective](https://opencollective.c
 
 # Notes
 
-This is the experimental version, used to test new features, so can be unstable.
+This is the experimental version of Ionide plugin, used to test new features. Can be unstable.
 
 For normal usage, please use the stable [Ionide-VSCode: FSharp](https://marketplace.visualstudio.com/items/Ionide.Ionide-fsharp) extension instead.
 
