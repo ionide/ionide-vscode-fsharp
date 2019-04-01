@@ -295,6 +295,27 @@ module ExperimentalExtension =
         copyFSACNetcore releaseBinNetcore fsacBinNetcore
     )
 
+    Target "ExpCopyForge" (fun _ ->
+        let forgeDir = "paket-files/github.com/fsharp-editing/Forge"
+        let releaseForge = sprintf "%s/bin_forge" releaseExp
+
+        copyForge forgeDir releaseForge
+    )
+
+    Target "ExpCopyGrammar" (fun _ ->
+        let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammar"
+        let fsgrammarRelease = sprintf "%s/syntaxes" releaseExp
+
+        copyGrammar fsgrammarDir fsgrammarRelease
+    )
+
+    Target "ExpCopySchemas" (fun _ ->
+        let fsschemaDir = "schemas"
+        let fsschemaRelease = sprintf "%s/schemas" releaseExp
+
+        copySchemas fsschemaDir fsschemaRelease
+    )
+
     Target "BuildPackageExp" ( fun _ ->
         buildPackage releaseExp
     )
@@ -374,6 +395,9 @@ Target "BuildPackages" DoNothing
 ==> "ExpCopyAssets"
 ==> "ExpUpdatePackageId"
 ==> "ExpCopyFSAC"
+==> "ExpCopyForge"
+==> "ExpCopyGrammar"
+==> "ExpCopySchemas"
 ==> "BuildPackageExp"
 
 "Build"
