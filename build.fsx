@@ -363,13 +363,14 @@ module ExperimentalExtension =
         File.ReadAllLines "RELEASE_NOTES_EXPERIMENTAL.md"
         |> parseAllReleaseNotes
 
-    let release = List.head releaseNotesExpData
+    let releaseExp = List.head releaseNotesExpData
 
-    let msg =  release.Notes |> List.fold (fun r s -> r + s + "\n") ""
-    let releaseMsg = (sprintf "Release %s\n" release.NugetVersion) + msg
+    let msg =  releaseExp.Notes |> List.fold (fun r s -> r + s + "\n") ""
+    let releaseExpMsg = (sprintf "Release %s\n" releaseExp.NugetVersion) + msg
 
     Target "ExpSetVersion" (fun _ ->
-        setVersion release releaseExpDir
+        printfn "Setting %s" releaseExpMsg
+        setVersion releaseExp releaseExpDir
     )
 
     Target "ExpPublishToGallery" ( fun _ ->
@@ -377,7 +378,7 @@ module ExperimentalExtension =
     )
 
     Target "ExpReleaseGitHub" (fun _ ->
-        releaseGithub release
+        releaseGithub releaseExp
     )
 
 
