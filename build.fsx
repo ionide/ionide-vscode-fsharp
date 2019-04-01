@@ -62,12 +62,6 @@ let npmTool =
 let vsceTool = lazy (platformTool "vsce" "vsce.cmd")
 
 
-let releaseBin      = "release/bin"
-let fsacBin         = "paket-files/github.com/fsharp/FsAutoComplete/bin/release"
-
-let releaseBinNetcore = releaseBin + "_netcore"
-let fsacBinNetcore = fsacBin + "_netcore"
-
 // --------------------------------------------------------------------------------------
 // Build the Generator project and run it
 // --------------------------------------------------------------------------------------
@@ -89,11 +83,6 @@ let runFable additionalArgs noTimeout =
     let timeout = if noTimeout then TimeSpan.MaxValue else TimeSpan.FromMinutes 30.
     DotNetCli.RunCommand (fun p -> { p with WorkingDir = "src"; TimeOut = timeout } ) cmd
 
-Target "RunScript" (fun _ ->
-    // Ideally we would want a production (minized) build but UglifyJS fail on PerMessageDeflate.js as it contains non-ES6 javascript.
-    runFable "" false
-)
-
 Target "Watch" (fun _ ->
     runFable "--watch" true
 )
@@ -102,12 +91,7 @@ let copyFSAC releaseBin fsacBin =
     ensureDirectory releaseBin
     CleanDir releaseBin
 
-
     CopyDir releaseBin fsacBin (fun _ -> true)
-
-Target "CopyFSAC" (fun _ ->
-    copyFSAC releaseBin fsacBin
-)
 
 let copyFSACNetcore releaseBinNetcore fsacBinNetcore =
     ensureDirectory releaseBinNetcore
@@ -115,19 +99,14 @@ let copyFSACNetcore releaseBinNetcore fsacBinNetcore =
 
     CopyDir releaseBinNetcore fsacBinNetcore (fun _ -> true)
 
-Target "CopyFSACNetcore" (fun _ ->
-    copyFSACNetcore releaseBinNetcore fsacBinNetcore
-)
+let copyForge paketFilesForge releaseForge =
 
-let releaseForge = "release/bin_forge"
-let releaseBinForge = "release/bin_forge/bin"
+    let releaseBinForge = sprintf "%s/bin" releaseForge
 
-let forgeBin = "paket-files/github.com/fsharp-editing/Forge/temp/Bin/*.dll"
-let forgeExe = "paket-files/github.com/fsharp-editing/Forge/temp/Forge.exe"
-let forgeConfig = "paket-files/github.com/fsharp-editing/Forge/temp/Forge.exe.config"
+    let forgeBin = sprintf "%s/temp/Bin/*.dll" paketFilesForge
+    let forgeExe = sprintf "%s/temp/Forge.exe" paketFilesForge
+    let forgeConfig = sprintf "%s/temp/Forge.exe.config" paketFilesForge
 
-
-Target "CopyForge" (fun _ ->
     ensureDirectory releaseBinForge
     ensureDirectory releaseForge
 
@@ -140,14 +119,7 @@ Target "CopyForge" (fun _ ->
     !! forgeBin
     |> CopyFiles releaseBinForge
 
-
-)
-
-let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammar"
-let fsgrammarRelease = "release/syntaxes"
-
-
-Target "CopyGrammar" (fun _ ->
+let copyGrammar fsgrammarDir fsgrammarRelease =
     ensureDirectory fsgrammarRelease
     CleanDir fsgrammarRelease
     CopyFiles fsgrammarRelease [
@@ -156,27 +128,21 @@ Target "CopyGrammar" (fun _ ->
         fsgrammarDir </> "fsharp.fsx.json"
         fsgrammarDir </> "fsharp.json"
     ]
-)
 
-
-let fsschemaDir = "schemas"
-
-let fsschemaRelease = "release/schemas"
-Target "CopySchemas" (fun _ ->
+let copySchemas fsschemaDir fsschemaRelease =
     ensureDirectory fsschemaRelease
     CleanDir fsschemaRelease
     CopyFile fsschemaRelease (fsschemaDir </> "fableconfig.json")
     CopyFile fsschemaRelease (fsschemaDir </> "wsconfig.json")
-)
 
+let buildPackage dir =
+    killProcess "vsce"
+    run vsceTool.Value "package" dir
+    !! (sprintf "%s/*.vsix" dir)
+    |> Seq.iter(MoveFile "./temp/")
 
-Target "InstallVSCE" ( fun _ ->
-    killProcess "npm"
-    run npmTool "install -g vsce" ""
-)
-
-Target "SetVersion" (fun _ ->
-    let fileName = "./release/package.json"
+let setVersion releaseDir =
+    let fileName = sprintf "./%s/package.json" releaseDir
     let lines =
         File.ReadAllLines fileName
         |> Seq.map (fun line ->
@@ -185,84 +151,149 @@ Target "SetVersion" (fun _ ->
                 sprintf "%s\"version\": \"%O\"," indent release.NugetVersion
             else line)
     File.WriteAllLines(fileName,lines)
-)
 
-let buildPackage dir =
-    killProcess "vsce"
-    run vsceTool.Value "package" dir
-    !! (sprintf "%s/*.vsix" dir)
-    |> Seq.iter(MoveFile "./temp/")
-
-Target "BuildPackage" ( fun _ ->
-    buildPackage "release"
-)
-
-
-Target "DuplicateReleaseDir" (fun _ ->
-    ensureDirectory "release-vnext"
-    CleanDir "release-vnext"
-
-    CopyDir "release-vnext" "release" (fun _ -> true)
-)
-
-Target "UpdatePackageIdToVNext" (fun _ ->
-    let dir = "release-vnext"
-
-    // replace "name": "Ionide-fsharp" with "Ionide-fsharp-vNext"
-    let fileName = Path.Combine(dir, "package.json")
-
-    fileName
-    |> File.ReadAllText
-    |> fun text -> text.Replace("Ionide-fsharp", "Ionide-fsharp-vNext") // case sensitive is the only occurrence
-    |> fun text -> File.WriteAllText(fileName, text)
-)
-
-Target "CopyFSACVNext" (fun _ ->
-    let vendorDir = Path.Combine(__SOURCE_DIRECTORY__, "vendor") |> Path.GetFullPath
-    let fsacDir = Path.Combine(vendorDir, "paket-files", "github.com", "fsharp", "FsAutoComplete")
-
-    // restore git repo
-    run (Path.GetFullPath "paket.exe") "restore" vendorDir
-
-    // get vnext tag
-    run "git" "tag -l vnext" fsacDir
-
-    // checkout vnext or fail
-    run "git" "checkout vnext" fsacDir
-
-    // local release it
-    run (if isUnix then "build.sh" else "build.cmd") "LocalRelease" fsacDir
-
-    // copy to out dir
-
-    let releaseBin      = "release-vnext/bin"
-    let fsacBin         = "vendor/paket-files/github.com/fsharp/FsAutoComplete/bin/release"
-
-    let releaseBinNetcore = releaseBin + "_netcore"
-    let fsacBinNetcore = fsacBin + "_netcore"
-
-    ensureDirectory releaseBin
-    CleanDir releaseBin
-    copyFSAC releaseBin fsacBin
-
-    ensureDirectory releaseBinNetcore
-    CleanDir releaseBinNetcore
-    copyFSACNetcore releaseBinNetcore fsacBinNetcore
-)
-
-Target "BuildPackageVNext" ( fun _ ->
-    buildPackage "release-vnext"
-)
-
-Target "PublishToGallery" ( fun _ ->
+let publishToGallery releaseDir =
     let token =
         match getBuildParam "vsce-token" with
         | s when not (String.IsNullOrWhiteSpace s) -> s
         | _ -> getUserPassword "VSCE Token: "
 
     killProcess "vsce"
-    run vsceTool.Value (sprintf "publish --pat %s" token) "release"
+    run vsceTool.Value (sprintf "publish --pat %s" token) releaseDir
+
+module StableExtension =
+
+    Target "CopyDocs" (fun _ ->
+        CopyFiles "release" ["README.md"; "LICENSE.md"]
+        CopyFile "release/CHANGELOG.md" "RELEASE_NOTES.md"
+    )
+
+    Target "RunScript" (fun _ ->
+        // Ideally we would want a production (minized) build but UglifyJS fail on PerMessageDeflate.js as it contains non-ES6 javascript.
+        runFable "" false
+    )
+
+    let fsacDir = "paket-files/github.com/fsharp/FsAutoComplete"
+
+    Target "CopyFSAC" (fun _ ->
+        let fsacBin = sprintf "%s/bin/release" fsacDir
+        let releaseBin = "release/bin"
+        copyFSAC releaseBin fsacBin
+    )
+
+    Target "CopyFSACNetcore" (fun _ ->
+        let fsacBinNetcore = sprintf "%s/bin/release_netcore" fsacDir
+        let releaseBinNetcore = "release/bin_netcore"
+
+        copyFSACNetcore releaseBinNetcore fsacBinNetcore
+    )
+
+    Target "CopyForge" (fun _ ->
+        let forgeDir = "paket-files/github.com/fsharp-editing/Forge"
+        let releaseForge = "release/bin_forge"
+
+        copyForge forgeDir releaseForge
+    )
+
+    Target "CopyGrammar" (fun _ ->
+        let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammar"
+        let fsgrammarRelease = "release/syntaxes"
+
+        copyGrammar fsgrammarDir fsgrammarRelease
+    )
+
+    Target "CopySchemas" (fun _ ->
+        let fsschemaDir = "schemas"
+        let fsschemaRelease = "release/schemas"
+
+        copySchemas fsschemaDir fsschemaRelease
+    )
+
+    Target "BuildPackage" ( fun _ ->
+        buildPackage "release"
+    )
+
+    Target "SetVersion" (fun _ ->
+        setVersion "release"
+    )
+
+    Target "PublishToGallery" ( fun _ ->
+        publishToGallery "release"
+    )
+
+Target "InstallVSCE" ( fun _ ->
+    killProcess "npm"
+    run npmTool "install -g vsce" ""
 )
+
+module ExperimentalExtension =
+
+    let releaseExp = "release-exp"
+
+    Target "ExpRunScript" (fun _ ->
+        // Ideally we would want a production (minized) build but UglifyJS fail on PerMessageDeflate.js as it contains non-ES6 javascript.
+        runFable (sprintf "--env.outputPath=%s" releaseExp) false
+    )
+
+    Target "ExpCopyAssets" (fun _ ->
+        ensureDirectory releaseExp
+
+        [ "release/package.json"
+          "release/language-configuration.json" ]
+        |> CopyFiles releaseExp
+    )
+
+    Target "ExpUpdatePackageId" (fun _ ->
+        let dir = releaseExp
+
+        // replace "name": "Ionide-fsharp" with "Ionide-fsharp-vNext"
+        let fileName = Path.Combine(dir, "package.json")
+
+        fileName
+        |> File.ReadAllText
+        |> fun text -> text.Replace("Ionide-fsharp", "Ionide-fsharp-vNext") // case sensitive is the only occurrence
+        |> fun text -> File.WriteAllText(fileName, text)
+    )
+
+    Target "ExpCopyFSAC" (fun _ ->
+        let vendorDirPath = Path.Combine(__SOURCE_DIRECTORY__, "vendor") |> Path.GetFullPath
+        let fsacDirPath = Path.Combine(vendorDirPath, "paket-files", "github.com", "fsharp", "FsAutoComplete")
+
+        // restore git repo
+        run (Path.GetFullPath "paket.exe") "restore" vendorDirPath
+
+        // get vnext tag
+        run "git" "tag -l vnext" fsacDirPath
+
+        // checkout vnext or fail
+        run "git" "checkout vnext" fsacDirPath
+
+        // local release it
+        run (if isUnix then "build.sh" else "build.cmd") "LocalRelease" fsacDirPath
+
+        // copy to out dir
+
+        let fsacDir = "vendor/paket-files/github.com/fsharp/FsAutoComplete"
+
+        let releaseBin = sprintf "%s/bin" releaseExp
+        let fsacBin = sprintf "%s/bin/release" fsacDir
+
+        let releaseBinNetcore = sprintf "%s/bin_netcore" releaseExp
+        let fsacBinNetcore = sprintf "%s/bin/release" fsacDir
+
+        ensureDirectory releaseBin
+        CleanDir releaseBin
+        copyFSAC releaseBin fsacBin
+
+        ensureDirectory releaseBinNetcore
+        CleanDir releaseBinNetcore
+        copyFSACNetcore releaseBinNetcore fsacBinNetcore
+    )
+
+    Target "BuildPackageExp" ( fun _ ->
+        buildPackage releaseExp
+    )
+
 
 #load "paket-files/build/fsharp/FAKE/modules/Octokit/Octokit.fsx"
 open Octokit
@@ -319,6 +350,7 @@ Target "BuildPackages" DoNothing
 
 "Clean"
 ==> "RunScript"
+==> "CopyDocs"
 ==> "CopyFSAC"
 ==> "CopyFSACNetcore"
 ==> "CopyForge"
@@ -329,17 +361,21 @@ Target "BuildPackages" DoNothing
 "YarnInstall" ==> "Build"
 "DotNetRestore" ==> "Build"
 
-"BuildPackage"
-==> "DuplicateReleaseDir"
-==> "UpdatePackageIdToVNext"
-==> "CopyFSACVNext"
-==> "BuildPackageVNext"
+"YarnInstall" ==> "ExpRunScript"
+"DotNetRestore" ==> "ExpRunScript"
+
+"Clean"
+==> "ExpRunScript"
+==> "ExpCopyAssets"
+==> "ExpUpdatePackageId"
+==> "ExpCopyFSAC"
+==> "BuildPackageExp"
 
 "Build"
 ==> "SetVersion"
 // ==> "InstallVSCE"
 ==> "BuildPackage"
-==> "BuildPackageVNext"
+==> "BuildPackageExp"
 ==> "BuildPackages"
 ==> "ReleaseGitHub"
 ==> "PublishToGallery"

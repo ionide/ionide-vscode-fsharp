@@ -75,4 +75,4 @@ release/package-lock\.json
 /release/bin_netcore/
 /.ionide
 /vendor/.paket/Paket.Restore.targets
-/release-vnext/
+/release-exp/
