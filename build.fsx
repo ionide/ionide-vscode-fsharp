@@ -235,7 +235,7 @@ module ExperimentalExtension =
 
     Target "ExpRunScript" (fun _ ->
         // Ideally we would want a production (minized) build but UglifyJS fail on PerMessageDeflate.js as it contains non-ES6 javascript.
-        runFable (sprintf "--env.outputPath=%s" releaseExp) false
+        runFable "--env.ionideExperimental" false
     )
 
     Target "ExpCopyAssets" (fun _ ->
@@ -251,7 +251,7 @@ module ExperimentalExtension =
     Target "ExpUpdatePackageId" (fun _ ->
         let dir = releaseExp
 
-        // replace "name": "Ionide-fsharp" with "Ionide-fsharp-vNext"
+        // replace "name": "Ionide-fsharp" with "Ionide-fsharp-experimental"
         let fileName = Path.Combine(dir, "package.json")
 
         fileName

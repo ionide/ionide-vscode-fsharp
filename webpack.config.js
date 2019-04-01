@@ -18,8 +18,14 @@ console.log("Bundling for " + (isProduction ? "production" : "development") + ".
 
 module.exports = function(env) {
 
-  var outputPath = (env && env.outputPath) || "release";
+  var ionideExperimental = (env && env.ionideExperimental);
+  var outputPath = ionideExperimental? "release-exp" : "release";
   console.log("Output path: " + outputPath);
+
+  var compilerDefines = isProduction ? [] : ["DEBUG"];
+  if (ionideExperimental) {
+    compilerDefines.push("IONIDE_EXPERIMENTAL");
+  }
 
   return {
   target: 'node',
@@ -51,7 +57,7 @@ module.exports = function(env) {
           loader: "fable-loader",
           options: {
             babel: babelOptions,
-            define: isProduction ? [] : ["DEBUG"]
+            define: compilerDefines
           }
         }
       },
