@@ -85,6 +85,7 @@ let activate (context : ExtensionContext) : Api =
         Autocomplete.activate df' context
         ParameterHints.activate df' context
         Definition.activate df' context
+        Implementation.activate df' context
         TypeDefinition.activate df' context
         Reference.activate df' context
         Symbols.activate df' context

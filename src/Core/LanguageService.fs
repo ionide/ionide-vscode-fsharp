@@ -318,6 +318,10 @@ module LanguageService =
         { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "symboluseproject" 0 (makeRequestId())
 
+    let symbolImplementationProject fn line col =
+        { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
+        |> request "symbolimplementation" 0 (makeRequestId())
+
     let methods fn line col =
         { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
         |> request "methods" 0 (makeRequestId())
