@@ -110,19 +110,6 @@ Target "CopyFSACNetcore" (fun _ ->
     CleanDir releaseBinNetcore
 
     CopyDir releaseBinNetcore fsacBinNetcore (fun _ -> true)
-    let mainfestFile = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
-  <assemblyIdentity version="1.0.0.0" name="MyApplication.app"/>
-  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
-    <security>
-      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
-        <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
-      </requestedPrivileges>
-    </security>
-  </trustInfo>
-</assembly>"""
-
-    System.IO.File.WriteAllText(releaseBinNetcore </> "default.win32manifest", mainfestFile)
 )
 
 let releaseForge = "release/bin_forge"
