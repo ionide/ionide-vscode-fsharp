@@ -1,6 +1,6 @@
 name: $(Rev:r)
 jobs:
-- job: ionide-fsharp
+- job: IonideFsharp
   pool:
     vmImage: 'vs2017-win2016'
   steps:
@@ -31,7 +31,7 @@ jobs:
     inputs:
       pathtoPublish: 'temp'
       artifactName: 'ionide-fsharp-vscode-ext'
-- job: experimental-fsharp
+- job: ExperimentalFsharp
   pool:
     vmImage: 'vs2017-win2016'
   steps:
