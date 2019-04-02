@@ -17,6 +17,13 @@ open Fake.ZipHelper
 
 #nowarn "44"
 
+let extVersionSuffix =
+    match getBuildParamOrDefault "extVersionSuffix" "" with
+    | "" -> None
+    | v -> Some v
+
+printfn "extension version suffix: %A" extVersionSuffix
+
 // Git configuration (used for publishing documentation in gh-pages branch)
 // The profile where the project is posted
 let gitOwner = "ionide"
@@ -146,7 +153,11 @@ let setPackageJsonField name value releaseDir =
     File.WriteAllLines(fileName,lines)
 
 let setVersion (release: ReleaseNotes) releaseDir =
-    setPackageJsonField "version" (sprintf "\"%O\"" release.NugetVersion) releaseDir
+    let versionString =
+        match extVersionSuffix with
+        | None -> sprintf "\"%O\"" release.NugetVersion
+        | Some prerelease -> sprintf "\"%O-%s\"" release.NugetVersion prerelease
+    setPackageJsonField "version" versionString releaseDir
 
 let publishToGallery releaseDir =
     let token =

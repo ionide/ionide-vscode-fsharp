@@ -25,13 +25,12 @@ jobs:
     vmImage: 'vs2017-win2016'
   steps:
   - powershell: |
-      $buildId = $env:BUILD_BUILDNUMBER.PadLeft(7, '0');
-      $versionSuffixPR = "-PR$($env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER)-$buildId";
+      $buildId = $env:BUILD_BUILDNUMBER;
+      $versionSuffixPR = "PR$($env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER).$buildId";
       $branchName = "$env:BUILD_SOURCEBRANCHNAME".Replace("_","");
-      $versionSuffixBRANCH = "-$branchName-$buildId";
-      $isTag = "$env:BUILD_SOURCEBRANCH".StartsWith('refs/tags/');
-      $isPR = "$env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" -ne ""
-      $versionSuffix = if ($isTag) { "" } else { if ($isPR) { $versionSuffixPR } else { $versionSuffixBRANCH } };
+      $versionSuffixBRANCH = "$branchName.$buildId";
+      $isPR = "$env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" -ne "";
+      $versionSuffix = if ($isPR) { $versionSuffixPR } else { $versionSuffixBRANCH };
       Write-Host "##vso[task.setvariable variable=VersionSuffix]$versionSuffix";
   - task: NodeTool@0
     displayName: Install Node
@@ -43,10 +42,10 @@ jobs:
       versionSpec: "1.10.1"
   - script: .\build.cmd InstallVSCE
     displayName: Install VSCE
-  - script: .\build.cmd BuildPackageExp
+  - script: .\build.cmd BuildPackageExp extVersionSuffix=%ExtVersionSuffix%
     displayName: BuildPackageExp
     env:
-      VersionSuffix: '$(VersionSuffix)'
+      ExtVersionSuffix: '$(VersionSuffix)'
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: 'temp'
