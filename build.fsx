@@ -397,10 +397,6 @@ module ExperimentalExtension =
         publishToGallery releaseExpDir
     )
 
-    Target "ExpReleaseGitHub" (fun _ ->
-        releaseGithub releaseExp
-    )
-
 
 // --------------------------------------------------------------------------------------
 // Run generator by default. Invoke 'build <Target>' to override
@@ -456,7 +452,6 @@ Target "BuildPackages" DoNothing
 ==> "Release"
 
 "BuildPackageExp"
-==> "ExpReleaseGitHub"
 ==> "ExpPublishToGallery"
 ==> "ReleaseExp"
 
