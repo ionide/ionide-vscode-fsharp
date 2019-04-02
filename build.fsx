@@ -455,7 +455,4 @@ Target "BuildPackages" DoNothing
 ==> "ExpPublishToGallery"
 ==> "ReleaseExp"
 
-"BuildPackage" ==> "BuildPackages"
-"BuildPackageExp" ==> "BuildPackages"
-
 RunTargetOrDefault "Default"
