@@ -195,6 +195,8 @@ Target "InstallVSCE" ( fun _ ->
 
 module StableExtension =
 
+    let ionideExtensionGuid = "0ea05e3f-5a38-419d-8305-f6c3f6d409d2"
+
     Target "CopyDocs" (fun _ ->
         CopyFiles "release" ["README.md"; "LICENSE.md"]
         CopyFile "release/CHANGELOG.md" "RELEASE_NOTES.md"
@@ -271,6 +273,7 @@ module ExperimentalExtension =
 
     let releaseExpDir = "release-exp"
     let experimentalExtensionId = "experimental-fsharp"
+    let experimentalExtensionGuid = "e55f9a16-11f8-4e9c-854c-5fb440534340"
 
     Target "ExpRunScript" (fun _ ->
         // Ideally we would want a production (minized) build but UglifyJS fail on PerMessageDeflate.js as it contains non-ES6 javascript.
@@ -296,7 +299,7 @@ module ExperimentalExtension =
     Target "ExpUpdatePackageId" (fun _ ->
         let dir = releaseExpDir
 
-        // replace "name": "Ionide-fsharp" with "Ionide-fsharp-experimental"
+        // replace "name": "Ionide-fsharp" with "experimental-fsharp"
         let fileName = Path.Combine(dir, "package.json")
 
         let capitalize (s: string) = sprintf "%c%s" (s.[0] |> Char.ToUpper) (s.Substring(1))
@@ -305,6 +308,7 @@ module ExperimentalExtension =
         |> File.ReadAllText
         |> fun text -> text.Replace(capitalize "ionide-fsharp", experimentalExtensionId) // case sensitive is the only occurrence
         |> fun text -> text.Replace("ionide-fsharp", experimentalExtensionId) // case sensitive is the only two occurrence
+        |> fun text -> text.Replace(StableExtension.ionideExtensionGuid, experimentalExtensionGuid) // replace guid of extension
         |> fun text -> File.WriteAllText(fileName, text)
     )
 
