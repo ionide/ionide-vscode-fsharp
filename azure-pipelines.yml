@@ -23,11 +23,42 @@ jobs:
       versionSpec: "1.10.1"
   - script: .\build.cmd InstallVSCE
     displayName: Install VSCE
-  - script: .\build.cmd BuildPackages
-    displayName: BuildPackages
+  - script: .\build.cmd BuildPackage
+    displayName: BuildPackage
     env:
       VersionSuffix: '$(VersionSuffix)'
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: 'temp'
       artifactName: 'ionide-fsharp-vscode-ext'
+- job: Windows
+  pool:
+    vmImage: 'vs2017-win2016'
+  steps:
+  - powershell: |
+      $buildId = $env:BUILD_BUILDNUMBER.PadLeft(7, '0');
+      $versionSuffixPR = "-PR$($env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER)-$buildId";
+      $branchName = "$env:BUILD_SOURCEBRANCHNAME".Replace("_","");
+      $versionSuffixBRANCH = "-$branchName-$buildId";
+      $isTag = "$env:BUILD_SOURCEBRANCH".StartsWith('refs/tags/');
+      $isPR = "$env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" -ne ""
+      $versionSuffix = if ($isTag) { "" } else { if ($isPR) { $versionSuffixPR } else { $versionSuffixBRANCH } };
+      Write-Host "##vso[task.setvariable variable=VersionSuffix]$versionSuffix";
+  - task: NodeTool@0
+    displayName: Install Node
+    inputs:
+      versionSpec: "10.15.1"
+  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+    displayName: Install Yarn
+    inputs:
+      versionSpec: "1.10.1"
+  - script: .\build.cmd InstallVSCE
+    displayName: Install VSCE
+  - script: .\build.cmd BuildPackageExp
+    displayName: BuildPackageExp
+    env:
+      VersionSuffix: '$(VersionSuffix)'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: 'temp'
+      artifactName: 'experimental-fsharp-vscode-ext'
