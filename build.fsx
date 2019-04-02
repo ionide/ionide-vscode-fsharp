@@ -134,16 +134,19 @@ let buildPackage dir =
     !! (sprintf "%s/*.vsix" dir)
     |> Seq.iter(MoveFile "./temp/")
 
-let setVersion (release: ReleaseNotes) releaseDir =
+let setPackageJsonField name value releaseDir =
     let fileName = sprintf "./%s/package.json" releaseDir
     let lines =
         File.ReadAllLines fileName
         |> Seq.map (fun line ->
-            if line.TrimStart().StartsWith("\"version\":") then
+            if line.TrimStart().StartsWith(sprintf "\"%s\":" name) then
                 let indent = line.Substring(0,line.IndexOf("\""))
-                sprintf "%s\"version\": \"%O\"," indent release.NugetVersion
+                sprintf "%s\"%s\": %s," indent name value
             else line)
     File.WriteAllLines(fileName,lines)
+
+let setVersion (release: ReleaseNotes) releaseDir =
+    setPackageJsonField "version" (sprintf "\"%O\"" release.NugetVersion) releaseDir
 
 let publishToGallery releaseDir =
     let token =
@@ -310,6 +313,9 @@ module ExperimentalExtension =
         |> fun text -> text.Replace("ionide-fsharp", experimentalExtensionId) // case sensitive is the only two occurrence
         |> fun text -> text.Replace(StableExtension.ionideExtensionGuid, experimentalExtensionGuid) // replace guid of extension
         |> fun text -> File.WriteAllText(fileName, text)
+
+        // set in preview
+        setPackageJsonField "preview" "true" dir
     )
 
     Target "ExpCopyFSAC" (fun _ ->
