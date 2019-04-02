@@ -1,3 +1,20 @@
+### 3.35.0 - 02.04.2019
+* Update FSAC:
+    - FCS 28.0
+    - go-to-implementation backend
+* Implement go-to-implementation feature
+* Tweak the configuration matrix to stop bugging users about their life choices (FSAC runtime setting)
+* Have the suggestions give action buttons that the user can click to set the fsacruntime values
+* Prompt users to reload after changing runtime
+* Remove `fsharp.MoveFileUp/Down` default keybindings
+* Remove `outputChannels` from contribution points
+* Updte DocumentSymbolProvider to DocumentSymbol API
+* Add progress notification for background restore
+* Add notification for the .fs file not in .fsproj
+* Add disable notification button to Project parsing failed error message
+* Allow users to set a configurable FSAC url
+
+
 ### 3.34.0 - 28.02.2019
 * Update FSAC to 0.37.0:
     - performance improvements
