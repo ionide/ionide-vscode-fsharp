@@ -4,6 +4,14 @@ jobs:
   pool:
     vmImage: 'vs2017-win2016'
   steps:
+  - powershell: |
+      $buildId = $env:BUILD_BUILDNUMBER;
+      $versionSuffixPR = "PR$($env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER).$buildId";
+      $branchName = "$env:BUILD_SOURCEBRANCHNAME".Replace("_","");
+      $versionSuffixBRANCH = "$branchName.$buildId";
+      $isPR = "$env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" -ne "";
+      $versionSuffix = if ($isPR) { $versionSuffixPR } else { $versionSuffixBRANCH };
+      Write-Host "##vso[task.setvariable variable=VersionSuffix]$versionSuffix";
   - task: NodeTool@0
     displayName: Install Node
     inputs:
@@ -14,8 +22,10 @@ jobs:
       versionSpec: "1.10.1"
   - script: .\build.cmd InstallVSCE
     displayName: Install VSCE
-  - script: .\build.cmd BuildPackage
+  - script: .\build.cmd BuildPackage extVersionSuffix=%ExtVersionSuffix%
     displayName: BuildPackage
+    env:
+      ExtVersionSuffix: '$(VersionSuffix)'
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: 'temp'
