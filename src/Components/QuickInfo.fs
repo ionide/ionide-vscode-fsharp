@@ -51,8 +51,23 @@ module Fsdn =
     let activate (context : ExtensionContext) =
 
         commands.registerCommand("fsharp.fsdn", (fun _ ->
+
+            let docUri = window.activeTextEditor.document.uri
+
+            let activeSelection = window.activeTextEditor.selection.active
+            let line = activeSelection.line
+            let col = activeSelection.character
+
             query ()
             |> Promise.bind pickSignature
+            |> Promise.bind (fun functionName ->
+                match functionName with
+                | None -> Promise.lift false
+                | Some name ->
+                    let edit = WorkspaceEdit()
+                    edit.insert(docUri, Position((line, col)), name)
+                    workspace.applyEdit edit
+                )
             |> box
             ))
         |> context.subscriptions.Add
