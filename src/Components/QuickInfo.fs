@@ -4,6 +4,59 @@ open Fable.Import
 open Fable.Import.vscode
 open Ionide.VSCode.Helpers
 
+module Fsdn =
+
+    open System
+    open Fable.Core
+    open Fable.Core.JsInterop
+
+    let pickSignature (functions: string list) =
+
+        let text (x : string) =
+            let item = createEmpty<QuickPickItem>
+            item.label <- x
+            item.description <- sprintf "Signature: %s" x
+            item
+
+        match functions |> List.map (fun x -> (text x), x) with
+        | [] ->
+            None |> Promise.lift
+        | projects ->
+            promise {
+                let opts = createEmpty<QuickPickOptions>
+                opts.placeHolder <- Some "Signatures"
+                let chooseFrom = projects |> List.map fst |> ResizeArray
+                let! chosen = window.showQuickPick(chooseFrom |> U2.Case1, opts)
+                if JS.isDefined chosen then
+                    let selected = projects |> List.tryFind (fun (qp, _) -> qp = chosen) |> Option.map snd
+                    match selected with
+                    | Some selected ->
+                        return Some selected
+                    | None -> return None
+                else
+                    return None
+            }
+
+    let private query () =
+        promise {
+
+            let opts = createEmpty<InputBoxOptions>
+            opts.prompt <- Some "Signature"
+            let! signature =  window.showInputBox(opts)
+
+            let! ws = LanguageService.fsdn signature
+            return ws.Functions |> List.ofArray
+        }
+
+    let activate (context : ExtensionContext) =
+
+        commands.registerCommand("fsharp.fsdn", (fun _ ->
+            query ()
+            |> Promise.bind pickSignature
+            |> box
+            ))
+        |> context.subscriptions.Add
+
 module QuickInfo =
 
     module private StatusDisplay =

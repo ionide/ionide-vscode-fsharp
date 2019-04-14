@@ -446,6 +446,14 @@ module LanguageService =
         { WorkspaceLoadRequest.Files = projects |> List.toArray; DisableInMemoryProjectReferences = disableInMemoryProject }
         |> request "workspaceLoad" 0 (makeRequestId())
 
+    let fsdn (signature: string) =
+        let parse (ws : obj) =
+            { FsdnResponse.Functions = ws?Functions |> unbox }
+
+        { FsdnRequest.Signature = signature }
+        |> requestCanFail "fsdn" 0 (makeRequestId())
+        |> Promise.map (fun res -> parse (res?Data |> unbox))
+
     let unusedDeclarations s =
         { ProjectRequest.FileName = s }
         |> request "unusedDeclarations" 0 (makeRequestId())
