@@ -60,7 +60,7 @@ let activate (context : ExtensionContext) : Api =
         ))
         |> Promise.onSuccess (fun _ ->
             if showExplorer then
-                commands.executeCommand("workbench.view.extension.ionide-fsharp")
+                commands.executeCommand(VSCodeExtension.workbeachViewId ())
                 |> ignore
         )
         |> Promise.onSuccess (fun _ ->

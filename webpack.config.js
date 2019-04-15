@@ -16,13 +16,24 @@ var babelOptions = fableUtils.resolveBabelOptions({
 var isProduction = process.argv.indexOf("-p") >= 0;
 console.log("Bundling for " + (isProduction ? "production" : "development") + "...");
 
-module.exports = {
+module.exports = function(env) {
+
+  var ionideExperimental = (env && env.ionideExperimental);
+  var outputPath = ionideExperimental? "release-exp" : "release";
+  console.log("Output path: " + outputPath);
+
+  var compilerDefines = isProduction ? [] : ["DEBUG"];
+  if (ionideExperimental) {
+    compilerDefines.push("IONIDE_EXPERIMENTAL");
+  }
+
+  return {
   target: 'node',
   devtool: "source-map",
   entry: resolve('./src/Ionide.FSharp.fsproj'),
   output: {
     filename: 'fsharp.js',
-    path: resolve('./release'),
+    path: resolve('./' + outputPath),
     //library: 'IONIDEFSHARP',
     libraryTarget: 'commonjs'
   },
@@ -46,7 +57,7 @@ module.exports = {
           loader: "fable-loader",
           options: {
             babel: babelOptions,
-            define: isProduction ? [] : ["DEBUG"]
+            define: compilerDefines
           }
         }
       },
@@ -61,3 +72,4 @@ module.exports = {
     ]
   }
 };
+}

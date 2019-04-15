@@ -9,6 +9,7 @@
 		}
 	],
 	"description": "F# Language Support",
+	"preview": false,
 	"categories": [
 		"Linters",
 		"Programming Languages",
