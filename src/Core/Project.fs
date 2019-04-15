@@ -667,7 +667,7 @@ module Project =
                     projectNotRestoredLoaded.fire d.Project
                     Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
                 | ErrorData.ProjectParsingFailed d ->
-                    if not disableShowNotification then
+                    if not disableShowNotification && d.Project.EndsWith(".fsproj") then
                         let msg = "Project parsing failed: " + path.basename(d.Project)
                         vscode.window.showErrorMessage(msg, "Disable notification", "Show status")
                         |> Promise.map(fun res ->
