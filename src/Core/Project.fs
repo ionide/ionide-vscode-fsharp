@@ -527,7 +527,6 @@ module Project =
             let! dotnet = Environment.dotnet
             match dotnet with
             | Some dotnet ->
-                let dotnet = if Environment.isWin then (sprintf "\"%s\"" dotnet) else dotnet
                 return Process.spawnWithShell dotnet "" cmd
             | None -> return! Promise.reject "dotnet binary not found"
         }
