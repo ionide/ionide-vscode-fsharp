@@ -12,6 +12,7 @@ jobs:
       $isPR = "$env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" -ne "";
       $versionSuffix = if ($isPR) { $versionSuffixPR } else { $versionSuffixBRANCH };
       Write-Host "##vso[task.setvariable variable=VersionSuffix]$versionSuffix";
+    condition: eq(variables['ionide.isExperimentalRelease'], 'false')
   - task: NodeTool@0
     displayName: Install Node
     inputs:
@@ -42,6 +43,7 @@ jobs:
       $isPR = "$env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" -ne "";
       $versionSuffix = if ($isPR) { $versionSuffixPR } else { $versionSuffixBRANCH };
       Write-Host "##vso[task.setvariable variable=VersionSuffix]$versionSuffix";
+    condition: eq(variables['ionide.isExperimentalRelease'], 'false')
   - task: NodeTool@0
     displayName: Install Node
     inputs:
