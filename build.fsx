@@ -353,7 +353,7 @@ module ExperimentalExtension =
         let fsacBin = sprintf "%s/bin/release" fsacDir
 
         let releaseBinNetcore = sprintf "%s/bin_netcore" releaseExpDir
-        let fsacBinNetcore = sprintf "%s/bin/release" fsacDir
+        let fsacBinNetcore = sprintf "%s/bin/release_netcore" fsacDir
 
         ensureDirectory releaseBin
         CleanDir releaseBin
