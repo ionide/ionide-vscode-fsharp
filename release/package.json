@@ -428,7 +428,13 @@
 					"light": "./images/auto-reveal-light.svg",
 					"dark": "./images/auto-reveal-dark.svg"
 				}
-            }
+			},
+			{
+				"command": "fsharp.openInfoPanel",
+				"title": "Open Info Panel",
+				"description": "Converts your selection to Elmish by assuming that your selection is HTML code",
+				"category": "F#"
+			}
 		],
 		"viewsContainers": {
 			"activitybar": [
