@@ -31,6 +31,21 @@ module InfoPanel =
         let setContent str =
             panel |> Option.iter (fun p ->
                 let str = showdown.makeHtml str
+                let str =
+                    sprintf """
+                    <html>
+                    <head>
+                    <style>
+                    pre {color: var(--textCodeBlock.background)}
+                    </style>
+                    </head>
+                    <body>
+                    %s
+                    </body>
+                    </html>
+                    """ str
+
+                printf "TEST: %s" str
                 p.webview.html <- str
             )
 
@@ -41,13 +56,15 @@ module InfoPanel =
                 if isFsharpTextEditor textEditor && selections.Count > 0 then
                     let doc = textEditor.document
                     let pos = selections.[0].active
-                    let! res = LanguageService.tooltip doc.fileName (int pos.line + 1) (int pos.character + 1)
+                    let! res = LanguageService.documentation doc.fileName (int pos.line + 1) (int pos.character + 1)
                     let range = doc.getWordRangeAtPosition pos
                     if isNotNull res then
                         let res = (res.Data |> Array.concat).[0]
 
-                        let fsharpBlock (lines: string[]) =
-                            (lines |> String.concat "\n") |> sprintf "```fsharp\n%s\n```"
+                        let fsharpBlock lines =
+                            let cnt = (lines |> String.concat "\n")
+                            if String.IsNullOrWhiteSpace cnt then ""
+                            else sprintf "<pre>\n%s\n</pre>" cnt
 
                         let sigContent =
                             let lines =
@@ -60,6 +77,7 @@ module InfoPanel =
                                 [| yield fsharpBlock h
                                    yield "*" + fullName + "*" |]
                             | _ -> [| fsharpBlock lines |]
+                            |> String.concat "\n"
 
                         let commentContent =
                             res.Comment
@@ -70,16 +88,51 @@ module InfoPanel =
                             |> String.split [|'\n' |]
                             |> Array.filter (not << String.IsNullOrWhiteSpace)
                             |> Array.map (fun n -> "*" + n + "*")
+                            |> String.concat "\n\n"
 
+                        let ctors =
+                            res.Constructors
+                            |> List.filter (not << String.IsNullOrWhiteSpace)
+                            |> List.distinct
+                            |> fsharpBlock
+
+                        let fncs =
+                            res.Functions
+                            |> List.filter (not << String.IsNullOrWhiteSpace)
+                            |> List.distinct
+                            |> fsharpBlock
+
+                        let fields =
+                            res.Fields
+                            |> List.filter (not << String.IsNullOrWhiteSpace)
+                            |> List.distinct
+                            |> fsharpBlock
 
                         let res =
                             [|
-                                yield! sigContent
-                                yield "---"
-                                yield commentContent
-                                yield "\n"
-                                yield "---"
-                                yield (footerContent |> String.concat "\n\n")
+                                yield sigContent
+                                if not (String.IsNullOrWhiteSpace ctors) then
+                                    yield "---"
+                                    yield "#### Constructors"
+                                    yield ctors
+                                    yield "\n"
+                                if not (String.IsNullOrWhiteSpace fncs) then
+                                    yield "---"
+                                    yield "#### Functions"
+                                    yield fncs
+                                    yield "\n"
+                                if not (String.IsNullOrWhiteSpace fields) then
+                                    yield "---"
+                                    yield "#### Fields"
+                                    yield fields
+                                    yield "\n"
+                                if not (String.IsNullOrWhiteSpace commentContent) then
+                                    yield "---"
+                                    yield commentContent
+                                    yield "\n"
+                                if not (String.IsNullOrWhiteSpace footerContent) then
+                                    yield "---"
+                                    yield (footerContent)
 
                             |] |> String.concat "\n"
                         setContent res
@@ -100,10 +153,17 @@ module InfoPanel =
 
     let private openPanel () =
         promise {
-            let p = window.createWebviewPanel("infoPanel", "Info Panel", !!9 )
+            let opts =
+                createObj [
+                    "enableCommandUris" ==> true
+                ]
+            let p = window.createWebviewPanel("infoPanel", "Info Panel", !!9 , opts)
             Panel.panel <- Some p
             return ()
         }
+
+    let private showDocumentation o =
+        window.showInformationMessage (JS.JSON.stringify o)
 
 
     let private selectionChanged (event : TextEditorSelectionChangeEvent) =
@@ -113,7 +173,7 @@ module InfoPanel =
     let private textEditorChanged (_textEditor : TextEditor) =
         clearTimer()
         // The display is always cleared, if it's an F# document an onDocumentParsed event will arrive
-        Panel.clear()
+        //Panel.clear()
 
     let private documentParsedHandler (event : Errors.DocumentParsedEvent) =
         if event.document = window.activeTextEditor.document then
@@ -129,3 +189,4 @@ module InfoPanel =
         context.subscriptions.Add(window.onDidChangeActiveTextEditor.Invoke(unbox textEditorChanged))
         context.subscriptions.Add(Errors.onDocumentParsed.Invoke(unbox documentParsedHandler))
         commands.registerCommand("fsharp.openInfoPanel", openPanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.showDocumentation", showDocumentation |> unbox<Func<obj,obj>>) |> context.subscriptions.Add

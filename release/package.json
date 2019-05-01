@@ -434,6 +434,10 @@
 				"title": "Open Info Panel",
 				"description": "Converts your selection to Elmish by assuming that your selection is HTML code",
 				"category": "F#"
+			},
+			{
+				"command": "fsharp.showDocumentation",
+				"title": "Show Documentation for given symbol"
 			}
 		],
 		"viewsContainers": {
