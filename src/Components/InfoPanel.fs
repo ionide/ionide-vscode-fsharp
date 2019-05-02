@@ -45,7 +45,6 @@ module InfoPanel =
                     </html>
                     """ str
 
-                printf "TEST: %s" str
                 p.webview.html <- str
             )
 
@@ -90,6 +89,20 @@ module InfoPanel =
                     |> List.distinct
                     |> fsharpBlock
 
+                let intfs =
+                    res.Interfaces
+                    |> List.filter (not << String.IsNullOrWhiteSpace)
+                    |> List.distinct
+                    |> List.sort
+                    |> fsharpBlock
+
+                let attrs =
+                    res.Attributes
+                    |> List.filter (not << String.IsNullOrWhiteSpace)
+                    |> List.distinct
+                    |> List.sort
+                    |> fsharpBlock
+
                 let fncs =
                     res.Functions
                     |> List.filter (not << String.IsNullOrWhiteSpace)
@@ -105,6 +118,20 @@ module InfoPanel =
                 let res =
                     [|
                         yield sigContent
+                        if not (String.IsNullOrWhiteSpace commentContent) then
+                            yield "---"
+                            yield commentContent
+                            yield "\n"
+                        if not (String.IsNullOrWhiteSpace attrs) then
+                            yield "---"
+                            yield "#### Attributes"
+                            yield attrs
+                            yield "\n"
+                        if not (String.IsNullOrWhiteSpace intfs) then
+                            yield "---"
+                            yield "#### Implemented Interfaces"
+                            yield intfs
+                            yield "\n"
                         if not (String.IsNullOrWhiteSpace ctors) then
                             yield "---"
                             yield "#### Constructors"
@@ -119,10 +146,6 @@ module InfoPanel =
                             yield "---"
                             yield "#### Fields"
                             yield fields
-                            yield "\n"
-                        if not (String.IsNullOrWhiteSpace commentContent) then
-                            yield "---"
-                            yield commentContent
                             yield "\n"
                         if not (String.IsNullOrWhiteSpace footerContent) then
                             yield "---"
