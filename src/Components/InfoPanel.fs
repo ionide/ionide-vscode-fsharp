@@ -18,6 +18,8 @@ module InfoPanel =
 
         let mutable panel : WebviewPanel option = None
 
+        let mutable locked = false
+
         let private isFsharpTextEditor (textEditor : TextEditor) =
             if JS.isDefined textEditor && JS.isDefined textEditor.document then
                 let doc = textEditor.document
@@ -171,7 +173,7 @@ module InfoPanel =
                     return ()
             } |> ignore
 
-        let updateOnClick xmlSig assemblyName =
+        let updateOnLink xmlSig assemblyName =
             promise {
                 let! res = LanguageService.documentationForSymbol xmlSig assemblyName
                 let res = mapContent res
@@ -197,27 +199,40 @@ module InfoPanel =
                     "enableCommandUris" ==> true
                 ]
             let p = window.createWebviewPanel("infoPanel", "Info Panel", !!9 , opts)
+            let onChange (event : WebviewPanelOnDidChangeViewStateEvent) =
+                Context.set "infoPanelFocused" event.webviewPanel.active
+
+
+            p.onDidChangeViewState.Invoke(!!onChange)
+            |> ignore
             Panel.panel <- Some p
             return ()
         }
 
     let private showDocumentation o =
-        Panel.updateOnClick !!o?XmlDocSig !!o?AssemblyName
+        Panel.updateOnLink !!o?XmlDocSig !!o?AssemblyName
 
 
     let private selectionChanged (event : TextEditorSelectionChangeEvent) =
-        clearTimer()
-        timer <- Some (setTimeout (fun () -> Panel.update event.textEditor event.selections) 500.)
+        if not Panel.locked then
+            clearTimer()
+            timer <- Some (setTimeout (fun () -> Panel.update event.textEditor event.selections) 500.)
 
-    let private textEditorChanged (_textEditor : TextEditor) =
-        clearTimer()
-        // The display is always cleared, if it's an F# document an onDocumentParsed event will arrive
-        //Panel.clear()
 
     let private documentParsedHandler (event : Errors.DocumentParsedEvent) =
-        if event.document = window.activeTextEditor.document then
+        if event.document = window.activeTextEditor.document && not Panel.locked then
             clearTimer()
             Panel.update window.activeTextEditor window.activeTextEditor.selections
+        ()
+
+    let lockPanel () =
+        Panel.locked <- true
+        Context.set "infoPanelLocked" true
+        ()
+
+    let unlockPanel () =
+        Panel.locked <- false
+        Context.set "infoPanelLocked" false
         ()
 
 
@@ -225,7 +240,8 @@ module InfoPanel =
     let activate (context : ExtensionContext) =
 
         context.subscriptions.Add(window.onDidChangeTextEditorSelection.Invoke(unbox selectionChanged))
-        context.subscriptions.Add(window.onDidChangeActiveTextEditor.Invoke(unbox textEditorChanged))
         context.subscriptions.Add(Errors.onDocumentParsed.Invoke(unbox documentParsedHandler))
         commands.registerCommand("fsharp.openInfoPanel", openPanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.openInfoPanel.lock", lockPanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.openInfoPanel.unlock", unlockPanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsharp.showDocumentation", showDocumentation |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
