@@ -422,7 +422,7 @@
 			},
 			{
 				"command": "fsharp.revealInSolutionExplorer",
-				"title": "F#: Reveal in solution explorer",
+				"title": "Reveal in solution explorer",
 				"category": "F#",
 				"icon": {
 					"light": "./images/auto-reveal-light.svg",
@@ -438,6 +438,24 @@
 			{
 				"command": "fsharp.showDocumentation",
 				"title": "Show Documentation for given symbol"
+			},
+			{
+				"command": "fsharp.openInfoPanel.lock",
+				"title": "Lock Info Panel",
+				"category": "F#",
+				"icon": {
+					"light": "./images/lock-solid-light.svg",
+					"dark": "./images/lock-solid.svg"
+				}
+			},
+			{
+				"command": "fsharp.openInfoPanel.unlock",
+				"title": "Unlock Info Panel",
+				"category": "F#",
+				"icon": {
+					"light": "./images/lock-open-solid-light.svg",
+					"dark": "./images/lock-open-solid.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -1007,6 +1025,16 @@
 				{
 					"command": "fsharp.scriptrunner.run",
 					"when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'",
+					"group": "navigation"
+				},
+				{
+					"command": "fsharp.openInfoPanel.unlock",
+					"when": "infoPanelFocused && infoPanelLocked",
+					"group": "navigation"
+				},
+				{
+					"command": "fsharp.openInfoPanel.lock",
+					"when": "infoPanelFocused && !infoPanelLocked",
 					"group": "navigation"
 				}
 			],
