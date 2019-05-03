@@ -432,7 +432,13 @@
 			{
 				"command": "fsharp.openInfoPanel",
 				"title": "Open Info Panel",
-				"description": "Converts your selection to Elmish by assuming that your selection is HTML code",
+				"description": "Opens Info Panel displaying documentation",
+				"category": "F#"
+			},
+			{
+				"command": "fsharp.updateInfoPanel",
+				"title": "Update Info Panel",
+				"description": "Updates Info Panel with documentation of current symbol",
 				"category": "F#"
 			},
 			{
@@ -661,6 +667,10 @@
 				{
 					"command": "MSBuild.cleanCurrent",
 					"when": "editorLangId == 'fsharp'"
+				},
+				{
+					"command": "fsharp.showDocumentation",
+					"when": "false"
 				}
 			],
 			"view/title": [
@@ -1098,6 +1108,16 @@
 				"command": "MSBuild.buildCurrentSolution",
 				"key": "ctrl+alt+shift+b",
 				"when": "fsharp.project.any"
+			},
+			{
+				"command": "fsharp.openInfoPanel",
+				"key": "alt+,",
+				"when": "editorFocus && editorLangId == 'fsharp'"
+			},
+			{
+				"command": "fsharp.updateInfoPanel",
+				"key": "alt+.",
+				"when": "editorFocus && editorLangId == 'fsharp'"
 			}
 		],
 		"configurationDefaults": {
@@ -1386,6 +1406,32 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enables smart indent feature"
+				},
+				"FSharp.infoPanelUpdate": {
+                    "type": "string",
+					"description": "Controls when the info panel is updated",
+					"enum": [
+						"onCursorMove",
+						"onHover",
+						"both",
+						"none"
+					],
+                    "default": "onCursorMove"
+				},
+				"FSharp.infoPanelReplaceHover": {
+                    "type": "boolean",
+					"description": "Controls whether the info panel replaces tooltips",
+                    "default": false
+				},
+				"FSharp.infoPanelStartLocked": {
+                    "type": "boolean",
+					"description": "Controls whether the info panel should be locked at startup",
+                    "default": false
+				},
+				"FSharp.infoPanelShowOnStartup": {
+                    "type": "boolean",
+					"description": "Controls whether the info panel should be displayed at startup",
+                    "default": false
                 }
 			}
 		},

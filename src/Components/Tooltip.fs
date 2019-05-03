@@ -8,6 +8,9 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module Tooltip =
+    let private tooltipRequestedEmitter = EventEmitter<Position>()
+    let tooltipRequested = tooltipRequestedEmitter.event;
+
     let mapResult (doc : TextDocument) (pos : Position) o =
         let range = doc.getWordRangeAtPosition pos
         if isNotNull o then
@@ -59,8 +62,13 @@ module Tooltip =
           with
             member this.provideHover(doc, pos, _ ) =
                 promise {
-                    let! res = LanguageService.tooltip doc.fileName (int pos.line + 1) (int pos.character + 1)
-                    return mapResult doc pos res
+                    tooltipRequestedEmitter.fire pos
+                    let infoPanel = "FSharp.infoPanelReplaceHover" |> Configuration.get false
+                    if infoPanel then
+                        return JS.undefined
+                    else
+                        let! res = LanguageService.tooltip doc.fileName (int pos.line + 1) (int pos.character + 1)
+                        return mapResult doc pos res
                 } |> U2.Case2
 
         }

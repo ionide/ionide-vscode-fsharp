@@ -18,6 +18,5 @@
     "paket-files",
     "release"
   ]
-  // , "FSharp.fsacUrl": "http://127.0.0.1:8088"
 
 }
