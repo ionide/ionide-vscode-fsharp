@@ -1,3 +1,10 @@
+### 3.36.0 - 06.05.2019
+* Update FSAC
+* Add missing config for FSharp.notifyFsNotInFsproj
+* Show project loading error notifications only for fsproj
+* Fix run command
+* Add Info Panel feature
+
 ### 3.35.0 - 02.04.2019
 * Update FSAC:
     - FCS 28.0
