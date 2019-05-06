@@ -1,4 +1,4 @@
-### 3.36.0 - 06.05.2019
+### 3.36.1 - 06.05.2019
 * Update FSAC
 * Add missing config for FSharp.notifyFsNotInFsproj
 * Show project loading error notifications only for fsproj
