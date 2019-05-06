@@ -21,6 +21,7 @@ github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
 github ionide/ionide-vscode-helpers src/Helpers.fs
 github ionide/ionide-vscode-helpers src/Fable.Import.Axios.fs
 github ionide/ionide-vscode-helpers src/Fable.Import.ws.fs
+github ionide/ionide-vscode-helpers src/Fable.Import.Showdown.fs
 
 group build
     source https://www.nuget.org/api/v2

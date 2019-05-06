@@ -103,6 +103,7 @@ let activate (context : ExtensionContext) : Api =
         SignatureData.activate context
         Debugger.activate context
         Diagnostics.activate context
+
     )
     |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
     |> ignore
@@ -112,6 +113,7 @@ let activate (context : ExtensionContext) : Api =
     ScriptRunner.activate context
     LanguageConfiguration.activate context
     HtmlConverter.activate context
+    InfoPanel.activate context
 
     let buildProject project = promise {
         let! exit = MSBuild.buildProjectPath "Build" project

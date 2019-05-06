@@ -422,13 +422,47 @@
 			},
 			{
 				"command": "fsharp.revealInSolutionExplorer",
-				"title": "F#: Reveal in solution explorer",
+				"title": "Reveal in solution explorer",
 				"category": "F#",
 				"icon": {
 					"light": "./images/auto-reveal-light.svg",
 					"dark": "./images/auto-reveal-dark.svg"
 				}
-            }
+			},
+			{
+				"command": "fsharp.openInfoPanel",
+				"title": "Open Info Panel",
+				"description": "Opens Info Panel displaying documentation",
+				"category": "F#"
+			},
+			{
+				"command": "fsharp.updateInfoPanel",
+				"title": "Update Info Panel",
+				"description": "Updates Info Panel with documentation of current symbol",
+				"category": "F#"
+			},
+			{
+				"command": "fsharp.showDocumentation",
+				"title": "Show Documentation for given symbol"
+			},
+			{
+				"command": "fsharp.openInfoPanel.lock",
+				"title": "Lock Info Panel",
+				"category": "F#",
+				"icon": {
+					"light": "./images/lock-solid-light.svg",
+					"dark": "./images/lock-solid.svg"
+				}
+			},
+			{
+				"command": "fsharp.openInfoPanel.unlock",
+				"title": "Unlock Info Panel",
+				"category": "F#",
+				"icon": {
+					"light": "./images/lock-open-solid-light.svg",
+					"dark": "./images/lock-open-solid.svg"
+				}
+			}
 		],
 		"viewsContainers": {
 			"activitybar": [
@@ -633,6 +667,10 @@
 				{
 					"command": "MSBuild.cleanCurrent",
 					"when": "editorLangId == 'fsharp'"
+				},
+				{
+					"command": "fsharp.showDocumentation",
+					"when": "false"
 				}
 			],
 			"view/title": [
@@ -998,6 +1036,16 @@
 					"command": "fsharp.scriptrunner.run",
 					"when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'",
 					"group": "navigation"
+				},
+				{
+					"command": "fsharp.openInfoPanel.unlock",
+					"when": "infoPanelFocused && infoPanelLocked",
+					"group": "navigation"
+				},
+				{
+					"command": "fsharp.openInfoPanel.lock",
+					"when": "infoPanelFocused && !infoPanelLocked",
+					"group": "navigation"
 				}
 			],
 			"touchBar": [
@@ -1060,6 +1108,16 @@
 				"command": "MSBuild.buildCurrentSolution",
 				"key": "ctrl+alt+shift+b",
 				"when": "fsharp.project.any"
+			},
+			{
+				"command": "fsharp.openInfoPanel",
+				"key": "alt+,",
+				"when": "editorFocus && editorLangId == 'fsharp'"
+			},
+			{
+				"command": "fsharp.updateInfoPanel",
+				"key": "alt+.",
+				"when": "editorFocus && editorLangId == 'fsharp'"
 			}
 		],
 		"configurationDefaults": {
@@ -1348,6 +1406,32 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enables smart indent feature"
+				},
+				"FSharp.infoPanelUpdate": {
+                    "type": "string",
+					"description": "Controls when the info panel is updated",
+					"enum": [
+						"onCursorMove",
+						"onHover",
+						"both",
+						"none"
+					],
+                    "default": "onCursorMove"
+				},
+				"FSharp.infoPanelReplaceHover": {
+                    "type": "boolean",
+					"description": "Controls whether the info panel replaces tooltips",
+                    "default": false
+				},
+				"FSharp.infoPanelStartLocked": {
+                    "type": "boolean",
+					"description": "Controls whether the info panel should be locked at startup",
+                    "default": false
+				},
+				"FSharp.infoPanelShowOnStartup": {
+                    "type": "boolean",
+					"description": "Controls whether the info panel should be displayed at startup",
+                    "default": false
                 }
 			}
 		},

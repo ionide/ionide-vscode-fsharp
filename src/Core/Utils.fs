@@ -305,6 +305,11 @@ module Markdown =
         |> normalizeLeadingSpace
         |> (fun v -> MarkdownString v)
 
+    let createCommentString (comment : string) : string =
+        comment
+        |> replaceXml
+        |> normalizeLeadingSpace
+
 module Promise =
 
     open Fable.Import.JS

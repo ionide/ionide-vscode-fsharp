@@ -4,6 +4,10 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Fable.Import.Showdown.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/Fable.Import.Showdown.fs</Link>
+    </Compile>
     <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Fable.Import.VSCode.fs">
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.VSCode.fs</Link>
@@ -65,6 +69,7 @@
     <Compile Include="Components/Debugger.fs" />
     <Compile Include="Components/SolutionExplorer.fs" />
     <Compile Include="Components/HtmlConverter.fs" />
+    <Compile Include="Components/InfoPanel.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />

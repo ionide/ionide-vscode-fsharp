@@ -12,6 +12,7 @@
     "fable-loader": "1.0.7",
     "fable-utils": "^1.0.2",
     "mocha": "*",
+    "showdown": "^1.9.0",
     "toml": "*",
     "vscode": "*",
     "webpack": "^3.5.5",
