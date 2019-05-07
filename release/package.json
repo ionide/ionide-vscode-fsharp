@@ -1480,6 +1480,15 @@
 					"light": "#919191",
 					"highContrast": "#A2E2A2"
 				}
+			},
+			{
+				"id": "fsharp.statusBarWarnings",
+				"description": "Text colors for warnings shown in the status bar",
+				"defaults": {
+					"dark": "#FFCC00",
+					"light": "#FFCC00",
+					"highContrast": "#FFFF00"
+				}
 			}
 		]
 	},

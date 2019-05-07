@@ -1,5 +1,6 @@
 namespace Ionide.VSCode.FSharp
 
+open Fable.Core
 open Fable.Import.vscode
 open Fable.Import.Node
 
@@ -26,7 +27,7 @@ module QuickInfoProject =
                     item.Value.text <- "$(circuit-board) Not in a F# project"
                     item.Value.tooltip <- sprintf "%s is not in any project known to Ionide" fileNameOnly
                     item.Value.command <- "fsharp.AddFileToProject"
-                    item.Value.color <- "#FFCC00"
+                    item.Value.color <- ThemeColor "fsharp.statusBarWarnings" |> U2.Case2
                     item.Value.show()
                 | _ -> ()
             | Some p ->
