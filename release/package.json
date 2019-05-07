@@ -1328,11 +1328,6 @@
 					"default": false,
 					"description": "Disables popup notifications for failed project loading"
 				},
-				"FSharp.notifyFsNotInFsproj": {
-					"type": "boolean",
-					"default": true,
-					"description": "Disables popup notifications for .fs files outside of project"
-				},
 				"FSharp.enableBackgroundSymbolCache": {
 					"type": "boolean",
 					"default": false,
