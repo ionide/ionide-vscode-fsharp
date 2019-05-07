@@ -76,7 +76,6 @@ module Option =
 
 [<RequireQualifiedAccess>]
 module Document =
-
     let (|FSharp|CSharp|VB|Other|) (document : TextDocument) =
         if document.languageId = "fsharp" then FSharp
         else if document.languageId = "csharp" then CSharp

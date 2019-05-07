@@ -130,7 +130,7 @@ let activate (context : ExtensionContext) : Api =
     }
 
     let event = Fable.Import.vscode.EventEmitter<DTO.Project>()
-    Project.projectLoaded.event.Invoke(fun n ->
+    Project.projectLoaded.Invoke(fun n ->
         !!(setTimeout (fun _ -> event.fire n) 500.)
     ) |> ignore
 

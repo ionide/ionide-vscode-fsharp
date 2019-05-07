@@ -48,7 +48,9 @@ module Project =
 
     let projectNotRestoredLoaded = EventEmitter<string>()
 
-    let projectLoaded = EventEmitter<Project>()
+    let private projectLoadedEmitter = EventEmitter<Project>()
+
+    let projectLoaded = projectLoadedEmitter.event
 
     let workspaceLoaded = EventEmitter<unit>()
 
@@ -220,7 +222,7 @@ module Project =
 
         let loaded (pr : ProjectResult) =
             if isNotNull pr then
-                projectLoaded.fire (pr.Data)
+                projectLoadedEmitter.fire (pr.Data)
                 Some (pr.Data.Project, (ProjectLoadingState.Loaded pr.Data))
             else
                 None
@@ -656,7 +658,7 @@ module Project =
         let projStatus =
             match res with
             | Choice1Of4 (pr: ProjectResult) ->
-                projectLoaded.fire (pr.Data)
+                projectLoadedEmitter.fire (pr.Data)
                 Some (true, pr.Data.Project, (ProjectLoadingState.Loaded pr.Data))
             | Choice2Of4 (pr: ProjectLoadingResult) ->
                 Some (false, pr.Data.Project, (ProjectLoadingState.Loading pr.Data.Project))

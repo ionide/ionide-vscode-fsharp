@@ -191,7 +191,7 @@ module Errors =
         let d = ("FSharp.customTypecheckingDelay" |> Configuration.get -1.)
         customDelay <- d
         let allowBackgroundParsing = not ("FSharp.minimizeBackgroundParsing" |> Configuration.get false)
-        Project.projectLoaded.event $ (parseVisibleFileInProject, (), context.subscriptions) |> ignore
+        Project.projectLoaded $ (parseVisibleFileInProject, (), context.subscriptions) |> ignore
 
 
         deleteWatcher.onDidDelete $ (fun (uri : Uri) ->
