@@ -1328,11 +1328,6 @@
 					"default": false,
 					"description": "Disables popup notifications for failed project loading"
 				},
-				"FSharp.notifyFsNotInFsproj": {
-					"type": "boolean",
-					"default": true,
-					"description": "Disables popup notifications for .fs files outside of project"
-				},
 				"FSharp.enableBackgroundSymbolCache": {
 					"type": "boolean",
 					"default": false,
@@ -1484,6 +1479,15 @@
 					"dark": "#696969",
 					"light": "#919191",
 					"highContrast": "#A2E2A2"
+				}
+			},
+			{
+				"id": "fsharp.statusBarWarnings",
+				"description": "Text colors for warnings shown in the status bar",
+				"defaults": {
+					"dark": "#FFCC00",
+					"light": "#FFCC00",
+					"highContrast": "#FFFF00"
 				}
 			}
 		]
