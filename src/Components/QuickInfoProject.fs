@@ -21,10 +21,10 @@ module QuickInfoProject =
             match proj with
             | None ->
                 match te.document with
-                | Document.FSharp when path.extname te.document.fileName <> ".fsx" ->
-                    item.Value.text <- "$(circuit-board) Not in a project"
+                | Document.FSharp when path.extname te.document.fileName <> ".fsx" && not (te.document.isUntitled) ->
+                    item.Value.text <- "$(circuit-board) Not in a F# project"
                     item.Value.tooltip <- "This F# file is not in any project known to Ionide"
-                    item.Value.command <- undefined
+                    item.Value.command <- "fsharp.AddFileToProject"
                     item.Value.color <- "#FFCC00"
                     item.Value.show()
                 | _ -> ()
