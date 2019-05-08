@@ -491,7 +491,7 @@ module SolutionExplorer =
 
         let treeViewId = ShowInActivity.initializeAndGetId ()
 
-        Project.workspaceChanged.event.Invoke(fun _ ->
+        Project.workspaceChanged.Invoke(fun _ ->
             emiter.fire (undefined) |> unbox)
         |> context.subscriptions.Add
 

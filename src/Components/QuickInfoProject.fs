@@ -58,3 +58,18 @@ module QuickInfoProject =
             handler window.activeTextEditor
             undefined)
         |> context.subscriptions.Add
+
+        Project.projectNotRestoredLoaded.Invoke(fun _project ->
+            handler window.activeTextEditor
+            undefined)
+        |> context.subscriptions.Add
+
+        Project.workspaceChanged.Invoke(fun _workspacePeek ->
+            handler window.activeTextEditor
+            undefined)
+        |> context.subscriptions.Add
+
+        Project.workspaceLoaded.Invoke(fun () ->
+            handler window.activeTextEditor
+            undefined)
+        |> context.subscriptions.Add

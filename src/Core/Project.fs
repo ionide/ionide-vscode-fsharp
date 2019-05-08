@@ -44,15 +44,17 @@ module Project =
 
     let setAnyProjectContext = Context.cachedSetter<bool> "fsharp.project.any"
 
-    let workspaceChanged = EventEmitter<WorkspacePeekFound>()
+    let private workspaceChangedEmitter = EventEmitter<WorkspacePeekFound>()
+    let workspaceChanged = workspaceChangedEmitter.event
 
-    let projectNotRestoredLoaded = EventEmitter<string>()
+    let private projectNotRestoredLoadedEmitter = EventEmitter<string>()
+    let projectNotRestoredLoaded = projectNotRestoredLoadedEmitter.event
 
     let private projectLoadedEmitter = EventEmitter<Project>()
-
     let projectLoaded = projectLoadedEmitter.event
 
-    let workspaceLoaded = EventEmitter<unit>()
+    let private workspaceLoadedEmitter = EventEmitter<unit>()
+    let workspaceLoaded = workspaceLoadedEmitter.event
 
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files"; ".fable"; "node_modules" |]
 
@@ -231,10 +233,10 @@ module Project =
             let (msg : string), (err : ErrorData) = unbox b
             match err with
             | ErrorData.ProjectNotRestored _d when not comingFromRestore ->
-                projectNotRestoredLoaded.fire path
+                projectNotRestoredLoadedEmitter.fire path
                 Some (path, ProjectLoadingState.NotRestored (path, msg) )
             | _ when not comingFromRestore && isSDKProjectPath path ->
-                projectNotRestoredLoaded.fire path
+                projectNotRestoredLoadedEmitter.fire path
                 Some (path, (ProjectLoadingState.Failed (path, msg)))
             | _ ->
                 Some (path, (ProjectLoadingState.Failed (path, msg)))
@@ -245,7 +247,7 @@ module Project =
                 match proj with
                 | Some (path, state) ->
                     updateInWorkspace path state
-                    loadedWorkspace |> Option.iter (workspaceChanged.fire)
+                    loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
                     setAnyProjectContext true
                 | None ->
                     () )
@@ -665,7 +667,7 @@ module Project =
             | Choice3Of4 (msg, err) ->
                 match err with
                 | ErrorData.ProjectNotRestored d ->
-                    projectNotRestoredLoaded.fire d.Project
+                    projectNotRestoredLoadedEmitter.fire d.Project
                     Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
                 | ErrorData.ProjectParsingFailed d ->
                     if not disableShowNotification && d.Project.EndsWith(".fsproj") then
@@ -689,14 +691,14 @@ module Project =
             | Choice4Of4 msg ->
                 match msg with
                 | "finished" ->
-                    workspaceLoaded.fire ()
+                    workspaceLoadedEmitter.fire ()
                     None
                 | _ -> None
 
         match projStatus with
         | Some (isDone, path, state) ->
             updateInWorkspace path state
-            loadedWorkspace |> Option.iter (workspaceChanged.fire)
+            loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
             if isDone then setAnyProjectContext true
         | None ->
             ()
@@ -705,7 +707,7 @@ module Project =
         let disableInMemoryProject = "FSharp.disableInMemoryProjectReferences" |> Configuration.get false
         clearLoadedProjects ()
         loadedWorkspace <- Some x
-        workspaceChanged.fire x
+        workspaceChangedEmitter.fire x
         let projs =
             match x with
             | WorkspacePeekFound.Directory dir ->
