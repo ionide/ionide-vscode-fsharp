@@ -384,7 +384,7 @@ module MSBuild =
             | None -> undefined
         ) |> context.subscriptions.Add
 
-        Project.projectNotRestoredLoaded.event.Invoke(fun n -> restoreProjectWithoutParseData n |> unbox)
+        Project.projectNotRestoredLoaded.Invoke(fun n -> restoreProjectWithoutParseData n |> unbox)
         |> context.subscriptions.Add
 
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> context.subscriptions.Add
