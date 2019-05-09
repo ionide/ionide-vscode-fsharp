@@ -285,13 +285,18 @@ module LanguageService =
         |> requestCanFail "project" 0 (makeRequestId())
         |> Promise.map deserializeProjectResult
         |> Promise.onFail(fun _ ->
-            let msg = "Project parsing failed: " + path.basename(s)
-            vscode.window.showErrorMessage(msg, "Show status")
-            |> Promise.map(fun res ->
-                if res = "Show status" then
-                    ShowStatus.CreateOrShow(s, (path.basename(s)))
-            )
-            |> ignore
+            let disableShowNotification = "FSharp.disableFailedProjectNotifications" |> Configuration.get false
+            if not disableShowNotification then
+                let msg = "Project parsing failed: " + path.basename(s)
+                vscode.window.showErrorMessage(msg, "Disable notification", "Show status")
+                |> Promise.map(fun res ->
+                    if res = "Disable notification" then
+                        Configuration.set "FSharp.disableFailedProjectNotifications" true
+                        |> ignore
+                    if res = "Show status" then
+                        ShowStatus.CreateOrShow(s, (path.basename(s)))
+                )
+                |> ignore
         )
 
     let parse path (text : string) (version : float) =
