@@ -1,3 +1,8 @@
+### 3.36.2 - 06.05.2019
+* Replace "not in project warning" with status bar indicator
+* Ensure "Not in project" warning show when it should
+* Add Declared Types to the panel
+
 ### 3.36.1 - 06.05.2019
 * Update FSAC
 * Add missing config for FSharp.notifyFsNotInFsproj
