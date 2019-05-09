@@ -59,6 +59,7 @@ module DTO =
           Functions : string list
           Interfaces: string list
           Attributes: string list
+          Types: string list
           Signature : string
           Comment : string
           Footer : string }

@@ -604,10 +604,10 @@ NUGET
       FSharp.Core (>= 4.3.4) - restriction: >= netstandard2.0
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (df18ab51fb2ca6f3570393e76c2191dfa271bad5)
+     (1101debe2aa58f2246e8be5b99ae43dcac200c68)
       build: build.cmd LocalRelease
       os: windows
-     (df18ab51fb2ca6f3570393e76c2191dfa271bad5)
+     (1101debe2aa58f2246e8be5b99ae43dcac200c68)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git

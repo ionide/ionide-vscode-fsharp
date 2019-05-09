@@ -119,12 +119,23 @@ module InfoPanel =
                     |> List.distinct
                     |> fsharpBlock
 
+                let types =
+                    res.Types
+                    |> List.filter (not << String.IsNullOrWhiteSpace)
+                    |> List.distinct
+                    |> fsharpBlock
+
                 let res =
                     [|
                         yield sigContent
                         if not (String.IsNullOrWhiteSpace commentContent) then
                             yield "---"
                             yield commentContent
+                            yield "\n"
+                        if not (String.IsNullOrWhiteSpace types) then
+                            yield "---"
+                            yield "#### Declared Types"
+                            yield types
                             yield "\n"
                         if not (String.IsNullOrWhiteSpace attrs) then
                             yield "---"
