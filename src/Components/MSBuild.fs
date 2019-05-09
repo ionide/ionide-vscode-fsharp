@@ -159,7 +159,17 @@ module MSBuild =
             | None -> getMSbuildHostType ()
 
         theMSbuildHostType
-        |> Promise.bind (function None -> Promise.empty | Some h -> executeWithHost h)
+        |> Promise.bind (fun t ->
+            match t with
+            | None -> Promise.empty
+            | Some h ->
+                let progressOpts = createEmpty<ProgressOptions>
+                progressOpts.location <- ProgressLocation.Window
+                window.withProgress(progressOpts, (fun p ->
+                    let pm = createEmpty<ProgressMessage>
+                    pm.message <- "Running MsBuild " + target
+                    p.report pm
+                    executeWithHost h)))
 
     /// discovers the project that the active document belongs to and builds that
     let buildCurrentProject target =
