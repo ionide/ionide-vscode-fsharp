@@ -10,15 +10,16 @@ open Fable.Import.Node
 open DTO
 open Ionide.VSCode.Helpers
 
+
 module Rename =
 
     let private createProvider () =
-        let mapResult (doc : TextDocument) (newName : string) (o : SymbolUseResult) =
+        let mapResult (newName : string) (o : SymbolUseResult) =
             let res = WorkspaceEdit ()
             if isNotNull o then
                 o.Data.Uses |> Array.iter (fun s ->
+                    let s  = {s with StartColumn = s.EndColumn - o.Data.Name.Length}
                     let range = CodeRange.fromSymbolUse s
-                    let te = TextEdit.replace(range, newName)
                     let uri = Uri.file s.FileName
                     res.replace(uri,range, newName))
             res
@@ -28,7 +29,7 @@ module Rename =
             member this.provideRenameEdits(doc, pos, newName, _ ) =
                 promise {
                     let! res = LanguageService.symbolUseProject (doc.fileName) (int pos.line + 1) (int pos.character + 1)
-                    return mapResult doc newName res
+                    return mapResult newName res
                 } |> U2.Case2}
 
 
