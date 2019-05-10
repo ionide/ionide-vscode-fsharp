@@ -1,3 +1,13 @@
+### 3.37.0 - 10.05.2019
+* Add "Diable notification" to the project parsing failed in all cases
+* Fix rename of symbols using qualified identifier
+* Fix styling of parameter hints
+* Add progress notification for MsBuild operations
+* Add SelectionRange provier
+* Update FSAC:
+    - fix Go-to-Symbol-in-Workspace
+    - SelectionRange backend
+
 ### 3.36.2 - 06.05.2019
 * Replace "not in project warning" with status bar indicator
 * Ensure "Not in project" warning show when it should
