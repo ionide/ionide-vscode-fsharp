@@ -3,6 +3,10 @@
 [<ReflectedDefinition>]
 module DTO =
 
+    type Pos =
+        { Line : int
+          Column : int }
+
     type ParseRequest =
         { FileName : string
           IsAsync : bool
@@ -38,6 +42,8 @@ module DTO =
         { Directory : string
           Deep : int
           ExcludedDirs : string[] }
+
+    type RangesAtPositionRequest = {FileName: string; Positions:Pos[]}
 
     type WorkspaceLoadRequest = { Files : string[]; DisableInMemoryProjectReferences: bool }
 
@@ -154,9 +160,6 @@ module DTO =
           EndColumn : int
           EndLine : int }
 
-    type Pos =
-        { Line : int
-          Column : int }
 
     type Symbol =
         { UniqueName : string
@@ -270,6 +273,8 @@ module DTO =
         { OutputType : string
           Parameters : Parameter list list }
 
+    type RangesAtPosition = {Ranges: Range list list}
+
     type WorkspacePeek = { Found : WorkspacePeekFound [] }
     and WorkspacePeekFound =
         | Directory of WorkspacePeekFoundDirectory
@@ -357,5 +362,6 @@ module DTO =
     type UnusedOpensResult = Result<UnusedOpens>
     type UnusedDeclarationsResult = Result<UnusedDeclarations>
     type SimplifiedNameResult = Result<SimplifiedName>
+    type RangesAtPositionsResult = Result<RangesAtPosition>
     type CompileResult = Result<CompileData>
     type AnalyzerResult = Result<AnalyzerResponse>

@@ -103,6 +103,7 @@ let activate (context : ExtensionContext) : Api =
         SignatureData.activate context
         Debugger.activate context
         Diagnostics.activate context
+        SmartSelection.activate df' context
 
     )
     |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises

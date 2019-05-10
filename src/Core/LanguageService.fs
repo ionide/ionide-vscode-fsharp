@@ -476,6 +476,10 @@ module LanguageService =
         { ProjectRequest.FileName = s }
         |> request "registerAnalyzer" 0 (makeRequestId())
 
+    let rangesAtPosition fn pos : JS.Promise<RangesAtPositionsResult> =
+        { RangesAtPositionRequest.FileName = fn; Positions = pos }
+        |> request "rangesAtPositions" 0 (makeRequestId())
+
     let private fsacConfig () =
         compilerLocation ()
         |> Promise.map (fun c -> c.Data)

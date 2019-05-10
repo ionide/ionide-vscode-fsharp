@@ -70,6 +70,7 @@
     <Compile Include="Components/SolutionExplorer.fs" />
     <Compile Include="Components/HtmlConverter.fs" />
     <Compile Include="Components/InfoPanel.fs" />
+    <Compile Include="Components/SmartSelection.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
