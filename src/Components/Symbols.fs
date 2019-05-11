@@ -65,8 +65,7 @@ module Symbols =
             )
             let toRemove = relations |> Seq.map (fun (i,p) -> xs.[i] )
             let xs = xs |> Seq.filter (fun n -> not (toRemove |> Seq.contains n)) |> ResizeArray
-
-            head.children <- xs
+            head.children.AddRange xs
             [head]
 
         { new DocumentSymbolProvider
