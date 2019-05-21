@@ -1,3 +1,7 @@
+### 3.38.0 - 21.05.2019
+* Fix document symbol not displaying childs of top module/namespace
+* Add FSDN command
+
 ### 3.37.0 - 10.05.2019
 * Add "Diable notification" to the project parsing failed in all cases
 * Fix rename of symbols using qualified identifier
