@@ -56,7 +56,7 @@ module InfoPanel =
 
         let mapContent res =
             if isNotNull res then
-                let res = (res.Data |> Array.concat).[0]
+                let res : DocumentationDescription = (res.Data |> Array.concat).[0]
 
                 let fsharpBlock lines =
                     let cnt = (lines |> String.concat "\n")

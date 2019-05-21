@@ -102,6 +102,7 @@ let activate (context : ExtensionContext) : Api =
         MSBuild.activate context
         SignatureData.activate context
         Debugger.activate context
+        Fsdn.activate context
         Diagnostics.activate context
         SmartSelection.activate df' context
 

@@ -236,6 +236,9 @@ module DTO =
           Info : ProjectResponseInfo
           AdditionalInfo : Map<string, string> }
 
+    type FsdnRequest =
+        { Signature: string }
+
     type OpenNamespace =
         { Namespace : string
           Name : string
@@ -302,6 +305,9 @@ module DTO =
           ConfigurationName : string
           PlatformName : string }
 
+    type FsdnResponse =
+        { Functions: string [] }
+
     type ResponseError<'T> =
         { Code : int
           Message : string
@@ -365,3 +371,4 @@ module DTO =
     type RangesAtPositionsResult = Result<RangesAtPosition>
     type CompileResult = Result<CompileData>
     type AnalyzerResult = Result<AnalyzerResponse>
+    type FsdnResult = Result<FsdnResponse>

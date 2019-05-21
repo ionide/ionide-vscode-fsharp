@@ -194,6 +194,10 @@
 				"title": "F#: Change Workspace or Solution"
 			},
 			{
+				"command": "fsharp.fsdn",
+				"title": "F#: Search by signatures on FSDN"
+			},
+			{
 				"command": "MSBuild.buildCurrent",
 				"title": "MSBuild: Build current project"
 			},
