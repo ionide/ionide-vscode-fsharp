@@ -233,8 +233,6 @@ module Forge =
                         sprintf "remove project -n %s -p %s" (quotePath ref) (quotePath edit) |> spawnForge |> ignore
         }
 
-    let private logger = ConsoleAndOutputChannelLogger(Some "Forge", Level.DEBUG, None, Some Level.DEBUG)
-
     let newProject () =
         promise {
             if node.fs.existsSync (U2.Case1 templateLocation) then
