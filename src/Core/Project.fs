@@ -738,7 +738,7 @@ module Project =
             | FSharpWorkspaceLoader.Projects ->
                 Promise.executeForAll (load false)
             | FSharpWorkspaceLoader.WorkspaceLoad ->
-                LanguageService.workspaceLoad disableInMemoryProject
+                LanguageService.workspaceLoad
 
         projs
         |> List.ofArray
