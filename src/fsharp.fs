@@ -18,7 +18,7 @@ type Api =
       GetProjectLauncher : OutputChannel -> DTO.Project -> (string -> Fable.Import.JS.Promise<ChildProcess>) option
       DebugProject : DTO.Project -> string [] -> Fable.Import.JS.Promise<unit> }
 
-let activate (context : ExtensionContext) : Api =
+let activate (context : ExtensionContext) : Fable.Import.JS.Promise<Api> =
     let df = createEmpty<DocumentFilter>
     df.language <- Some "fsharp"
     let df' : DocumentSelector = df |> U3.Case2
@@ -31,7 +31,7 @@ let activate (context : ExtensionContext) : Api =
 
     let init = DateTime.Now
 
-    LanguageService.start ()
+    LanguageService.start context
     |> Promise.onSuccess (fun _ ->
         let progressOpts = createEmpty<ProgressOptions>
         progressOpts.location <- ProgressLocation.Window
@@ -39,9 +39,6 @@ let activate (context : ExtensionContext) : Api =
             let pm = createEmpty<ProgressMessage>
             pm.message <- "Loading projects"
             p.report pm
-            LineLens.activate context
-
-            if solutionExplorer then SolutionExplorer.activate context
 
             Project.activate context
             |> Promise.onSuccess(fun _ -> QuickInfoProject.activate context )
@@ -50,54 +47,50 @@ let activate (context : ExtensionContext) : Api =
                     commands.executeCommand(VSCodeExtension.workbeachViewId ())
                     |> ignore
         )))
-        |> Promise.onSuccess (fun _ ->
-            let e = DateTime.Now - init
-            printfn "Startup took: %f ms" e.TotalMilliseconds
-        )
         |> ignore
-
-
+    )
+    |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
+    |> Promise.map (fun _ ->
+        if solutionExplorer then SolutionExplorer.activate context
+        LineLens.activate context
+        QuickInfo.activate context
         Help.activate context
         MSBuild.activate context
         SignatureData.activate context
         Debugger.activate context
         Fsdn.activate context
+        Forge.activate context
+        Fsi.activate context
+        ScriptRunner.activate context
+        LanguageConfiguration.activate context
+        HtmlConverter.activate context
+        InfoPanel.activate context
 
+        let buildProject project = promise {
+            let! exit = MSBuild.buildProjectPath "Build" project
+            match exit.Code with
+            | Some code -> return code.ToString()
+            | None -> return ""
+        }
+
+        let buildProjectFast project = promise {
+            let! exit = MSBuild.buildProjectPathFast project
+            match exit.Code with
+            | Some code -> return code.ToString()
+            | None -> return ""
+        }
+
+        let event = Fable.Import.vscode.EventEmitter<DTO.Project>()
+        Project.projectLoaded.Invoke(fun n ->
+            !!(setTimeout (fun _ -> event.fire n) 500.)
+        ) |> ignore
+
+        { ProjectLoadedEvent = event.event
+          BuildProject = buildProject
+          BuildProjectFast = buildProjectFast
+          GetProjectLauncher = Project.getLauncher
+          DebugProject = debugProject }
     )
-    |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
-    |> ignore
-
-    Forge.activate context
-    Fsi.activate context
-    ScriptRunner.activate context
-    LanguageConfiguration.activate context
-    HtmlConverter.activate context
-    InfoPanel.activate context
-
-    let buildProject project = promise {
-        let! exit = MSBuild.buildProjectPath "Build" project
-        match exit.Code with
-        | Some code -> return code.ToString()
-        | None -> return ""
-    }
-
-    let buildProjectFast project = promise {
-        let! exit = MSBuild.buildProjectPathFast project
-        match exit.Code with
-        | Some code -> return code.ToString()
-        | None -> return ""
-    }
-
-    let event = Fable.Import.vscode.EventEmitter<DTO.Project>()
-    Project.projectLoaded.Invoke(fun n ->
-        !!(setTimeout (fun _ -> event.fire n) 500.)
-    ) |> ignore
-
-    { ProjectLoadedEvent = event.event
-      BuildProject = buildProject
-      BuildProjectFast = buildProjectFast
-      GetProjectLauncher = Project.getLauncher
-      DebugProject = debugProject }
 
 let deactivate(disposables : Disposable[]) =
     LanguageService.stop ()

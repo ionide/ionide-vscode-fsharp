@@ -230,7 +230,7 @@ module DecorationUpdate =
                 return Some info
             | None when document.version = version ->
                 let text = document.getText()
-                let! declarationsResult = LanguageService.declarations fileName text (unbox version)
+                let! declarationsResult = LanguageService.lineLenses fileName
                 if document.version = version && isNotNull declarationsResult then
                     let! signatures = declarationsResultToSignatures declarationsResult fileName
                     let info = state.documents |> Documents.getOrAdd fileName
