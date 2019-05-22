@@ -61,6 +61,10 @@ module LanguageService =
             Project: TextDocumentIdentifier
         }
 
+        type WorkspaceLoadParms = {
+            TextDocuments: TextDocumentIdentifier[]
+        }
+
     let mutable client : LanguageClient option = None
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
@@ -176,7 +180,7 @@ module LanguageService =
         | None -> Promise.empty
         | Some cl ->
             let req : Types.FileParams= {
-                Project = {Uri = handleUntitled signature}
+                Project = {Uri = signature}
             }
             cl.sendRequest("fsharp/fsdn", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
@@ -185,22 +189,37 @@ module LanguageService =
             )
 
 
-    let project s =
-        let deserializeProjectResult (res : ProjectResult) =
-            let parseInfo (f : obj) =
-                match f?SdkType |> unbox with
-                | "dotnet/sdk" ->
-                    ProjectResponseInfo.DotnetSdk (f?Data |> unbox)
-                | "verbose" ->
-                    ProjectResponseInfo.Verbose
-                | "project.json" ->
-                    ProjectResponseInfo.ProjectJson
-                | _ ->
-                    f |> unbox
+    let private deserializeProjectResult (res : ProjectResult) =
+        let parseInfo (f : obj) =
+            match f?SdkType |> unbox with
+            | "dotnet/sdk" ->
+                ProjectResponseInfo.DotnetSdk (f?Data |> unbox)
+            | "verbose" ->
+                ProjectResponseInfo.Verbose
+            | "project.json" ->
+                ProjectResponseInfo.ProjectJson
+            | _ ->
+                f |> unbox
 
-            { res with
-                Data = { res.Data with
-                            Info = parseInfo(res.Data.Info) } }
+        { res with
+            Data = { res.Data with
+                        Info = parseInfo(res.Data.Info) } }
+
+    let parseError (err : obj) =
+        let data =
+            match err?Code |> unbox with
+            | ErrorCodes.GenericError ->
+                ErrorData.GenericError
+            | ErrorCodes.ProjectNotRestored ->
+                ErrorData.ProjectNotRestored (err?AdditionalData |> unbox)
+            | ErrorCodes.ProjectParsingFailed ->
+                ErrorData.ProjectParsingFailed (err?AdditionalData |> unbox)
+            | unknown ->
+                //todo log not recognized for Debug
+                ErrorData.GenericError
+        (err?Message |> unbox<string>), data
+
+    let project s =
 
         match client with
         | None -> Promise.empty
@@ -269,15 +288,27 @@ module LanguageService =
         let parse (ws : obj) =
             { WorkspacePeek.Found = ws?Found |> unbox |> Array.choose mapFound }
 
-        // { WorkspacePeekRequest.Directory = dir; Deep = deep; ExcludedDirs = excludedDirs |> Array.ofList }
-        // |> request "workspacePeek" 0 (makeRequestId())
-        // |> Promise.map (fun res -> parse (res?Data |> unbox))
-        undefined<WorkspacePeek> |> Promise.lift
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req = { WorkspacePeekRequest.Directory = dir; Deep = deep; ExcludedDirs = excludedDirs |> Array.ofList }
+            cl.sendRequest("fsharp/workspacePeek", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                let res = res.content |> ofJson<obj>
+                parse (res?Data |> unbox)
+            )
 
-    let workspaceLoad disableInMemoryProject projects  =
-        // { WorkspaceLoadRequest.Files = projects |> List.toArray; DisableInMemoryProjectReferences = disableInMemoryProject }
-        // |> request "workspaceLoad" 0 (makeRequestId())
-        undefined |> Promise.lift
+    let workspaceLoad (projects: string list)  =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.WorkspaceLoadParms= {
+                TextDocuments = projects |> List.map (fun s -> {Types.Uri = s}) |> List.toArray
+            }
+            cl.sendRequest("fsharp/workspaceLoad", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                ()
+            )
 
     let private fsacConfig () =
         compilerLocation ()
@@ -370,6 +401,11 @@ module LanguageService =
                         "language" ==> "fsharp"
                     ] |> unbox<Client.DocumentSelector>
 
+                let initOpts =
+                    createObj [
+                        "AutomaticWorkspaceInit" ==> false
+                    ]
+
                 let synch = createEmpty<Client.SynchronizeOptions>
                 synch.configurationSection <- Some !^"fsharp"
                 synch.fileEvents <- Some( !^ ResizeArray([fileDeletedWatcher]))
@@ -377,6 +413,8 @@ module LanguageService =
                 opts.documentSelector <- Some !^selector
                 opts.synchronize <- Some synch
 
+
+                opts.initializationOptions <- Some !^(Some initOpts)
 
                 opts
 
@@ -386,14 +424,26 @@ module LanguageService =
             return!
                 cl.onReady ()
                 |> Promise.onSuccess (fun _ ->
-                    cl.onNotification("fsharp/notifyWorkspace", (fun a ->
-                        printfn "WORKSPACE: %A" a
-                        ()
+                    cl.onNotification("fsharp/notifyWorkspace", (fun (a: Types.PlainNotification) ->
+                        match Notifications.notifyWorkspaceHandler with
+                        | None -> ()
+                        | Some cb ->
+                            let onMessage res =
+                                match res?Kind |> unbox with
+                                | "project" ->
+                                    res |> unbox<ProjectResult> |> deserializeProjectResult |> Choice1Of4 |> cb
+                                | "projectLoading" ->
+                                    res |> unbox<ProjectLoadingResult> |> Choice2Of4 |> cb
+                                | "error" ->
+                                    res?Data |> parseError |> Choice3Of4 |> cb
+                                | "workspaceLoad" ->
+                                    res?Data?Status |> unbox<string> |> Choice4Of4 |> cb
+                                | _ ->
+                                    ()
+                            let res = a.content |> ofJson<obj>
+                            onMessage res
                     ))
-
-
                 )
-
         }
 
     let stop () =

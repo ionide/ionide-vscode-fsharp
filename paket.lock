@@ -613,10 +613,10 @@ NUGET
       FSharp.Core (>= 4.3.4) - restriction: >= netstandard2.0
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (bfa7f587cf5cb98619dccc1c7e3434bc6154cffc)
+     (109777b2876756021648377ee6a0eaa288c75d02)
       build: build.cmd LocalRelease
       os: windows
-     (bfa7f587cf5cb98619dccc1c7e3434bc6154cffc)
+     (109777b2876756021648377ee6a0eaa288c75d02)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
@@ -627,7 +627,7 @@ GIT
       build: build.sh Build
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (b2100c95d7857c5421d111a860fcdd20954a0263)
+     (b57388e5a0971412c081cf0cea8b50b9c24ea4e8)
 GITHUB
   remote: ionide/ionide-vscode-helpers
     src/Fable.Import.Showdown.fs (2c171bb4ccab0db3b1704389cdc736f9a23682d9)
