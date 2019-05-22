@@ -176,7 +176,7 @@ module InfoPanel =
                 if isFsharpTextEditor textEditor && selections.Count > 0 then
                     let doc = textEditor.document
                     let pos = selections.[0].active
-                    let! res = LanguageService.documentation doc.fileName (int pos.line + 1) (int pos.character + 1)
+                    let! res = LanguageService.documentation doc.fileName (int pos.line) (int pos.character)
                     let res = mapContent res
                     match res with
                     | None -> ()
@@ -190,7 +190,7 @@ module InfoPanel =
             promise {
                 if isFsharpTextEditor textEditor  then
                     let doc = textEditor.document
-                    let! res = LanguageService.documentation doc.fileName (int pos.line + 1) (int pos.character + 1)
+                    let! res = LanguageService.documentation doc.fileName (int pos.line) (int pos.character)
                     let res = mapContent res
                     match res with
                     | None -> ()

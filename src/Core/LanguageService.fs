@@ -9,6 +9,7 @@ open Fable.Import.Node
 open Ionide.VSCode.Helpers
 
 open DTO
+open LanguageServer
 
 module Notifications =
     type DocumentParsedEvent =
@@ -19,6 +20,7 @@ module Notifications =
           document : TextDocument
           result : ParseResult }
 
+
     let private onDocumentParsedEmitter = EventEmitter<DocumentParsedEvent>()
     let onDocumentParsed = onDocumentParsedEmitter.event
 
@@ -28,56 +30,160 @@ module Notifications =
     let mutable notifyWorkspaceHandler : Option<Choice<ProjectResult,ProjectLoadingResult,(string * ErrorData),string> -> unit> = None
 
 module LanguageService =
+    module internal Types =
+        type PlainNotification= { content: string }
+
+        /// Position in a text document expressed as zero-based line and zero-based character offset.
+        /// A position is between two characters like an ‘insert’ cursor in a editor.
+        type Position = {
+            /// Line position in a document (zero-based).
+            Line: int
+
+            /// Character offset on a line in a document (zero-based). Assuming that the line is
+            /// represented as a string, the `character` value represents the gap between the
+            /// `character` and `character + 1`.
+            ///
+            /// If the character value is greater than the line length it defaults back to the
+            /// line length.
+            Character: int
+        }
+
+        type DocumentUri = string
+
+        type TextDocumentIdentifier = {Uri: DocumentUri }
+
+        type TextDocumentPositionParams = {
+            TextDocument: TextDocumentIdentifier
+            Position: Position
+        }
+
+        type FileParams = {
+            Project: TextDocumentIdentifier
+        }
+
+    let mutable client : LanguageClient option = None
+
+    let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
+
 
     let compilerLocation () =
-        //"" |> request<string, CompilerLocationResult> "compilerlocation" 0 (makeRequestId())
-        undefined<CompilerLocationResult> |> Promise.lift
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            cl.sendRequest("fsharp/compilerLocation", null)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                let r = res.content |> ofJson<CompilerLocationResult>
+                r
+            )
+
 
     let f1Help fn line col : JS.Promise<Result<string>> =
-        // { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
-        // |> request "help" 0 (makeRequestId())
-        undefined<Result<string>> |> Promise.lift
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.TextDocumentPositionParams= {
+                TextDocument = {Uri = handleUntitled fn}
+                Position = {Line = line; Character = col}
+            }
+
+            cl.sendRequest("fsharp/f1Help", req )
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<Result<string>>
+            )
 
     let documentation fn line col =
-        // { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
-        // |> request "documentation" 0 (makeRequestId())
-        undefined |> Promise.lift
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.TextDocumentPositionParams= {
+                TextDocument = {Uri = handleUntitled fn}
+                Position = {Line = line; Character = col}
+            }
+
+            cl.sendRequest("fsharp/documentation", req )
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<Result<DocumentationDescription[][]>>
+            )
 
     let documentationForSymbol xmlSig assembly =
-        // { DocumentationForSymbolReuqest.Assembly = assembly; XmlSig = xmlSig}
-        // |> request "documentationForSymbol" 0 (makeRequestId())
-        undefined |> Promise.lift
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req = { DocumentationForSymbolReuqest.Assembly = assembly; XmlSig = xmlSig}
+
+            cl.sendRequest("fsharp/documentationSymbol", req )
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<Result<DocumentationDescription[][]>>
+            )
 
     let signature fn line col =
-        // { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
-        // |> request<_, Result<string>> "signature" 0 (makeRequestId())
-        undefined<Result<string>> |> Promise.lift
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.TextDocumentPositionParams= {
+                TextDocument = {Uri = handleUntitled fn}
+                Position = {Line = line; Character = col}
+            }
+
+            cl.sendRequest("fsharp/signature", req )
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<Result<string>>
+            )
 
     let signatureData fn line col =
-        // { PositionRequest.Line = line; FileName = handleUntitled fn; Column = col; Filter = "" }
-        // |> request "signatureData" 0 (makeRequestId())
-        undefined |> Promise.lift
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.TextDocumentPositionParams= {
+                TextDocument = {Uri = handleUntitled fn}
+                Position = {Line = line; Character = col}
+            }
 
-    let declarations fn (text : string) version =
-        // let lines = text.Replace("\uFEFF", "").Split('\n')
-        // { DeclarationsRequest.FileName = handleUntitled fn; Lines = lines; Version = version }
-        // |> request<_, Result<Symbols[]>> "declarations" 0 (makeRequestId())
-        undefined |> Promise.lift
+            cl.sendRequest("fsharp/signatureData", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<SignatureDataResult>
+            )
+
+    let lineLenses fn  =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.FileParams= {
+                Project = {Uri = handleUntitled fn}
+            }
+            cl.sendRequest("fsharp/lineLens", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<Result<Symbols[]>>
+            )
 
     let compile s =
-        // { ProjectRequest.FileName = s }
-        // |> request "compile" 0 (makeRequestId())
-        undefined |> Promise.lift
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.FileParams= {
+                Project = {Uri = handleUntitled s}
+            }
+            cl.sendRequest("fsharp/compile", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<CompileResult>
+            )
 
     let fsdn (signature: string) =
-        // let parse (ws : obj) =
-        //     { FsdnResponse.Functions = ws?Functions |> unbox }
+        let parse (ws : obj) =
+            { FsdnResponse.Functions = ws?Functions |> unbox }
 
-        // { FsdnRequest.Signature = signature }
-        // |> requestCanFail "fsdn" 0 (makeRequestId())
-        // |> Promise.map (fun res -> parse (res?Data |> unbox))
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.FileParams= {
+                Project = {Uri = handleUntitled signature}
+            }
+            cl.sendRequest("fsharp/fsdn", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                let res = res.content |> ofJson<obj>
+                parse (res?Data |> unbox)
+            )
 
-        undefined<DTO.FsdnResponse> |> Promise.lift
 
     let project s =
         let deserializeProjectResult (res : ProjectResult) =
@@ -95,24 +201,32 @@ module LanguageService =
             { res with
                 Data = { res.Data with
                             Info = parseInfo(res.Data.Info) } }
-        // { ProjectRequest.FileName = s }
-        // |> requestCanFail "project" 0 (makeRequestId())
-        // |> Promise.map deserializeProjectResult
-        // |> Promise.onFail(fun _ ->
-        //     let disableShowNotification = "FSharp.disableFailedProjectNotifications" |> Configuration.get false
-        //     if not disableShowNotification then
-        //         let msg = "Project parsing failed: " + path.basename(s)
-        //         vscode.window.showErrorMessage(msg, "Disable notification", "Show status")
-        //         |> Promise.map(fun res ->
-        //             if res = "Disable notification" then
-        //                 Configuration.set "FSharp.disableFailedProjectNotifications" true
-        //                 |> ignore
-        //             if res = "Show status" then
-        //                 ShowStatus.CreateOrShow(s, (path.basename(s)))
-        //         )
-        //         |> ignore
-        // )
-        undefined<ProjectResult> |> Promise.lift
+
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.FileParams= {
+                Project = {Uri = handleUntitled s}
+            }
+            cl.sendRequest("fsharp/project", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                let res = res.content |> ofJson<obj>
+                deserializeProjectResult (res?Data |> unbox)
+            )
+            |> Promise.onFail(fun _ ->
+                let disableShowNotification = "FSharp.disableFailedProjectNotifications" |> Configuration.get false
+                if not disableShowNotification then
+                    let msg = "Project parsing failed: " + path.basename(s)
+                    vscode.window.showErrorMessage(msg, "Disable notification", "Show status")
+                    |> Promise.map(fun res ->
+                        if res = "Disable notification" then
+                            Configuration.set "FSharp.disableFailedProjectNotifications" true
+                            |> ignore
+                        if res = "Show status" then
+                            ShowStatus.CreateOrShow(s, (path.basename(s)))
+                    )
+                    |> ignore
+            )
 
 
     let workspacePeek dir deep excludedDirs =
@@ -219,9 +333,67 @@ module LanguageService =
                 return fsacPaths.MSBuild
         }
 
-    let start () =
+    let start (c : ExtensionContext) =
         promise {
-            return ()
+            let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
+            let args =
+                [
+                    ionidePluginPath
+                    "--mode"
+                    "lsp"
+                    "--verbose"
+                ] |> ResizeArray
+            let runOpts = createObj [
+                "command" ==> "dotnet"
+                "args" ==> args
+                "transport" ==> 0
+            ]
+            let debugOpts = createObj [
+                "command" ==> "dotnet"
+                "args" ==> args
+                "transport" ==> 0
+            ]
+
+            let options =
+                createObj [
+                    "run" ==> runOpts
+                    "debug" ==> debugOpts
+                ] |> unbox<ServerOptions>
+
+            let fileDeletedWatcher = workspace.createFileSystemWatcher("**/*.{fs,fsx}", true, true, false)
+
+            let clientOpts =
+                let opts = createEmpty<Client.LanguageClientOptions>
+                let selector =
+                    createObj [
+                        "scheme" ==> "file"
+                        "language" ==> "fsharp"
+                    ] |> unbox<Client.DocumentSelector>
+
+                let synch = createEmpty<Client.SynchronizeOptions>
+                synch.configurationSection <- Some !^"fsharp"
+                synch.fileEvents <- Some( !^ ResizeArray([fileDeletedWatcher]))
+
+                opts.documentSelector <- Some !^selector
+                opts.synchronize <- Some synch
+
+
+                opts
+
+            let cl = LanguageClient("fsharp", "fsharp", options, clientOpts, false)
+            client <- Some cl
+            cl.start () |> c.subscriptions.Add
+            return!
+                cl.onReady ()
+                |> Promise.onSuccess (fun _ ->
+                    cl.onNotification("fsharp/notifyWorkspace", (fun a ->
+                        printfn "WORKSPACE: %A" a
+                        ()
+                    ))
+
+
+                )
+
         }
 
     let stop () =
