@@ -332,7 +332,7 @@ module MSBuild =
             else
                 f path
 
-        let initWorkspace _n = Project.initWorkspace (fun _ -> Promise.empty)
+        let initWorkspace _n = Project.initWorkspace ()
         let loadProject path = Project.load false path
 
         let solutionWatcher = vscode.workspace.createFileSystemWatcher("**/*.sln")

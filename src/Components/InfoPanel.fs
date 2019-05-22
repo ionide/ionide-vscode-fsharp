@@ -273,7 +273,7 @@ module InfoPanel =
             timer <- Some (setTimeout (fun () -> Panel.update event.textEditor event.selections) 500.)
 
 
-    let private documentParsedHandler (event : Errors.DocumentParsedEvent) =
+    let private documentParsedHandler (event : Notifications.DocumentParsedEvent) =
         if event.document = window.activeTextEditor.document && not Panel.locked then
             clearTimer()
             Panel.update window.activeTextEditor window.activeTextEditor.selections
@@ -303,8 +303,8 @@ module InfoPanel =
         let show = "FSharp.infoPanelShowOnStartup" |> Configuration.get false
 
         context.subscriptions.Add(window.onDidChangeTextEditorSelection.Invoke(unbox selectionChanged))
-        context.subscriptions.Add(Errors.onDocumentParsed.Invoke(unbox documentParsedHandler))
-        context.subscriptions.Add(Tooltip.tooltipRequested.Invoke(!! tooltipRequested))
+        context.subscriptions.Add(Notifications.onDocumentParsed.Invoke(unbox documentParsedHandler))
+        context.subscriptions.Add(Notifications.tooltipRequested.Invoke(!! tooltipRequested))
 
         commands.registerCommand("fsharp.openInfoPanel", openPanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsharp.updateInfoPanel", updatePanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add

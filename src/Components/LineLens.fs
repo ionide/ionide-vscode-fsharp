@@ -44,7 +44,7 @@ module LineLensConfig =
     let getConfig () =
         let cfg = workspace.getConfiguration()
         let fsharpCodeLensConfig = cfg.get("[fsharp]", JsObject.empty).tryGet<bool>("editor.codeLens")
-        
+
         { enabled = cfg.get("FSharp.lineLens.enabled", "replacecodelens") |> parseEnabledMode
           prefix = cfg.get("FSharp.lineLens.prefix", defaultConfig.prefix) }
 
@@ -142,6 +142,46 @@ type State =
 
 module DecorationUpdate =
 
+    let formatSignature (sign : SignatureData) : string =
+        let formatType =
+            function
+            | Contains "->" t -> sprintf "(%s)" t
+            | t -> t
+
+        let args =
+            sign.Parameters
+            |> List.map (fun group ->
+                group
+                |> List.map (fun p -> formatType p.Type)
+                |> String.concat " * "
+            )
+            |> String.concat " -> "
+
+        if String.IsNullOrEmpty args then sign.OutputType else args + " -> " + formatType sign.OutputType
+
+    let interestingSymbolPositions (symbols : Symbols[]) : DTO.Range[] =
+        symbols |> Array.collect(fun syms ->
+            let interestingNested =
+                syms.Nested
+                |> Array.choose (fun sym ->
+                    if sym.GlyphChar <> "Fc"
+                       && sym.GlyphChar <> "M"
+                       && sym.GlyphChar <> "F"
+                       && sym.GlyphChar <> "P"
+                       || sym.IsAbstract
+                       || sym.EnclosingEntity = "I"  // interface
+                       || sym.EnclosingEntity = "R"  // record
+                       || sym.EnclosingEntity = "D"  // DU
+                       || sym.EnclosingEntity = "En" // enum
+                       || sym.EnclosingEntity = "E"  // exception
+                    then None
+                    else Some sym.BodyRange)
+
+            if syms.Declaration.GlyphChar <> "Fc" then
+                interestingNested
+            else
+                interestingNested |> Array.append [|syms.Declaration.BodyRange|])
+
     let private lineRange (doc : TextDocument) (range : DTO.Range) : CodeRange.CodeRange =
         let lineNumber = float range.StartLine - 1.
         let textLine = doc.lineAt lineNumber
@@ -155,7 +195,7 @@ module DecorationUpdate =
                     range.StartLine
                     range.StartColumn
             let signaturesResult = if isNotNull signaturesResult then Some signaturesResult else None
-            return signaturesResult |> Option.map (fun r -> range, CodeLens.formatSignature r.Data)
+            return signaturesResult |> Option.map (fun r -> range, formatSignature r.Data)
         }
 
     let private signatureToDecoration (doc : TextDocument) (range : DTO.Range, signature : string) =
@@ -171,7 +211,7 @@ module DecorationUpdate =
 
     let private declarationsResultToSignatures declarationsResult fileName =
         promise {
-            let interesting = declarationsResult.Data |> CodeLens.interestingSymbolPositions
+            let interesting = declarationsResult.Data |> interestingSymbolPositions
             let interesting = onePerLine interesting
             let! signatures = interesting |> Array.map (getSignature fileName) |> Promise.all
             return signatures |> Seq.choose id
@@ -245,7 +285,7 @@ let private textEditorsChangedHandler (textEditors : ResizeArray<TextEditor>) =
                 DecorationUpdate.setDecorationsForEditorIfCurrentVersion textEditor state
     | None -> ()
 
-let private documentParsedHandler (event : Errors.DocumentParsedEvent) =
+let private documentParsedHandler (event : Notifications.DocumentParsedEvent) =
     match state with
     | None -> ()
     | Some state ->
@@ -270,7 +310,7 @@ let install () =
     let disposables = ResizeArray<Disposable>()
 
     disposables.Add(window.onDidChangeVisibleTextEditors.Invoke(unbox textEditorsChangedHandler))
-    disposables.Add(Errors.onDocumentParsed.Invoke(unbox documentParsedHandler))
+    disposables.Add(Notifications.onDocumentParsed.Invoke(unbox documentParsedHandler))
     disposables.Add(workspace.onDidCloseTextDocument.Invoke(unbox closedTextDocumentHandler))
 
     let newState = { decorationType = decorationType; disposables = disposables; documents = Documents.create() }
