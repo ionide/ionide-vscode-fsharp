@@ -703,7 +703,7 @@ module Project =
         | None ->
             ()
 
-    let private initWorkspaceHelper parseVisibleTextEditors x  =
+    let private initWorkspaceHelper x  =
         let disableInMemoryProject = "FSharp.disableInMemoryProjectReferences" |> Configuration.get false
         clearLoadedProjects ()
         loadedWorkspace <- Some x
@@ -743,37 +743,37 @@ module Project =
         projs
         |> List.ofArray
         |> loadProjects
-        |> Promise.bind (fun _ -> parseVisibleTextEditors ())
         |> Promise.map ignore
 
     let reinitWorkspace () =
         match loadedWorkspace with
         | None -> Promise.empty
         | Some wsp ->
-            initWorkspaceHelper (fun _ -> Promise.empty) wsp
+            initWorkspaceHelper  wsp
 
-    let initWorkspace parseVisibleTextEditors =
+    let initWorkspace () =
         getWorkspaceModeFromConfig ()
         |> getWorkspaceForMode
         |> Promise.bind (function Some x -> Promise.lift x | None -> getWorkspaceForModeIonideSearch ())
-        |> Promise.bind (initWorkspaceHelper parseVisibleTextEditors)
+        |> Promise.bind (initWorkspaceHelper)
 
-    let activate (context : ExtensionContext) parseVisibleTextEditors =
+    let activate (context : ExtensionContext) =
         CurrentWorkspaceConfiguration.setContext context
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
         |> context.subscriptions.Add
 
-        workspaceNotificationAvaiable <- LanguageService.registerNotifyWorkspace handleProjectParsedNotification
+        Notifications.notifyWorkspaceHandler <- Some handleProjectParsedNotification
+        workspaceNotificationAvaiable <- true
 
         commands.registerCommand("fsharp.changeWorkspace", (fun _ ->
             workspacePeek ()
             |> Promise.bind (fun x -> pickFSACWorkspace x (CurrentWorkspaceConfiguration.get()))
-            |> Promise.bind (function Some w -> initWorkspaceHelper parseVisibleTextEditors w  | None -> Promise.empty )
+            |> Promise.bind (function Some w -> initWorkspaceHelper w  | None -> Promise.empty )
             |> box
             ))
         |> context.subscriptions.Add
 
-        initWorkspace parseVisibleTextEditors
+        initWorkspace ()
         |> Promise.onSuccess (fun _ ->
             setTimeout (fun _ ->
                 getNotLoaded ()
