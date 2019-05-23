@@ -334,7 +334,7 @@ module ExperimentalExtension =
         let fsacDirPath = Path.Combine(vendorDirPath, "paket-files", "github.com", "fsharp", "FsAutoComplete")
 
         // restore git repo
-        run (Path.GetFullPath "paket.exe") "restore" vendorDirPath
+        run (Path.GetFullPath ".paket/paket.exe") "restore" vendorDirPath
 
         // get vnext tag
         run "git" "tag -l vnext" fsacDirPath
