@@ -407,7 +407,7 @@ module LanguageService =
                     ]
 
                 let synch = createEmpty<Client.SynchronizeOptions>
-                synch.configurationSection <- Some !^"fsharp"
+                synch.configurationSection <- Some !^"FSharp"
                 synch.fileEvents <- Some( !^ ResizeArray([fileDeletedWatcher]))
 
                 opts.documentSelector <- Some !^selector
@@ -418,7 +418,7 @@ module LanguageService =
 
                 opts
 
-            let cl = LanguageClient("fsharp", "fsharp", options, clientOpts, false)
+            let cl = LanguageClient("FSharp", "F#", options, clientOpts, false)
             client <- Some cl
             cl.start () |> c.subscriptions.Add
             return!
