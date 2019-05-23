@@ -402,8 +402,10 @@ module LanguageService =
                     ] |> unbox<Client.DocumentSelector>
 
                 let initOpts =
+                    let backgroundSymbolCache = "FSharp.enableBackgroundSymbolCache" |> Configuration.get false
                     createObj [
                         "AutomaticWorkspaceInit" ==> false
+                        "enableBackgroundSymbolCache" ==> backgroundSymbolCache
                     ]
 
                 let synch = createEmpty<Client.SynchronizeOptions>
