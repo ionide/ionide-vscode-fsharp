@@ -366,13 +366,14 @@ module LanguageService =
 
     let start (c : ExtensionContext) =
         promise {
+
+
             let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
             let args =
                 [
                     ionidePluginPath
                     "--mode"
                     "lsp"
-                    "--verbose"
                 ] |> ResizeArray
             let runOpts = createObj [
                 "command" ==> "dotnet"
@@ -414,6 +415,7 @@ module LanguageService =
 
                 opts.documentSelector <- Some !^selector
                 opts.synchronize <- Some synch
+                opts.revealOutputChannelOn <- Some Client.RevealOutputChannelOn.Never
 
 
                 opts.initializationOptions <- Some !^(Some initOpts)
