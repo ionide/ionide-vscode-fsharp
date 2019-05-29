@@ -28,7 +28,7 @@ NUGET
       Fable.Core (>= 1.3.17) - restriction: >= netstandard1.6
     Fable.Import.Node (0.4.3)
       Fable.Core (>= 1.3.8) - restriction: >= netstandard2.0
-    FSharp.Compiler.Service (28.0) - restriction: >= netcoreapp2.0
+    FSharp.Compiler.Service (29.0) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.6.2) - restriction: || (>= net461) (>= netstandard2.0)
       System.Collections.Immutable (>= 1.5) - restriction: || (>= net461) (>= netstandard2.0)
       System.Diagnostics.Process (>= 4.1) - restriction: && (< net461) (>= netstandard2.0)
@@ -613,10 +613,10 @@ NUGET
       FSharp.Core (>= 4.3.4) - restriction: >= netstandard2.0
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (9da1279ccf0f314f2197d2d645181bbc65a556ba)
+     (5307445f1cc9317129c31e12b6efba967ad51ea9)
       build: build.cmd LocalRelease
       os: windows
-     (9da1279ccf0f314f2197d2d645181bbc65a556ba)
+     (5307445f1cc9317129c31e12b6efba967ad51ea9)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
