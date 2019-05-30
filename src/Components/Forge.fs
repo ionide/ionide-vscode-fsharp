@@ -26,7 +26,7 @@ module Forge =
 
     let private location =
         let ionidePath = VSCodeExtension.ionidePluginPath ()
-        ionidePath </> "bin_forge" </> "Forge.exe"
+        ionidePath </> "bin_forge" </> "Forge.dll"
 
     let private templateLocation =
         let ionidePath = VSCodeExtension.ionidePluginPath ()
@@ -37,13 +37,14 @@ module Forge =
     let private spawnForge (cmd : string) =
         let cmd = cmd.Replace("\r", "").Replace("\n", "")
         let cmd = (cmd + " --no-prompt")
+        let cmd = location + " " + cmd
         outputChannel.clear ()
-        outputChannel.append ("forge " + cmd + "\n")
+        outputChannel.append (cmd + "\n")
 
-        Process.spawnWithNotification location "mono" cmd outputChannel
+        Process.spawnWithNotification "dotnet" "" cmd outputChannel
 
     let private execForge cmd =
-        Process.exec location "mono" (cmd + " --no-prompt")
+        Process.exec "dotnet" "" (location + " " + cmd + " --no-prompt")
 
     let private handleForgeList (error : ChildProcess.ExecError option, stdout : string, stderr : string) =
         if(stdout = "") then
