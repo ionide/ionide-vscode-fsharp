@@ -4,6 +4,8 @@ jobs:
   pool:
     vmImage: 'vs2017-win2016'
   steps:
+  - script: dotnet tool install fake-cli --tool-path .
+    displayName: Install FAKE
   - powershell: |
       $buildId = $env:BUILD_BUILDNUMBER;
       $versionSuffixPR = "PR$($env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER).$buildId";
@@ -35,6 +37,8 @@ jobs:
   pool:
     vmImage: 'vs2017-win2016'
   steps:
+  - script: dotnet tool install fake-cli --tool-path .
+    displayName: Install FAKE
   - powershell: |
       $buildId = $env:BUILD_BUILDNUMBER;
       $versionSuffixPR = "PR$($env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER).$buildId";
