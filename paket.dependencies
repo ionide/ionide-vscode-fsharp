@@ -16,6 +16,7 @@ git https://github.com/fsharp/FsAutoComplete.git master build:"build.sh LocalRel
 git https://github.com/fsharp-editing/Forge.git master build:"fake build -t Publish", OS: mono
 
 git https://github.com/ionide/ionide-fsgrammar.git
+git https://github.com/ionide/forge-templates.git netcoreTemplates
 
 github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
 github ionide/ionide-vscode-helpers src/Helpers.fs

@@ -101,23 +101,19 @@ let copyFSACNetcore releaseBinNetcore fsacBinNetcore =
 
 let copyForge paketFilesForge releaseForge =
 
-    let releaseBinForge = sprintf "%s/bin" releaseForge
-
-    let forgeBin = sprintf "%s/temp/Bin/*.dll" paketFilesForge
-    let forgeExe = sprintf "%s/temp/Forge.exe" paketFilesForge
-    let forgeConfig = sprintf "%s/temp/Forge.exe.config" paketFilesForge
-
-    ensureDirectory releaseBinForge
     ensureDirectory releaseForge
+    CleanDir releaseForge
 
-    CleanDir releaseBinForge
-    checkFileExists forgeExe
-    !! forgeExe
-    ++ forgeConfig
-    |> CopyFiles releaseForge
+    CopyDir releaseForge (sprintf "%s/temp/" paketFilesForge) (fun _ -> true)
 
-    !! forgeBin
-    |> CopyFiles releaseBinForge
+let copyForgeTemplates paketFilesForgeTemplates releaseForge =
+    let releaseForge = sprintf "%s/templates" releaseForge
+
+    ensureDirectory releaseForge
+    CleanDir releaseForge
+
+    CopyDir releaseForge paketFilesForgeTemplates (fun _ -> true)
+
 
 let copyGrammar fsgrammarDir fsgrammarRelease =
     ensureDirectory fsgrammarRelease
@@ -241,6 +237,13 @@ module StableExtension =
         let releaseForge = "release/bin_forge"
 
         copyForge forgeDir releaseForge
+    )
+
+    Target "CopyForgeTemplates" (fun _ ->
+        let forgeDir = "paket-files/github.com/ionide/forge-templates"
+        let releaseForge = "release/bin_forge"
+
+        copyForgeTemplates forgeDir releaseForge
     )
 
     Target "CopyGrammar" (fun _ ->
@@ -371,6 +374,13 @@ module ExperimentalExtension =
         copyForge forgeDir releaseForge
     )
 
+    Target "ExpCopyForgeTemplates" (fun _ ->
+        let forgeDir = "paket-files/github.com/ionide/forge-templates"
+        let releaseForge = sprintf "%s/bin_forge" releaseExpDir
+
+        copyForgeTemplates forgeDir releaseForge
+    )
+
     Target "ExpCopyGrammar" (fun _ ->
         let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammar"
         let fsgrammarRelease = sprintf "%s/syntaxes" releaseExpDir
@@ -432,6 +442,7 @@ Target "BuildPackages" DoNothing
 ==> "CopyFSAC"
 ==> "CopyFSACNetcore"
 ==> "CopyForge"
+==> "CopyForgeTemplates"
 ==> "CopyGrammar"
 ==> "CopySchemas"
 ==> "Build"
@@ -449,6 +460,7 @@ Target "BuildPackages" DoNothing
 ==> "ExpUpdatePackageId"
 ==> "ExpCopyFSAC"
 ==> "ExpCopyForge"
+==> "ExpCopyForgeTemplates"
 ==> "ExpCopyGrammar"
 ==> "ExpCopySchemas"
 ==> "ExpSetVersion"
