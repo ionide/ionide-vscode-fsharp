@@ -620,11 +620,11 @@ GIT
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/fsharp-editing/Forge.git
-     (db4680cee965eba7b76b96191fdcfb963e9732c0)
-      build: build.cmd Build
+     (9d1178aab88612c4bcb2728e55e3d7b990f630bf)
+      build: fake build -t Publish
       os: windows
-     (db4680cee965eba7b76b96191fdcfb963e9732c0)
-      build: build.sh Build
+     (9d1178aab88612c4bcb2728e55e3d7b990f630bf)
+      build: fake build -t Publish
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
      (b57388e5a0971412c081cf0cea8b50b9c24ea4e8)
