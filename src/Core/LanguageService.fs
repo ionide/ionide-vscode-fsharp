@@ -33,6 +33,14 @@ module LanguageService =
     module internal Types =
         type PlainNotification= { content: string }
 
+        type ConfigValue<'a> =
+        | UserSpecified of 'a
+        | Implied of 'a
+
+        type [<RequireQualifiedAccess>] FSACTargetRuntime =
+        | NET
+        | NetcoreFdd
+
         /// Position in a text document expressed as zero-based line and zero-based character offset.
         /// A position is between two characters like an ‘insert’ cursor in a editor.
         type Position = {
@@ -364,10 +372,121 @@ module LanguageService =
                 return fsacPaths.MSBuild
         }
 
-    let start (c : ExtensionContext) =
-        promise {
+    let private createClient opts =
+        let options =
+            createObj [
+                "run" ==> opts
+                "debug" ==> opts
+                ] |> unbox<ServerOptions>
+
+        let fileDeletedWatcher = workspace.createFileSystemWatcher("**/*.{fs,fsx}", true, true, false)
+
+        let clientOpts =
+            let opts = createEmpty<Client.LanguageClientOptions>
+            let selector =
+                createObj [
+                    "scheme" ==> "file"
+                    "language" ==> "fsharp"
+                ] |> unbox<Client.DocumentSelector>
+
+            let initOpts =
+                let backgroundSymbolCache = "FSharp.enableBackgroundSymbolCache" |> Configuration.get false
+                createObj [
+                    "AutomaticWorkspaceInit" ==> false
+                    "enableBackgroundSymbolCache" ==> backgroundSymbolCache
+                ]
+
+            let synch = createEmpty<Client.SynchronizeOptions>
+            synch.configurationSection <- Some !^"FSharp"
+            synch.fileEvents <- Some( !^ ResizeArray([fileDeletedWatcher]))
+
+            opts.documentSelector <- Some !^selector
+            opts.synchronize <- Some synch
+            opts.revealOutputChannelOn <- Some Client.RevealOutputChannelOn.Never
 
 
+            opts.initializationOptions <- Some !^(Some initOpts)
+
+            opts
+
+        let cl = LanguageClient("FSharp", "F#", options, clientOpts, false)
+        client <- Some cl
+        cl
+
+    let getOptions () = promise {
+        let runtimeSettingsKey = "FSharp.fsacRuntime"
+
+        let targetRuntime: Types.ConfigValue<Types.FSACTargetRuntime> =
+            let configured = Configuration.tryGet runtimeSettingsKey
+
+            match configured with
+            | Some "netcore" ->
+                Types.UserSpecified Types.FSACTargetRuntime.NetcoreFdd
+            | Some "net" ->
+                Types.UserSpecified Types.FSACTargetRuntime.NET
+            | Some v ->
+                Types.Implied Types.FSACTargetRuntime.NetcoreFdd
+            | None ->
+                Types.Implied Types.FSACTargetRuntime.NetcoreFdd
+
+        let setRuntime runtime =
+            let value =
+                match runtime with
+                | Types.FSACTargetRuntime.NET -> "net"
+                | Types.FSACTargetRuntime.NetcoreFdd -> "netcore"
+            Configuration.set runtimeSettingsKey value
+            |> Promise.bind (fun _ -> vscode.window.showInformationMessage("Please reload your VSCode instance for this change to take effect"))
+            |> Promise.map ignore
+
+        let suggestNet () =
+            promise {
+                let! result = vscode.window.showInformationMessage("Consider using the .NET Framework/Mono language services by setting `FSharp.fsacRuntime` to `net` and installing .NET/Mono as appropriate for your system.", "Use .Net Framework")
+                match result with
+                | "Use .Net Framework" -> do! setRuntime Types.FSACTargetRuntime.NET
+                | _ -> ()
+            }
+
+        let suggestNetCore () = promise {
+            let! result = vscode.window.showInformationMessage("Consider using the .NET Core language services by setting `FSharp.fsacRuntime` to `netcore`", "Use .Net Core")
+            match result with
+            | "Use .Net Core" -> do! setRuntime Types.FSACTargetRuntime.NetcoreFdd
+            | _ -> ()
+        }
+
+        let monoNotFound () = promise {
+            let msg = """
+            Cannot start .NET Framework/Mono language services because `mono` was not found.
+            Consider:
+            * setting the `FSharp.monoPath` settings key to a `mono` binary,
+            * including `mono` in your PATH, or
+            * installing the .NET Core SDK and using the `FSharp.fsacRuntime` `netcore` language settings
+            """
+            let! result = vscode.window.showErrorMessage(msg, "Use .Net Core")
+            let! _ =
+                match result with
+                | "Use .Net Core" -> setRuntime Types.FSACTargetRuntime.NetcoreFdd
+                | _ -> promise.Return ()
+            return failwith "no `mono` binary found"
+        }
+
+        let dotnetNotFound () = promise {
+            let msg = """
+            Cannot start .NET Core language services because `dotnet` was not found.
+            Consider:
+            * setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary,
+            * including `dotnet` in your PATH,
+            * installing .NET Core into one of the default locations, or
+            * using the `net` `FSharp.fsacRuntime` to use mono instead
+            """
+            let! result = vscode.window.showErrorMessage(msg, "Use .Net Framework")
+            let! _ =
+                match result with
+                | "Use .Net Framework" -> setRuntime Types.FSACTargetRuntime.NET
+                | _ -> promise.Return ()
+            return failwith "no `dotnet` binary found"
+        }
+
+        let spawnNetCore dotnet =
             let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
             let args =
                 [
@@ -375,82 +494,129 @@ module LanguageService =
                     "--mode"
                     "lsp"
                 ] |> ResizeArray
-            let runOpts = createObj [
-                "command" ==> "dotnet"
-                "args" ==> args
-                "transport" ==> 0
-            ]
-            let debugOpts = createObj [
-                "command" ==> "dotnet"
+
+            createObj [
+                "command" ==> dotnet
                 "args" ==> args
                 "transport" ==> 0
             ]
 
-            let options =
-                createObj [
-                    "run" ==> runOpts
-                    "debug" ==> debugOpts
-                ] |> unbox<ServerOptions>
+        let spawnNetWin () =
+            let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
+            let args =
+                [
+                    "--mode"
+                    "lsp"
+                ] |> ResizeArray
 
-            let fileDeletedWatcher = workspace.createFileSystemWatcher("**/*.{fs,fsx}", true, true, false)
+            createObj [
+                "command" ==> ionidePluginPath
+                "args" ==> args
+                "transport" ==> 0
+            ]
 
-            let clientOpts =
-                let opts = createEmpty<Client.LanguageClientOptions>
-                let selector =
-                    createObj [
-                        "scheme" ==> "file"
-                        "language" ==> "fsharp"
-                    ] |> unbox<Client.DocumentSelector>
+        let spawnNetMono mono =
+            let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
+            let args =
+                [
+                    ionidePluginPath
+                    "--mode"
+                    "lsp"
+                ] |> ResizeArray
 
-                let initOpts =
-                    let backgroundSymbolCache = "FSharp.enableBackgroundSymbolCache" |> Configuration.get false
-                    createObj [
-                        "AutomaticWorkspaceInit" ==> false
-                        "enableBackgroundSymbolCache" ==> backgroundSymbolCache
-                    ]
+            createObj [
+                "command" ==> mono
+                "args" ==> args
+                "transport" ==> 0
+            ]
 
-                let synch = createEmpty<Client.SynchronizeOptions>
-                synch.configurationSection <- Some !^"FSharp"
-                synch.fileEvents <- Some( !^ ResizeArray([fileDeletedWatcher]))
+        let! mono = Environment.mono
+        let! dotnet = Environment.dotnet
 
-                opts.documentSelector <- Some !^selector
-                opts.synchronize <- Some synch
-                opts.revealOutputChannelOn <- Some Client.RevealOutputChannelOn.Never
+        printfn "RUNTIME: %A, MONO: %A, DOTNET: %A" targetRuntime mono dotnet
+        // The matrix here is a 2x3 table: .Net/.Net Core target on one axis, Windows/Mono/Dotnet execution environment on the other
+        match targetRuntime, mono, dotnet with
+        // for any configuration, if the user specifies the framework to use do not suggest another framework for them
+
+        // .Net framework handling
+        | Types.UserSpecified Types.FSACTargetRuntime.NET, _ , _ when Environment.isWin ->
+            return spawnNetWin ()
+        | Types.UserSpecified Types.FSACTargetRuntime.NET, Some mono, _ ->
+            return spawnNetMono mono
+        | Types.UserSpecified Types.FSACTargetRuntime.NET, None, _ ->
+            return! monoNotFound ()
+
+        // dotnet SDK handling
+        | Types.UserSpecified Types.FSACTargetRuntime.NetcoreFdd, _, Some dotnet ->
+            return spawnNetCore dotnet
+        | Types.UserSpecified Types.FSACTargetRuntime.NetcoreFdd, _, None ->
+            return! dotnetNotFound ()
+
+        // when we infer a runtime then we can suggest to the user our other options
+        // .NET framework handling (looks similar to above just with suggestion)
+        | Types.Implied Types.FSACTargetRuntime.NET, None, Some _dotnet when Environment.isWin ->
+            suggestNetCore() |> ignore
+            return spawnNetWin ()
+        | Types.Implied Types.FSACTargetRuntime.NET, Some mono, Some _dotnet ->
+            suggestNetCore() |> ignore
+            return spawnNetMono mono
+        | Types.Implied Types.FSACTargetRuntime.NET, None, Some _dotnet ->
+            suggestNetCore() |> ignore
+            return! monoNotFound ()
+
+        // these case actually never happens right now (see the `targetRuntime` calculation above), but it's here for completeness,
+        // IE a scenario in which dotnet isn't found but we have located the proper execution environment for .Net framework
+        | Types.Implied Types.FSACTargetRuntime.NetcoreFdd, None, None when Environment.isWin ->
+            suggestNet () |> ignore
+            return! dotnetNotFound ()
+        | Types.Implied Types.FSACTargetRuntime.NetcoreFdd, Some mono, None when not Environment.isWin ->
+            suggestNet () |> ignore
+            return! dotnetNotFound ()
+
+        | runtime, mono, dotnet ->
+            return failwithf "unsupported combination of runtime/mono/dotnet: %O/%O/%O" runtime mono dotnet
+
+    }
+
+    let readyClient (cl: LanguageClient) =
+        cl.onReady ()
+        |> Promise.onSuccess (fun _ ->
+            cl.onNotification("fsharp/notifyWorkspace", (fun (a: Types.PlainNotification) ->
+                match Notifications.notifyWorkspaceHandler with
+                | None -> ()
+                | Some cb ->
+                    let onMessage res =
+                        match res?Kind |> unbox with
+                        | "project" ->
+                            res |> unbox<ProjectResult> |> deserializeProjectResult |> Choice1Of4 |> cb
+                        | "projectLoading" ->
+                            res |> unbox<ProjectLoadingResult> |> Choice2Of4 |> cb
+                        | "error" ->
+                            res?Data |> parseError |> Choice3Of4 |> cb
+                        | "workspaceLoad" ->
+                            res?Data?Status |> unbox<string> |> Choice4Of4 |> cb
+                        | _ ->
+                            ()
+                    let res = a.content |> ofJson<obj>
+                    onMessage res
+            ))
+        )
 
 
-                opts.initializationOptions <- Some !^(Some initOpts)
+    let start (c : ExtensionContext) =
+        promise {
 
-                opts
+            let! startOpts = getOptions ()
+            let cl = createClient startOpts
+            c.subscriptions.Add (cl.start ())
+            let! _ = readyClient cl
+            return ()
 
-            let cl = LanguageClient("FSharp", "F#", options, clientOpts, false)
-            client <- Some cl
-            cl.start () |> c.subscriptions.Add
-            return!
-                cl.onReady ()
-                |> Promise.onSuccess (fun _ ->
-                    cl.onNotification("fsharp/notifyWorkspace", (fun (a: Types.PlainNotification) ->
-                        match Notifications.notifyWorkspaceHandler with
-                        | None -> ()
-                        | Some cb ->
-                            let onMessage res =
-                                match res?Kind |> unbox with
-                                | "project" ->
-                                    res |> unbox<ProjectResult> |> deserializeProjectResult |> Choice1Of4 |> cb
-                                | "projectLoading" ->
-                                    res |> unbox<ProjectLoadingResult> |> Choice2Of4 |> cb
-                                | "error" ->
-                                    res?Data |> parseError |> Choice3Of4 |> cb
-                                | "workspaceLoad" ->
-                                    res?Data?Status |> unbox<string> |> Choice4Of4 |> cb
-                                | _ ->
-                                    ()
-                            let res = a.content |> ofJson<obj>
-                            onMessage res
-                    ))
-                )
         }
 
     let stop () =
         promise {
-            return ()
+            match client with
+            | Some cl -> return! cl.stop()
+            | None -> return ()
         }
