@@ -23,17 +23,6 @@ module Project =
         | Failed of path : string * error : string
         | NotRestored of path : string * error : string
 
-    [<RequireQualifiedAccess>]
-    type FSharpWorkspaceMode =
-        | Directory // prefer the directory
-        | Sln // prefer sln, if any, otherwise directory
-        | IonideSearch // old behaviour, like directory but search is ionide's side
-
-    [<RequireQualifiedAccess>]
-    type FSharpWorkspaceLoader =
-        | Projects // send to FSAC multiple "project" command
-        | WorkspaceLoad // send to FSAC the workspaceLoad and use notifications
-
     let private emptyProjectsMap : Dictionary<ProjectFilePath,ProjectLoadingState> = Dictionary()
 
     let mutable private loadedProjects = emptyProjectsMap
@@ -602,58 +591,33 @@ module Project =
                |> List.ofArray
         }
 
-    let private getWorkspaceForMode mode =
-        match mode with
-        | FSharpWorkspaceMode.Sln ->
-            promise {
-                let! ws = workspacePeek ()
-                let configured = CurrentWorkspaceConfiguration.get()
-                let configuredPeek = CurrentWorkspaceConfiguration.tryFind configured ws
-                match configuredPeek with
-                | Some peek ->
-                    // If a workspace is configured, use it
-                    return Some peek
-                | None ->
-                    // prefer the sln, load directly the first one, otherwise ask
-                    let slns =
-                        ws
-                        |> List.choose (fun x -> match x with WorkspacePeekFound.Solution _ -> Some x | _ -> None)
-
-                    let! choosen =
-                        match slns with
-                        | [] ->
-                            ws
-                            |> List.tryPick (fun x -> match x with WorkspacePeekFound.Directory _ -> Some x | _ -> None)
-                            |> Promise.lift
-                        | [ sln ] ->
-                            Promise.lift (Some sln)
-                        | _ ->
-                            pickFSACWorkspace ws None
-                    return choosen
-            }
-        | FSharpWorkspaceMode.Directory ->
-            // prefer the directory, like old behaviour (none) but search is done fsac side
-            promise {
-                let! ws = workspacePeek ()
-                return
+    let private getWorkspace () =
+        promise {
+            let! ws = workspacePeek ()
+            let configured = CurrentWorkspaceConfiguration.get()
+            let configuredPeek = CurrentWorkspaceConfiguration.tryFind configured ws
+            match configuredPeek with
+            | Some peek ->
+                // If a workspace is configured, use it
+                return Some peek
+            | None ->
+                // prefer the sln, load directly the first one, otherwise ask
+                let slns =
                     ws
-                    |> List.tryPick (fun x -> match x with WorkspacePeekFound.Directory _ -> Some x | _ -> None)
-             }
-        | FSharpWorkspaceMode.IonideSearch | _ ->
-            // old behaviour, initialize all fsproj found (vscode side)
-            getWorkspaceForModeIonideSearch ()
-            |> Promise.map Some
+                    |> List.choose (fun x -> match x with WorkspacePeekFound.Solution _ -> Some x | _ -> None)
 
-    let getWorkspaceModeFromConfig () =
-        match "FSharp.workspaceMode" |> Configuration.get "sln" with
-        | "directory" -> FSharpWorkspaceMode.Directory
-        | "sln" -> FSharpWorkspaceMode.Sln
-        | "ionideSearch" | _ -> FSharpWorkspaceMode.IonideSearch
-
-    let getWorkspaceLoaderFromConfig () =
-        match "FSharp.workspaceLoader" |> Configuration.get "projects" with
-        | "workspaceLoad" -> FSharpWorkspaceLoader.WorkspaceLoad
-        | "projects" | _ -> FSharpWorkspaceLoader.Projects
+                let! choosen =
+                    match slns with
+                    | [] ->
+                        ws
+                        |> List.tryPick (fun x -> match x with WorkspacePeekFound.Directory _ -> Some x | _ -> None)
+                        |> Promise.lift
+                    | [ sln ] ->
+                        Promise.lift (Some sln)
+                    | _ ->
+                        pickFSACWorkspace ws None
+                return choosen
+        }
 
     let handleProjectParsedNotification res =
         let disableShowNotification = "FSharp.disableFailedProjectNotifications" |> Configuration.get false
@@ -723,26 +687,12 @@ module Project =
             setAnyProjectContext true
         | _ -> ()
 
-        let loadProjects =
-            let loader =
-                match workspaceNotificationAvaiable, getWorkspaceLoaderFromConfig () with
-                | false, FSharpWorkspaceLoader.Projects ->
-                    FSharpWorkspaceLoader.Projects
-                | false, FSharpWorkspaceLoader.WorkspaceLoad ->
-                    // workspaceLoad require notification, but registration failed => warning
-                    // fallback to projects
-                    FSharpWorkspaceLoader.Projects
-                | true, loaderType -> loaderType
 
-            match loader with
-            | FSharpWorkspaceLoader.Projects ->
-                Promise.executeForAll (load false)
-            | FSharpWorkspaceLoader.WorkspaceLoad ->
-                LanguageService.workspaceLoad
+
 
         projs
         |> List.ofArray
-        |> loadProjects
+        |> LanguageService.workspaceLoad
         |> Promise.map ignore
 
     let reinitWorkspace () =
@@ -752,8 +702,7 @@ module Project =
             initWorkspaceHelper  wsp
 
     let initWorkspace () =
-        getWorkspaceModeFromConfig ()
-        |> getWorkspaceForMode
+        getWorkspace ()
         |> Promise.bind (function Some x -> Promise.lift x | None -> getWorkspaceForModeIonideSearch ())
         |> Promise.bind (initWorkspaceHelper)
 

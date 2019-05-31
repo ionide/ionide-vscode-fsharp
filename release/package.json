@@ -1141,25 +1141,6 @@
 						"netcore"
 					]
 				},
-				"FSharp.workspaceMode": {
-					"type": "string",
-					"default": "sln",
-					"description": "Choose the workspace mode",
-					"enum": [
-						"sln",
-						"directory",
-						"ionideSearch"
-					]
-				},
-				"FSharp.workspaceLoader": {
-					"type": "string",
-					"default": "workspaceLoad",
-					"description": "Choose the FSAC workspace loader",
-					"enum": [
-						"projects",
-						"workspaceLoad"
-					]
-				},
 				"FSharp.workspaceModePeekDeepLevel": {
 					"type": "integer",
 					"default": 2,
