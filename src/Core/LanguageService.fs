@@ -233,12 +233,12 @@ module LanguageService =
         | None -> Promise.empty
         | Some cl ->
             let req : Types.FileParams= {
-                Project = {Uri = handleUntitled s}
+                Project = {Uri = s}
             }
             cl.sendRequest("fsharp/project", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
                 let res = res.content |> ofJson<obj>
-                deserializeProjectResult (res?Data |> unbox)
+                deserializeProjectResult (res |> unbox)
             )
             |> Promise.onFail(fun _ ->
                 let disableShowNotification = "FSharp.disableFailedProjectNotifications" |> Configuration.get false
@@ -585,6 +585,7 @@ module LanguageService =
                 match Notifications.notifyWorkspaceHandler with
                 | None -> ()
                 | Some cb ->
+                    printfn "WORKSPACE MSG: %A" a
                     let onMessage res =
                         match res?Kind |> unbox with
                         | "project" ->
