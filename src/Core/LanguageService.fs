@@ -307,11 +307,15 @@ module LanguageService =
             )
 
     let workspaceLoad (projects: string list)  =
+        let toFileUri (s: string) = "file://" + s
         match client with
         | None -> Promise.empty
         | Some cl ->
             let req : Types.WorkspaceLoadParms= {
-                TextDocuments = projects |> List.map (fun s -> {Types.Uri = s}) |> List.toArray
+                TextDocuments =
+                    projects
+                        |> List.map (fun s -> {Types.Uri = toFileUri s})
+                        |> List.toArray
             }
             cl.sendRequest("fsharp/workspaceLoad", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
