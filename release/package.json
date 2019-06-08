@@ -1139,11 +1139,12 @@
 					"enum": [
 						"net",
 						"netcore"
-					]
+					],
+					"default": "netcore"
 				},
 				"FSharp.workspaceModePeekDeepLevel": {
 					"type": "integer",
-					"default": 2,
+					"default": 4,
 					"description": "The deep level of directory hierarchy when searching for sln/projects"
 				},
 				"FSharp.monoPath": {
@@ -1163,7 +1164,7 @@
 				},
 				"FSharp.externalAutocomplete": {
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "Includes external (from unopen modules and namespaces) symbols in autocomplete"
 				},
 				"FSharp.linter": {
@@ -1240,7 +1241,7 @@
 				"FSharp.resolveNamespaces": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables `resolve unopened namespaces and modules` code fix. Not stable, can crash FSAC - use at your own risk."
+					"description": "Enables `resolve unopened namespaces and modules` code fix."
 				},
 				"FSharp.enableTreeView": {
 					"type": "boolean",
@@ -1310,11 +1311,6 @@
 						"analyzers"
 					],
 					"description": "Directories in the array are used as a source of custom analyzers. Requires restart."
-				},
-				"FSharp.disableInMemoryProjectReferences": {
-					"type": "boolean",
-					"default": false,
-					"description": "EXPERIMENTAL. Enables disabling in-memory project references. It means that cross-project changes will be picked up only after building project. It can be useful for big solutions (like F# compiler). Requires workspace loading mode. Requires restart"
 				},
 				"FSharp.workspacePath": {
 					"type": "string",
