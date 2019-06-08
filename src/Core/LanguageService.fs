@@ -390,10 +390,8 @@ module LanguageService =
                 ] |> unbox<Client.DocumentSelector>
 
             let initOpts =
-                let backgroundSymbolCache = "FSharp.enableBackgroundSymbolCache" |> Configuration.get false
                 createObj [
                     "AutomaticWorkspaceInit" ==> false
-                    "enableBackgroundSymbolCache" ==> backgroundSymbolCache
                 ]
 
             let synch = createEmpty<Client.SynchronizeOptions>
@@ -486,13 +484,18 @@ module LanguageService =
             return failwith "no `dotnet` binary found"
         }
 
+        let backgroundSymbolCache = "FSharp.enableBackgroundServices" |> Configuration.get true
+        let verbose = "FSharp.verboseLogging" |> Configuration.get false
+
         let spawnNetCore dotnet =
             let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
             let args =
                 [
-                    ionidePluginPath
-                    "--mode"
-                    "lsp"
+                    yield ionidePluginPath
+                    yield"--mode"
+                    yield "lsp"
+                    if backgroundSymbolCache then yield "--background-service-enabled"
+                    if verbose then yield  "--verbose"
                 ] |> ResizeArray
 
             createObj [
@@ -505,8 +508,10 @@ module LanguageService =
             let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
             let args =
                 [
-                    "--mode"
-                    "lsp"
+                    yield "--mode"
+                    yield "lsp"
+                    if backgroundSymbolCache then yield "--background-service-enabled"
+                    if verbose then yield  "--verbose"
                 ] |> ResizeArray
 
             createObj [
@@ -519,13 +524,15 @@ module LanguageService =
             let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
             let args =
                 [
-                    ionidePluginPath
-                    "--mode"
-                    "lsp"
+                    yield ionidePluginPath
+                    yield "--mode"
+                    yield "lsp"
+                    if backgroundSymbolCache then yield "--background-service-enabled"
+                    if verbose then yield  "--verbose"
                 ] |> ResizeArray
 
             createObj [
-                "command" ==> mono
+                "command" ==> mono 
                 "args" ==> args
                 "transport" ==> 0
             ]
