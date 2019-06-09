@@ -99,8 +99,15 @@ module Project =
         loadedProjects |> Seq.tryFind (fun n -> n.Key = path.ToUpperInvariant ()) |> Option.map (fun n -> n.Value)
 
     let updateInWorkspace (path : string) state =
-        // loadedProjects <- loadedProjects |> Map.add (path.ToUpperInvariant ()) state
-        loadedProjects.Add ((path.ToUpperInvariant ()), state)
+        let path = path.ToUpperInvariant ()
+        match loadedProjects.TryGetValue path with
+        | true, v ->
+            match v, state  with
+            | ProjectLoadingState.Loaded _, ProjectLoadingState.Loading _ -> ()
+            | _ -> loadedProjects.Add(path, state)
+        | _ ->
+            loadedProjects.Add(path, state)
+
 
     let getProjectsFromWorkspacePeek () =
         match loadedWorkspace with
