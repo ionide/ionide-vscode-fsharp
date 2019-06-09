@@ -532,7 +532,7 @@ module LanguageService =
                 ] |> ResizeArray
 
             createObj [
-                "command" ==> mono 
+                "command" ==> mono
                 "args" ==> args
                 "transport" ==> 0
             ]
