@@ -45,6 +45,9 @@ module Project =
     let private workspaceLoadedEmitter = EventEmitter<unit>()
     let workspaceLoaded = workspaceLoadedEmitter.event
 
+    let private statusUpdatedEmitter = EventEmitter<unit>()
+    let statusUpdated = statusUpdatedEmitter.event
+
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files"; ".fable"; "node_modules" |]
 
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
@@ -104,9 +107,12 @@ module Project =
         | true, v ->
             match v, state  with
             | ProjectLoadingState.Loaded _, ProjectLoadingState.Loading _ -> ()
-            | _ -> loadedProjects.Add(path, state)
+            | _ ->
+                loadedProjects.Add(path, state)
+                statusUpdatedEmitter.fire ()
         | _ ->
             loadedProjects.Add(path, state)
+            statusUpdatedEmitter.fire ()
 
 
     let getProjectsFromWorkspacePeek () =
@@ -641,17 +647,6 @@ module Project =
                     projectNotRestoredLoadedEmitter.fire d.Project
                     Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
                 | ErrorData.ProjectParsingFailed d ->
-                    if not disableShowNotification && d.Project.EndsWith(".fsproj") then
-                        let msg = "Project parsing failed: " + path.basename(d.Project)
-                        vscode.window.showErrorMessage(msg, "Disable notification", "Show status")
-                        |> Promise.map(fun res ->
-                            if res = "Disable notification" then
-                                Configuration.set "FSharp.disableFailedProjectNotifications" true
-                                |> ignore
-                            elif res = "Show status" then
-                                ShowStatus.CreateOrShow(d.Project, (path.basename(d.Project)))
-                        )
-                        |> ignore
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
                 | _ ->
                     if not disableShowNotification then
@@ -694,9 +689,6 @@ module Project =
             setAnyProjectContext true
         | _ -> ()
 
-
-
-
         projs
         |> List.ofArray
         |> LanguageService.workspaceLoad
@@ -713,6 +705,48 @@ module Project =
         |> Promise.bind (function Some x -> Promise.lift x | None -> getWorkspaceForModeIonideSearch ())
         |> Promise.bind (initWorkspaceHelper)
 
+    module internal ProjectStatus =
+        let mutable timer = None
+        let mutable path = ""
+
+        let clearTimer () =
+            match timer with
+            | Some t ->
+                clearTimeout t
+                timer <- None
+            | _ -> ()
+
+        let mutable item : StatusBarItem option = None
+        let private hideItem () = item |> Option.iter (fun n -> n.hide ())
+
+        let private showItem (text : string) tooltip =
+            path <- tooltip
+            item.Value.text <- sprintf "$(flame) %s" text
+            item.Value.tooltip <- tooltip
+            item.Value.command <- "showProjStatusFromIndicator"
+            item.Value.color <- ThemeColor "fsharp.statusBarWarnings" |> U2.Case2
+            item.Value.show()
+
+
+        let update () =
+            let projs = getInWorkspace ()
+            match projs |> List.tryPick (function | ProjectLoadingState.Failed(p,er) -> Some p | _ -> None  ) with
+            | Some p -> showItem "Project loading failed" p
+            | None ->
+            match projs |> List.tryPick (function | ProjectLoadingState.Loading(p) -> Some p | _ -> None  ) with
+            | Some p -> showItem "Project loading" p
+            | None ->
+            match projs |> List.tryPick (function | ProjectLoadingState.NotRestored(p,_) -> Some p | _ -> None  ) with
+            | Some p -> showItem "Project not restored" p
+            | None -> hideItem ()
+
+        let statusUpdateHandler () =
+            clearTimer()
+            timer <- Some (setTimeout (fun () -> update ()) 1000.)
+
+
+
+
     let activate (context : ExtensionContext) =
         CurrentWorkspaceConfiguration.setContext context
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
@@ -720,6 +754,8 @@ module Project =
 
         Notifications.notifyWorkspaceHandler <- Some handleProjectParsedNotification
         workspaceNotificationAvaiable <- true
+        ProjectStatus.item <- Some (window.createStatusBarItem (StatusBarAlignment.Right, 9000. ))
+        statusUpdated.Invoke(!!ProjectStatus.statusUpdateHandler) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.changeWorkspace", (fun _ ->
             workspacePeek ()
@@ -728,6 +764,12 @@ module Project =
             |> box
             ))
         |> context.subscriptions.Add
+
+        commands.registerCommand("showProjStatusFromIndicator", (fun _ ->
+            let name = path.basename (ProjectStatus.path)
+            ShowStatus.CreateOrShow(ProjectStatus.path,name)
+            |> box
+        )) |> context.subscriptions.Add
 
         initWorkspace ()
         |> Promise.onSuccess (fun _ ->

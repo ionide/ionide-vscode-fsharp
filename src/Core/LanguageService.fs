@@ -228,7 +228,6 @@ module LanguageService =
         (err?Message |> unbox<string>), data
 
     let project s =
-
         match client with
         | None -> Promise.empty
         | Some cl ->
@@ -239,20 +238,6 @@ module LanguageService =
             |> Promise.map (fun (res: Types.PlainNotification) ->
                 let res = res.content |> ofJson<obj>
                 deserializeProjectResult (res |> unbox)
-            )
-            |> Promise.onFail(fun _ ->
-                let disableShowNotification = "FSharp.disableFailedProjectNotifications" |> Configuration.get false
-                if not disableShowNotification then
-                    let msg = "Project parsing failed: " + path.basename(s)
-                    vscode.window.showErrorMessage(msg, "Disable notification", "Show status")
-                    |> Promise.map(fun res ->
-                        if res = "Disable notification" then
-                            Configuration.set "FSharp.disableFailedProjectNotifications" true
-                            |> ignore
-                        if res = "Show status" then
-                            ShowStatus.CreateOrShow(s, (path.basename(s)))
-                    )
-                    |> ignore
             )
 
 
