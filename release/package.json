@@ -1172,11 +1172,26 @@
 					"default": true,
 					"description": "Enables integration with FSharpLinter (additional warnings)"
 				},
+				"FSharp.unionCaseStubGeneration": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enables pattern matching stub generation"
+				},
+				"FSharp.unionCaseStubGenerationBody": {
+					"type": "string",
+					"default": "failwith \"Not Implemented\"",
+					"description": "Generated pattern matching case default body"
+				},
 				"FSharp.recordStubGeneration": {
 					"type": "boolean",
 					"default": true,
 					"description": "Enables record stub generation"
-                },
+				},
+				"FSharp.recordStubGenerationBody": {
+					"type": "string",
+					"default": "failwith \"Not Implemented\"",
+					"description": "Generated record field default body"
+				},
                 "FSharp.interfaceStubGeneration": {
 					"type": "boolean",
 					"default": true,
