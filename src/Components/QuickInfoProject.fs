@@ -21,8 +21,9 @@ module QuickInfoProject =
             let proj = Project.tryFindLoadedProjectByFile fileName
             match proj with
             | None ->
-                match te.document with
-                | Document.FSharp when path.extname te.document.fileName <> ".fsx" && not (te.document.isUntitled) ->
+                let workspaceLoaded = Project.isLoadingWorkspaceComplete()
+                match workspaceLoaded, te.document with
+                | true, Document.FSharp when path.extname te.document.fileName <> ".fsx" && not (te.document.isUntitled) ->
                     let fileNameOnly = node.path.basename fileName
                     item.Value.text <- "$(circuit-board) Not in a F# project"
                     item.Value.tooltip <- sprintf "%s is not in any project known to Ionide" fileNameOnly
