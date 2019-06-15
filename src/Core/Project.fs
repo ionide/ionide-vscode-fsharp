@@ -591,15 +591,17 @@ module Project =
 
     let private workspacePeek () =
         promise {
-            let! ws = LanguageService.workspacePeek (vscode.workspace.rootPath) deepLevel (excluded |> List.ofArray)
-            return
-                ws.Found
-                |> Array.sortBy (fun x ->
-                    match x with
-                    | WorkspacePeekFound.Solution sln -> countProjectsInSln sln
-                    | WorkspacePeekFound.Directory _ -> -1)
-               |> Array.rev
-               |> List.ofArray
+            if isNull vscode.workspace.rootPath then return []
+            else
+                let! ws = LanguageService.workspacePeek (vscode.workspace.rootPath) deepLevel (excluded |> List.ofArray)
+                return
+                    ws.Found
+                    |> Array.sortBy (fun x ->
+                        match x with
+                        | WorkspacePeekFound.Solution sln -> countProjectsInSln sln
+                        | WorkspacePeekFound.Directory _ -> -1)
+                   |> Array.rev
+                   |> List.ofArray
         }
 
     let private getWorkspaceForMode mode =
