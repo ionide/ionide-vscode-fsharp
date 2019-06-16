@@ -36,8 +36,9 @@ module FakeTargetsOutline =
         | DependencyModel of DependencyType
 
     type Model =
-        { AllTargets : Target [] 
+        { AllTargets : Target []
           Label : string
+          Description : string
           Declaration : Declaration
           Type : ModelType
           getChildren : unit -> ResizeArray<Model> }      
@@ -100,6 +101,7 @@ module FakeTargetsOutline =
         {
             AllTargets = allTargets
             Label = t.Arrow + " " + d.Name
+            Description = "A fake dependency"
             Declaration = d.Declaration
             Type = ModelType.DependencyModel t
             getChildren = fun () ->
@@ -119,6 +121,7 @@ module FakeTargetsOutline =
         {
             AllTargets = allTargets
             Label = t.Name
+            Description = t.Description
             Declaration = t.Declaration
             Type = ModelType.TargetModel
             getChildren = fun () ->
@@ -182,6 +185,7 @@ module FakeTargetsOutline =
                 ti.collapsibleState <- state
                 ti.iconPath <- getIcon node |> Option.map U4.Case3
                 ti.contextValue <- Some "FAKE.targetsOutline.item"
+                ti.tooltip <- Some node.Description
 
                 let c = createEmpty<Command>
                 c.command <- "FAKE.targetsOutline.goTo"

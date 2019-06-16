@@ -375,8 +375,10 @@ module DTO =
 
 
     module FakeSupport =
+        type FakeContext =
+            { DotNetRuntime : string; PortableFakeRuntime : string }
         type TargetRequest =
-            { FileName : string }
+            { FileName : string; FakeContext : FakeContext }
 
         /// a target dependency, either a hard or a soft dependency.
         type Dependency =

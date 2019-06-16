@@ -492,8 +492,25 @@ module LanguageService =
     module FakeSupport =
         open DTO.FakeSupport
         let targetsInfo fn =
-            { TargetRequest.FileName = handleUntitled fn }
-            |> request<_, Result<Target[]>> "fakeTargets" 0 (makeRequestId())
+            Environment.dotnet
+            |> Promise.bind (fun dotnetRuntime ->
+                match dotnetRuntime with
+                | Some r ->
+                    let extensionPath = VSCodeExtension.ionidePluginPath()
+                    let runtimePath = extensionPath + "/.fakeruntime"
+                    { TargetRequest.FileName = handleUntitled fn; FakeContext = { DotNetRuntime = r; PortableFakeRuntime = runtimePath }}
+                    |> request<_, Result<Target[]>> "fakeTargets" 0 (makeRequestId())
+                | None ->
+                    let msg = """
+Cannot request fake targets because `dotnet` was not found.
+Consider:
+* setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary,
+* including `dotnet` in your PATH,
+* installing .NET Core into one of the default locations, or
+"""
+                    log.Error(msg)
+                    Promise.reject (msg)             
+                )
             
             // debug view
             //let decl = 
