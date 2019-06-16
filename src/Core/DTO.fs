@@ -372,3 +372,20 @@ module DTO =
     type CompileResult = Result<CompileData>
     type AnalyzerResult = Result<AnalyzerResponse>
     type FsdnResult = Result<FsdnResponse>
+
+
+    module FakeSupport =
+        type TargetRequest =
+            { FileName : string }
+
+        /// a target dependency, either a hard or a soft dependency.
+        type Dependency =
+            { Name : string
+              Declaration : Declaration }
+        /// a FAKE target, its description and its relations to other targets (dependencies), including the declaration lines of the target and the dependencies.           
+        type Target =
+            { Name : string
+              HardDependencies : Dependency []
+              SoftDependencies : Dependency []
+              Declaration : Declaration
+              Description : string }

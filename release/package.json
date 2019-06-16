@@ -137,6 +137,16 @@
 					"dark": "./images/add-dark.svg"
 				}
 			},
+			
+			{
+				"command": "ionide.fakeTargetsOutline.reloadTargets",
+				"title": "Reload targets from script",
+				"icon": {
+					"light": "./images/refresh-light.svg",
+					"dark": "./images/refresh-dark.svg"
+				}
+			},
+			
 			{
 				"command": "fsharp.NewProjectNoFake",
 				"title": "F#: New Project (Without FAKE)",
@@ -484,6 +494,11 @@
 					"id": "ionide.projectExplorer",
 					"name": "F# Solution Explorer",
 					"when": "fsharp.project.any && fsharp.showProjectExplorerInExplorerActivity"
+				},
+				{
+					"id": "ionide.fakeTargetsOutline",
+					"name": "FAKE Targets Outline",
+					"when": "fsharp.showCodeOutline && fsharp.showCodeOutlineInExplorerActivity"
 				}
 			],
 			"ionide-fsharp": [
@@ -491,6 +506,11 @@
 					"id": "ionide.projectExplorerInActivity",
 					"name": "Solution Explorer",
 					"when": "fsharp.project.any && fsharp.showProjectExplorerInFsharpActivity"
+				},
+				{
+					"id": "ionide.fakeTargetsOutlineInActivity",
+					"name": "FAKE Targets Outline",
+					"when": "fsharp.showCodeOutline && fsharp.showCodeOutlineInFsharpActivity"
 				}
 			]
 		},
@@ -608,6 +628,12 @@
 					"command": "fsharp.explorer.solution.addProject",
 					"when": "false"
 				},
+				
+				{
+					"command": "ionide.fakeTargetsOutline.reloadTargets",
+					"when": "false"
+				},
+
 				{
 					"command": "fsi.SendLine",
 					"when": "editorLangId == 'fsharp'"
@@ -761,6 +787,17 @@
 					"command": "fsharp.explorer.clearCache",
 					"group": "modification@5",
 					"when": "view == ionide.projectExplorerInActivity"
+				},
+				
+				{
+					"command": "ionide.fakeTargetsOutline.reloadTargets",
+					"group": "navigation@1",
+					"when": "view == ionide.fakeTargetsOutline"
+				},
+				{
+					"command": "ionide.fakeTargetsOutline.reloadTargets",
+					"group": "navigation@1",
+					"when": "view == ionide.fakeTargetsOutlineInActivity"
 				}
 			],
 			"view/item/context": [
@@ -1322,6 +1359,14 @@
 					"description": "The prefix displayed before the signature",
 					"default": "  // "
 				},
+
+				"FAKE.targetsOutline": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enables the Targets Outline tree view.",
+					"scope": "resource"
+				},
+
 				"FSharp.minimizeBackgroundParsing": {
 					"type": "boolean",
 					"default": false,
@@ -1342,6 +1387,18 @@
 					"default": false,
 					"description": "EXPERIMENTAL. Enables additional code lenses showing number of references. Requires experimental background symbol cache"
 				},
+
+				"FAKE.showTargetsOutlineIn": {
+					"type": "string",
+					"default": "explorer",
+					"description": "Set the activity (left bar) where the FAKE targets outline view will be displayed.\nRequires restart.",
+					"enum": [
+						"explorer",
+						"fsharp"
+					],
+					"scope": "application"
+				},
+
 				"FSharp.showProjectExplorerIn": {
 					"type": "string",
 					"default": "fsharp",

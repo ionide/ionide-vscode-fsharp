@@ -488,6 +488,45 @@ module LanguageService =
         { RangesAtPositionRequest.FileName = fn; Positions = pos }
         |> request "rangesAtPositions" 0 (makeRequestId())
 
+
+    module FakeSupport =
+        open DTO.FakeSupport
+        let targetsInfo fn =
+            { TargetRequest.FileName = handleUntitled fn }
+            |> request<_, Result<Target[]>> "fakeTargets" 0 (makeRequestId())
+            
+            // debug view
+            //let decl = 
+            //    { File = fn
+            //      Line = 4
+            //      Column = 10 }
+            //let dep =
+            //    { Name = "dep"
+            //      Declaration = decl }
+            //let target1 =
+            //    { Name = "target1"
+            //      HardDependencies = [| dep |]
+            //      SoftDependencies = [||]
+            //      Declaration = decl
+            //      Description = "some description" }
+            //let depTar =
+            //    { Name = "dep"
+            //      HardDependencies = [||]
+            //      SoftDependencies = [||]
+            //      Declaration = decl
+            //      Description = "some description" }
+            //let target2 =
+            //    { Name = "target2"
+            //      HardDependencies = [| |]
+            //      SoftDependencies = [| dep |]
+            //      Declaration = decl
+            //      Description = "some description" }
+            //let res = 
+            //    { Kind = ""
+            //      Data = [| target1; target2; depTar |]}                          
+            //Promise.create(fun onSuccess onError -> onSuccess res)
+            
+
     let private fsacConfig () =
         compilerLocation ()
         |> Promise.map (fun c -> c.Data)
