@@ -30,6 +30,7 @@
     <Compile Include="Core/Project.fs" />
     <Compile Include="Components/LanguageConfiguration.fs" />
     <Compile Include="Components/SignatureData.fs" />
+    <Compile Include="Components/FakeTargetsOutline.fs" />
     <Compile Include="Components/Fsi.fs" />
     <Compile Include="Components/ScriptRunner.fs" />
     <Compile Include="Components/Forge.fs" />
