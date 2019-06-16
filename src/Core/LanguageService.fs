@@ -307,56 +307,32 @@ module LanguageService =
     module FakeSupport =
         open DTO.FakeSupport
         let targetsInfo fn =
-            Environment.dotnet
-            |> Promise.bind (fun dotnetRuntime ->
-                match dotnetRuntime with
-                | Some r ->
-                    let extensionPath = VSCodeExtension.ionidePluginPath()
-                    let runtimePath = extensionPath + "/.fakeruntime"
-                    { TargetRequest.FileName = handleUntitled fn; FakeContext = { DotNetRuntime = r; PortableFakeRuntime = runtimePath }}
-                    |> request<_, Result<Target[]>> "fakeTargets" 0 (makeRequestId())
-                | None ->
-                    let msg = """
+            match client with
+            | None -> Promise.empty
+            | Some cl ->
+                Environment.dotnet
+                |> Promise.bind (fun dotnetRuntime ->
+                    match dotnetRuntime with
+                    | Some r ->
+                        let extensionPath = VSCodeExtension.ionidePluginPath()
+                        let runtimePath = extensionPath + "/.fakeruntime"
+                        let req = { TargetRequest.FileName = handleUntitled fn; FakeContext = { DotNetRuntime = r; PortableFakeRuntime = runtimePath }}
+                        cl.sendRequest("fake/targets", req)
+                        |> Promise.map (fun (res: Types.PlainNotification) ->
+                            res.content |> ofJson<Result<Target[]>>
+                        )
+                        //|> request<_, Result<Target[]>> "fakeTargets" 0 (makeRequestId())
+                    | None ->
+                        let msg = """
 Cannot request fake targets because `dotnet` was not found.
 Consider:
 * setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary,
 * including `dotnet` in your PATH,
 * installing .NET Core into one of the default locations, or
 """
-                    log.Error(msg)
-                    Promise.reject (msg)             
-                )
-            
-            // debug view
-            //let decl = 
-            //    { File = fn
-            //      Line = 4
-            //      Column = 10 }
-            //let dep =
-            //    { Name = "dep"
-            //      Declaration = decl }
-            //let target1 =
-            //    { Name = "target1"
-            //      HardDependencies = [| dep |]
-            //      SoftDependencies = [||]
-            //      Declaration = decl
-            //      Description = "some description" }
-            //let depTar =
-            //    { Name = "dep"
-            //      HardDependencies = [||]
-            //      SoftDependencies = [||]
-            //      Declaration = decl
-            //      Description = "some description" }
-            //let target2 =
-            //    { Name = "target2"
-            //      HardDependencies = [| |]
-            //      SoftDependencies = [| dep |]
-            //      Declaration = decl
-            //      Description = "some description" }
-            //let res = 
-            //    { Kind = ""
-            //      Data = [| target1; target2; depTar |]}
-            //Promise.create(fun onSuccess onError -> onSuccess res)
+                        //log.Error(msg)
+                        Promise.reject (msg)             
+                    )
             
 
     let private fsacConfig () =
