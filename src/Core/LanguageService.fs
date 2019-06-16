@@ -306,9 +306,13 @@ module LanguageService =
 
     module FakeSupport =
         open DTO.FakeSupport
-        let targetsInfo fn =
+        
+        let logger = ConsoleAndOutputChannelLogger(Some "FakeTargets", Level.DEBUG, None, Some Level.DEBUG)
+        
+        let targetsInfo (fn:string) =
             match client with
-            | None -> Promise.empty
+            | None ->
+                Promise.empty
             | Some cl ->
                 Environment.dotnet
                 |> Promise.bind (fun dotnetRuntime ->
@@ -317,9 +321,12 @@ module LanguageService =
                         let extensionPath = VSCodeExtension.ionidePluginPath()
                         let runtimePath = extensionPath + "/.fakeruntime"
                         let req = { TargetRequest.FileName = handleUntitled fn; FakeContext = { DotNetRuntime = r; PortableFakeRuntime = runtimePath }}
-                        cl.sendRequest("fake/targets", req)
+                        cl.sendRequest("fsharp/fakeTargets", req)
                         |> Promise.map (fun (res: Types.PlainNotification) ->
                             res.content |> ofJson<Result<Target[]>>
+                        )
+                        |> Promise.onFail (fun o ->
+                            logger.Error("Error in fsharp/fakeTargets request.", o)
                         )
                         //|> request<_, Result<Target[]>> "fakeTargets" 0 (makeRequestId())
                     | None ->
@@ -330,7 +337,7 @@ Consider:
 * including `dotnet` in your PATH,
 * installing .NET Core into one of the default locations, or
 """
-                        //log.Error(msg)
+                        logger.Error(msg)
                         Promise.reject (msg)             
                     )
             
@@ -505,7 +512,8 @@ Consider:
         let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
         let spawnNetCore dotnet =
-            let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
+            //let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
+            let ionidePluginPath = @"C:\proj\ionide-vscode-fsharp\paket-files\github.com\fsharp\FsAutoComplete\src\FsAutoComplete\bin\Debug\netcoreapp2.1\fsautocomplete.dll"
             let args =
                 [
                     yield ionidePluginPath

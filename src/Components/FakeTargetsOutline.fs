@@ -161,7 +161,7 @@ module FakeTargetsOutline =
 
                         match doc.document with
                         | Document.FSharp ->
-                            promise {
+                            promise {                        
                                 let! x = getRoot doc.document
                                 return 
                                     if isNotNull x then
