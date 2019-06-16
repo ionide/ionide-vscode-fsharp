@@ -338,7 +338,7 @@ module LanguageService =
             //      Description = "some description" }
             //let res = 
             //    { Kind = ""
-            //      Data = [| target1; target2; depTar |]}                          
+            //      Data = [| target1; target2; depTar |]}
             //Promise.create(fun onSuccess onError -> onSuccess res)
             
 
