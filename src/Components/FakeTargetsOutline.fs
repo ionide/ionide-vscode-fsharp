@@ -81,8 +81,7 @@ module FakeTargetsOutline =
 
     let getRoot (doc : TextDocument) =
         promise {
-            let text = doc.getText()
-            let! o = LanguageService.FakeSupport.targetsInfo doc.fileName text (unbox doc.version)
+            let! o = LanguageService.FakeSupport.targetsInfo doc.fileName
             if isNotNull o then
                 return o.Data
             else
@@ -147,7 +146,6 @@ module FakeTargetsOutline =
                 if JS.isDefined node then
                     node.getChildren()
                 else
-                    LanguageService.log.Info("getChildren (root)!")
                     let doc = window.activeTextEditor
                     if JS.isDefined doc
                     then
@@ -156,13 +154,11 @@ module FakeTargetsOutline =
                             currentDocument <- Some doc.document.uri.path
                         | Some path ->
                             if path <> doc.document.uri.path then
-                                LanguageService.log.Info("getChildren - currentDocument changed to %s!", path)
                                 currentDocument <- Some doc.document.uri.path
 
                         match doc.document with
                         | Document.FSharp ->
                             promise {
-                                LanguageService.log.Info("getChildren - getRoot!")
                                 let! x = getRoot doc.document
                                 return 
                                     if isNotNull x then
@@ -192,8 +188,6 @@ module FakeTargetsOutline =
                 c.title <- "open"
                 c.arguments <- Some (ResizeArray [| unbox node|])
                 ti.command <- Some c
-                
-                LanguageService.log.Info("getTreeItem - redraw node '%s' %o!", node.Label, ti)
                 ti
         }
 
@@ -251,9 +245,7 @@ module FakeTargetsOutline =
             |> context.subscriptions.Add
 
         refresh.event.Invoke(fun uri ->
-            LanguageService.log.Info("refresh fired %o", uri)
             if isEnabledFor uri then
-                LanguageService.log.Info("refresh isEnabled!")
                 reallyRefresh.fire(None)
             createEmpty)
             |> context.subscriptions.Add
@@ -277,7 +269,6 @@ module FakeTargetsOutline =
         )) |> context.subscriptions.Add
 
         commands.registerCommand("ionide.fakeTargetsOutline.reloadTargets", Func<obj, obj>(fun _ ->
-            LanguageService.log.Info("reloadTargets clicked")
             refresh.fire undefined |> unbox
         )) |> context.subscriptions.Add
 
