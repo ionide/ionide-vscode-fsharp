@@ -196,8 +196,8 @@ module FakeTargetsOutline =
         }
 
     module private ShowInActivity =
-        let private setInFsharpActivity = Context.cachedSetter<bool> "fsharp.showCodeOutlineInFsharpActivity"
-        let private setInExplorerActivity = Context.cachedSetter<bool> "fsharp.showCodeOutlineInExplorerActivity"
+        let private setInFsharpActivity = Context.cachedSetter<bool> "fake.targetsOutline.showInFsharpActivity"
+        let private setInExplorerActivity = Context.cachedSetter<bool> "fake.targetsOutline.showInExplorerActivity"
 
         let showInFsharpActivity () =
             let showIn = "FAKE.showTargetsOutlineIn" |> Configuration.get "explorer"
@@ -208,9 +208,9 @@ module FakeTargetsOutline =
             setInFsharpActivity inFsharpActivity
             setInExplorerActivity (not inFsharpActivity)
 
-            if inFsharpActivity then "ionide.fakeTargetsOutlineInActivity" else "ionide.fakeTargetsOutline"
+            if inFsharpActivity then "fake.targetsOutlineInActivity" else "fake.targetsOutline"
 
-    let setShowCodeOutline = Context.cachedSetter<bool> "fsharp.showCodeOutline"
+    let setShowCodeOutline = Context.cachedSetter<bool> "fake.targetsOutline.show"
 
     let inline private isFsharpFile (doc : TextDocument) =
         match doc with
@@ -272,7 +272,7 @@ module FakeTargetsOutline =
             |> unbox
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("ionide.fakeTargetsOutline.reloadTargets", Func<obj, obj>(fun _ ->
+        commands.registerCommand("fake.targetsOutline.reloadTargets", Func<obj, obj>(fun _ ->
             refresh.fire undefined |> unbox
         )) |> context.subscriptions.Add
 

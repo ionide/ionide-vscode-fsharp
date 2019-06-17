@@ -137,16 +137,6 @@
 					"dark": "./images/add-dark.svg"
 				}
 			},
-			
-			{
-				"command": "ionide.fakeTargetsOutline.reloadTargets",
-				"title": "Reload targets from script",
-				"icon": {
-					"light": "./images/refresh-light.svg",
-					"dark": "./images/refresh-dark.svg"
-				}
-			},
-			
 			{
 				"command": "fsharp.NewProjectNoFake",
 				"title": "F#: New Project (Without FAKE)",
@@ -476,6 +466,14 @@
 					"light": "./images/lock-open-solid-light.svg",
 					"dark": "./images/lock-open-solid.svg"
 				}
+			},
+			{
+				"command": "fake.targetsOutline.reloadTargets",
+				"title": "Reload targets from script",
+				"icon": {
+					"light": "./images/refresh-light.svg",
+					"dark": "./images/refresh-dark.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -496,9 +494,9 @@
 					"when": "fsharp.project.any && fsharp.showProjectExplorerInExplorerActivity"
 				},
 				{
-					"id": "ionide.fakeTargetsOutline",
+					"id": "fake.targetsOutline",
 					"name": "FAKE Targets Outline",
-					"when": "fsharp.showCodeOutline && fsharp.showCodeOutlineInExplorerActivity"
+					"when": "fake.targetsOutline.show && fake.targetsOutline.showInExplorerActivity"
 				}
 			],
 			"ionide-fsharp": [
@@ -508,9 +506,9 @@
 					"when": "fsharp.project.any && fsharp.showProjectExplorerInFsharpActivity"
 				},
 				{
-					"id": "ionide.fakeTargetsOutlineInActivity",
+					"id": "fake.targetsOutlineInActivity",
 					"name": "FAKE Targets Outline",
-					"when": "fsharp.showCodeOutline && fsharp.showCodeOutlineInFsharpActivity"
+					"when": "fake.targetsOutline.show && fake.targetsOutline.showInFsharpActivity"
 				}
 			]
 		},
@@ -628,12 +626,6 @@
 					"command": "fsharp.explorer.solution.addProject",
 					"when": "false"
 				},
-				
-				{
-					"command": "ionide.fakeTargetsOutline.reloadTargets",
-					"when": "false"
-				},
-
 				{
 					"command": "fsi.SendLine",
 					"when": "editorLangId == 'fsharp'"
@@ -700,6 +692,10 @@
 				},
 				{
 					"command": "fsharp.showDocumentation",
+					"when": "false"
+				},
+				{
+					"command": "fake.targetsOutline.reloadTargets",
 					"when": "false"
 				}
 			],
@@ -788,16 +784,15 @@
 					"group": "modification@5",
 					"when": "view == ionide.projectExplorerInActivity"
 				},
-				
 				{
-					"command": "ionide.fakeTargetsOutline.reloadTargets",
+					"command": "fake.targetsOutline.reloadTargets",
 					"group": "navigation@1",
-					"when": "view == ionide.fakeTargetsOutline"
+					"when": "view == fake.targetsOutline"
 				},
 				{
-					"command": "ionide.fakeTargetsOutline.reloadTargets",
+					"command": "fake.targetsOutline.reloadTargets",
 					"group": "navigation@1",
-					"when": "view == ionide.fakeTargetsOutlineInActivity"
+					"when": "view == fake.targetsOutlineInActivity"
 				}
 			],
 			"view/item/context": [
@@ -1325,14 +1320,6 @@
 					"description": "The prefix displayed before the signature",
 					"default": "  // "
 				},
-
-				"FAKE.targetsOutline": {
-					"type": "boolean",
-					"default": true,
-					"description": "Enables the Targets Outline tree view.",
-					"scope": "resource"
-				},
-				
 				"FSharp.disableFailedProjectNotifications": {
 					"type": "boolean",
 					"default": false,
@@ -1348,18 +1335,6 @@
 					"default": true,
 					"description": "Enables additional code lenses showing number of references. Requires background services"
 				},
-
-				"FAKE.showTargetsOutlineIn": {
-					"type": "string",
-					"default": "explorer",
-					"description": "Set the activity (left bar) where the FAKE targets outline view will be displayed.\nRequires restart.",
-					"enum": [
-						"explorer",
-						"fsharp"
-					],
-					"scope": "application"
-				},
-
 				"FSharp.showProjectExplorerIn": {
 					"type": "string",
 					"default": "fsharp",
@@ -1444,6 +1419,22 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Logs additional information to F# output channel. Requires restart."
+				},
+				"FAKE.targetsOutline": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enables the Targets Outline tree view.",
+					"scope": "resource"
+				},
+				"FAKE.showTargetsOutlineIn": {
+					"type": "string",
+					"default": "explorer",
+					"description": "Set the activity (left bar) where the FAKE targets outline view will be displayed.\nRequires restart.",
+					"enum": [
+						"explorer",
+						"fsharp"
+					],
+					"scope": "application"
 				}
 			}
 		},
