@@ -309,6 +309,20 @@ module LanguageService =
         
         let logger = ConsoleAndOutputChannelLogger(Some "FakeTargets", Level.DEBUG, None, Some Level.DEBUG)
         
+        let fakeRuntime () =
+            match client with
+            | None ->
+                Promise.empty
+            | Some cl ->
+                cl.sendRequest("fake/runtimePath", null)
+                |> Promise.map (fun (res: Types.PlainNotification) ->
+                    res.content |> ofJson<Result<string>>
+                )
+                |> Promise.onFail (fun o ->
+                    logger.Error("Error in fake/runtimePath request.", o)
+                )
+                |> Promise.map (fun c -> c.Data)
+
         let targetsInfo (fn:string) =
             match client with
             | None ->
@@ -318,15 +332,13 @@ module LanguageService =
                 |> Promise.bind (fun dotnetRuntime ->
                     match dotnetRuntime with
                     | Some r ->
-                        let extensionPath = VSCodeExtension.ionidePluginPath()
-                        let runtimePath = extensionPath + "/.fakeruntime"
-                        let req = { TargetRequest.FileName = handleUntitled fn; FakeContext = { DotNetRuntime = r; PortableFakeRuntime = runtimePath }}
-                        cl.sendRequest("fsharp/fakeTargets", req)
+                        let req = { TargetRequest.FileName = handleUntitled fn; FakeContext = { DotNetRuntime = r }}
+                        cl.sendRequest("fake/listTargets", req)
                         |> Promise.map (fun (res: Types.PlainNotification) ->
                             res.content |> ofJson<Result<Target[]>>
                         )
                         |> Promise.onFail (fun o ->
-                            logger.Error("Error in fsharp/fakeTargets request.", o)
+                            logger.Error("Error in fake/listTargets request.", o)
                         )
                         //|> request<_, Result<Target[]>> "fakeTargets" 0 (makeRequestId())
                     | None ->

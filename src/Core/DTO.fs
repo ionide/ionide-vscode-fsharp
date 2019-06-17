@@ -376,7 +376,7 @@ module DTO =
 
     module FakeSupport =
         type FakeContext =
-            { DotNetRuntime : string; PortableFakeRuntime : string }
+            { DotNetRuntime : string }
         type TargetRequest =
             { FileName : string; FakeContext : FakeContext }
 

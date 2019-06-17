@@ -474,6 +474,38 @@
 					"light": "./images/refresh-light.svg",
 					"dark": "./images/refresh-dark.svg"
 				}
+			},
+			{
+				"command": "fake.targetsOutline.runTarget",
+				"title": "Run",
+				"icon": {
+					"light": "./images/run-mono-light.svg",
+					"dark": "./images/run-mono-dark.svg"
+				}
+			},
+			{
+				"command": "fake.targetsOutline.debugTarget",
+				"title": "Debug",
+				"icon": {
+					"light": "./images/debug-mono-light.svg",
+					"dark": "./images/debug-mono-dark.svg"
+				}
+			},
+			{
+				"command": "fake.targetsOutline.runSingleTarget",
+				"title": "Run Single",
+				"icon": {
+					"light": "./images/run-mono-light.svg",
+					"dark": "./images/run-mono-dark.svg"
+				}
+			},
+			{
+				"command": "fake.targetsOutline.debugSingleTarget",
+				"title": "Debug Single",
+				"icon": {
+					"light": "./images/debug-mono-light.svg",
+					"dark": "./images/debug-mono-dark.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -696,6 +728,22 @@
 				},
 				{
 					"command": "fake.targetsOutline.reloadTargets",
+					"when": "false"
+				},
+				{
+					"command": "fake.targetsOutline.runTarget",
+					"when": "false"
+				},
+				{
+					"command": "fake.targetsOutline.debugTarget",
+					"when": "false"
+				},
+				{
+					"command": "fake.targetsOutline.runSingleTarget",
+					"when": "false"
+				},
+				{
+					"command": "fake.targetsOutline.debugSingleTarget",
 					"when": "false"
 				}
 			],
@@ -1053,6 +1101,24 @@
 					"command": "fsharp.explorer.project.setDefault",
 					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "1_run@3"
+				},
+				{
+					"command": "fake.targetsOutline.runTarget",
+					"when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target",
+					"group": "inline"
+				},
+				{
+					"command": "fake.targetsOutline.debugTarget",
+					"when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target",
+					"group": "inline"
+				},
+				{
+					"command": "fake.targetsOutline.runSingleTarget",
+					"when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target"
+				},
+				{
+					"command": "fake.targetsOutline.debugSingleTarget",
+					"when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target"
 				}
 			],
 			"editor/context": [

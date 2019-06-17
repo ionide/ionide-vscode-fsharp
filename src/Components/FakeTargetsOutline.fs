@@ -154,10 +154,10 @@ module FakeTargetsOutline =
                     then
                         match currentDocument with
                         | None ->
-                            currentDocument <- Some doc.document.uri.path
+                            currentDocument <- Some doc.document.fileName
                         | Some path ->
-                            if path <> doc.document.uri.path then
-                                currentDocument <- Some doc.document.uri.path
+                            if path <> doc.document.fileName then
+                                currentDocument <- Some doc.document.fileName
 
                         match doc.document with
                         | Document.FSharp ->
@@ -184,7 +184,8 @@ module FakeTargetsOutline =
                 ti.label <- Some node.Label //getLabel node |> Some
                 ti.collapsibleState <- state
                 ti.iconPath <- getIcon node |> Option.map U4.Case3
-                ti.contextValue <- Some "FAKE.targetsOutline.item"
+                ti.contextValue <- 
+                    Some (match node.Type with | ModelType.TargetModel -> "fake.targetsOutline.target" | _ -> "fake.targetsOutline.dependency") 
                 ti.tooltip <- Some node.Description
 
                 let c = createEmpty<Command>
@@ -240,6 +241,19 @@ module FakeTargetsOutline =
             reallyRefresh.fire(None)
 
 
+    type [<Pojo>] RequestLaunch =
+        { name : string
+          ``type`` : string
+          request : string
+          preLaunchTask : string option
+          program : string
+          args : string array
+          cwd : string
+          console : string
+          stopAtEntry : bool 
+          justMyCode : bool
+          requireExactSource : bool }
+
     let activate (context : ExtensionContext) =
         setShowTargetsOutlineForEditor window.activeTextEditor
 
@@ -272,8 +286,76 @@ module FakeTargetsOutline =
             |> unbox
         )) |> context.subscriptions.Add
 
+        let runFake doDebug onlySingleTarget targetName =
+            promise {
+                match currentDocument with
+                | Some scriptFile ->
+                    let scriptDir = node.path.dirname scriptFile
+                    let scriptName = node.path.basename scriptFile
+                    let! fakeRuntime = LanguageService.FakeSupport.fakeRuntime()
+                    let preArg = if onlySingleTarget then "-st" else "-t"
+                    let args =
+                        if doDebug then [| "run"; "--fsiargs"; "--debug:portable --optimize-"; scriptName; preArg; targetName |]
+                        else [| "run"; scriptName; preArg; targetName |]
+                    let cfg : RequestLaunch = 
+                        { name = "Fake Script Debugging"
+                          ``type`` = "coreclr"
+                          request = "launch"
+                          preLaunchTask = None
+                          program = fakeRuntime
+                          args = args
+                          cwd = scriptDir
+                          console = "externalTerminal"
+                          stopAtEntry = false
+                          justMyCode = false
+                          requireExactSource = false }
+                    if doDebug then
+                        let! res = debug.startDebugging(JS.undefined, unbox cfg)
+                        ()
+                    else
+                        let! dotnet = Environment.dotnet
+                        match dotnet with
+                        | None ->
+                            let! _ = window.showErrorMessage("Cannot start debugging as no dotnet runtime was found. Consider configuring one in ionide settings.")
+                            ()
+                        | Some dotnet ->
+                            let taskDef = createEmpty<TaskDefinition>
+                            taskDef.``type`` <- Some "fakerun"
+                            let opts = createEmpty<ProcessExecutionOptions>
+                            opts.cwd <- Some cfg.cwd
+                            let procExp = ProcessExecution(dotnet, [| yield fakeRuntime; yield! args |], opts)
+                            let task = Task(taskDef, ConfigurationTarget.Global, "fake run", "fake", procExp)
+                            let exec = tasks.executeTask(task)
+                            ()
+                | None ->
+                    let! _ = window.showErrorMessage("Cannot start debugging as no script file was selected.")
+                    ()
+            }
+
+        let debugTarget onlySingleTarget targetName =
+            runFake true onlySingleTarget targetName :> obj
+
+        let runTarget onlySingleTarget targetName =
+            runFake false onlySingleTarget targetName :> obj
+
         commands.registerCommand("fake.targetsOutline.reloadTargets", Func<obj, obj>(fun _ ->
             refresh.fire undefined |> unbox
+        )) |> context.subscriptions.Add
+        commands.registerCommand("fake.targetsOutline.runTarget", Func<obj, obj>(fun n ->
+            let item = unbox<Model> n
+            runTarget false item.Label
+        )) |> context.subscriptions.Add
+        commands.registerCommand("fake.targetsOutline.debugTarget", Func<obj, obj>(fun n ->
+            let item = unbox<Model> n
+            debugTarget false item.Label
+        )) |> context.subscriptions.Add
+        commands.registerCommand("fake.targetsOutline.runSingleTarget", Func<obj, obj>(fun n ->
+            let item = unbox<Model> n
+            runTarget true item.Label
+        )) |> context.subscriptions.Add
+        commands.registerCommand("fake.targetsOutline.debugSingleTarget", Func<obj, obj>(fun n ->
+            let item = unbox<Model> n
+            debugTarget true item.Label
         )) |> context.subscriptions.Add
 
         let provider = createProvider ()
