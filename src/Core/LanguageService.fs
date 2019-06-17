@@ -14,14 +14,12 @@ open LanguageServer
 module Notifications =
     type DocumentParsedEvent =
         { fileName : string
-          text : string
           version : float
           /// BEWARE: Live object, might have changed since the parsing
-          document : TextDocument
-          result : ParseResult }
+          document : TextDocument }
 
 
-    let private onDocumentParsedEmitter = EventEmitter<DocumentParsedEvent>()
+    let onDocumentParsedEmitter = EventEmitter<DocumentParsedEvent>()
     let onDocumentParsed = onDocumentParsedEmitter.event
 
     let private tooltipRequestedEmitter = EventEmitter<Position>()
@@ -577,7 +575,6 @@ module LanguageService =
                 match Notifications.notifyWorkspaceHandler with
                 | None -> ()
                 | Some cb ->
-                    printfn "WORKSPACE MSG: %A" a
                     let onMessage res =
                         match res?Kind |> unbox with
                         | "project" ->
@@ -592,6 +589,17 @@ module LanguageService =
                             ()
                     let res = a.content |> ofJson<obj>
                     onMessage res
+            ))
+
+            cl.onNotification("fsharp/fileParsed", (fun (a: Types.PlainNotification) ->
+                let fn = a.content
+                let te = window.visibleTextEditors |> Seq.find (fun n -> path.normalize(n.document.fileName).ToLower() = path.normalize(fn).ToLower())
+
+                let ev = {Notifications.fileName = a.content; Notifications.version = te.document.version; Notifications.document = te.document }
+
+                Notifications.onDocumentParsedEmitter.fire ev
+
+                ()
             ))
         )
 
