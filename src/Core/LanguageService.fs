@@ -340,7 +340,7 @@ module LanguageService =
                         |> Promise.onFail (fun o ->
                             logger.Error("Error in fake/listTargets request.", o)
                         )
-                        //|> request<_, Result<Target[]>> "fakeTargets" 0 (makeRequestId())
+
                     | None ->
                         let msg = """
 Cannot request fake targets because `dotnet` was not found.
@@ -524,8 +524,7 @@ Consider:
         let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
         let spawnNetCore dotnet =
-            //let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
-            let ionidePluginPath = @"C:\proj\ionide-vscode-fsharp\paket-files\github.com\fsharp\FsAutoComplete\src\FsAutoComplete\bin\Debug\netcoreapp2.1\fsautocomplete.dll"
+            let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
             let args =
                 [
                     yield ionidePluginPath

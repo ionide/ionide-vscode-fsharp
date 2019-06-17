@@ -364,6 +364,3 @@ module FakeTargetsOutline =
         treeOptions.showCollapseAll <- Some true
         let treeView = window.createTreeView(treeViewId, treeOptions)
         context.subscriptions.Add treeView
-
-        //window.registerTreeDataProvider(treeViewId, createProvider () )
-        //|> context.subscriptions.Add
