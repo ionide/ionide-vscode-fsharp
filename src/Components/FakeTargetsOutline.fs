@@ -33,15 +33,20 @@ module FakeTargetsOutline =
             | HardDependency -> "<=="
     type ModelType =
         | TargetModel
+        | ErrorOrWarning
         | DependencyModel of DependencyType
 
     type Model =
         { AllTargets : Target []
           Label : string
           Description : string
-          Declaration : Declaration
+          Declaration : Declaration option
           Type : ModelType
-          getChildren : unit -> ResizeArray<Model> }      
+          getChildren : unit -> ResizeArray<Model> }   
+        member x.IsTarget =
+            match x.Type with
+            | TargetModel -> true
+            | _ -> false
 
     let refresh = EventEmitter<Uri> ()
     let private reallyRefresh = EventEmitter<Model option> ()
@@ -80,18 +85,18 @@ module FakeTargetsOutline =
                 let item = state.Children.[key]
                 add' item symbol (endIndex + 1)
 
-    let getRoot (doc : TextDocument) =
-        promise {
-            let! o = LanguageService.FakeSupport.targetsInfo doc.fileName
-            if isNotNull o then
-                return o.Data
-            else
-                return unbox null
-        }
-
-    let getIcon node =
+    let getIcon (node:Model) =
         // TODO use other icon for dependencies
-        Some <| getIconPath "icon-function-light.svg" "icon-function-dark.svg"
+        match node.Type with
+        | ModelType.ErrorOrWarning ->
+            if node.AllTargets.Length = 0 then // error
+                Some <| getIconPath "error-inverse.svg" "error.svg"
+            else
+                Some <| getIconPath "warning-inverse.svg" "warning.svg"
+        | ModelType.TargetModel ->            
+            Some <| getIconPath "icon-function-light.svg" "icon-function-dark.svg"
+        | ModelType.DependencyModel _ ->
+            Some <| getIconPath "auto-reveal-light.svg" "auto-reveal-dark.svg"
 
     let tryFindTarget (allTargets:Target[]) (name:string)=
         allTargets |> Seq.tryFind (fun t -> t.Name.ToLowerInvariant() = name.ToLowerInvariant())
@@ -102,7 +107,7 @@ module FakeTargetsOutline =
             AllTargets = allTargets
             Label = t.Arrow + " " + d.Name
             Description = "A fake dependency"
-            Declaration = d.Declaration
+            Declaration = if isNull d.Declaration.File then None else Some d.Declaration 
             Type = ModelType.DependencyModel t
             getChildren = fun () ->
                 match children with
@@ -122,7 +127,7 @@ module FakeTargetsOutline =
             AllTargets = allTargets
             Label = t.Name
             Description = t.Description
-            Declaration = t.Declaration
+            Declaration = if isNull t.Declaration.File then None else Some t.Declaration 
             Type = ModelType.TargetModel
             getChildren = fun () ->
                 match children with
@@ -136,6 +141,35 @@ module FakeTargetsOutline =
                     children <- Some n
                     n
         }
+
+    let generateErrorEntry targets msg =
+        {
+            AllTargets = targets
+            Label = msg
+            Description = msg
+            Declaration = None
+            Type = ModelType.ErrorOrWarning
+            getChildren = fun () -> ResizeArray()
+        }
+
+    let generateErrorRoot msg : ResizeArray<Model> =
+        [ generateErrorEntry [||] msg ]
+        |> ResizeArray
+
+    let generateRootFromResponse (o:GetTargetsResult) : ResizeArray<Model> =
+        let items = 
+            o.WarningsAndErrors
+            |> Seq.map (function
+                | GetTargetsWarningOrErrorType.NoFakeScript -> generateErrorEntry o.Targets "this script is not a FAKE script"
+                | GetTargetsWarningOrErrorType.MissingFakeCoreTargets -> generateErrorEntry o.Targets "this script does not use Fake.Core.Target"
+                | GetTargetsWarningOrErrorType.FakeCoreTargetsOlderThan5_15 -> generateErrorEntry o.Targets (sprintf "this script should be updated to at least Fake.Core.Target 5.15")
+                | GetTargetsWarningOrErrorType.MissingNavigationInfo -> generateErrorEntry o.Targets "navigation is missing, are you missing 'Target.initEnvironment()` at the top?"
+                | code -> generateErrorEntry o.Targets (sprintf "unknown error code %d" (int code)))
+        let realItems =
+            o.Targets
+            |> Seq.map (targetAsModel o.Targets)
+
+        [ yield! items; yield! realItems] |> ResizeArray
 
     let createProvider () : TreeDataProvider<Model> =
         { new TreeDataProvider<Model> with
@@ -161,17 +195,15 @@ module FakeTargetsOutline =
 
                         match doc.document with
                         | Document.FSharp ->
-                            promise {                        
-                                let! x = getRoot doc.document
-                                return 
-                                    if isNotNull x then
-                                        x
-                                        |> Seq.map (targetAsModel x)
-                                        |> ResizeArray
-                                    else unbox (ResizeArray ())
+                            promise {    
+                                let! o = LanguageService.FakeSupport.targetsInfo doc.document.fileName
+                                if isNotNull o then
+                                    return generateRootFromResponse o
+                                else
+                                    return generateErrorRoot "null response from fsac"
                             } |> unbox
-                        | _ ->  ResizeArray ()
-                    else ResizeArray ()
+                        | _ -> generateErrorRoot "No active F# document"
+                    else generateErrorRoot "No active document"
 
             member this.getTreeItem(node) =
                 let children = node.getChildren()
@@ -185,7 +217,10 @@ module FakeTargetsOutline =
                 ti.collapsibleState <- state
                 ti.iconPath <- getIcon node |> Option.map U4.Case3
                 ti.contextValue <- 
-                    Some (match node.Type with | ModelType.TargetModel -> "fake.targetsOutline.target" | _ -> "fake.targetsOutline.dependency") 
+                    Some (match node.Type with
+                          | ModelType.TargetModel -> "fake.targetsOutline.target"
+                          | ModelType.DependencyModel _ -> "fake.targetsOutline.dependency"
+                          | ModelType.ErrorOrWarning -> "fake.targetsOutline.error") 
                 ti.tooltip <- Some node.Description
 
                 let c = createEmpty<Command>
@@ -272,18 +307,19 @@ module FakeTargetsOutline =
             |> context.subscriptions.Add
 
         commands.registerCommand("FAKE.targetsOutline.goTo", Func<obj, obj>(fun n ->
-            let line =
-                let m = unbox<Model> n
-                m.Declaration.Line
+            let m = unbox<Model> n
+            match m.Declaration with
+            | Some decl -> 
+                let line = decl.Line
+                let args =
+                    createObj [
+                        "lineNumber" ==> line - 1
+                        "at" ==> "center"
+                    ]
 
-            let args =
-                createObj [
-                    "lineNumber" ==> line - 1
-                    "at" ==> "center"
-                ]
-
-            vscode.commands.executeCommand("revealLine", args)
-            |> unbox
+                vscode.commands.executeCommand("revealLine", args)
+                |> unbox
+            | None -> JS.undefined            
         )) |> context.subscriptions.Add
 
         let runFake doDebug onlySingleTarget targetName =
@@ -328,7 +364,7 @@ module FakeTargetsOutline =
                             let exec = tasks.executeTask(task)
                             ()
                 | None ->
-                    let! _ = window.showErrorMessage("Cannot start debugging as no script file was selected.")
+                    let! _ = window.showErrorMessage("Cannot start fake as no script file was selected.")
                     ()
             }
 

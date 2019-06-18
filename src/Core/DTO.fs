@@ -391,3 +391,12 @@ module DTO =
               SoftDependencies : Dependency []
               Declaration : Declaration
               Description : string }
+
+        type GetTargetsWarningOrErrorType =
+          | NoFakeScript = 1
+          | MissingFakeCoreTargets = 2
+          // Most likely due to missing `Target.initEnvironment()`
+          | MissingNavigationInfo = 4
+          | FakeCoreTargetsOlderThan5_15 = 3
+
+        type GetTargetsResult = { WarningsAndErrors : GetTargetsWarningOrErrorType []; Targets : Target [] }            

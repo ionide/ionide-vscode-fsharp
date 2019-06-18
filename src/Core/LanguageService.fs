@@ -333,7 +333,7 @@ module LanguageService =
                         let req = { TargetRequest.FileName = handleUntitled fn; FakeContext = { DotNetRuntime = r }}
                         cl.sendRequest("fake/listTargets", req)
                         |> Promise.map (fun (res: Types.PlainNotification) ->
-                            res.content |> ofJson<Result<Target[]>>
+                            res.content |> ofJson<GetTargetsResult>
                         )
                         |> Promise.onFail (fun o ->
                             logger.Error("Error in fake/listTargets request.", o)
