@@ -331,7 +331,7 @@ module FakeTargetsOutline =
                     let! fakeRuntime = LanguageService.FakeSupport.fakeRuntime()
                     let preArg = if onlySingleTarget then "-st" else "-t"
                     let args =
-                        if doDebug then [| "run"; "--fsiargs"; "--debug:portable --optimize-"; scriptName; preArg; targetName |]
+                        if doDebug then [| "run"; "--nocache"; "--fsiargs"; "--debug:portable --optimize-"; scriptName; preArg; targetName |]
                         else [| "run"; scriptName; preArg; targetName |]
                     let cfg : RequestLaunch = 
                         { name = "Fake Script Debugging"
