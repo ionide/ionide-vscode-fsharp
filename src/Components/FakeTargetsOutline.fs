@@ -313,7 +313,7 @@ module FakeTargetsOutline =
                 let line = decl.Line
                 let args =
                     createObj [
-                        "lineNumber" ==> line - 1
+                        "lineNumber" ==> line
                         "at" ==> "center"
                     ]
 
@@ -352,7 +352,7 @@ module FakeTargetsOutline =
                         let! dotnet = Environment.dotnet
                         match dotnet with
                         | None ->
-                            let! _ = window.showErrorMessage("Cannot start debugging as no dotnet runtime was found. Consider configuring one in ionide settings.")
+                            let! _ = window.showErrorMessage("Cannot start fake as no dotnet runtime was found. Consider configuring one in ionide settings.")
                             ()
                         | Some dotnet ->
                             let taskDef = createEmpty<TaskDefinition>
@@ -364,7 +364,7 @@ module FakeTargetsOutline =
                             let exec = tasks.executeTask(task)
                             ()
                 | None ->
-                    let! _ = window.showErrorMessage("Cannot start fake as no script file was selected.")
+                    let! _ = window.showErrorMessage("Cannot start fake as no script file is selected.")
                     ()
             }
 
