@@ -31,6 +31,15 @@
 			"stopOnEntry": false,
 			"request": "launch",
 			"sourceMaps": false
+		},
+		{
+			"name": "Launch Experimental Only",
+			"type": "extensionHost",
+			"runtimeExecutable": "${execPath}",
+			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release-exp" ],
+			"stopOnEntry": false,
+			"request": "launch",
+			"sourceMaps": false
 		}
 	]
 }
