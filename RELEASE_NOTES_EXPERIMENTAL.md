@@ -1,3 +1,7 @@
+### 0.3.5
+
+* Ionide 4.0 preview 01
+
 ### 0.2.0
 
 * Fix solution explorer, now projects correctly list source files

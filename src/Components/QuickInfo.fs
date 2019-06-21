@@ -102,7 +102,7 @@ module QuickInfo =
                 if isFsharpTextEditor textEditor && selections.Count > 0 then
                     let doc = textEditor.document
                     let pos = selections.[0].active
-                    let! o = LanguageService.signature (doc.fileName) (int pos.line + 1) (int pos.character + 1)
+                    let! o = LanguageService.signature (doc.fileName) (int pos.line) (int pos.character)
                     if isNotNull o then
                         return Some o.Data
                     else
@@ -141,7 +141,7 @@ module QuickInfo =
         // The display is always cleared, if it's an F# document an onDocumentParsed event will arrive
         StatusDisplay.clear()
 
-    let private documentParsedHandler (event : Errors.DocumentParsedEvent) =
+    let private documentParsedHandler (event : Notifications.DocumentParsedEvent) =
         if event.document = window.activeTextEditor.document then
             clearTimer()
             StatusDisplay.update window.activeTextEditor window.activeTextEditor.selections
@@ -153,4 +153,4 @@ module QuickInfo =
 
         context.subscriptions.Add(window.onDidChangeTextEditorSelection.Invoke(unbox selectionChanged))
         context.subscriptions.Add(window.onDidChangeActiveTextEditor.Invoke(unbox textEditorChanged))
-        context.subscriptions.Add(Errors.onDocumentParsed.Invoke(unbox documentParsedHandler))
+        context.subscriptions.Add(Notifications.onDocumentParsed.Invoke(unbox documentParsedHandler))

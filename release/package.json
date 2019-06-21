@@ -1133,68 +1133,19 @@
 			"type": "object",
 			"title": "FSharp configuration",
 			"properties": {
-				"FSharp.fsacUrl": {
-					"type":"string",
-					"description": "The URL of an already-running instance of F# AutoComplete to use instead of the bundled version. Requires restart."
-				},
 				"FSharp.fsacRuntime": {
 					"type": "string",
 					"description": "Choose the runtime of FsAutocomplete (FSAC). Requires restart.",
 					"enum": [
 						"net",
 						"netcore"
-					]
-				},
-				"FSharp.workspaceMode": {
-					"type": "string",
-					"default": "sln",
-					"description": "Choose the workspace mode",
-					"enum": [
-						"sln",
-						"directory",
-						"ionideSearch"
-					]
-				},
-				"FSharp.workspaceLoader": {
-					"type": "string",
-					"default": "workspaceLoad",
-					"description": "Choose the FSAC workspace loader",
-					"enum": [
-						"projects",
-						"workspaceLoad"
-					]
+					],
+					"default": "netcore"
 				},
 				"FSharp.workspaceModePeekDeepLevel": {
 					"type": "integer",
-					"default": 2,
+					"default": 4,
 					"description": "The deep level of directory hierarchy when searching for sln/projects"
-				},
-				"FSharp.logLanguageServiceRequests": {
-					"type": "string",
-					"default": "output",
-					"description": "Enable logging for F# Language Service requests (FSAC) to either an output channel, the developer tools console, or both",
-					"enum": [
-						"none",
-						"output",
-						"devconsole",
-						"both"
-					]
-				},
-				"FSharp.logLanguageServiceRequestsOutputWindowLevel": {
-					"type": "string",
-					"default": "INFO",
-					"description": "Set the verbosity for F# Language Service Output Channel",
-					"enum": [
-						"DEBUG",
-						"INFO",
-						"WARN",
-						"ERROR"
-					]
-				},
-				"FSharp.toolsDirPath": {
-					"type": "string",
-					"default": "",
-					"description": "The directory containing the F# tools"
 				},
 				"FSharp.monoPath": {
 					"type": "string",
@@ -1213,7 +1164,7 @@
 				},
 				"FSharp.externalAutocomplete": {
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "Includes external (from unopen modules and namespaces) symbols in autocomplete"
 				},
 				"FSharp.linter": {
@@ -1221,11 +1172,26 @@
 					"default": true,
 					"description": "Enables integration with FSharpLinter (additional warnings)"
 				},
+				"FSharp.unionCaseStubGeneration": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enables pattern matching stub generation"
+				},
+				"FSharp.unionCaseStubGenerationBody": {
+					"type": "string",
+					"default": "failwith \"Not Implemented\"",
+					"description": "Generated pattern matching case default body"
+				},
 				"FSharp.recordStubGeneration": {
 					"type": "boolean",
 					"default": true,
 					"description": "Enables record stub generation"
-                },
+				},
+				"FSharp.recordStubGenerationBody": {
+					"type": "string",
+					"default": "failwith \"Not Implemented\"",
+					"description": "Generated record field default body"
+				},
                 "FSharp.interfaceStubGeneration": {
 					"type": "boolean",
 					"default": true,
@@ -1290,7 +1256,7 @@
 				"FSharp.resolveNamespaces": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables `resolve unopened namespaces and modules` code fix. Not stable, can crash FSAC - use at your own risk."
+					"description": "Enables `resolve unopened namespaces and modules` code fix."
 				},
 				"FSharp.enableTreeView": {
 					"type": "boolean",
@@ -1322,25 +1288,21 @@
 					"description": "The prefix displayed before the signature",
 					"default": "  // "
 				},
-				"FSharp.minimizeBackgroundParsing": {
-					"type": "boolean",
-					"default": false,
-					"description": "Minimize the amount of background type-checking of dependent projects. Requires restart.\nThis is a performance workaround that will increase intellisense responsiveness for projects that are referenced by many other projects in the solution."
-				},
+
 				"FSharp.disableFailedProjectNotifications": {
 					"type": "boolean",
 					"default": false,
 					"description": "Disables popup notifications for failed project loading"
 				},
-				"FSharp.enableBackgroundSymbolCache": {
+				"FSharp.enableBackgroundServices": {
 					"type": "boolean",
-					"default": false,
-					"description": "EXPERIMENTAL. Enables background symbol cache. Requires restart."
+					"default": true,
+					"description": "Enables background services responsible for creating symbol cache and typechecking files in the background. Requires restart."
 				},
 				"FSharp.enableReferenceCodeLens": {
 					"type": "boolean",
-					"default": false,
-					"description": "EXPERIMENTAL. Enables additional code lenses showing number of references. Requires experimental background symbol cache"
+					"default": true,
+					"description": "Enables additional code lenses showing number of references. Requires background services"
 				},
 				"FSharp.showProjectExplorerIn": {
 					"type": "string",
@@ -1364,16 +1326,6 @@
 						"analyzers"
 					],
 					"description": "Directories in the array are used as a source of custom analyzers. Requires restart."
-				},
-				"FSharp.customTypecheckingDelay": {
-					"type": "number",
-					"default": -1,
-					"description": "Custom delay for error type checking. Use -1 for default behavior. Requires restart."
-				},
-				"FSharp.disableInMemoryProjectReferences": {
-					"type": "boolean",
-					"default": false,
-					"description": "EXPERIMENTAL. Enables disabling in-memory project references. It means that cross-project changes will be picked up only after building project. It can be useful for big solutions (like F# compiler). Requires workspace loading mode. Requires restart"
 				},
 				"FSharp.workspacePath": {
 					"type": "string",
@@ -1431,7 +1383,12 @@
                     "type": "boolean",
 					"description": "Controls whether the info panel should be displayed at startup",
                     "default": false
-                }
+				},
+				"FSharp.verboseLogging": {
+					"type": "boolean",
+					"default": false,
+					"description": "Logs additional information to F# output channel. Requires restart."
+				}
 			}
 		},
 		"jsonValidation": [

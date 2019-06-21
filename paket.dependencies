@@ -1,4 +1,4 @@
-version 5.169.0
+version 5.207.0
 
 source https://www.nuget.org/api/v2
 storage:none
@@ -10,18 +10,18 @@ nuget Fable.Import.Node < 2.0
 nuget Fable.Import.Browser < 2.0
 
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd LocalRelease", OS: windows
-git https://github.com/fsharp-editing/Forge.git db4680cee965eba7b76b96191fdcfb963e9732c0 build:"build.cmd Build", OS: windows
+git https://github.com/fsharp-editing/Forge.git master build:"fake build -t Publish", OS: windows
 
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.sh LocalRelease", OS: mono
-git https://github.com/fsharp-editing/Forge.git db4680cee965eba7b76b96191fdcfb963e9732c0 build:"build.sh Build", OS: mono
+git https://github.com/fsharp-editing/Forge.git master build:"fake build -t Publish", OS: mono
 
 git https://github.com/ionide/ionide-fsgrammar.git
+git https://github.com/ionide/forge-templates.git netcoreTemplates
 
 github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
 github ionide/ionide-vscode-helpers src/Helpers.fs
-github ionide/ionide-vscode-helpers src/Fable.Import.Axios.fs
-github ionide/ionide-vscode-helpers src/Fable.Import.ws.fs
 github ionide/ionide-vscode-helpers src/Fable.Import.Showdown.fs
+github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.LanguageServer.fs
 
 group build
     source https://www.nuget.org/api/v2

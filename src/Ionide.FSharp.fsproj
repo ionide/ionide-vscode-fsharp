@@ -12,17 +12,13 @@
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.VSCode.fs</Link>
     </Compile>
+    <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Fable.Import.VSCode.LanguageServer.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/Fable.Import.VSCode.LanguageServer.fs</Link>
+    </Compile>
     <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Helpers.fs">
       <Paket>True</Paket>
       <Link>paket-files/Helpers.fs</Link>
-    </Compile>
-    <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Fable.Import.Axios.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Fable.Import.Axios.fs</Link>
-    </Compile>
-    <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Fable.Import.ws.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Fable.Import.ws.fs</Link>
     </Compile>
     <None Include="paket.references" />
     <Compile Include="Imports/Node.Util.fs" />
@@ -32,45 +28,21 @@
     <Compile Include="Core/Logging.fs" />
     <Compile Include="Core/LanguageService.fs" />
     <Compile Include="Core/Project.fs" />
-    <Compile Include="Components/Tooltip.fs" />
-    <Compile Include="Components/Autocomplete.fs" />
-    <Compile Include="Components/ParameterHints.fs" />
     <Compile Include="Components/LanguageConfiguration.fs" />
-    <Compile Include="Components/Definition.fs" />
-    <Compile Include="Components/Implementation.fs" />
-    <Compile Include="Components/TypeDefinition.fs" />
-    <Compile Include="Components/References.fs" />
-    <Compile Include="Components/Highlights.fs" />
-    <Compile Include="Components/Symbols.fs" />
-    <Compile Include="Components/Rename.fs" />
-    <Compile Include="Components/WorkspaceSymbols.fs" />
     <Compile Include="Components/SignatureData.fs" />
     <Compile Include="Components/Fsi.fs" />
     <Compile Include="Components/ScriptRunner.fs" />
     <Compile Include="Components/Forge.fs" />
-    <Compile Include="Components/Linter.fs" />
-    <Compile Include="Components/UnusedOpens.fs" />
-    <Compile Include="Components/UnusedDeclarations.fs" />
-    <Compile Include="Components/SimplifyName.fs" />
-    <Compile Include="Components/CodeLens.fs" />
-    <Compile Include="Components/QuickFix.fs" />
-    <Compile Include="Components/ResolveNamespaces.fs" />
-    <Compile Include="Components/UnionCaseGenerator.fs" />
-    <Compile Include="Components/RecordStubGenerator.fs" />
-    <Compile Include="Components/InterfaceStubGenerator.fs" />
-    <Compile Include="Components/Analyzers.fs" />
-    <Compile Include="Components/Errors.fs" />
     <Compile Include="Components/LineLens.fs" />
     <Compile Include="Components/QuickInfo.fs" />
     <Compile Include="Components/QuickInfoProject.fs" />
     <Compile Include="Components/MSBuild.fs" />
     <Compile Include="Components/Help.fs" />
-    <Compile Include="Components/Diagnostics.fs" />
     <Compile Include="Components/Debugger.fs" />
     <Compile Include="Components/SolutionExplorer.fs" />
     <Compile Include="Components/HtmlConverter.fs" />
     <Compile Include="Components/InfoPanel.fs" />
-    <Compile Include="Components/SmartSelection.fs" />
+    <Compile Include="Components/CodeLensHelpers.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />

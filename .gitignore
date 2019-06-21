@@ -34,7 +34,6 @@ node_modules
 *.suo
 Test/obj/
 Test/bin/
-.paket/paket.exe
 paket-files
 packages
 typings/FunScript.TypeScript/Output

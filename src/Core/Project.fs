@@ -23,17 +23,6 @@ module Project =
         | Failed of path : string * error : string
         | NotRestored of path : string * error : string
 
-    [<RequireQualifiedAccess>]
-    type FSharpWorkspaceMode =
-        | Directory // prefer the directory
-        | Sln // prefer sln, if any, otherwise directory
-        | IonideSearch // old behaviour, like directory but search is ionide's side
-
-    [<RequireQualifiedAccess>]
-    type FSharpWorkspaceLoader =
-        | Projects // send to FSAC multiple "project" command
-        | WorkspaceLoad // send to FSAC the workspaceLoad and use notifications
-
     let private emptyProjectsMap : Dictionary<ProjectFilePath,ProjectLoadingState> = Dictionary()
 
     let mutable private loadedProjects = emptyProjectsMap
@@ -55,6 +44,9 @@ module Project =
 
     let private workspaceLoadedEmitter = EventEmitter<unit>()
     let workspaceLoaded = workspaceLoadedEmitter.event
+
+    let private statusUpdatedEmitter = EventEmitter<unit>()
+    let statusUpdated = statusUpdatedEmitter.event
 
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files"; ".fable"; "node_modules" |]
 
@@ -110,8 +102,18 @@ module Project =
         loadedProjects |> Seq.tryFind (fun n -> n.Key = path.ToUpperInvariant ()) |> Option.map (fun n -> n.Value)
 
     let updateInWorkspace (path : string) state =
-        // loadedProjects <- loadedProjects |> Map.add (path.ToUpperInvariant ()) state
-        loadedProjects.Add ((path.ToUpperInvariant ()), state)
+        let path = path.ToUpperInvariant ()
+        match loadedProjects.TryGetValue path with
+        | true, v ->
+            match v, state  with
+            | ProjectLoadingState.Loaded _, ProjectLoadingState.Loading _ -> ()
+            | _ ->
+                loadedProjects.Add(path, state)
+                statusUpdatedEmitter.fire ()
+        | _ ->
+            loadedProjects.Add(path, state)
+            statusUpdatedEmitter.fire ()
+
 
     let getProjectsFromWorkspacePeek () =
         match loadedWorkspace with
@@ -604,58 +606,33 @@ module Project =
                    |> List.ofArray
         }
 
-    let private getWorkspaceForMode mode =
-        match mode with
-        | FSharpWorkspaceMode.Sln ->
-            promise {
-                let! ws = workspacePeek ()
-                let configured = CurrentWorkspaceConfiguration.get()
-                let configuredPeek = CurrentWorkspaceConfiguration.tryFind configured ws
-                match configuredPeek with
-                | Some peek ->
-                    // If a workspace is configured, use it
-                    return Some peek
-                | None ->
-                    // prefer the sln, load directly the first one, otherwise ask
-                    let slns =
-                        ws
-                        |> List.choose (fun x -> match x with WorkspacePeekFound.Solution _ -> Some x | _ -> None)
-
-                    let! choosen =
-                        match slns with
-                        | [] ->
-                            ws
-                            |> List.tryPick (fun x -> match x with WorkspacePeekFound.Directory _ -> Some x | _ -> None)
-                            |> Promise.lift
-                        | [ sln ] ->
-                            Promise.lift (Some sln)
-                        | _ ->
-                            pickFSACWorkspace ws None
-                    return choosen
-            }
-        | FSharpWorkspaceMode.Directory ->
-            // prefer the directory, like old behaviour (none) but search is done fsac side
-            promise {
-                let! ws = workspacePeek ()
-                return
+    let private getWorkspace () =
+        promise {
+            let! ws = workspacePeek ()
+            let configured = CurrentWorkspaceConfiguration.get()
+            let configuredPeek = CurrentWorkspaceConfiguration.tryFind configured ws
+            match configuredPeek with
+            | Some peek ->
+                // If a workspace is configured, use it
+                return Some peek
+            | None ->
+                // prefer the sln, load directly the first one, otherwise ask
+                let slns =
                     ws
-                    |> List.tryPick (fun x -> match x with WorkspacePeekFound.Directory _ -> Some x | _ -> None)
-             }
-        | FSharpWorkspaceMode.IonideSearch | _ ->
-            // old behaviour, initialize all fsproj found (vscode side)
-            getWorkspaceForModeIonideSearch ()
-            |> Promise.map Some
+                    |> List.choose (fun x -> match x with WorkspacePeekFound.Solution _ -> Some x | _ -> None)
 
-    let getWorkspaceModeFromConfig () =
-        match "FSharp.workspaceMode" |> Configuration.get "sln" with
-        | "directory" -> FSharpWorkspaceMode.Directory
-        | "sln" -> FSharpWorkspaceMode.Sln
-        | "ionideSearch" | _ -> FSharpWorkspaceMode.IonideSearch
-
-    let getWorkspaceLoaderFromConfig () =
-        match "FSharp.workspaceLoader" |> Configuration.get "projects" with
-        | "workspaceLoad" -> FSharpWorkspaceLoader.WorkspaceLoad
-        | "projects" | _ -> FSharpWorkspaceLoader.Projects
+                let! choosen =
+                    match slns with
+                    | [] ->
+                        ws
+                        |> List.tryPick (fun x -> match x with WorkspacePeekFound.Directory _ -> Some x | _ -> None)
+                        |> Promise.lift
+                    | [ sln ] ->
+                        Promise.lift (Some sln)
+                    | _ ->
+                        pickFSACWorkspace ws None
+                return choosen
+        }
 
     let handleProjectParsedNotification res =
         let disableShowNotification = "FSharp.disableFailedProjectNotifications" |> Configuration.get false
@@ -672,17 +649,6 @@ module Project =
                     projectNotRestoredLoadedEmitter.fire d.Project
                     Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
                 | ErrorData.ProjectParsingFailed d ->
-                    if not disableShowNotification && d.Project.EndsWith(".fsproj") then
-                        let msg = "Project parsing failed: " + path.basename(d.Project)
-                        vscode.window.showErrorMessage(msg, "Disable notification", "Show status")
-                        |> Promise.map(fun res ->
-                            if res = "Disable notification" then
-                                Configuration.set "FSharp.disableFailedProjectNotifications" true
-                                |> ignore
-                            elif res = "Show status" then
-                                ShowStatus.CreateOrShow(d.Project, (path.basename(d.Project)))
-                        )
-                        |> ignore
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
                 | _ ->
                     if not disableShowNotification then
@@ -705,7 +671,7 @@ module Project =
         | None ->
             ()
 
-    let private initWorkspaceHelper parseVisibleTextEditors x  =
+    let private initWorkspaceHelper x  =
         let disableInMemoryProject = "FSharp.disableInMemoryProjectReferences" |> Configuration.get false
         clearLoadedProjects ()
         loadedWorkspace <- Some x
@@ -725,57 +691,89 @@ module Project =
             setAnyProjectContext true
         | _ -> ()
 
-        let loadProjects =
-            let loader =
-                match workspaceNotificationAvaiable, getWorkspaceLoaderFromConfig () with
-                | false, FSharpWorkspaceLoader.Projects ->
-                    FSharpWorkspaceLoader.Projects
-                | false, FSharpWorkspaceLoader.WorkspaceLoad ->
-                    // workspaceLoad require notification, but registration failed => warning
-                    // fallback to projects
-                    FSharpWorkspaceLoader.Projects
-                | true, loaderType -> loaderType
-
-            match loader with
-            | FSharpWorkspaceLoader.Projects ->
-                Promise.executeForAll (load false)
-            | FSharpWorkspaceLoader.WorkspaceLoad ->
-                LanguageService.workspaceLoad disableInMemoryProject
-
         projs
         |> List.ofArray
-        |> loadProjects
-        |> Promise.bind (fun _ -> parseVisibleTextEditors ())
+        |> LanguageService.workspaceLoad
         |> Promise.map ignore
 
     let reinitWorkspace () =
         match loadedWorkspace with
         | None -> Promise.empty
         | Some wsp ->
-            initWorkspaceHelper (fun _ -> Promise.empty) wsp
+            initWorkspaceHelper  wsp
 
-    let initWorkspace parseVisibleTextEditors =
-        getWorkspaceModeFromConfig ()
-        |> getWorkspaceForMode
+    let initWorkspace () =
+        getWorkspace ()
         |> Promise.bind (function Some x -> Promise.lift x | None -> getWorkspaceForModeIonideSearch ())
-        |> Promise.bind (initWorkspaceHelper parseVisibleTextEditors)
+        |> Promise.bind (initWorkspaceHelper)
 
-    let activate (context : ExtensionContext) parseVisibleTextEditors =
+    module internal ProjectStatus =
+        let mutable timer = None
+        let mutable path = ""
+
+        let clearTimer () =
+            match timer with
+            | Some t ->
+                clearTimeout t
+                timer <- None
+            | _ -> ()
+
+        let mutable item : StatusBarItem option = None
+        let private hideItem () = item |> Option.iter (fun n -> n.hide ())
+
+        let private showItem (text : string) tooltip =
+            path <- tooltip
+            item.Value.text <- sprintf "$(flame) %s" text
+            item.Value.tooltip <- tooltip
+            item.Value.command <- "showProjStatusFromIndicator"
+            item.Value.color <- ThemeColor "fsharp.statusBarWarnings" |> U2.Case2
+            item.Value.show()
+
+
+        let update () =
+            let projs = getInWorkspace ()
+            match projs |> List.tryPick (function | ProjectLoadingState.Failed(p,er) -> Some p | _ -> None  ) with
+            | Some p -> showItem "Project loading failed" p
+            | None ->
+            match projs |> List.tryPick (function | ProjectLoadingState.Loading(p) -> Some p | _ -> None  ) with
+            | Some p -> showItem "Project loading" p
+            | None ->
+            match projs |> List.tryPick (function | ProjectLoadingState.NotRestored(p,_) -> Some p | _ -> None  ) with
+            | Some p -> showItem "Project not restored" p
+            | None -> hideItem ()
+
+        let statusUpdateHandler () =
+            clearTimer()
+            timer <- Some (setTimeout (fun () -> update ()) 1000.)
+
+
+
+
+    let activate (context : ExtensionContext) =
         CurrentWorkspaceConfiguration.setContext context
         commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
         |> context.subscriptions.Add
 
-        workspaceNotificationAvaiable <- LanguageService.registerNotifyWorkspace handleProjectParsedNotification
+        Notifications.notifyWorkspaceHandler <- Some handleProjectParsedNotification
+        workspaceNotificationAvaiable <- true
+        ProjectStatus.item <- Some (window.createStatusBarItem (StatusBarAlignment.Right, 9000. ))
+        statusUpdated.Invoke(!!ProjectStatus.statusUpdateHandler) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.changeWorkspace", (fun _ ->
             workspacePeek ()
             |> Promise.bind (fun x -> pickFSACWorkspace x (CurrentWorkspaceConfiguration.get()))
-            |> Promise.bind (function Some w -> initWorkspaceHelper parseVisibleTextEditors w  | None -> Promise.empty )
+            |> Promise.bind (function Some w -> initWorkspaceHelper w  | None -> Promise.empty )
             |> box
             ))
         |> context.subscriptions.Add
 
-        initWorkspace parseVisibleTextEditors
+        commands.registerCommand("showProjStatusFromIndicator", (fun _ ->
+            let name = path.basename (ProjectStatus.path)
+            ShowStatus.CreateOrShow(ProjectStatus.path,name)
+            |> box
+        )) |> context.subscriptions.Add
+
+        initWorkspace ()
         |> Promise.onSuccess (fun _ ->
             setTimeout (fun _ ->
                 getNotLoaded ()
