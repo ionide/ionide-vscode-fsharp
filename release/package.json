@@ -1133,6 +1133,16 @@
 			"type": "object",
 			"title": "FSharp configuration",
 			"properties": {
+				"FSharp.fsac.netCoreDllPath": {
+					"type": "string",
+					"default": "",
+					"description": "The path to the 'fsautocomplete.dll', useful for debugging a self-built fsac."
+				},
+				"FSharp.fsac.attachDebugger": {
+					"type": "boolean",
+					"default": false,
+					"description": "Appends the '--attachDebugger' argument to fsac, this will allow you to attach the debugger."
+				},
 				"FSharp.fsacRuntime": {
 					"type": "string",
 					"description": "Choose the runtime of FsAutocomplete (FSAC). Requires restart.",

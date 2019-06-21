@@ -468,15 +468,20 @@ module LanguageService =
         }
 
         let backgroundSymbolCache = "FSharp.enableBackgroundServices" |> Configuration.get true
+        let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
+        let fsacPath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
         let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
         let spawnNetCore dotnet =
-            let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
+            let ionidePluginPath =
+                if String.IsNullOrEmpty fsacPath then VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
+                else fsacPath
             let args =
                 [
                     yield ionidePluginPath
                     yield"--mode"
                     yield "lsp"
+                    if fsacAttachDebugger then yield "--attachdebugger"
                     if backgroundSymbolCache then yield "--background-service-enabled"
                     if verbose then yield  "--verbose"
                 ] |> ResizeArray
