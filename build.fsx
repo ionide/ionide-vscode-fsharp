@@ -68,7 +68,9 @@ Target "Clean" (fun _ ->
     CleanDir "./temp"
     CopyFiles "release" ["README.md"; "LICENSE.md"]
     CopyFile "release/CHANGELOG.md" "RELEASE_NOTES.md"
+)
 
+Target "CleanExp" (fun _ ->
     CleanDir "./release-exp"
 )
 
@@ -425,6 +427,7 @@ module ExperimentalExtension =
 
 Target "Default" DoNothing
 Target "Build" DoNothing
+Target "BuildExp" DoNothing
 Target "Release" DoNothing
 Target "ReleaseExp" DoNothing
 Target "BuildPackages" DoNothing
@@ -447,6 +450,7 @@ Target "BuildPackages" DoNothing
 ==> "CopySchemas"
 ==> "Build"
 
+
 "YarnInstall" ==> "Build"
 "DotNetRestore" ==> "Build"
 
@@ -464,7 +468,11 @@ Target "BuildPackages" DoNothing
 ==> "ExpCopyGrammar"
 ==> "ExpCopySchemas"
 ==> "ExpSetVersion"
+==> "BuildExp"
 ==> "BuildPackageExp"
+
+"CleanExp" ?=> "ExpRunScript"
+"CleanExp" ==> "BuildExp"
 
 "Build"
 ==> "SetVersion"

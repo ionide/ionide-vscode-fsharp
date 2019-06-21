@@ -3,7 +3,7 @@ if test "$OS" = "Windows_NT"
 then
   # use .Net
 
-  ./paket.exe restore
+  ./.paket/paket.exe restore
   exit_code=$?
   if [ $exit_code -ne 0 ]; then
   	exit $exit_code

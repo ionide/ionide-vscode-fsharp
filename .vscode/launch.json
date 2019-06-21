@@ -2,12 +2,23 @@
 {
 	"version": "0.2.0",
 	"configurations": [
+
 		{
             "preLaunchTask": "Build",
 			"name": "Build and Launch Extension",
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
+			"stopOnEntry": false,
+			"request": "launch",
+			"sourceMaps": false
+		},
+		{
+            "preLaunchTask": "BuildExperimental",
+			"name": "Build and Launch Experimental Extension",
+			"type": "extensionHost",
+			"runtimeExecutable": "${execPath}",
+			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release-exp" ],
 			"stopOnEntry": false,
 			"request": "launch",
 			"sourceMaps": false
