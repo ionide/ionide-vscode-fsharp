@@ -1141,7 +1141,7 @@
 				"FSharp.fsac.attachDebugger": {
 					"type": "boolean",
 					"default": false,
-					"description": "Appends the '--attachDebugger' argument to fsac, this will allow you to attach the debugger."
+					"description": "Appends the '--attachdebugger' argument to fsac, this will allow you to attach the debugger."
 				},
 				"FSharp.fsacRuntime": {
 					"type": "string",
