@@ -23,8 +23,9 @@ module QuickInfoProject =
             | None ->
                 match te.document with
                 | Document.FSharp when path.extname te.document.fileName <> ".fsx" && not (te.document.isUntitled) ->
+                    let loadingInfo = if Project.isLoadingWorkspaceComplete() then "" else " (Still loading...)"
                     let fileNameOnly = node.path.basename fileName
-                    item.Value.text <- "$(circuit-board) Not in a F# project"
+                    item.Value.text <- "$(circuit-board) Not in a F# project" + loadingInfo
                     item.Value.tooltip <- sprintf "%s is not in any project known to Ionide" fileNameOnly
                     item.Value.command <- "fsharp.AddFileToProject"
                     item.Value.color <- ThemeColor "fsharp.statusBarWarnings" |> U2.Case2
