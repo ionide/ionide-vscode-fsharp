@@ -44,7 +44,7 @@ let activate (context : ExtensionContext) : Fable.Import.JS.Promise<Api> =
             |> Promise.onSuccess(fun _ -> QuickInfoProject.activate context )
             |> Promise.onSuccess (fun _ ->
                 if showExplorer then
-                    commands.executeCommand(VSCodeExtension.workbeachViewId ())
+                    commands.executeCommand(VSCodeExtension.workbenchViewId ())
                     |> ignore
         )))
         |> ignore
