@@ -466,6 +466,46 @@
 					"light": "./images/lock-open-solid-light.svg",
 					"dark": "./images/lock-open-solid.svg"
 				}
+			},
+			{
+				"command": "fake.targetsOutline.reloadTargets",
+				"title": "Reload targets from script",
+				"icon": {
+					"light": "./images/refresh-light.svg",
+					"dark": "./images/refresh-dark.svg"
+				}
+			},
+			{
+				"command": "fake.targetsOutline.runTarget",
+				"title": "Run",
+				"icon": {
+					"light": "./images/run-mono-light.svg",
+					"dark": "./images/run-mono-dark.svg"
+				}
+			},
+			{
+				"command": "fake.targetsOutline.debugTarget",
+				"title": "Debug",
+				"icon": {
+					"light": "./images/debug-mono-light.svg",
+					"dark": "./images/debug-mono-dark.svg"
+				}
+			},
+			{
+				"command": "fake.targetsOutline.runSingleTarget",
+				"title": "Run Single",
+				"icon": {
+					"light": "./images/run-mono-light.svg",
+					"dark": "./images/run-mono-dark.svg"
+				}
+			},
+			{
+				"command": "fake.targetsOutline.debugSingleTarget",
+				"title": "Debug Single",
+				"icon": {
+					"light": "./images/debug-mono-light.svg",
+					"dark": "./images/debug-mono-dark.svg"
+				}
 			}
 		],
 		"viewsContainers": {
@@ -484,6 +524,11 @@
 					"id": "ionide.projectExplorer",
 					"name": "F# Solution Explorer",
 					"when": "fsharp.project.any && fsharp.showProjectExplorerInExplorerActivity"
+				},
+				{
+					"id": "fake.targetsOutline",
+					"name": "FAKE Targets Outline",
+					"when": "fake.targetsOutline.show && fake.targetsOutline.showInExplorerActivity"
 				}
 			],
 			"ionide-fsharp": [
@@ -491,6 +536,11 @@
 					"id": "ionide.projectExplorerInActivity",
 					"name": "Solution Explorer",
 					"when": "fsharp.project.any && fsharp.showProjectExplorerInFsharpActivity"
+				},
+				{
+					"id": "fake.targetsOutlineInActivity",
+					"name": "FAKE Targets Outline",
+					"when": "fake.targetsOutline.show && fake.targetsOutline.showInFsharpActivity"
 				}
 			]
 		},
@@ -675,6 +725,26 @@
 				{
 					"command": "fsharp.showDocumentation",
 					"when": "false"
+				},
+				{
+					"command": "fake.targetsOutline.reloadTargets",
+					"when": "false"
+				},
+				{
+					"command": "fake.targetsOutline.runTarget",
+					"when": "false"
+				},
+				{
+					"command": "fake.targetsOutline.debugTarget",
+					"when": "false"
+				},
+				{
+					"command": "fake.targetsOutline.runSingleTarget",
+					"when": "false"
+				},
+				{
+					"command": "fake.targetsOutline.debugSingleTarget",
+					"when": "false"
 				}
 			],
 			"view/title": [
@@ -761,6 +831,16 @@
 					"command": "fsharp.explorer.clearCache",
 					"group": "modification@5",
 					"when": "view == ionide.projectExplorerInActivity"
+				},
+				{
+					"command": "fake.targetsOutline.reloadTargets",
+					"group": "navigation@1",
+					"when": "view == fake.targetsOutline"
+				},
+				{
+					"command": "fake.targetsOutline.reloadTargets",
+					"group": "navigation@1",
+					"when": "view == fake.targetsOutlineInActivity"
 				}
 			],
 			"view/item/context": [
@@ -1021,6 +1101,24 @@
 					"command": "fsharp.explorer.project.setDefault",
 					"when": "viewItem == ionide.projectExplorer.projectExe",
 					"group": "1_run@3"
+				},
+				{
+					"command": "fake.targetsOutline.runTarget",
+					"when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target",
+					"group": "inline"
+				},
+				{
+					"command": "fake.targetsOutline.debugTarget",
+					"when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target",
+					"group": "inline"
+				},
+				{
+					"command": "fake.targetsOutline.runSingleTarget",
+					"when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target"
+				},
+				{
+					"command": "fake.targetsOutline.debugSingleTarget",
+					"when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target"
 				}
 			],
 			"editor/context": [
@@ -1298,7 +1396,6 @@
 					"description": "The prefix displayed before the signature",
 					"default": "  // "
 				},
-
 				"FSharp.disableFailedProjectNotifications": {
 					"type": "boolean",
 					"default": false,
@@ -1398,6 +1495,22 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Logs additional information to F# output channel. Requires restart."
+				},
+				"FAKE.targetsOutline": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enables the Targets Outline tree view.",
+					"scope": "resource"
+				},
+				"FAKE.showTargetsOutlineIn": {
+					"type": "string",
+					"default": "explorer",
+					"description": "Set the activity (left bar) where the FAKE targets outline view will be displayed.\nRequires restart.",
+					"enum": [
+						"explorer",
+						"fsharp"
+					],
+					"scope": "application"
 				}
 			}
 		},
