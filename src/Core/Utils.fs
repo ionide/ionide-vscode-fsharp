@@ -437,5 +437,5 @@ module VSCodeExtension =
         with
         | _ -> (VSCode.getPluginPath (sprintf "Ionide.%s" oldExtensionName))
 
-    let workbeachViewId () =
+    let workbenchViewId () =
         sprintf "workbench.view.extension.%s" extensionName
