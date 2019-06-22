@@ -66,6 +66,7 @@ let activate (context : ExtensionContext) : Fable.Import.JS.Promise<Api> =
         HtmlConverter.activate context
         InfoPanel.activate context
         CodeLensHelpers.activate context
+        FakeTargetsOutline.activate context
 
         let buildProject project = promise {
             let! exit = MSBuild.buildProjectPath "Build" project
