@@ -301,6 +301,57 @@ module LanguageService =
                 ()
             )
 
+
+    module FakeSupport =
+        open DTO.FakeSupport
+        
+        let logger = ConsoleAndOutputChannelLogger(Some "FakeTargets", Level.DEBUG, None, Some Level.DEBUG)
+        
+        let fakeRuntime () =
+            match client with
+            | None ->
+                Promise.empty
+            | Some cl ->
+                cl.sendRequest("fake/runtimePath", null)
+                |> Promise.map (fun (res: Types.PlainNotification) ->
+                    res.content |> ofJson<Result<string>>
+                )
+                |> Promise.onFail (fun o ->
+                    logger.Error("Error in fake/runtimePath request.", o)
+                )
+                |> Promise.map (fun c -> c.Data)
+
+        let targetsInfo (fn:string) =
+            match client with
+            | None ->
+                Promise.empty
+            | Some cl ->
+                Environment.dotnet
+                |> Promise.bind (fun dotnetRuntime ->
+                    match dotnetRuntime with
+                    | Some r ->
+                        let req = { TargetRequest.FileName = handleUntitled fn; FakeContext = { DotNetRuntime = r }}
+                        cl.sendRequest("fake/listTargets", req)
+                        |> Promise.map (fun (res: Types.PlainNotification) ->
+                            res.content |> ofJson<GetTargetsResult>
+                        )
+                        |> Promise.onFail (fun o ->
+                            logger.Error("Error in fake/listTargets request.", o)
+                        )
+
+                    | None ->
+                        let msg = """
+Cannot request fake targets because `dotnet` was not found.
+Consider:
+* setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary,
+* including `dotnet` in your PATH,
+* installing .NET Core into one of the default locations, or
+"""
+                        logger.Error(msg)
+                        Promise.reject (msg)             
+                    )
+            
+
     let private fsacConfig () =
         compilerLocation ()
         |> Promise.map (fun c -> c.Data)
