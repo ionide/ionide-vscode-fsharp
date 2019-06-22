@@ -12,6 +12,22 @@
                 "command": "${workspaceRoot}/build.cmd",
                 "type": "process" // some people have bash as default in windows
             },
+            "label": "BuildExperimental",
+            "args": [
+                "ExpRunScript"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "command": "${workspaceRoot}/build.sh",
+            "type": "shell",
+            "windows": {
+                "command": "${workspaceRoot}/build.cmd",
+                "type": "process" // some people have bash as default in windows
+            },
             "label": "Build",
             "args": [
                 "Default"
