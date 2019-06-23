@@ -13,7 +13,7 @@ module SignatureData =
         | Document.FSharp  ->
             let line = window.activeTextEditor.selection.active.line
             let col = window.activeTextEditor.selection.active.character
-            LanguageService.signatureData editor.fileName (int line) (int col)
+            LanguageService.generateDocumentation editor.fileName (int line) (int col)
             |> Promise.bind (fun (p : SignatureDataResult)  ->
                 let pms =
                     p.Data.Parameters
