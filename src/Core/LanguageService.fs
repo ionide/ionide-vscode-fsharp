@@ -154,6 +154,20 @@ module LanguageService =
                 res.content |> ofJson<SignatureDataResult>
             )
 
+    let generateDocumentation fn line col =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.TextDocumentPositionParams= {
+                TextDocument = {Uri = handleUntitled fn}
+                Position = {Line = line; Character = col}
+            }
+
+            cl.sendRequest("fsharp/documentationGenerator", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<SignatureDataResult>
+            )
+
     let lineLenses fn  =
         match client with
         | None -> Promise.empty
@@ -304,9 +318,9 @@ module LanguageService =
 
     module FakeSupport =
         open DTO.FakeSupport
-        
+
         let logger = ConsoleAndOutputChannelLogger(Some "FakeTargets", Level.DEBUG, None, Some Level.DEBUG)
-        
+
         let fakeRuntime () =
             match client with
             | None ->
@@ -348,9 +362,9 @@ Consider:
 * installing .NET Core into one of the default locations, or
 """
                         logger.Error(msg)
-                        Promise.reject (msg)             
+                        Promise.reject (msg)
                     )
-            
+
 
     let private fsacConfig () =
         compilerLocation ()
