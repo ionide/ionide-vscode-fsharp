@@ -1,3 +1,21 @@
+### 4.0.0 - 24.06.2019
+* Use LSP as communication protocol with FSAC
+* Use Dotnet.ProjInfo.Workspace as only way to parse project files
+* Use .Net Core version of Forge
+* Remove `workspaceMode` setting - we always use FSAC based search to detect projects or solutions in workspace
+* Remove `workspaceLoader` setting - we always use FSAC workspace based project loading.
+* Set `fsacRuntime` to `netcore` by default - recommended way of using Ionide 4.0 is running it on .Net Core. .Net SDK is only strict requirement.
+* Remove `logLanguageServiceRequests` and `logLanguageServiceRequestsOutputWindowLevel` settings - due to the fact Ionide is really thin layer we now use LSP based logging (hidden setting: `"FSharp.trace.server":"verbose"`) and additional FSAC logging (`verboseLogging`)
+* Remove `toolsDirPath` setting - it was never used anyway
+* Set`externalAutocomplete` to `false` by default - first of all the feature was not working too well (often inserting the repeated namespaces), secondly it caused responsiveness problems (just due to the fact it was huge number of suggestions on even small projects - it turns out there are lot of entities in .Net Framework)
+* Replace `enableBackgroundSymbolCache` setting with `enableBackgroundServices` and set it to `true` by default - there has been huge FSAC refactoring around Background Service that should positively impact Ionide responsiveness (potential cost is RAM usage)
+* Set `enableReferenceCodeLens` to `true` by default - as `enableBackgroundServices` is `true` by default, we can enable additional Code Lenses as well.
+* Remove `customTypecheckingDelay` setting
+* Remove `disableInMemoryProjectReferences` setting
+* `F#: New Project` command now creates F# Core projects
+* Improve support for FAKE scripts
+* Add FAKE Target outline for FAKE scripts
+
 ### 3.38.0 - 21.05.2019
 * Fix document symbol not displaying childs of top module/namespace
 * Add FSDN command

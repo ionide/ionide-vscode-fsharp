@@ -14,15 +14,13 @@ You can support Ionide development on [Open Collective](https://opencollective.c
 
 # Requirements
 
-* F# (Windows) - Easiest way to install latest versions of F# on Windows is using [VS Build Tools 2017](https://visualstudio.microsoft.com/downloads/?utm_medium=microsoft&utm_source=docs.microsoft.com&utm_campaign=button+cta&utm_content=download+vs2017#build-tools-for-visual-studio-2017). If you use VS 2017, make sure that you've installed workload adding F# support.
-
-* F# (Linux/MacOS) - F# on non-Windows platform is distributed as part of the `mono`. Installation guide and recent version of `mono` can be found on the [project webpage](https://www.mono-project.com/download/stable/) and on the F# Software Foundation ["Use on Linux" page](https://fsharp.org/use/linux/)
-
 * .NET Core SDK - .NET Core is modern, cross-platform implementation of .NET Framework. Ionide is requiring it for set of features such as project modifications or debugging. The core part of SDK is `dotnet` CLI tool that provides easy way to create, build and run F# projects. What's important - the `dotnet` tool can be used also to create applications targeting also Full Framework (like `net461`). For detailed instructions on installing .NET Core, visit [official step-by-step installation guide](https://www.microsoft.com/net/core).
 
-* VS Code C# plugin (optional) - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. To get it install [C# extension from VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp)
+* VS Code C# plugin (optional, suggested) - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. To get it install [C# extension from VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp)
 
-* MSBuild 2015 (Windows only, optional) - For old, verbose `.fsproj` files on Windows MSBuild 2015 (14.0) needs to be additionally installed. You can download it [here](https://www.microsoft.com/en-us/download/details.aspx?id=48159). However, we highly recommend using new, SDK-based project files.
+* F# (Windows, optional) - Easiest way to install latest versions of F# on Windows is using [VS Build Tools 2017](https://visualstudio.microsoft.com/downloads/?utm_medium=microsoft&utm_source=docs.microsoft.com&utm_campaign=button+cta&utm_content=download+vs2017#build-tools-for-visual-studio-2017). If you use VS 2017, make sure that you've installed workload adding F# support. Required when running `net` version of FSAC.
+
+* F# (Linux/MacOS, optional) - F# on non-Windows platform is distributed as part of the `mono`. Installation guide and recent version of `mono` can be found on the [project webpage](https://www.mono-project.com/download/stable/) and on the F# Software Foundation ["Use on Linux" page](https://fsharp.org/use/linux/). Required when running `net` version of FSAC.
 
 ## Features
 
@@ -50,20 +48,6 @@ You can support Ionide development on [Open Collective](https://opencollective.c
 - Integration with FSharpLint (additional hints and quick fixes)
 - Integration with MSBuild (Build, Rebuild, Clean project)
 - Solution / project explorer
-
-## How to get logs for debugging / issue reporting
-
-1. Enable Logging in User settings with
-  ```json
-// FSharp configuration
-    // Set the verbosity for F# Language Service Output Channel
-    "FSharp.logLanguageServiceRequestsOutputWindowLevel": "DEBUG",
-
-    // Enable logging language service requests (FSAC)  to an output channel, the developer tools console, or both
-    "FSharp.logLanguageServiceRequests": "both"
-  ```
-2. Open the Output Panel and switch to the `F# Language Service` Channel
-3. Or Toggle Developer Tools (`Help |> Toggle Developer Tools`) and open the console tab
 
 ## How to contribute
 
