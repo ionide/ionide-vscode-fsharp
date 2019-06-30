@@ -650,6 +650,8 @@ module Project =
                     Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
                 | ErrorData.ProjectParsingFailed d ->
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
+                | ErrorData.GenericProjectError d ->
+                    Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
                 | _ ->
                     if not disableShowNotification then
                         "Project loading failed"

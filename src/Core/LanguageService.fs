@@ -234,6 +234,8 @@ module LanguageService =
                 ErrorData.ProjectNotRestored (err?AdditionalData |> unbox)
             | ErrorCodes.ProjectParsingFailed ->
                 ErrorData.ProjectParsingFailed (err?AdditionalData |> unbox)
+            | ErrorCodes.GenericProjectError ->
+                ErrorData.GenericProjectError (err?AdditionalData |> unbox)
             | unknown ->
                 //todo log not recognized for Debug
                 ErrorData.GenericError
