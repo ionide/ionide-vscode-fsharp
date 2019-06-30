@@ -44,6 +44,7 @@
     <Compile Include="Components/InfoPanel.fs" />
     <Compile Include="Components/CodeLensHelpers.fs" />
     <Compile Include="Components/FakeTargetsOutline.fs" />
+    <Compile Include="Components/Gitignore.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
