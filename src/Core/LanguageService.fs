@@ -534,13 +534,13 @@ Consider:
 
         let backgroundSymbolCache = "FSharp.enableBackgroundServices" |> Configuration.get true
         let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
-        let fsacPath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
+        let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
         let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
         let spawnNetCore dotnet =
             let fsautocompletePath =
-                if String.IsNullOrEmpty fsacPath then VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
-                else fsacPath
+                if String.IsNullOrEmpty fsacNetcorePath then VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
+                else fsacNetcorePath
             printfn "FSAC (NETCORE): '%s'" fsautocompletePath
             let args =
                 [
