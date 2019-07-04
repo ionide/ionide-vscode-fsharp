@@ -535,6 +535,7 @@ Consider:
         let backgroundSymbolCache = "FSharp.enableBackgroundServices" |> Configuration.get true
         let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
         let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
+        let fsacNetPath = "FSharp.fsac.netExePath" |> Configuration.get ""
         let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
         let spawnNetCore dotnet =
@@ -559,7 +560,9 @@ Consider:
             ]
 
         let spawnNetWin () =
-            let fsautocompletePath = VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
+            let fsautocompletePath =
+                if String.IsNullOrEmpty fsacNetPath then VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
+                else fsacNetPath
             printfn "FSAC (NET): '%s'" fsautocompletePath
             let args =
                 [
@@ -576,7 +579,9 @@ Consider:
             ]
 
         let spawnNetMono mono =
-            let fsautocompletePath = VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
+            let fsautocompletePath =
+                if String.IsNullOrEmpty fsacNetPath then VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
+                else fsacNetPath
             printfn "FSAC (MONO): '%s'" fsautocompletePath
             let args =
                 [
