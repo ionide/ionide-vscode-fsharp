@@ -534,16 +534,18 @@ Consider:
 
         let backgroundSymbolCache = "FSharp.enableBackgroundServices" |> Configuration.get true
         let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
-        let fsacPath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
+        let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
+        let fsacNetPath = "FSharp.fsac.netExePath" |> Configuration.get ""
         let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
         let spawnNetCore dotnet =
-            let ionidePluginPath =
-                if String.IsNullOrEmpty fsacPath then VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
-                else fsacPath
+            let fsautocompletePath =
+                if String.IsNullOrEmpty fsacNetcorePath then VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
+                else fsacNetcorePath
+            printfn "FSAC (NETCORE): '%s'" fsautocompletePath
             let args =
                 [
-                    yield ionidePluginPath
+                    yield fsautocompletePath
                     yield"--mode"
                     yield "lsp"
                     if fsacAttachDebugger then yield "--attachdebugger"
@@ -558,7 +560,10 @@ Consider:
             ]
 
         let spawnNetWin () =
-            let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
+            let fsautocompletePath =
+                if String.IsNullOrEmpty fsacNetPath then VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
+                else fsacNetPath
+            printfn "FSAC (NET): '%s'" fsautocompletePath
             let args =
                 [
                     yield "--mode"
@@ -568,16 +573,19 @@ Consider:
                 ] |> ResizeArray
 
             createObj [
-                "command" ==> ionidePluginPath
+                "command" ==> fsautocompletePath
                 "args" ==> args
                 "transport" ==> 0
             ]
 
         let spawnNetMono mono =
-            let ionidePluginPath = VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
+            let fsautocompletePath =
+                if String.IsNullOrEmpty fsacNetPath then VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
+                else fsacNetPath
+            printfn "FSAC (MONO): '%s'" fsautocompletePath
             let args =
                 [
-                    yield ionidePluginPath
+                    yield fsautocompletePath
                     yield "--mode"
                     yield "lsp"
                     if backgroundSymbolCache then yield "--background-service-enabled"

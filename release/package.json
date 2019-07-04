@@ -1236,6 +1236,11 @@
 					"default": "",
 					"description": "The path to the 'fsautocomplete.dll', useful for debugging a self-built fsac."
 				},
+				"FSharp.fsac.netExePath": {
+					"type": "string",
+					"default": "",
+					"description": "The path to the 'fsautocomplete.exe', useful for debugging a self-built fsac."
+				},
 				"FSharp.fsac.attachDebugger": {
 					"type": "boolean",
 					"default": false,
