@@ -1,3 +1,11 @@
+### 4.0.1 - 04.07.2019
+* Update FSAC:
+  - FCS 30 - performance fixes for the spelling suggestions in error messages
+  - enable spelling suggestions in error messages
+  - fix Background Service on the `net` + Windows.
+  - improvements in FAKE support
+* Add `FSharp.fsac.netExePath` to enabled debugging with `net` version of FSAC
+
 ### 4.0.0 - 24.06.2019
 * Use LSP as communication protocol with FSAC
 * Use Dotnet.ProjInfo.Workspace as only way to parse project files
