@@ -627,7 +627,7 @@ GIT
       build: fake build -t Publish
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (7d123c33c13d6df058b89eec4418593bc7463806)
+     (fdd2ebf234f9a25f4d139e72c34504ee6c1b3e67)
   remote: https://github.com/ionide/forge-templates.git
      (4b0866224a344c09f06254c0f70a78582530792c)
 GITHUB
