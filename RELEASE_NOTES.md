@@ -1,3 +1,6 @@
+### 4.0.2 - 05.07.2019
+* Update grammar definition
+
 ### 4.0.1 - 04.07.2019
 * Update FSAC:
   - FCS 30 - performance fixes for the spelling suggestions in error messages
