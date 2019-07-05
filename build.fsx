@@ -133,6 +133,12 @@ let copySchemas fsschemaDir fsschemaRelease =
     CopyFile fsschemaRelease (fsschemaDir </> "fableconfig.json")
     CopyFile fsschemaRelease (fsschemaDir </> "wsconfig.json")
 
+let copyLib libDir releaseDir =
+    ensureDirectory releaseDir
+    CopyDir (releaseDir </> "x64") (libDir </> "x64") (fun _ -> true)
+    CopyDir (releaseDir </> "x86") (libDir </> "x86") (fun _ -> true)
+
+
 let buildPackage dir =
     killProcess "vsce"
     run vsceTool.Value "package" dir
@@ -260,6 +266,13 @@ module StableExtension =
         let fsschemaRelease = "release/schemas"
 
         copySchemas fsschemaDir fsschemaRelease
+    )
+
+    Target "CopyLib" (fun _ ->
+        let libDir = "lib"
+        let releaseDir = "release/bin"
+
+        copyLib libDir releaseDir
     )
 
     Target "BuildPackage" ( fun _ ->
@@ -448,6 +461,7 @@ Target "BuildPackages" DoNothing
 ==> "CopyForgeTemplates"
 ==> "CopyGrammar"
 ==> "CopySchemas"
+==> "CopyLib"
 ==> "Build"
 
 
