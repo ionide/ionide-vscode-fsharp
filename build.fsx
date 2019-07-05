@@ -235,7 +235,7 @@ module StableExtension =
     )
 
     Target "CopyForge" (fun _ ->
-        let forgeDir = "paket-files/github.com/fsharp-editing/Forge"
+        let forgeDir = "paket-files/github.com/ionide/Forge"
         let releaseForge = "release/bin_forge"
 
         copyForge forgeDir releaseForge
@@ -370,7 +370,7 @@ module ExperimentalExtension =
     )
 
     Target "ExpCopyForge" (fun _ ->
-        let forgeDir = "paket-files/github.com/fsharp-editing/Forge"
+        let forgeDir = "paket-files/github.com/ionide/Forge"
         let releaseForge = sprintf "%s/bin_forge" releaseExpDir
 
         copyForge forgeDir releaseForge
