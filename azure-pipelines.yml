@@ -15,6 +15,7 @@ jobs:
       $versionSuffix = if ($isPR) { $versionSuffixPR } else { $versionSuffixBRANCH };
       Write-Host "##vso[task.setvariable variable=VersionSuffix]$versionSuffix";
     displayName: Set Prerelease Version
+    condition: eq(variables['ionide.isStableRelease'], 'false')
   - task: NodeTool@0
     displayName: Install Node
     inputs:
