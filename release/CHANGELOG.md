@@ -1,4 +1,4 @@
-### 4.0.3 - 05.07.2019
+### 4.0.4 - 05.07.2019
 * Update grammar definition
 * Update FSAC:
   - Fix the error duplication workaround
