@@ -28,6 +28,7 @@
     <Compile Include="Core/Logging.fs" />
     <Compile Include="Core/LanguageService.fs" />
     <Compile Include="Core/Project.fs" />
+    <Compile Include="Components/Gitignore.fs" />
     <Compile Include="Components/LanguageConfiguration.fs" />
     <Compile Include="Components/SignatureData.fs" />
     <Compile Include="Components/Fsi.fs" />
@@ -44,7 +45,6 @@
     <Compile Include="Components/InfoPanel.fs" />
     <Compile Include="Components/CodeLensHelpers.fs" />
     <Compile Include="Components/FakeTargetsOutline.fs" />
-    <Compile Include="Components/Gitignore.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />

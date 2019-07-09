@@ -30,7 +30,10 @@ module Gitignore =
         let data = patterns |> String.concat System.Environment.NewLine
         fs.appendFileSync(".gitignore", data, "utf8")
 
-    let disablePrompt () =
+    let disablePromptGlobally () =
+        Configuration.setGlobal GITIGNORE_KEY false
+
+    let disablePromptForProject () =
         Configuration.set GITIGNORE_KEY false
 
     let patternsToIgnore = [
@@ -42,15 +45,17 @@ module Gitignore =
         match checkGitignore patternsToIgnore |> Set.toList with
         | [] -> ()
         | missingPatterns ->
-            match! window.showInformationMessage("You are missing entries in your .gitignore for Ionide-specific data files. Would you like to add them?", [|"Add entries"; "Ignore"|]) with
+            match! window.showInformationMessage("You are missing entries in your .gitignore for Ionide-specific data files. Would you like to add them?", [|"Add entries"; "Ignore"; "Don't show again"|]) with
             | "Add entries" ->
                 writePatternsToGitignore missingPatterns
             | "Ignore" ->
-                do! disablePrompt ()
+                do! disablePromptForProject ()
+            | "Don't show again" ->
+                do! disablePromptGlobally ()
             | _ -> ()
     }
 
-    let activate _context =
+    let activate (_context: ExtensionContext) =
         if Configuration.get true GITIGNORE_KEY
         then checkForPatternsAndPromptUser () |> ignore
         else ()
