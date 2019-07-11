@@ -1,3 +1,7 @@
+### 4.0.5 - 11.07.2019
+* Update grammar definition
+* Workaround SQLite native dependency on .Net Framework runtime.
+
 ### 4.0.4 - 05.07.2019
 * Update grammar definition
 * Update FSAC:
