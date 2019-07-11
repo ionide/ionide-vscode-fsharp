@@ -95,8 +95,13 @@ module Configuration =
     let getInContext context defaultValue key =
         workspace.getConfiguration(?resource = Some context).get(key, defaultValue)
 
+    /// write the value to the given key in the workspace configuration
     let set key value =
         workspace.getConfiguration().update(key, value, false)
+
+    /// write the value to the given key in the global configuration
+    let setGlobal key value =
+        workspace.getConfiguration().update(key, value, true)
 
 [<AutoOpen>]
 module Utils =

@@ -1516,6 +1516,11 @@
 						"fsharp"
 					],
 					"scope": "application"
+				},
+				"FSharp.suggestGitignore": {
+					"type": "boolean",
+					"default": true,
+					"description": "Allow Ionide to prompt whenever internal data files aren't included in your project's .gitignore"
 				}
 			}
 		},
