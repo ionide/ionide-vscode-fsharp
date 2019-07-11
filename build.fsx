@@ -137,7 +137,8 @@ let copyLib libDir releaseDir =
     ensureDirectory releaseDir
     CopyDir (releaseDir </> "x64") (libDir </> "x64") (fun _ -> true)
     CopyDir (releaseDir </> "x86") (libDir </> "x86") (fun _ -> true)
-
+    CopyFile releaseDir (libDir </> "libe_sqlite3.so")
+    CopyFile releaseDir (libDir </> "libe_sqlite3.dylib")
 
 let buildPackage dir =
     killProcess "vsce"
