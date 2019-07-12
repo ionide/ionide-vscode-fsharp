@@ -1,3 +1,8 @@
+### 4.0.6 - 12.07.2019
+* Add gitignore component (disabled for now)
+* Update FSAC:
+  - Fix the URI problem on Windows
+
 ### 4.0.5 - 11.07.2019
 * Update grammar definition
 * Workaround SQLite native dependency on .Net Framework runtime.
