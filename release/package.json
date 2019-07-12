@@ -1382,6 +1382,7 @@
 						".git",
 						"paket-files",
 						".fable",
+						"packages",
 						"node_modules"
 					],
 					"description": "Directories in the array are excluded from project file search. Requires restart."

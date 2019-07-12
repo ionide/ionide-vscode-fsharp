@@ -48,7 +48,7 @@ module Project =
     let private statusUpdatedEmitter = EventEmitter<unit>()
     let statusUpdated = statusUpdatedEmitter.event
 
-    let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files"; ".fable"; "node_modules" |]
+    let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files"; ".fable"; "packages"; "node_modules" |]
 
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
 
