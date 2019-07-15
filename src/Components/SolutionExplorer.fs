@@ -33,28 +33,36 @@ module SolutionExplorer =
 
     type NodeEntry =
         { Key : string
+          FilePath: string
           Children : Dictionary<string, NodeEntry> }
 
-    let rec add' (state : NodeEntry) (entry : string) index =
-        let sep = node.path.sep
+    let inline pathCombine a b =
+        a + node.path.sep + b
 
-        if index >= entry.Length then
-            state
-        else
-            let endIndex = entry.IndexOf(sep, index)
-            let endIndex = if endIndex = -1 then entry.Length else endIndex
-
-            let key = entry.Substring(index, endIndex - index)
-            if String.IsNullOrEmpty key then
-                state
-            else
-                if state.Children.ContainsKey key |> not then
-                    let x = {Key = key; Children = new Dictionary<_,_>()}
+    let add' root (virtualPath: string) filepath =
+        let rec addhelper state items =
+            match items with
+            | [ ] -> state
+            | [ key ] ->
+                if not (state.Children.ContainsKey key) then
+                    let x = { Key = key; FilePath = filepath; Children = new Dictionary<_,_>() }
                     state.Children.Add(key,x)
-                let item = state.Children.[key]
-                add' item entry (endIndex + 1)
+                state
+            | dirName :: xs ->
+                if not (state.Children.ContainsKey dirName) then
+                    let dirPath = pathCombine state.FilePath dirName
+                    let x = { Key = dirName; FilePath = dirPath; Children = new Dictionary<_,_>() }
+                    state.Children.Add(dirName,x)
+                let item = state.Children.[dirName]
+                addhelper item xs
 
-    let private getParentRef (model : Model) =
+        virtualPath.Split('/')
+        |> List.ofArray
+        |> addhelper root
+        |> ignore
+
+
+    let getParentRef (model : Model) =
         match model with
         | Workspace _ -> ref None
         | Solution (parent, _, _, _) -> parent
@@ -71,43 +79,57 @@ module SolutionExplorer =
         | Reference (parent, _, _, _) -> parent
         | ProjectReference (parent, _, _, _) -> parent
 
-    let inline private setParentRef (model : Model) (parent : Model) =
+    let inline setParentRef (model : Model) (parent : Model) =
         let parentRef = getParentRef model
         parentRef := Some parent
 
-    let private setParentRefs (models : #seq<Model>) (parent : Model) =
+    let setParentRefs (models : #seq<Model>) (parent : Model) =
         for model in models do
             setParentRef model parent
 
-    let rec toModel folder pp (entry : NodeEntry)  =
-        let f = (folder + node.path.sep + entry.Key)
+    let dirName = node.path.dirname
+
+(*
+    let dirName = System.IO.Path.GetDirectoryName
+
+    let pathCombine = System.IO.Path.Combine
+
+    let projPath = @"d:\my\my.fsproj"
+
+    let projItems =
+        [("My/AssemblyInfo.fs", "c:\prova.fs"); ("a.fs", "e:\aa.fa");
+           ("My/b.fs", "e:\bb.fs")]
+*)
+
+    let rec toModel (projPath: string) (entry : NodeEntry)  =
         if entry.Children.Count > 0 then
             let childs =
                 entry.Children
-                |> Seq.map (fun n -> toModel f pp n.Value )
+                |> Seq.map (fun n -> toModel projPath n.Value)
                 |> Seq.toList
-            let result = Folder(ref None, entry.Key, f, childs, pp)
+            let result = Folder(ref None, entry.Key, entry.FilePath, childs, projPath)
             setParentRefs childs result
             result
         else
-            let p = (node.path.dirname pp) + f
-            File(ref None, p, entry.Key, pp)
+            File(ref None, entry.FilePath, entry.Key, projPath)
 
-    let buildTree pp (files : string list) =
-        let entry = {Key = ""; Children = new Dictionary<_,_>()}
-        files |> List.iter (fun x -> add' entry x 0 |> ignore )
+    let buildTree projPath (files : (string * string) list) =
+        let projDir = dirName projPath
+        let entry = {Key = ""; FilePath = projDir; Children = new Dictionary<_,_>()}
+        files |> List.iter (fun (virtualPath, path) -> add' entry virtualPath path)
         entry.Children
-        |> Seq.map (fun n -> toModel "" pp n.Value )
+        |> Seq.map (fun n -> toModel projPath n.Value )
         |> Seq.toList
 
-    let private getProjectModel proj =
+    let private getProjectModel (proj: Project) =
         let projects =
             Project.getLoaded ()
             |> Seq.toArray
 
         let files =
-            proj.Files
-            |> List.map (fun p -> node.path.relative(node.path.dirname proj.Project, p))
+            proj.Items
+            |> List.filter (fun p -> p.Name = "Compile")
+            |> List.map (fun p -> p.VirtualPath, p.FilePath)
             |> buildTree proj.Project
 
         let refs =
@@ -304,7 +326,7 @@ module SolutionExplorer =
 
                 let command =
                     match node with
-                    | File (_, p, _, _)  ->
+                    | File (_, p, _, _) ->
                         let c = createEmpty<Command>
                         c.command <- "vscode.open"
                         c.title <- "open"

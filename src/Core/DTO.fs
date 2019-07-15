@@ -226,6 +226,14 @@ module DTO =
         { Command : string
           Arguments : string }
 
+    type ProjectResponseItem =
+        {
+          Name: string
+          FilePath: string
+          VirtualPath: string
+          Metadata: Map<string, string>
+        }
+
     type Project =
         { Project : ProjectFilePath
           Files : SourceFilePath list
@@ -234,6 +242,7 @@ module DTO =
           Logs : Map<string, string>
           OutputType : string
           Info : ProjectResponseInfo
+          Items: ProjectResponseItem list
           AdditionalInfo : Map<string, string> }
 
     type FsdnRequest =
