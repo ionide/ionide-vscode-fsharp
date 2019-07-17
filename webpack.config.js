@@ -9,7 +9,9 @@ var babelOptions = {
   presets: [
     ["@babel/preset-env", 
       { "modules": false,
-        "targets": { "node": "current" } }]
+        "targets": { "node": "10.11.8" },
+        "useBuiltIns": "usage",
+        "corejs": 3 }]
   ],
   plugins: ["@babel/transform-runtime"]
 };

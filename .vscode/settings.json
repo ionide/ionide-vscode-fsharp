@@ -17,6 +17,9 @@
     ".git",
     "paket-files",
     "release"
-  ]
+  ],
+  "workbench.colorCustomizations": {
+    "tab.unfocusedActiveBorder": "#fff0"
+  }
 
 }

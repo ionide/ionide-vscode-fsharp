@@ -8,6 +8,7 @@
     "@babel/preset-env": "^7.5.4",
     "axios": "*",
     "babel-loader": "8",
+    "core-js": "3",
     "fable-compiler": "2",
     "fable-loader": "2",
     "mocha": "*",
