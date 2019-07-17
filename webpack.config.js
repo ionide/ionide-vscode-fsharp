@@ -7,8 +7,10 @@ function resolve(filePath) {
 
 var babelOptions = {
   presets: [
-    ["env", { "modules": false,
-              "targets": { "node": "current" } }]],
+    ["@babel/preset-env", 
+      { "modules": false,
+        "targets": { "node": "current" } }]
+  ],
   plugins: ["@babel/transform-runtime"]
 };
 

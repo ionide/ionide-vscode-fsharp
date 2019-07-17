@@ -81,10 +81,8 @@ Target "DotNetRestore" <| fun () ->
     DotNetCli.Restore (fun p -> { p with WorkingDir = "src" } )
 
 let runFable additionalArgs noTimeout =
-    let cmd = "fable webpack -- --config webpack.config.js " + additionalArgs
-    let timeout = if noTimeout then TimeSpan.MaxValue else TimeSpan.FromMinutes 30.
-    DotNetCli.RunCommand (fun p -> { p with WorkingDir = "src"; TimeOut = timeout } ) cmd
-
+    run "yarn" ("run build" + additionalArgs) Environment.CurrentDirectory
+    
 Target "Watch" (fun _ ->
     runFable "--watch" true
 )
