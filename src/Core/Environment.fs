@@ -24,15 +24,22 @@ module Environment =
         with
         | _ -> false
 
+    let private mapToString (value : obj) =
+        if isNull value then
+            Some (unbox<string> value)
+        else
+            None
+
     let private programFilesX86 =
-        let wow64 = Globals.``process``.env?``PROCESSOR_ARCHITEW6432`` |> unbox<string>
-        let globalArch = Globals.``process``.env?``PROCESSOR_ARCHITECTURE`` |> unbox<string>
+        let wow64 = mapToString Globals.``process``.env?``PROCESSOR_ARCHITEW6432``
+        let globalArch = mapToString Globals.``process``.env?``PROCESSOR_ARCHITECTURE``
         match wow64, globalArch with
-        | "AMD64", "AMD64" | null, "AMD64" | "x86", "AMD64" -> Globals.``process``.env?``ProgramFiles(x86)`` |> unbox<string>
-        | _ -> Globals.``process``.env?``ProgramFiles`` |> unbox<string>
-        |> fun detected ->
-            if detected = null then @"C:\Program Files (x86)\"
-            else detected
+        | Some "AMD64", Some "AMD64"
+        | None, Some "AMD64"
+        | Some "x86", Some "AMD64" -> mapToString Globals.``process``.env?``ProgramFiles(x86)``
+        | _ -> mapToString Globals.``process``.env?``ProgramFiles``
+        |> function | Some value -> value
+                    | None -> @"C:\Program Files (x86)\"
 
     // Always returns host program files folder
     let private platformProgramFiles =
