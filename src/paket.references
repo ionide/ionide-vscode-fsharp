@@ -2,6 +2,8 @@ Fable.Core
 Fable.Import.Node
 Fable.Import.Browser
 Fable.HtmlConverter
+Thoth.Json
+
 File:Fable.Import.VSCode.fs
 File:Helpers.fs
 File:Fable.Import.Showdown.fs

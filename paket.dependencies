@@ -8,6 +8,7 @@ nuget Fable.Core < 2.3
 nuget Fable.HtmlConverter < 2.0
 nuget Fable.Import.Node < 2.0
 nuget Fable.Import.Browser < 2.0
+nuget Thoth.Json ~> 2.0
 
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd LocalRelease", OS: windows
 git https://github.com/ionide/Forge.git master build:"fake build -t Publish", OS: windows

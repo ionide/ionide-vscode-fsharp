@@ -42,7 +42,7 @@ module FakeTargetsOutline =
           Description : string
           Declaration : Declaration option
           Type : ModelType
-          getChildren : unit -> ResizeArray<Model> }   
+          getChildren : unit -> ResizeArray<Model> }
         member x.IsTarget =
             match x.Type with
             | TargetModel -> true
@@ -93,7 +93,7 @@ module FakeTargetsOutline =
                 Some <| getIconPath "error-inverse.svg" "error.svg"
             else
                 Some <| getIconPath "warning-inverse.svg" "warning.svg"
-        | ModelType.TargetModel ->            
+        | ModelType.TargetModel ->
             Some <| getIconPath "icon-function-light.svg" "icon-function-dark.svg"
         | ModelType.DependencyModel _ ->
             Some <| getIconPath "auto-reveal-light.svg" "auto-reveal-dark.svg"
@@ -107,7 +107,7 @@ module FakeTargetsOutline =
             AllTargets = allTargets
             Label = t.Arrow + " " + d.Name
             Description = "A fake dependency"
-            Declaration = if isNull d.Declaration.File then None else Some d.Declaration 
+            Declaration = if isNull d.Declaration.File then None else Some d.Declaration
             Type = ModelType.DependencyModel t
             getChildren = fun () ->
                 match children with
@@ -127,7 +127,7 @@ module FakeTargetsOutline =
             AllTargets = allTargets
             Label = t.Name
             Description = t.Description
-            Declaration = if isNull t.Declaration.File then None else Some t.Declaration 
+            Declaration = if isNull t.Declaration.File then None else Some t.Declaration
             Type = ModelType.TargetModel
             getChildren = fun () ->
                 match children with
@@ -157,7 +157,7 @@ module FakeTargetsOutline =
         |> ResizeArray
 
     let generateRootFromResponse (o:GetTargetsResult) : ResizeArray<Model> =
-        let items = 
+        let items =
             o.WarningsAndErrors
             |> Seq.map (function
                 | GetTargetsWarningOrErrorType.NoFakeScript -> generateErrorEntry o.Targets "this script is not a FAKE script"
@@ -195,7 +195,7 @@ module FakeTargetsOutline =
 
                         match doc.document with
                         | Document.FSharp ->
-                            promise {    
+                            promise {
                                 let! o = LanguageService.FakeSupport.targetsInfo doc.document.fileName
                                 if isNotNull o then
                                     return generateRootFromResponse o
@@ -207,7 +207,7 @@ module FakeTargetsOutline =
 
             member this.getTreeItem(node) =
                 let children = node.getChildren()
-                let state =                
+                let state =
                     if JS.isDefined children && children.Count > 0 then
                         Some TreeItemCollapsibleState.Collapsed
                     else None
@@ -216,11 +216,11 @@ module FakeTargetsOutline =
                 ti.label <- Some node.Label //getLabel node |> Some
                 ti.collapsibleState <- state
                 ti.iconPath <- getIcon node |> Option.map U4.Case3
-                ti.contextValue <- 
+                ti.contextValue <-
                     Some (match node.Type with
                           | ModelType.TargetModel -> "fake.targetsOutline.target"
                           | ModelType.DependencyModel _ -> "fake.targetsOutline.dependency"
-                          | ModelType.ErrorOrWarning -> "fake.targetsOutline.error") 
+                          | ModelType.ErrorOrWarning -> "fake.targetsOutline.error")
                 ti.tooltip <- Some node.Description
 
                 let c = createEmpty<Command>
@@ -275,20 +275,6 @@ module FakeTargetsOutline =
         if textEditor = undefined || (not (isFsharpFile textEditor.document)) then
             reallyRefresh.fire(None)
 
-
-    type [<Pojo>] RequestLaunch =
-        { name : string
-          ``type`` : string
-          request : string
-          preLaunchTask : string option
-          program : string
-          args : string array
-          cwd : string
-          console : string
-          stopAtEntry : bool 
-          justMyCode : bool
-          requireExactSource : bool }
-
     let activate (context : ExtensionContext) =
         setShowTargetsOutlineForEditor window.activeTextEditor
 
@@ -309,7 +295,7 @@ module FakeTargetsOutline =
         commands.registerCommand("FAKE.targetsOutline.goTo", Func<obj, obj>(fun n ->
             let m = unbox<Model> n
             match m.Declaration with
-            | Some decl -> 
+            | Some decl ->
                 let line = decl.Line
                 let args =
                     createObj [
@@ -319,7 +305,7 @@ module FakeTargetsOutline =
 
                 vscode.commands.executeCommand("revealLine", args)
                 |> unbox
-            | None -> JS.undefined            
+            | None -> JS.undefined
         )) |> context.subscriptions.Add
 
         let runFake doDebug onlySingleTarget targetName =
@@ -333,7 +319,7 @@ module FakeTargetsOutline =
                     let args =
                         if doDebug then [| "run"; "--nocache"; "--fsiargs"; "--debug:portable --optimize-"; scriptName; preArg; targetName |]
                         else [| "run"; scriptName; preArg; targetName |]
-                    let cfg : RequestLaunch = 
+                    let cfg : LaunchJsonVersion2.RequestLaunch =
                         { name = "Fake Script Debugging"
                           ``type`` = "coreclr"
                           request = "launch"

@@ -1,5 +1,7 @@
 ﻿namespace Ionide.VSCode.FSharp
 
+open Thoth.Json
+
 [<ReflectedDefinition>]
 module DTO =
 
@@ -393,7 +395,7 @@ module DTO =
         type Dependency =
             { Name : string
               Declaration : Declaration }
-        /// a FAKE target, its description and its relations to other targets (dependencies), including the declaration lines of the target and the dependencies.           
+        /// a FAKE target, its description and its relations to other targets (dependencies), including the declaration lines of the target and the dependencies.
         type Target =
             { Name : string
               HardDependencies : Dependency []
@@ -408,4 +410,4 @@ module DTO =
           | MissingNavigationInfo = 4
           | FakeCoreTargetsOlderThan5_15 = 3
 
-        type GetTargetsResult = { WarningsAndErrors : GetTargetsWarningOrErrorType []; Targets : Target [] }            
+        type GetTargetsResult = { WarningsAndErrors : GetTargetsWarningOrErrorType []; Targets : Target [] }

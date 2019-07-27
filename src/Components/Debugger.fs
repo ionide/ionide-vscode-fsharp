@@ -13,7 +13,7 @@ module node = Fable.Import.Node.Exports
 [<RequireQualifiedAccess>]
 module LaunchJsonVersion2 =
 
-    type [<Pojo>] RequestLaunch =
+    type RequestLaunch =
         { name : string
           ``type`` : string
           request : string
@@ -22,7 +22,9 @@ module LaunchJsonVersion2 =
           args : string array
           cwd : string
           console : string
-          stopAtEntry : bool }
+          stopAtEntry : bool
+          justMyCode: bool
+          requireExactSource: bool }
 
     let createRequestLaunch () =
         { RequestLaunch.name = ".NET Core Launch (console)"
@@ -33,9 +35,11 @@ module LaunchJsonVersion2 =
           args = [| |]
           cwd = "${workspaceRoot}"
           console = "externalTerminal"
-          stopAtEntry = false }
+          stopAtEntry = false
+          justMyCode = true
+          requireExactSource = true }
 
-    type [<Pojo>] RequestAttach =
+    type RequestAttach =
         { name : string
           ``type`` : string
           request : string
