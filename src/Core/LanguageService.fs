@@ -77,18 +77,18 @@ module LanguageService =
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
-    let private compilerLocationDecoder = Decode.Auto.generateDecoder<CompilerLocationResult>(isCamelCase = true)
+    let private compilerLocationDecoder = Decode.Auto.generateDecoder<CompilerLocationResult>(isCamelCase = false)
     let compilerLocation () =
         match client with
         | None -> Promise.empty
         | Some cl ->
             cl.sendRequest("fsharp/compilerLocation", null)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
+            |> Promise.mapResult (fun (res: Types.PlainNotification) ->
                 Decode.fromString compilerLocationDecoder res.content
             )
 
-    let private helpTextDecoder = Decode.Auto.generateDecoder<Result<string>>(isCamelCase = true)
-    let f1Help fn line col : JS.Promise<FSharp.Core.Result<Result<string>, _>> =
+    let private helpTextDecoder = Decode.Auto.generateDecoder<Result<string>>(isCamelCase = false)
+    let f1Help fn line col : JS.Promise<Result<string>> =
         match client with
         | None -> Promise.empty
         | Some cl ->
@@ -98,11 +98,11 @@ module LanguageService =
             }
 
             cl.sendRequest("fsharp/f1Help", req )
-            |> Promise.map (fun (res: Types.PlainNotification) ->
+            |> Promise.mapResult (fun (res: Types.PlainNotification) ->
                 Decode.fromString helpTextDecoder res.content
             )
 
-    let private documentationEncoder = Decode.Auto.generateDecoder<Result<DocumentationDescription[][]>>(isCamelCase = true)
+    let private documentationEncoder = Decode.Auto.generateDecoder<Result<DocumentationDescription[][]>>(isCamelCase = false)
     let documentation fn line col =
         match client with
         | None -> Promise.empty
@@ -113,11 +113,11 @@ module LanguageService =
             }
 
             cl.sendRequest("fsharp/documentation", req )
-            |> Promise.map (fun (res: Types.PlainNotification) ->
+            |> Promise.mapResult (fun (res: Types.PlainNotification) ->
                 Decode.fromString documentationEncoder res.content
             )
 
-    let private symbolDocEncoder = Decode.Auto.generateDecoder<Result<DocumentationDescription[][]>>(isCamelCase = true)
+    let private symbolDocEncoder = Decode.Auto.generateDecoder<Result<DocumentationDescription[][]>>(isCamelCase = false)
     let documentationForSymbol xmlSig assembly =
         match client with
         | None -> Promise.empty
@@ -125,11 +125,11 @@ module LanguageService =
             let req = { DocumentationForSymbolReuqest.Assembly = assembly; XmlSig = xmlSig}
 
             cl.sendRequest("fsharp/documentationSymbol", req )
-            |> Promise.map (fun (res: Types.PlainNotification) ->
+            |> Promise.mapResult (fun (res: Types.PlainNotification) ->
                 Decode.fromString symbolDocEncoder res.content
             )
 
-    let private signatureDecoder = Decode.Auto.generateDecoder<Result<string>>(isCamelCase = true)
+    let private signatureDecoder = Decode.Auto.generateDecoder<Result<string>>(isCamelCase = false)
     let signature fn line col =
         match client with
         | None -> Promise.empty
@@ -140,11 +140,11 @@ module LanguageService =
             }
 
             cl.sendRequest("fsharp/signature", req )
-            |> Promise.map (fun (res: Types.PlainNotification) ->
+            |> Promise.mapResult (fun (res: Types.PlainNotification) ->
                 Decode.fromString signatureDecoder res.content
             )
 
-    let private signatureDataDecoder = Decode.Auto.generateDecoder<SignatureDataResult>(isCamelCase = true)
+    let private signatureDataDecoder = Decode.Auto.generateDecoder<SignatureDataResult>(isCamelCase = false)
     let signatureData fn line col =
         match client with
         | None -> Promise.empty
@@ -155,7 +155,7 @@ module LanguageService =
             }
 
             cl.sendRequest("fsharp/signatureData", req)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
+            |> Promise.mapResult (fun (res: Types.PlainNotification) ->
                 Decode.fromString signatureDataDecoder res.content
             )
 
@@ -170,11 +170,12 @@ module LanguageService =
             }
 
             cl.sendRequest("fsharp/documentationGenerator", req)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
+            |> Promise.mapResult (fun (res: Types.PlainNotification) ->
                 Decode.fromString signatureDataDecoder res.content
             )
+            |> Promise.map (fun r -> r.Data)
 
-    let private linelensDecoder = Decode.Auto.generateDecoder<Result<Symbols[]>>(isCamelCase = true)
+    let private linelensDecoder = Decode.Auto.generateDecoder<Result<Symbols[]>>(isCamelCase = false)
     let lineLenses fn  =
         match client with
         | None -> Promise.empty
@@ -183,11 +184,11 @@ module LanguageService =
                 Project = {Uri = handleUntitled fn}
             }
             cl.sendRequest("fsharp/lineLens", req)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
+            |> Promise.mapResult (fun (res: Types.PlainNotification) ->
                 Decode.fromString linelensDecoder res.content
             )
 
-    let private compileDecoder = Decode.Auto.generateDecoder<CompileResult>(isCamelCase = true)
+    let private compileDecoder = Decode.Auto.generateDecoder<CompileResult>(isCamelCase = false)
     let compile s =
         match client with
         | None -> Promise.empty
@@ -196,11 +197,11 @@ module LanguageService =
                 Project = { Uri = handleUntitled s }
             }
             cl.sendRequest("fsharp/compile", req)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
+            |> Promise.mapResult (fun (res: Types.PlainNotification) ->
                 Decode.fromString compileDecoder res.content
             )
 
-    let private fsdnDecoder = Decode.Auto.generateDecoder<Result<FsdnResponse>>(isCamelCase = true)
+    let private fsdnDecoder = Decode.Auto.generateDecoder<Result<FsdnResponse>>(isCamelCase = false)
     let fsdn (signature: string) =
         match client with
         | None -> Promise.empty
@@ -209,9 +210,10 @@ module LanguageService =
                 Project = { Uri = signature }
             }
             cl.sendRequest("fsharp/fsdn", req)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
+            |> Promise.mapResult (fun (res: Types.PlainNotification) ->
                 Decode.fromString fsdnDecoder res.content
             )
+            |> Promise.map (fun fsdn -> fsdn.Data)
 
     let private deserializeProjectResult (res : ProjectResult) =
         let parseInfo (f : obj) =
@@ -316,16 +318,14 @@ module LanguageService =
                 TextDocuments = projects |> List.map (fun s -> {Types.Uri = s}) |> List.toArray
             }
             cl.sendRequest("fsharp/workspaceLoad", req)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
-                ()
-            )
+            |> Promise.map (fun (res: Types.PlainNotification) -> ())
 
 
     module FakeSupport =
         open DTO.FakeSupport
 
         let logger = ConsoleAndOutputChannelLogger(Some "FakeTargets", Level.DEBUG, None, Some Level.DEBUG)
-        let private fakeRuntimeDecoder = Decode.Auto.generateDecoder<Result<string>>(isCamelCase = true)
+        let private fakeRuntimeDecoder = Decode.Auto.generateDecoder<Result<string>>(isCamelCase = false)
         let fakeRuntime () =
             match client with
             | None ->
@@ -340,7 +340,7 @@ module LanguageService =
                 )
                 |> Promise.map (function Ok r -> r.Data | Error msg -> failwith msg)
 
-        let fakeTargetsDecoder = Decode.Auto.generateDecoder<GetTargetsResult>(isCamelCase = true)
+        let fakeTargetsDecoder = Decode.Auto.generateDecoder<GetTargetsResult>(isCamelCase = false)
         let targetsInfo (fn:string) =
             match client with
             | None ->
@@ -352,7 +352,7 @@ module LanguageService =
                     | Some r ->
                         let req = { TargetRequest.FileName = handleUntitled fn; FakeContext = { DotNetRuntime = r }}
                         cl.sendRequest("fake/listTargets", req)
-                        |> Promise.map (fun (res: Types.PlainNotification) ->
+                        |> Promise.mapResult (fun (res: Types.PlainNotification) ->
                             Decode.fromString fakeTargetsDecoder res.content
                         )
                         |> Promise.onFail (fun o ->
@@ -374,7 +374,7 @@ Consider:
 
     let private fsacConfig () =
         compilerLocation ()
-        |> Promise.map (function Ok r -> r.Data | Error msg -> failwith msg)
+        |> Promise.map (fun r -> r.Data)
 
     let fsi () =
         let fileExists (path: string): JS.Promise<bool> =

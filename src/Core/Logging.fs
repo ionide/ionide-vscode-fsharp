@@ -148,5 +148,5 @@ module Logging =
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.ErrorOnFailed text (p : Fable.Import.JS.Promise<_>) =
-            p.catch(Func<obj,unit>(fun err -> this.Error(text + ": %O", err)))
+            p.catch(fun err -> this.Error(text + ": %O", err))
             |> ignore

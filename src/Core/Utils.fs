@@ -329,6 +329,10 @@ module Promise =
         | x::tail ->
             tail |> List.fold (fun acc next -> acc |> Ionide.VSCode.Helpers.Promise.bind (fun _ -> f next)) (f x)
 
+    /// flattens a result-returning call by throwing and tostringing the error
+    let inline mapResult (f: 'a -> Result<'b, _>) (p: Promise<'a>) : Promise<'b> =
+        p.``then``(fun r -> match f r with | Ok o -> o | Error e -> failwith (string e))
+
 module Event =
 
     let invoke (listener : 'T -> _) (event : Fable.Import.vscode.Event<'T>) =

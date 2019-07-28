@@ -447,10 +447,12 @@ module MSBuild =
             host.value <- hostCfg
         }
 
-        [envMsbuild; envDotnet]
-        |> Promise.all
-        |> Promise.bind (fun _ -> reloadCfg ())
-        |> ignore
+        promise {
+            let! _ = envMsbuild
+            let! _ = envDotnet
+            do! reloadCfg ()
+            return ()
+        } |> ignore
 
         vscode.workspace.onDidChangeConfiguration
         |> Event.invoke reloadCfg

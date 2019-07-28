@@ -14,15 +14,15 @@ module SignatureData =
             let line = window.activeTextEditor.selection.active.line
             let col = window.activeTextEditor.selection.active.character
             LanguageService.generateDocumentation editor.fileName (int line) (int col)
-            |> Promise.bind (fun (p : SignatureDataResult)  ->
+            |> Promise.bind (fun (p : SignatureData)  ->
                 let pms =
-                    p.Data.Parameters
+                    p.Parameters
                     |> Seq.concat
                     |> Seq.where (fun prm -> String.IsNullOrWhiteSpace prm.Name |> not)
                     |> Seq.map (fun prm -> sprintf "///   * `%s` - parameter of type `%s`" prm.Name prm.Type)
                     |> String.concat "\n"
                 let pms = if pms = "" then "///" else pms
-                let comment = sprintf "\n/// **Description**\n///\n/// **Parameters**\n%s\n///\n/// **Output Type**\n///   * `%s`\n///\n/// **Exceptions**\n///" pms p.Data.OutputType
+                let comment = sprintf "\n/// **Description**\n///\n/// **Parameters**\n%s\n///\n/// **Output Type**\n///   * `%s`\n///\n/// **Exceptions**\n///" pms p.OutputType
                 let x = window.activeTextEditor.selection.active.line
                 let t = window.activeTextEditor.document.getText(Range(x, 0., x, 1000.))
                 let t' = t.TrimStart(' ')
