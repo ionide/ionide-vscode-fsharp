@@ -39,6 +39,7 @@ module InfoPanel =
                     sprintf """
                     <html>
                     <head>
+                    <meta http-equiv="Content-Security-Policy" content="default-src 'none';">
                     <style>
                     pre {color: var(--textCodeBlock.background)}
                     </style>
