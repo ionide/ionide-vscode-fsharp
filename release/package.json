@@ -1229,7 +1229,7 @@
 		},
 		"configuration": {
 			"type": "object",
-			"title": "FSharp configuration",
+			"title": "F#",
 			"properties": {
 				"FSharp.fsac.netCoreDllPath": {
 					"type": "string",
