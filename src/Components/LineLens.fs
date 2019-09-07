@@ -193,7 +193,7 @@ module DecorationUpdate =
                 LanguageService.signatureData
                     fileName
                     range.StartLine
-                    range.StartColumn
+                    (range.StartColumn - 1)
             let signaturesResult = if isNotNull signaturesResult then Some signaturesResult else None
             return signaturesResult |> Option.map (fun r -> range, formatSignature r.Data)
         }
