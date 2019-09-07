@@ -1234,12 +1234,14 @@
 				"FSharp.fsac.netCoreDllPath": {
 					"type": "string",
 					"default": "",
-					"description": "The path to the 'fsautocomplete.dll', useful for debugging a self-built fsac."
+					"description": "The path to the 'fsautocomplete.dll', useful for debugging a self-built fsac.",
+					"scope": "machine-overridable"
 				},
 				"FSharp.fsac.netExePath": {
 					"type": "string",
 					"default": "",
-					"description": "The path to the 'fsautocomplete.exe', useful for debugging a self-built fsac."
+					"description": "The path to the 'fsautocomplete.exe', useful for debugging a self-built fsac.",
+					"scope": "machine-overridable"
 				},
 				"FSharp.fsac.attachDebugger": {
 					"type": "boolean",
@@ -1263,12 +1265,14 @@
 				"FSharp.monoPath": {
 					"type": "string",
 					"default": "mono",
-					"description": "The path to Mono executable"
+					"description": "The path to Mono executable",
+					"scope": "machine-overridable"
 				},
 				"FSharp.fsiFilePath": {
 					"type": "string",
 					"default": "",
-					"description": "The path to the F# Interactive tool used by Ionide-FSharp"
+					"description": "The path to the F# Interactive tool used by Ionide-FSharp",
+					"scope": "machine-overridable"
 				},
 				"FSharp.keywordsAutocomplete": {
 					"type": "boolean",
@@ -1348,7 +1352,8 @@
 				"FSharp.msbuildLocation": {
 					"type": "string",
 					"default": "",
-					"description": "Use a specific version of msbuild to build this project."
+					"description": "Use a specific version of msbuild to build this project.",
+					"scope": "machine-overridable"
 				},
 				"FSharp.msbuildAutoshow": {
 					"type": "boolean",
@@ -1438,7 +1443,8 @@
 						"packages/Analyzers",
 						"analyzers"
 					],
-					"description": "Directories in the array are used as a source of custom analyzers. Requires restart."
+					"description": "Directories in the array are used as a source of custom analyzers. Requires restart.",
+					"scope": "machine-overridable"
 				},
 				"FSharp.workspacePath": {
 					"type": "string",
