@@ -330,7 +330,9 @@ module SolutionExplorer =
                         let c = createEmpty<Command>
                         c.command <- "vscode.open"
                         c.title <- "open"
-                        c.arguments <- Some (ResizeArray [| unbox (Uri.file p) |])
+                        let options = createEmpty<obj>
+                        options?preserveFocus <- true
+                        c.arguments <- Some (ResizeArray [| unbox (Uri.file p); options |])
                         Some c
                     | _ -> None
                 ti.command <- command
