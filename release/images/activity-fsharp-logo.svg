@@ -1,15 +1,17 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg width="100%" height="100%" viewBox="0 0 50 40" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.41421;">
-    <g transform="matrix(1,0,0,1,-39,-44)">
-        <g transform="matrix(0.237288,0,0,0.237288,48.8136,49.0508)">
-            <path d="M5,63L61,7L61,35L33,63L61,91L61,119L5,63Z" style="fill-rule:nonzero;"/>
-        </g>
-        <g transform="matrix(0.237288,0,0,0.237288,48.8136,49.0508)">
-            <path d="M41,63L61,43L61,83L41,63Z" style="fill-rule:nonzero;"/>
-        </g>
-        <g transform="matrix(0.237288,0,0,0.237288,48.8136,49.0508)">
-            <path d="M123,63L65,7L65,35L93,63L65,91L65,119L123,63Z" style="fill-rule:nonzero;"/>
-        </g>
-    </g>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 23.0.6, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns:serif="http://www.serif.com/"
+	 xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 685.4 650.6"
+	 style="enable-background:new 0 0 685.4 650.6;" xml:space="preserve">
+<g transform="matrix(1,0,0,1,-39,-44)">
+	<g transform="matrix(0.237288,0,0,0.237288,48.8136,49.0508)">
+		<path d="M-41.4,1349.6L1329.5-21.3v685.4l-685.4,685.4l685.4,685.4v685.4L-41.4,1349.6z"/>
+	</g>
+	<g transform="matrix(0.237288,0,0,0.237288,48.8136,49.0508)">
+		<path d="M839.9,1349.6L1329.5,860v979.2L839.9,1349.6z"/>
+	</g>
+	<g transform="matrix(0.237288,0,0,0.237288,48.8136,49.0508)">
+		<path d="M2847.3,1349.6L1427.4-21.3v685.4l685.4,685.4L1427.4,2035v685.4L2847.3,1349.6z"/>
+	</g>
+</g>
 </svg>
