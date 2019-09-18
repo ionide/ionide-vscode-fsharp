@@ -1,3 +1,11 @@
+### 4.1.0 - 17.09.2019
+* Add `packages` folder to ignored directories in project search
+* show project items
+* update FSAC:
+  - remove redundant text from lint warning and assign them a code
+  - Show opens suggestions beofre use fully qualified names
+  - handle null initializationOptions
+
 ### 4.0.6 - 12.07.2019
 * Add gitignore component (disabled for now)
 * Update FSAC:
