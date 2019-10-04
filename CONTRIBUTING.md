@@ -140,15 +140,18 @@ The new extension window will appear with window title `Extension development ho
 
 ### Working with FSAC
 
-1. Run FSAC:
-    - or from sources in your favorite editor: open the `FsAutoComplete.sln`, start debugging with  `.NET Core mode http (debug)` configuration (default to port `8088`)
-    - or run it with `--mode http --port 8088` arguments
-2. In vscode, set the `FSharp.fsacUrl` setting to `http://localhost:8088`
-3. Reload the instance with `> Developer: Reload Window`.
+1. Open FSAC from a new instance of VSCode from the directory: `paket-files/github.com/fsharp/FsAutoComplete`
+2. Build the FSAC solution and copy the dll output from the output log, it should be something like: `paket-files/github.com/fsharp/FsAutoComplete/src/FsAutoComplete/bin/Debug/netcoreapp2.1/fsautocomplete.dll`.  Nore `netcoreapp2.1` may be a different version.
+3. In the instance of VSCode that you have Ionide open, open settings `CMD ,`, and find the section `FSharp > Fsac: Net Core Dll Path` and paste the output you copied from step 3.
+4. Now find the section `FSharp > Fsac: Attach Debugger` and check the check box.
+5. Close settings
+6. Goto the debug section and hit `Build and Launch extension`, after a while another instance of VSCode will start, you can use this instance to test Ionide/FsAutoComplete.
+7. To attach the debugger go back to the instance of VSCode where you open FSAC and goto the debug section, hit `.NET Core Attach` in the list shown you should see all the dotnet processes running, choose one that has `fsautocomplete.dll --mode lsp --attachdebugger` shown.
+8. Now you will be able to use breakpoints in the FsAutocomplete solution to debug the instance from step 6.
 
-The port number can be changed as needed.
+There is a video [here](https://www.youtube.com/watch?v=w36_PvHNoPY) that goes through the steps and fixing a bug in a little more detail.
 
-Remove that setting to go back to FSAC bundled in Ionide extension.
+Remove the settings from steps 3 and 4 to go back to FSAC bundled in Ionide extension.
 
 ### Dependencies
 
