@@ -1,3 +1,10 @@
+### 4.2.0 - 08.10.2019
+* Update FSAC:
+  - fix problem with resolving dependencies for `.fsx` files
+  - add experimental support for the formatting documents (Fantomas integration)
+  - add experimental support for `dotnet fsi` (`FSharp.useSdkScripts` setting)
+  - fix double ticked display names in tooltips problems
+
 ### 4.1.0 - 17.09.2019
 * Add `packages` folder to ignored directories in project search
 * show project items
