@@ -11,17 +11,12 @@ open Ionide.VSCode.Helpers
 module node = Fable.Import.Node.Exports
 
 module Fsi =
-
     let mutable fsiOutput : Terminal option = None
     let mutable fsiOutputPID : int option = None
     let mutable lastSelectionSent : string option = None
 
     let mutable lastCd : string option = None
     let mutable lastCurrentFile : string option = None
-
-    let isPowershell () =
-        let t = "terminal.integrated.shell.windows" |> Configuration.get ""
-        t.ToLower().Contains "powershell"
 
     let sendCd (textEditor : TextEditor) =
         let file, dir =
@@ -50,6 +45,11 @@ module Fsi =
     let private start () =
         promise {
             fsiOutput |> Option.iter (fun n -> n.dispose())
+            let isSdk =
+                "FSharp.useSdkScripts"
+                |> Configuration.get false
+
+
             let parms =
                 let fsiParams =
                     "FSharp.fsiExtraParameters"
@@ -65,7 +65,13 @@ module Fsi =
                 LanguageService.fsi ()
                 |> Promise.bind (fun fsi -> match fsi with Some fsi -> Promise.lift fsi | None -> Promise.reject "FSI not found")
 
-            let terminal = window.createTerminal("F# Interactive", fsiPath, parms)
+            let! dotnet = Environment.dotnet
+
+            let terminal =
+                if isSdk && dotnet.IsSome then
+                    window.createTerminal("F# Interactive (.Net Core)", dotnet.Value, [|yield "fsi"; yield! parms |])
+                else
+                    window.createTerminal("F# Interactive", fsiPath, parms)
             terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
             lastCd <- None
             lastCurrentFile <- None
