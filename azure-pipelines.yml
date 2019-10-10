@@ -2,7 +2,7 @@ name: $(Rev:r)
 jobs:
 - job: IonideFsharp
   pool:
-    vmImage: 'vs2017-win2016'
+    vmImage: 'windows-2019'
   steps:
   - script: dotnet tool install fake-cli --tool-path .
     displayName: Install FAKE
