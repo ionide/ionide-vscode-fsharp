@@ -134,7 +134,7 @@ Once the initial build on the command line is completed, you should use vscode i
   - Use `Build and Launch Extension`
   - Start the `Watch` task and when a build is done start `Launch Only`
 
-These two options can be reached in VsCode in the bottom bar (look for triangle), or by typing `control-P Debug <space> ` and then selecting either `Build and Launch` or `Watch`
+These two options can be reached in VsCode in the side bar (look for a Beetle symbol), or by typing `control-P Debug <space> ` and then selecting either `Build and Launch` or `Watch`
 
 The new extension window will appear with window title `Extension development host`
 
