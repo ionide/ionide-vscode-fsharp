@@ -65,7 +65,7 @@ module Fsi =
                 LanguageService.fsi ()
                 |> Promise.bind (fun fsi -> match fsi with Some fsi -> Promise.lift fsi | None -> Promise.reject "FSI not found")
 
-            let! dotnet = Environment.dotnet
+            let! dotnet = LanguageService.dotnet()
 
             let terminal =
                 if isSdk && dotnet.IsSome then

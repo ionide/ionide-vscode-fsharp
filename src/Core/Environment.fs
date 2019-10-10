@@ -69,24 +69,10 @@ module Environment =
 
     let configMSBuildPath = Configuration.tryGet "FSharp.msbuildLocation"
 
+    [<System.Obsolete("Do not use directly. Use LanguageService.dotnet() instead.")>]
     let dotnet =
         Configuration.tryGet "FSharp.dotnetLocation"
-        |> Option.map (Some >> Promise.lift)
-        |> Option.defaultWith (fun () -> promise {
-            let! dotnet = tryGetTool "dotnet"
-            match dotnet with
-            | Some tool -> return Some tool
-            | None ->
-                let basePaths, binary =
-                    if isWin then
-                        [ platformProgramFiles </> @"dotnet"
-                          programFilesX86 </> @"dotnet" ], "dotnet.exe"
-                    else
-                        [ "/usr/local/share" </> "dotnet"
-                          (unbox Globals.``process``.env?``HOME``) </> ".dotnet" ], "dotnet"
-
-                return findFirstValidFilePath binary basePaths
-        })
+        |> Promise.lift
 
     let mono =
         Configuration.tryGet "FSharp.monoPath"

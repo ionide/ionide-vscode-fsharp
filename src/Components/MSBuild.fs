@@ -39,7 +39,7 @@ module MSBuild =
     let pickMSbuildHostType () =
         promise {
             let! envMsbuild = LanguageService.msbuild ()
-            let! envDotnet = Environment.dotnet
+            let! envDotnet = LanguageService.dotnet()
 
             let hosts =
                 [ yield envMsbuild |> Option.map (fun msbuild -> sprintf ".NET (%s)" msbuild, MSbuildHost.MSBuildExe)
@@ -136,7 +136,7 @@ module MSBuild =
                         |> Promise.bind (function Some msbuild -> Promise.lift msbuild
                                                 | None -> Promise.reject "MSBuild binary not found. Please install it from the [Visual Studio Download Page](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=15)")
                     | MSbuildHost.DotnetCli ->
-                        Environment.dotnet
+                        LanguageService.dotnet ()
                         |> Promise.bind (function Some msbuild -> Promise.lift msbuild
                                                 | None -> Promise.reject "dotnet SDK not found. Please install it from the [Dotnet SDK Download Page](https://www.microsoft.com/net/download)")
                     | MSbuildHost.Auto -> Promise.lift ""
@@ -421,7 +421,7 @@ module MSBuild =
             )
 
         let envDotnet =
-            Environment.dotnet
+            LanguageService.dotnet ()
             |> Promise.bind (fun p ->
                 match p with
                 | Some p -> logger.Info("Dotnet CLI (.NET Core) found at %s", p)

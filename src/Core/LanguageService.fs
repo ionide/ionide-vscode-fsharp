@@ -86,6 +86,20 @@ module LanguageService =
                 r
             )
 
+    let dotnet () = promise {
+        let! dotnet = Environment.dotnet
+        match dotnet with
+        | None ->
+            let! location = compilerLocation()
+            match location.Data.SdkRoot with
+            | Some root ->
+                if Environment.isWin
+                then return Some (path.join (root, "dotnet.exe"))
+                else return Some (path.join (root, "dotnet"))
+            | None ->
+                return None
+        | Some location -> return Some location
+    }
 
     let f1Help fn line col : JS.Promise<Result<string>> =
         match client with
@@ -340,7 +354,7 @@ module LanguageService =
             | None ->
                 Promise.empty
             | Some cl ->
-                Environment.dotnet
+                dotnet ()
                 |> Promise.bind (fun dotnetRuntime ->
                     match dotnetRuntime with
                     | Some r ->
@@ -599,7 +613,7 @@ Consider:
             ]
 
         let! mono = Environment.mono
-        let! dotnet = Environment.dotnet
+        let! dotnet = dotnet ()
 
         printfn "RUNTIME: %A, MONO: %A, DOTNET: %A" targetRuntime mono dotnet
         // The matrix here is a 2x3 table: .Net/.Net Core target on one axis, Windows/Mono/Dotnet execution environment on the other
