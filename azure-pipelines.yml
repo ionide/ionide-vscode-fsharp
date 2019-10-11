@@ -44,6 +44,12 @@ jobs:
   pool:
     vmImage: 'vs2017-win2016'
   steps:
+  - task: UseDotNet@2
+    displayName: 'Use exact .NET Core sdk'
+    inputs:
+      packageType: sdk
+      version: 2.1.801
+      installationPath: $(Agent.ToolsDirectory)/dotnet
   - script: dotnet tool install fake-cli --tool-path .
     displayName: Install FAKE
   - powershell: |
