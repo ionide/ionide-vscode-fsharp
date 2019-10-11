@@ -48,7 +48,7 @@ jobs:
     displayName: 'Use exact .NET Core sdk'
     inputs:
       packageType: sdk
-      version: 2.1.801
+      version: 2.1.500
       installationPath: $(Agent.ToolsDirectory)/dotnet
   - script: dotnet tool install fake-cli --tool-path .
     displayName: Install FAKE
