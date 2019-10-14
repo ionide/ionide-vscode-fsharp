@@ -97,13 +97,9 @@ module Fsi =
         | Some fo -> Promise.lift fo
         |> Promise.onSuccess (fun fp ->
             fp.show true
-
-            //send in chunks of 256, terminal has a character limit
-            msgWithNewline
-            |> chunkStringBySize 256
-            |> List.iter (fun x -> fp.sendText(x,false))
-
-            lastSelectionSent <- Some msg)
+            fp.sendText(msgWithNewline, false)
+            lastSelectionSent <- Some msg
+        )
         |> Promise.onFail (fun _ ->
             window.showErrorMessage "Failed to send text to FSI" |> ignore)
 
