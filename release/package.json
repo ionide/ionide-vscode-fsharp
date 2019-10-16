@@ -1533,6 +1533,10 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Use 'dotnet fsi' instead of 'fsi.exe'/'fsharpi'"
+				},
+				"FSharp.dotNetRoot": {
+					"type": "string",
+					"description": "Sets the root path for finding dotnet SDK references. Primarily used for FSX Scripts."
 				}
 			}
 		},
