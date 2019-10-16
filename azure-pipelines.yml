@@ -40,43 +40,43 @@ jobs:
     inputs:
       pathtoPublish: 'temp'
       artifactName: 'ionide-fsharp-vscode-ext'
-- job: ExperimentalFsharp
-  pool:
-    vmImage: 'vs2017-win2016'
-  steps:
-  - task: UseDotNet@2
-    displayName: 'Use exact .NET Core sdk'
-    inputs:
-      packageType: sdk
-      version: 2.1.801
-      installationPath: $(Agent.ToolsDirectory)/dotnet
-  - script: dotnet tool install fake-cli --tool-path .
-    displayName: Install FAKE
-  - powershell: |
-      $buildId = $env:BUILD_BUILDNUMBER;
-      $versionSuffixPR = "PR$($env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER).$buildId";
-      $branchName = "$env:BUILD_SOURCEBRANCHNAME".Replace("_","");
-      $versionSuffixBRANCH = "$branchName.$buildId";
-      $isPR = "$env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" -ne "";
-      $versionSuffix = if ($isPR) { $versionSuffixPR } else { $versionSuffixBRANCH };
-      Write-Host "##vso[task.setvariable variable=VersionSuffix]$versionSuffix";
-    displayName: Set Prerelease Version
-    condition: eq(variables['ionide.isExperimentalRelease'], 'false')
-  - task: NodeTool@0
-    displayName: Install Node
-    inputs:
-      versionSpec: "10.15.1"
-  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
-    displayName: Install Yarn
-    inputs:
-      versionSpec: "1.10.1"
-  - script: .\build.cmd InstallVSCE
-    displayName: Install VSCE
-  - script: .\build.cmd BuildPackageExp extVersionSuffix=%ExtVersionSuffix%
-    displayName: BuildPackageExp
-    env:
-      ExtVersionSuffix: '$(VersionSuffix)'
-  - task: PublishBuildArtifacts@1
-    inputs:
-      pathtoPublish: 'temp'
-      artifactName: 'experimental-fsharp-vscode-ext'
+# - job: ExperimentalFsharp
+#   pool:
+#     vmImage: 'vs2017-win2016'
+#   steps:
+#   - task: UseDotNet@2
+#     displayName: 'Use exact .NET Core sdk'
+#     inputs:
+#       packageType: sdk
+#       version: 2.1.801
+#       installationPath: $(Agent.ToolsDirectory)/dotnet
+#   - script: dotnet tool install fake-cli --tool-path .
+#     displayName: Install FAKE
+#   - powershell: |
+#       $buildId = $env:BUILD_BUILDNUMBER;
+#       $versionSuffixPR = "PR$($env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER).$buildId";
+#       $branchName = "$env:BUILD_SOURCEBRANCHNAME".Replace("_","");
+#       $versionSuffixBRANCH = "$branchName.$buildId";
+#       $isPR = "$env:SYSTEM_PULLREQUEST_PULLREQUESTNUMBER" -ne "";
+#       $versionSuffix = if ($isPR) { $versionSuffixPR } else { $versionSuffixBRANCH };
+#       Write-Host "##vso[task.setvariable variable=VersionSuffix]$versionSuffix";
+#     displayName: Set Prerelease Version
+#     condition: eq(variables['ionide.isExperimentalRelease'], 'false')
+#   - task: NodeTool@0
+#     displayName: Install Node
+#     inputs:
+#       versionSpec: "10.15.1"
+#   - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
+#     displayName: Install Yarn
+#     inputs:
+#       versionSpec: "1.10.1"
+#   - script: .\build.cmd InstallVSCE
+#     displayName: Install VSCE
+#   - script: .\build.cmd BuildPackageExp extVersionSuffix=%ExtVersionSuffix%
+#     displayName: BuildPackageExp
+#     env:
+#       ExtVersionSuffix: '$(VersionSuffix)'
+#   - task: PublishBuildArtifacts@1
+#     inputs:
+#       pathtoPublish: 'temp'
+#       artifactName: 'experimental-fsharp-vscode-ext'
