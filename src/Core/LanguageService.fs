@@ -371,7 +371,7 @@ module LanguageService =
                         let msg = """
 Cannot request fake targets because `dotnet` was not found.
 Consider:
-* setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary,
+* setting the `FSharp.dotnetRoot` settings key to a directory with a `dotnet` binary,
 * including `dotnet` in your PATH,
 * installing .NET Core into one of the default locations, or
 """
@@ -533,7 +533,7 @@ Consider:
             let msg = """
             Cannot start .NET Core language services because `dotnet` was not found.
             Consider:
-            * setting the `FSharp.dotnetLocation` settings key to a `dotnet` binary,
+            * setting the `FSharp.dotnetRoot` settings key to a directory with a `dotnet` binary,
             * including `dotnet` in your PATH,
             * installing .NET Core into one of the default locations, or
             * using the `net` `FSharp.fsacRuntime` to use mono instead
@@ -613,7 +613,7 @@ Consider:
             ]
 
         let! mono = Environment.mono
-        let! dotnet = dotnet ()
+        let! dotnet = Environment.dotnet
 
         printfn "RUNTIME: %A, MONO: %A, DOTNET: %A" targetRuntime mono dotnet
         // The matrix here is a 2x3 table: .Net/.Net Core target on one axis, Windows/Mono/Dotnet execution environment on the other

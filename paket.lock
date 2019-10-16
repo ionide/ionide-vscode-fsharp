@@ -7,7 +7,7 @@ NUGET
       Fable.Core (>= 1.3.17) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.2.3) - restriction: >= netcoreapp2.0
       Microsoft.NETCore.App (>= 2.0) - restriction: >= netcoreapp2.0
-    Dotnet.ProjInfo (0.36) - restriction: >= netcoreapp2.0
+    Dotnet.ProjInfo (0.37) - restriction: >= netcoreapp2.0
       FSharp.Core (>= 4.6.2) - restriction: || (>= net461) (>= netstandard2.0)
       System.ValueTuple (>= 4.4) - restriction: || (>= net461) (>= netstandard2.0)
     Fable.Compiler (1.3.18) - restriction: >= netcoreapp2.0
@@ -629,7 +629,7 @@ GIT
       build: fake build -t Publish
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (687070defaf355022a5d82d091258eccfea7317c)
+     (c6fef4be0cd984a6e3b9640468ebbec6323d63fd)
   remote: https://github.com/ionide/forge-templates.git
      (4b0866224a344c09f06254c0f70a78582530792c)
 GITHUB
@@ -1171,5 +1171,5 @@ NUGET
       System.Xml.ReaderWriter (>= 4.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.3) (< win8) (< wpa81) (< xamarinios) (< xamarinmac) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (>= netstandard1.0) (< netstandard1.3) (< win8) (< wp8) (< wpa81)) (< portable-net45+win8+wp8+wpa81)
 GITHUB
   remote: fsharp/FAKE
-    modules/Octokit/Octokit.fsx (b1c3ea3f910c325f99f0ca47402eb3afd0081431)
+    modules/Octokit/Octokit.fsx (d41aee9f6f123683303fdd0f23b7242ca63ebfc7)
       Octokit (>= 0.20)
