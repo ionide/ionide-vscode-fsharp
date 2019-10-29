@@ -62,13 +62,15 @@ module Fsi =
         promise {
             if isSdk
             then
-                match! LanguageService.dotnet() with
+                let! dotnet = LanguageService.dotnet ()
+                match dotnet with
                 | Some dotnet ->
                     return dotnet, [|yield "fsi"; yield! parms |]
                 | None ->
                     return failwith "dotnet fsi requested but no dotnet SDK was found."
             else
-                match! LanguageService.fsi () with
+                let! fsi = LanguageService.fsi ()
+                match fsi with
                 | Some fsi ->
                     return fsi, parms
                 | None ->
@@ -227,7 +229,6 @@ module Fsi =
                 return ()
         }
 
-
     let sendReferencesForProject project =
         project.References  |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not )  |> referenceAssemblies |> Promise.suppress |> ignore
 
@@ -246,7 +247,6 @@ module Fsi =
                 let ctn = ctn |> String.concat "\n"
                 e.insert(p,ctn))
             return () }
-
 
     let activate (context : ExtensionContext) =
         window.onDidCloseTerminal $ (handleCloseTerminal, (), context.subscriptions) |> ignore
