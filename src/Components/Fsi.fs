@@ -42,42 +42,55 @@ module Fsi =
             fsiOutput |> Option.iter (fun n -> n.sendText(msg, false))
             lastCurrentFile <- Some file
 
-    let private start () =
+    let fsiBinaryAndParameters () =
+        let isSdk =
+            "FSharp.useSdkScripts"
+            |> Configuration.get false
+
+        let parms =
+            let fsiParams =
+                "FSharp.fsiExtraParameters"
+                |> Configuration.get Array.empty<string>
+                |> List.ofArray
+
+            if Environment.isWin then
+                [ "--fsi-server-input-codepage:65001" ] @ fsiParams
+            else
+                fsiParams
+            |> Array.ofList
+
         promise {
-            fsiOutput |> Option.iter (fun n -> n.dispose())
-            let isSdk =
-                "FSharp.useSdkScripts"
-                |> Configuration.get false
+            if isSdk
+            then
+                match! LanguageService.dotnet() with
+                | Some dotnet ->
+                    return dotnet, [|yield "fsi"; yield! parms |]
+                | None ->
+                    return failwith "dotnet fsi requested but no dotnet SDK was found."
+            else
+                match! LanguageService.fsi () with
+                | Some fsi ->
+                    return fsi, parms
+                | None ->
+                    return failwith ".Net Framework FSI was requested but not found"
+        }
 
+    let private start () =
+        fsiOutput |> Option.iter (fun n -> n.dispose())
+        let isSdk =
+            "FSharp.useSdkScripts"
+            |> Configuration.get false
 
-            let parms =
-                let fsiParams =
-                    "FSharp.fsiExtraParameters"
-                    |> Configuration.get Array.empty<string>
-                    |> List.ofArray
+        promise {
+            let! (fsiBinary, fsiArguments) = fsiBinaryAndParameters ()
 
-                if Environment.isWin then
-                    [ "--fsi-server-input-codepage:65001" ] @ fsiParams
-                else
-                    fsiParams
-                |> Array.ofList
-
-
-            let! terminal = promise {
+            let terminal =
                 if isSdk
                 then
-                    match! LanguageService.dotnet() with
-                    | Some dotnet ->
-                        return window.createTerminal("F# Interactive (.Net Core)", dotnet, [|yield "fsi"; yield! parms |])
-                    | None ->
-                        return failwith "dotnet fsi requested but no dotnet SDK was found."
+                    window.createTerminal("F# Interactive (.Net Core)", fsiBinary, fsiArguments)
                 else
-                    match! LanguageService.fsi () with
-                    | Some fsi ->
-                        return window.createTerminal("F# Interactive", fsi, parms)
-                    | None ->
-                        return failwith ".Net Framework FSI was requested but not found"
-            }
+                    window.createTerminal("F# Interactive", fsiBinary, fsiArguments)
+
             terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
             lastCd <- None
             lastCurrentFile <- None
@@ -213,6 +226,7 @@ module Fsi =
             | None ->
                 return ()
         }
+
 
     let sendReferencesForProject project =
         project.References  |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not )  |> referenceAssemblies |> Promise.suppress |> ignore
