@@ -13,6 +13,7 @@ module ScriptRunner =
         let scriptDir = node.path.dirname(scriptFile)
 
         promise {
+            // TODO: this doesn't work for .net core, is this component used?
             let! fsi =
                 LanguageService.fsi ()
                 |> Promise.bind (fun p ->
