@@ -61,17 +61,23 @@ module Fsi =
                 else
                     fsiParams
                 |> Array.ofList
-            let! fsiPath =
-                LanguageService.fsi ()
-                |> Promise.bind (fun fsi -> match fsi with Some fsi -> Promise.lift fsi | None -> Promise.reject "FSI not found")
 
-            let! dotnet = LanguageService.dotnet()
 
-            let terminal =
-                if isSdk && dotnet.IsSome then
-                    window.createTerminal("F# Interactive (.Net Core)", dotnet.Value, [|yield "fsi"; yield! parms |])
+            let! terminal = promise {
+                if isSdk
+                then
+                    match! LanguageService.dotnet() with
+                    | Some dotnet ->
+                        return window.createTerminal("F# Interactive (.Net Core)", dotnet, [|yield "fsi"; yield! parms |])
+                    | None ->
+                        return failwith "dotnet fsi requested but no dotnet SDK was found."
                 else
-                    window.createTerminal("F# Interactive", fsiPath, parms)
+                    match! LanguageService.fsi () with
+                    | Some fsi ->
+                        return window.createTerminal("F# Interactive", fsi, parms)
+                    | None ->
+                        return failwith ".Net Framework FSI was requested but not found"
+            }
             terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
             lastCd <- None
             lastCurrentFile <- None
