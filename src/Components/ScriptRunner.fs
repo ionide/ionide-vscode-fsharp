@@ -13,23 +13,21 @@ module ScriptRunner =
         let scriptDir = node.path.dirname(scriptFile)
 
         promise {
-            let! fsi =
-                LanguageService.fsi ()
-                |> Promise.bind (fun p ->
-                    match p with
-                    | Some fsi -> Promise.lift fsi
-                    | None -> Promise.reject "FSI not found"
-                )
+            let! (fsiBinary, fsiParameters) = Fsi.fsiBinaryAndParameters ()
+            let flatArgs  =
+                fsiParameters
+                |> Array.map (sprintf "\"%s\"")
+                |> String.concat " "
             let (shellCmd, shellArgs, textToSend) =
                 match node.os.``type``() with
                 | "Windows_NT" ->
                     ("cmd.exe",
                      [| "/Q"; "/K" |],
-                     sprintf "cd \"%s\" && cls && \"%s\" \"%s\" && pause && exit" scriptDir fsi scriptFile)
+                     sprintf "cd \"%s\" && cls && \"%s\" \"%s\" \"%s\" && pause && exit" scriptDir fsiBinary flatArgs scriptFile)
                 | _ ->
                     ("sh",
                      [||],
-                     sprintf "cd \"%s\" && clear && \"%s\" \"%s\" && echo \"Press enter to close script...\" && read && exit" scriptDir fsi scriptFile)
+                     sprintf "cd \"%s\" && clear && \"%s\" \"%s\" \"%s\" && echo \"Press enter to close script...\" && read && exit" scriptDir fsiBinary flatArgs scriptFile)
 
             let title = node.path.basename scriptFile
             let terminal = window.createTerminal(title, shellCmd, shellArgs)

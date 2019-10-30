@@ -45,7 +45,8 @@ module Gitignore =
         match checkGitignore patternsToIgnore |> Set.toList with
         | [] -> ()
         | missingPatterns ->
-            match! window.showInformationMessage("You are missing entries in your .gitignore for Ionide-specific data files. Would you like to add them?", [|"Add entries"; "Ignore"; "Don't show again"|]) with
+            let! choice = window.showInformationMessage("You are missing entries in your .gitignore for Ionide-specific data files. Would you like to add them?", [|"Add entries"; "Ignore"; "Don't show again"|])
+            match choice with
             | "Add entries" ->
                 writePatternsToGitignore missingPatterns
             | "Ignore" ->
