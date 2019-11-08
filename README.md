@@ -101,5 +101,6 @@ You can also support Ionide development on [Open Collective](https://opencollect
  <a href="https://opencollective.com/ionide/sponsor/2/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/2/avatar.svg?requireActive=false" height="50px"></a>
  <a href="http://www.miltonsecurity.com/" target="_blank"><img src="https://opencollective-production.s3-us-west-1.amazonaws.com/dec96cf0-3fd4-11e9-85d3-d3af44ed2d45.jpg" height="50px"></a>
  <a href="https://opencollective.com/ionide/sponsor/3/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/3/avatar.svg?requireActive=false" height="50px"></a>
-
+ <a href="https://www.crosswordsolver.com/" target="_blank"><img src="https://images.opencollective.com/crosswordsolver/d4481d6/logo.png" height="50px"></a>
+ 
 </div>
