@@ -560,8 +560,6 @@ Consider:
             let args =
                 [
                     yield fsautocompletePath
-                    yield"--mode"
-                    yield "lsp"
                     if fsacAttachDebugger then yield "--attachdebugger"
                     if backgroundSymbolCache then yield "--background-service-enabled"
                     if verbose then yield  "--verbose"
@@ -580,8 +578,6 @@ Consider:
             printfn "FSAC (NET): '%s'" fsautocompletePath
             let args =
                 [
-                    yield "--mode"
-                    yield "lsp"
                     if backgroundSymbolCache then yield "--background-service-enabled"
                     if verbose then yield  "--verbose"
                 ] |> ResizeArray
@@ -600,8 +596,6 @@ Consider:
             let args =
                 [
                     yield fsautocompletePath
-                    yield "--mode"
-                    yield "lsp"
                     if backgroundSymbolCache then yield "--background-service-enabled"
                     if verbose then yield  "--verbose"
                 ] |> ResizeArray
