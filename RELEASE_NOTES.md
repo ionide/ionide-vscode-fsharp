@@ -1,3 +1,13 @@
+### 4.3.0 - 10.11.2019
+* FSI - no longer chunk messages because underlying node lib is better
+* Set/pick up configured dotnet root
+* Fix logic around dotnet detection on Ionide startup
+* fix FSI spawning logic when the user is .net sdk but lacks .net framework
+* Update FSAC:
+  - Fix issue with `[]` formatting in signatures
+  - update `.fsx` references logic
+  - remove old stdio protocol
+
 ### 4.2.0 - 08.10.2019
 * Update FSAC:
   - fix problem with resolving dependencies for `.fsx` files
