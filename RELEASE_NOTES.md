@@ -1,3 +1,8 @@
+### 4.3.1 - 11.11.2019
+* Update FSAC:
+  - Fix `array` formatting with tuples
+  - More fixes to `.fsx` files
+
 ### 4.3.0 - 10.11.2019
 * FSI - no longer chunk messages because underlying node lib is better
 * Set/pick up configured dotnet root
