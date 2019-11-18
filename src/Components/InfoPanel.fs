@@ -79,7 +79,6 @@ module InfoPanel =
 
                 let commentContent =
                     res.Comment
-                    |> Markdown.createCommentString
 
                 let footerContent =
                     res.Footer
