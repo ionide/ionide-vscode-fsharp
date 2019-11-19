@@ -226,7 +226,7 @@ module StableExtension =
         runFable "" false
     )
 
-    let fsacDir = "paket-files/github.com/fsharp/FsAutoComplete"
+    let fsacDir = "paket-files/github.com/MangelMaxime/FsAutoComplete"
 
     Target "CopyFSAC" (fun _ ->
         let fsacBin = sprintf "%s/bin/release" fsacDir
