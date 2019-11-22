@@ -19,10 +19,29 @@ module SignatureData =
                     p.Data.Parameters
                     |> Seq.concat
                     |> Seq.where (fun prm -> String.IsNullOrWhiteSpace prm.Name |> not)
-                    |> Seq.map (fun prm -> sprintf "/// <param name=\"%s\"></param>" prm.Name)
+                    |> Seq.map (fun prm -> sprintf """/// <param name="%s"></param>""" prm.Name)
                     |> String.concat "\n"
-                let pms = if pms = "" then "///" else pms
-                let comment = sprintf "\n/// <summary>\n/// \n/// </summary>\n%s\n/// <returns></returns> " pms
+
+                let generics =
+                    p.Data.Generics
+                    |> Seq.map (fun generic ->
+                        sprintf """/// <typeparam name="'%s"></typeparam>""" generic
+                    )
+                    |> String.concat "\n"
+
+                let comment =
+                    [
+                        yield "/// <summary>"
+                        yield "/// "
+                        yield "/// </summary>"
+                        if pms <> "" then
+                            yield pms
+                        if generics <> "" then
+                            yield generics
+                        yield "/// <returns></returns>"
+                    ]
+                    |> String.concat "\n"
+
                 let x = window.activeTextEditor.selection.active.line
                 let t = window.activeTextEditor.document.getText(Range(x, 0., x, 1000.))
                 let t' = t.TrimStart(' ')
