@@ -1,3 +1,8 @@
+### 4.3.2 - 25.11.2019
+* Update FSAC:
+  - Fix how we assign FSI options
+  - Fix struct tuple rendering
+
 ### 4.3.1 - 11.11.2019
 * Update FSAC:
   - Fix `array` formatting with tuples
