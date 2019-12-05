@@ -28,6 +28,7 @@
     <Compile Include="Core/Logging.fs" />
     <Compile Include="Core/LanguageService.fs" />
     <Compile Include="Core/Project.fs" />
+    <Compile Include="Components/Diagnostics.fs" />
     <Compile Include="Components/Gitignore.fs" />
     <Compile Include="Components/LanguageConfiguration.fs" />
     <Compile Include="Components/SignatureData.fs" />
