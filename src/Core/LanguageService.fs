@@ -329,6 +329,16 @@ module LanguageService =
                 ()
             )
 
+    let loadAnalyzers () =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.FileParams= {
+                Project = {Uri = ""}
+            }
+            cl.sendRequest("fsharp/loadAnalyzers", req)
+            |> Promise.map (ignore)
+
 
     module FakeSupport =
         open DTO.FakeSupport
