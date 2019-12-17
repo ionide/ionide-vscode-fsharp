@@ -1,3 +1,13 @@
+### 4.4.0 - 17.12.2019
+* Update FSAC:
+  - Update to FCS 33
+  - Update to Fantomas 3.1
+  - Fix `<Note>` display in autocomplete
+  - Pick .Net Core TFM for scripts based on the runtime we detect
+  - Support `--load` and `--use` directives for F# scripts
+  - Reimplement F# Analyzers support
+  - Refactor ProjectSystem (internal)
+
 ### 4.3.2 - 25.11.2019
 * Update FSAC:
   - Fix how we assign FSI options
