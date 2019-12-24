@@ -1,3 +1,7 @@
+### 4.4.2 - 24.12.2019
+* Update FSAC:
+  - Update FSharp.Analyzers.SDK to 0.2
+
 ### 4.4.1 - 18.12.2019
 * Update FSAC:
   - Fix a bug regarding `.fsx` files with new ProjectSystem (internal)
