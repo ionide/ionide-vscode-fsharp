@@ -1,3 +1,8 @@
+### 4.4.3 - 09.01.2020
+* Update FSAC:
+  - Fix off-by-one on doc formatting
+  - Using Fantomas 3.2 beta and reading the config file.
+
 ### 4.4.2 - 24.12.2019
 * Update FSAC:
   - Update FSharp.Analyzers.SDK to 0.2
