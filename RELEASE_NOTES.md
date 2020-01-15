@@ -1,3 +1,7 @@
+### 4.4.4 - 15.01.2020
+* Update FSAC:
+  - Normalize path before serching in state in background service
+
 ### 4.4.3 - 09.01.2020
 * Update FSAC:
   - Fix off-by-one on doc formatting
