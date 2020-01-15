@@ -44,11 +44,11 @@ NUGET
       Microsoft.NETCore.Platforms (>= 2.2.4) - restriction: >= netcoreapp2.2
       Microsoft.NETCore.Targets (>= 2.0) - restriction: >= netcoreapp2.2
       NETStandard.Library (>= 2.0.3) - restriction: >= netcoreapp2.2
-    Microsoft.NETCore.DotNetAppHost (3.1) - restriction: >= netcoreapp2.2
-    Microsoft.NETCore.DotNetHostPolicy (3.1) - restriction: >= netcoreapp2.2
-      Microsoft.NETCore.DotNetHostResolver (>= 3.1)
-    Microsoft.NETCore.DotNetHostResolver (3.1) - restriction: >= netcoreapp2.2
-      Microsoft.NETCore.DotNetAppHost (>= 3.1)
+    Microsoft.NETCore.DotNetAppHost (3.1.1) - restriction: >= netcoreapp2.2
+    Microsoft.NETCore.DotNetHostPolicy (3.1.1) - restriction: >= netcoreapp2.2
+      Microsoft.NETCore.DotNetHostResolver (>= 3.1.1)
+    Microsoft.NETCore.DotNetHostResolver (3.1.1) - restriction: >= netcoreapp2.2
+      Microsoft.NETCore.DotNetAppHost (>= 3.1.1)
     Microsoft.NETCore.Platforms (3.1) - restriction: || (&& (>= net45) (< netstandard1.3) (>= netstandard1.6)) (&& (< net45) (< netstandard1.2) (>= netstandard1.6) (< win8)) (&& (< net45) (< netstandard1.3) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< net45) (< netstandard1.4) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< net45) (< netstandard1.5) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81)) (&& (< net45) (>= netstandard2.0)) (&& (>= net46) (< netstandard1.4) (>= netstandard1.6)) (&& (>= net461) (>= netstandard1.6)) (>= netcoreapp2.0) (&& (>= netcoreapp2.1) (< netcoreapp3.0)) (&& (< netstandard1.0) (>= netstandard1.6) (< portable-net45+win8)) (&& (< netstandard1.0) (>= netstandard1.6) (>= win8)) (&& (< netstandard1.0) (>= netstandard1.6) (< win8)) (&& (< netstandard1.3) (>= netstandard1.6) (< win8) (>= wpa81)) (&& (< netstandard1.5) (>= netstandard1.6) (>= uap10.0)) (&& (>= netstandard1.6) (< portable-net45+win8+wpa81)) (&& (>= netstandard1.6) (>= uap10.1)) (&& (>= netstandard1.6) (>= wp8))
     Microsoft.NETCore.Targets (3.1) - restriction: || (&& (< monoandroid) (< monotouch) (< net45) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net45) (< netstandard1.2) (>= netstandard1.6) (< win8)) (&& (< monoandroid) (< net45) (< netstandard1.3) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.4) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< net45) (< netstandard1.5) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< netstandard1.1) (>= netstandard1.6) (< win8)) (>= netcoreapp2.2) (&& (< netstandard1.1) (>= netstandard1.6) (>= uap10.0) (< win8)) (&& (< netstandard1.3) (>= netstandard1.6) (>= uap10.0) (< win8) (< wpa81)) (&& (< netstandard1.5) (>= netstandard1.6) (>= uap10.0) (< win8) (< wpa81)) (&& (>= netstandard1.6) (< portable-net45+win8+wpa81))
     Microsoft.Win32.Primitives (4.3) - restriction: || (&& (< net45) (< netstandard1.4) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< net45) (< netstandard1.5) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< net45) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81)) (&& (>= net46) (< netstandard1.4) (>= netstandard1.6)) (>= netcoreapp2.0) (&& (< netstandard1.5) (>= netstandard1.6) (>= uap10.0))
@@ -623,10 +623,10 @@ NUGET
       FSharp.Core (>= 4.3.4) - restriction: >= netstandard2.0
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (52779750677d20b13ebcacc64a212cbc2a87fa7d)
+     (994a36f80bd11521551d137854e2ce999bd6d9cb)
       build: build.cmd LocalRelease
       os: windows
-     (52779750677d20b13ebcacc64a212cbc2a87fa7d)
+     (994a36f80bd11521551d137854e2ce999bd6d9cb)
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/ionide/Forge.git
