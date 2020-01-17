@@ -1,3 +1,8 @@
+### 4.4.5 - 15.01.2020
+* Add support for untitled files
+* Update FSAC:
+  - Add support for untitled files
+
 ### 4.4.4 - 15.01.2020
 * Update FSAC:
   - Normalize path before serching in state in background service
