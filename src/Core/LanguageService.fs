@@ -457,7 +457,6 @@ Consider:
             let opts = createEmpty<Client.LanguageClientOptions>
             let selector =
                 createObj [
-                    "scheme" ==> "file"
                     "language" ==> "fsharp"
                 ] |> unbox<Client.DocumentSelector>
 
