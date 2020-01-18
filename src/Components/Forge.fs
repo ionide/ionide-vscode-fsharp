@@ -28,10 +28,6 @@ module Forge =
         let ionidePath = VSCodeExtension.ionidePluginPath ()
         ionidePath </> "bin_forge" </> "Forge.dll"
 
-    let private templateLocation =
-        let ionidePath = VSCodeExtension.ionidePluginPath ()
-        ionidePath </> "bin_forge" </> "templates" </> "templates.json"
-
     let outputChannel = window.createOutputChannel "Forge"
 
     let private spawnForge (cmd : string) =
@@ -145,9 +141,6 @@ module Forge =
         | Document.FSharp -> sprintf "move file -n %s -d" (quotePath editor.document.fileName) |> spawnForge |> ignore
         | _ -> ()
 
-    let refreshTemplates () =
-        "refresh" |> spawnForge |> ignore
-
     let addCurrentFileToProject () =
         let editor = vscode.window.activeTextEditor
         match editor.document with
@@ -236,115 +229,36 @@ module Forge =
 
     let newProject () =
         promise {
-            if node.fs.existsSync (U2.Case1 templateLocation) then
-                let f = (node.fs.readFileSync templateLocation).toString()
-                let file : TemplateFile = f |> JS.JSON.parse |> unbox
+            let! templates = LanguageService.dotnetNewList ()
 
-                let n =
-                    file.Templates
-                    |> Array.map (fun t ->
-                        let res = createEmpty<QuickPickItem>
-                        res.label <- t.value
-                        res.description <- t.name
-                        res
-                    ) |> ResizeArray
+            let n =
+                templates
+                |> List.map (fun t ->
+                    let res = createEmpty<QuickPickItem>
+                    res.label <- t.Name
+                    res.description <- t.ShortName
+                    res
+                ) |> ResizeArray
 
-                if n.Count <> 0 then
-                    let cwd = vscode.workspace.rootPath;
-                    if JS.isDefined cwd then
-                        let! template = window.showQuickPick ( n |> U2.Case1)
-                        if JS.isDefined template then
-                            let opts = createEmpty<InputBoxOptions>
-                            opts.prompt <- Some "Project directory"
-                            let! dir = window.showInputBox (opts)
+            let cwd = vscode.workspace.rootPath;
+            if JS.isDefined cwd then
+                let! template = window.showQuickPick ( n |> U2.Case1)
+                if JS.isDefined template then
+                    let opts = createEmpty<InputBoxOptions>
+                    opts.prompt <- Some "Project directory (-o parameter)"
+                    let! dir = window.showInputBox (opts)
 
-                            let opts = createEmpty<InputBoxOptions>
-                            opts.prompt <- Some "Project name"
-                            let! name =  window.showInputBox(opts)
-                            if JS.isDefined dir && JS.isDefined name then
-                                if name <> "" then
-                                    let msg = window.setStatusBarMessage "Creating project..."
-                                    sprintf """new project -n %s -t %s --folder %s """ (quotePath name) template.label (quotePath dir)
-                                    |> spawnForge
-                                    |> Process.toPromise
-                                    |> Promise.bind (fun _ ->
-                                        msg.dispose() |> ignore
-                                        window.showInformationMessage "Project created"
-                                    )
-                                    |> ignore
-                                else
-                                    window.showErrorMessage "Invalid project name." |> ignore
-                    else
-                        window.showErrorMessage "No open folder." |> ignore
-                else
-                    window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command" |> ignore
+                    let opts = createEmpty<InputBoxOptions>
+                    opts.prompt <- Some "Project name (-n parameter)"
+                    let! name =  window.showInputBox(opts)
+                    if JS.isDefined dir && JS.isDefined name then
+                        let output = if String.IsNullOrWhiteSpace dir then None else Some dir
+                        let name = if String.IsNullOrWhiteSpace name then None else Some name
+
+                        let! _ = LanguageService.dotnetNewRun template.description name output
+                        ()
             else
-                window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command" |> ignore
-        }
-
-    let newProjectNoFake () =
-        promise {
-            if node.fs.existsSync (U2.Case1 templateLocation) then
-                let f = (node.fs.readFileSync templateLocation).toString()
-                let file : TemplateFile = f |> JS.JSON.parse |> unbox
-
-                let n =
-                    file.Templates
-                    |> Array.map (fun t ->
-                        let res = createEmpty<QuickPickItem>
-                        res.label <- t.value
-                        res.description <- t.name
-                        res
-                    ) |> ResizeArray
-
-
-                if n.Count <> 0 then
-                    let! template = window.showQuickPick ( n |> U2.Case1)
-                    if JS.isDefined template then
-                        let opts = createEmpty<InputBoxOptions>
-                        opts.prompt <- Some "Project directory"
-                        let! dir = window.showInputBox (opts)
-
-                        let opts = createEmpty<InputBoxOptions>
-                        opts.prompt <- Some "Project name"
-                        let! name =  window.showInputBox(opts)
-                        if JS.isDefined dir && JS.isDefined name then
-                            let msg = window.setStatusBarMessage "Creating project..."
-                            sprintf "new project -n %s -t %s --folder %s --no-fake" (quotePath name) template.label (quotePath dir)
-                            |> spawnForge
-                            |> Process.toPromise
-                            |> Promise.bind (fun _ ->
-                                msg.dispose() |> ignore
-                                window.showInformationMessage "Project created"
-                            )
-                            |> ignore
-                else
-                    window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command" |> ignore
-            else
-                window.showInformationMessage "No templates found. Run `F#: Refresh Project Templates` command" |> ignore
-        }
-
-    let newProjectScaffold () =
-        promise {
-            let msg = window.setStatusBarMessage "Creating project..."
-            let mutable output = ""
-            sprintf "new scaffold"
-            |> spawnForge
-            |> Process.onOutput (fun f ->
-                output <- output + f.toString()
-            )
-            |> Process.onErrorOutput (fun f ->
-                output <- output + f.toString()
-            )
-            |> Process.toPromise
-            |> Promise.bind (fun _ ->
-                msg.dispose() |> ignore
-                if output.Contains "fatal: destination path" && output.Contains "already exists and is not an empty directory" then
-                    window.showInformationMessage "Creating project failed - directory is not empty"
-                else
-                    window.showInformationMessage "Project created"
-            )
-            |> ignore
+                window.showErrorMessage "No open folder." |> ignore
         }
 
 
@@ -354,15 +268,9 @@ module Forge =
         commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox<Func<obj,obj>> ) |> context.subscriptions.Add
         commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsharp.NewProject", newProject |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.NewProjectNoFake", newProjectNoFake |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.NewProjectScaffold", newProjectScaffold |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.RefreshProjectTemplates", refreshTemplates |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerTextEditorCommand("fsharp.AddFileToProject", addCurrentFileToProject |> unbox) |> context.subscriptions.Add
         commands.registerTextEditorCommand("fsharp.RemoveFileFromProject", removeCurrentFileFromProject |> unbox) |> context.subscriptions.Add
         commands.registerCommand("fsharp.AddProjectReference", addProjectReference |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsharp.RemoveProjectReference", removeProjectReference |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.AddReference", addReference |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.RemoveReference", removeReference |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        if node.fs.existsSync (U2.Case1 templateLocation) |> not then refreshTemplates ()
 
         ()

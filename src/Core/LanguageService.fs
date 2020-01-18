@@ -222,6 +222,34 @@ module LanguageService =
                 parse (res?Data |> unbox)
             )
 
+    let dotnetNewList () =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : DotnetNew.DotnetNewListRequest= {
+                Query = ""
+            }
+
+            cl.sendRequest("fsharp/dotnetnewlist", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                let x = res.content |> ofJson<DotnetNew.DotnetNewListResponse>
+                x.Data
+            )
+    let dotnetNewRun (template: string)  (name: string option) (output: string option) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : DotnetNew.DotnetNewRunRequest= {
+                Template = template
+                Output = output
+                Name = name
+            }
+
+            cl.sendRequest("fsharp/dotnetnewrun", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                ()
+            )
+
 
     let private deserializeProjectResult (res : ProjectResult) =
         let parseInfo (f : obj) =

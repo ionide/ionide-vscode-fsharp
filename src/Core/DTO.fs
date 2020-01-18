@@ -384,6 +384,21 @@ module DTO =
     type FsdnResult = Result<FsdnResponse>
 
 
+    module DotnetNew =
+        type Template = {
+            Name : string;
+            ShortName : string;
+            Tags: string list
+        }
+
+        type DotnetNewListRequest = { Query: string }
+
+        type DotnetNewRunRequest = { Template: string; Output: string option; Name: string option }
+
+        type DotnetNewListResponse = Result<Template list>
+
+        type DotnetNewRunResponse = Result<string>
+
     module FakeSupport =
         type FakeContext =
             { DotNetRuntime : string }
