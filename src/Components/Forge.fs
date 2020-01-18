@@ -13,11 +13,7 @@ module node = Fable.Import.Node.Exports
 
 module Forge =
 
-    type Template =
-        { name : string
-          value : string }
-
-    type TemplateFile = { Templates : Template[] }
+    let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fs")
 
     let (</>) a b =
         if  Process.isWin ()
@@ -74,15 +70,6 @@ module Forge =
     let addFile project path =
         sprintf "add file -p %s -n %s" (quotePath project) (quotePath path) |> spawnForge |> ignore
 
-    let addReferencePath path =
-        promise {
-            let opts = createEmpty<InputBoxOptions>
-            opts.placeHolder <- Some "Reference"
-            let! name = window.showInputBox(opts)
-            if JS.isDefined name && JS.isDefined path then
-                sprintf "add reference -n %s -p %s" (quotePath name) (quotePath path) |> spawnForge |> ignore
-        }
-
     let addProjectReferencePath path =
         promise {
             let projects = Project.getAll () |> ResizeArray
@@ -106,6 +93,7 @@ module Forge =
             let! n = window.showInputBox(opts)
             if JS.isDefined n then
                 let newName = node.path.join(dir, n)
+                let newName = handleUntitled newName
                 sprintf "rename file -n %s -r %s -p %s" (quotePath oldName) (quotePath newName) (quotePath proj) |> spawnForge |> ignore
         }
 
@@ -152,42 +140,6 @@ module Forge =
         match editor.document with
         | Document.FSharp -> sprintf "remove file -n %s" (quotePath editor.document.fileName) |> spawnForge |> ignore
         | _ -> ()
-
-    let addReference () =
-        promise {
-            let projects = Project.getAll () |> ResizeArray
-            if projects.Count <> 0 then
-                let opts = createEmpty<QuickPickOptions>
-                opts.placeHolder <- Some "Project to edit"
-                let! edit = window.showQuickPick(projects |> U2.Case1,opts)
-
-                let opts = createEmpty<InputBoxOptions>
-                opts.placeHolder <- Some "Reference"
-                let! name = window.showInputBox(opts)
-                if JS.isDefined name && JS.isDefined edit then
-                    sprintf "add reference -n %s -p %s" (quotePath name) (quotePath edit) |> spawnForge |> ignore
-        }
-
-    let removeReference () =
-        promise {
-            let projects = Project.getAll () |> ResizeArray
-            if projects.Count <> 0 then
-                let opts = createEmpty<QuickPickOptions>
-                opts.placeHolder <- Some "Project to edit"
-                let! edit = window.showQuickPick(projects |> U2.Case1,opts)
-
-                let! n =
-                    sprintf "list references -p %s" (quotePath edit)
-                    |> execForge
-                    |> Promise.map handleForgeList
-
-                if n.Count <> 0 then
-                    let opts = createEmpty<QuickPickOptions>
-                    opts.placeHolder <- Some "Reference"
-                    let! ref = window.showQuickPick(n |> U2.Case1,opts)
-                    if JS.isDefined ref && JS.isDefined edit then
-                        sprintf "remove reference -n %s -p %s" (quotePath ref) (quotePath edit) |> spawnForge |> ignore
-        }
 
 
     let addProjectReference () =
