@@ -1,3 +1,10 @@
+### 4.5.0 - 18.01.2020
+* Solution explorer - Add .fs file extension if needed
+* FSAC  `dotnet new` integration, replace Forge scaffolding
+* Update FSAC:
+  - Fix issues with importing files in scripts by relative path
+  - `dotnet new` integration
+
 ### 4.4.5 - 15.01.2020
 * Add support for untitled files
 * Update FSAC:
