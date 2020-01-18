@@ -11,6 +11,88 @@ open Ionide.VSCode.Helpers
 module node = Fable.Import.Node.Exports
 
 module Fsi =
+
+    module Watcher =
+        let mutable panel : WebviewPanel option = None
+
+        let setContent str =
+            panel |> Option.iter (fun p ->
+                let str =
+                    sprintf """
+                    <html>
+                    <head>
+                    <meta>
+                    <style>
+                    table { border-collapse: collapse;}
+                    th {
+                        border-left: 1px solid var(--vscode-editor-foreground);
+                        border-right: 1px solid var(--vscode-editor-foreground);
+                        padding: 5px;
+                    }
+                    td {
+                        border: 1px solid var(--vscode-editor-foreground);
+                        min-width: 100px;
+                        padding: 5px;
+                    }
+                    </style>
+                    </head>
+                    <body>
+                    %s
+                    </body>
+                    </html>
+                    """ str
+
+                p.webview.html <- str
+            )
+
+        let openPanel () =
+            promise {
+                match panel with
+                | Some p ->
+                    p.reveal (!! -2, true)
+                | None ->
+                    let opts =
+                        createObj [
+                            "enableCommandUris" ==> true
+                            "enableFindWidget" ==> true
+                            "retainContextWhenHidden" ==> true
+                        ]
+                    let viewOpts =
+                        createObj [
+                            "preserveFocus" ==> true
+                            "viewColumn" ==> -2
+                        ]
+                    let p = window.createWebviewPanel("fsiWatcher", "FSI Watcher", !!viewOpts , opts)
+                    let onClose () =
+                        panel <- None
+
+                    p.onDidDispose.Invoke(!!onClose) |> ignore
+                    panel <- Some p
+            }
+
+        let handler (uri: string) =
+            node.fs.readFile(uri, (fun _ buf ->
+                let cnt = buf.toString()
+                cnt
+                |> String.split [| '\n' |]
+                |> Seq.map (fun row ->
+                    let x = row.Split([|',' |])
+                    sprintf "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" x.[0] x.[1] x.[2]
+                )
+                |> String.concat "\n"
+                |> sprintf "<table><tr><th>Name</th><th>Value</th><th>Type</th></tr>%s</table>"
+                |> setContent
+            ))
+
+        let activate dispsables =
+            let p = path.join(VSCodeExtension.ionidePluginPath (), "watcher", "vars.txt")
+            fs.watchFile (p, (fun st st2 ->
+                handler p
+            ))
+
+
+
+
     let mutable fsiOutput : Terminal option = None
     let mutable fsiOutputPID : int option = None
     let mutable lastSelectionSent : string option = None
@@ -47,17 +129,31 @@ module Fsi =
             "FSharp.useSdkScripts"
             |> Configuration.get false
 
+        let addWatcher =
+            // "FSharp.addFsiWatcher"
+            // |> Configuration.get false
+            true
+
         let parms =
             let fsiParams =
                 "FSharp.fsiExtraParameters"
                 |> Configuration.get Array.empty<string>
                 |> List.ofArray
 
+            let p = path.join(VSCodeExtension.ionidePluginPath (), "watcher", "watcher.fsx")
+
+            let fsiParams =
+                if addWatcher then
+                    [ "--load:" + p] @ fsiParams
+                else
+                    fsiParams
+
             if Environment.isWin then
                 [ "--fsi-server-input-codepage:65001" ] @ fsiParams
             else
                 fsiParams
             |> Array.ofList
+
 
         promise {
             if isSdk
@@ -249,6 +345,7 @@ module Fsi =
             return () }
 
     let activate (context : ExtensionContext) =
+        Watcher.activate(!!context.subscriptions)
         window.onDidCloseTerminal $ (handleCloseTerminal, (), context.subscriptions) |> ignore
 
         commands.registerCommand("fsi.Start", start |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
@@ -259,3 +356,4 @@ module Fsi =
         commands.registerCommand("fsi.SendText", sendText |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
         commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.OpenWatcher", Watcher.openPanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
