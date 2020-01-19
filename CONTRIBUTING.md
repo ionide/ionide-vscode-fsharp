@@ -122,7 +122,7 @@ Everything is done via `build.cmd` \ `build.sh`.
   It should always be done at least once after any clone/pull.
 - If a git dependency fails to build paket won't re-do it you can run their build scripts manually:
   - In `paket-files\github.com\fsharp\FsAutoComplete` run `build LocalRelease`
-  - In `paket-files\github.com\fsharp-editing\Forge` run `build Build`
+  - In `paket-files\github.com\ionide\Forge` run `fake run build.fsx`
 
 ### Launching the extension
 
