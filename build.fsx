@@ -362,8 +362,7 @@ module ExperimentalExtension =
         run "git" "checkout vnext" fsacDirPath
 
         // local release it
-        run "dotnet" "tool restore" fsacDirPath
-        run "dotnet" "fake run build.fsx -t LocalRelease" fsacDirPath
+        run (if isUnix then "build.sh" else "build.cmd") "LocalRelease" fsacDirPath
 
         // copy to out dir
 
