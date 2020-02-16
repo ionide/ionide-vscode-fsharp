@@ -10,7 +10,8 @@ nuget Fable.Import.Browser < 2.0
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd LocalRelease", OS: windows
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.sh LocalRelease", OS: mono
 
-git https://github.com/ionide/Forge.git master build:"fake build -t Publish"
+git https://github.com/ionide/Forge.git master build:"build.cmd", OS: windows
+git https://github.com/ionide/Forge.git master build:"build.sh", OS: mono
 git https://github.com/ionide/ionide-fsgrammar.git
 
 github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
