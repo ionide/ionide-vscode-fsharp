@@ -618,10 +618,10 @@ GIT
       build: build.sh LocalRelease
       os: mono
   remote: https://github.com/ionide/Forge.git
-     (0ab60ffdfb55fc0a571df7c5c3e02573832a0824)
+     (c93b121310522d1fb173755e6edc7769a8fa6fa9)
       build: build.cmd
       os: windows
-     (0ab60ffdfb55fc0a571df7c5c3e02573832a0824)
+     (c93b121310522d1fb173755e6edc7769a8fa6fa9)
       build: build.sh
       os: mono
   remote: https://github.com/ionide/ionide-fsgrammar.git
