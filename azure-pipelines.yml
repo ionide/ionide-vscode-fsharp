@@ -1,6 +1,6 @@
 name: $(Rev:r)
 jobs:
-- job: IonideFsharp-Windows
+- job: IonideFsharp_Windows
   pool:
     vmImage: 'windows-2019'
   steps:
@@ -24,7 +24,7 @@ jobs:
     inputs:
       pathtoPublish: 'temp'
       artifactName: 'ionide-fsharp-vscode-ext'
-- job: IonideFsharp-MacOS
+- job: IonideFsharp_MacOS
   pool:
     vmImage: 'macOS-10.13'
   steps:
