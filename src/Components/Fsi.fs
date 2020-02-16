@@ -76,11 +76,11 @@ module Fsi =
                 cnt
                 |> String.split [| '\n' |]
                 |> Seq.map (fun row ->
-                    let x = row.Split([|',' |])
+                    let x = row.Split([|"###IONIDESEP###"|], StringSplitOptions.None)
                     sprintf "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" x.[0] x.[1] x.[2]
                 )
                 |> String.concat "\n"
-                |> sprintf "<table><tr><th>Name</th><th>Value</th><th>Type</th></tr>%s</table>"
+                |> sprintf """<table><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Value</th><th style="width: 20%%">Type</th></tr>%s</table>"""
                 |> setContent
             ))
 

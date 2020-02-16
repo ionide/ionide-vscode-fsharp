@@ -19,14 +19,18 @@ fsi.AddPrinter (fun (_: obj) ->
 
     let action =
         async {
-            let vars =
-                getWatchableVariables ()
-                |> Seq.map (fun (name, value, typ) ->
-                    sprintf "%s, %O, %s" name value typ.Name
-                )
-                |> String.concat "\n"
-            let path = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "vars.txt")
-            System.IO.File.WriteAllText(path, vars)
+            try
+                let vars =
+                    getWatchableVariables ()
+                    |> Seq.map (fun (name, value, typ) ->
+                        let x = sprintf "%s###IONIDESEP###%A###IONIDESEP###%s" name (value) typ.Name
+                        x.Replace("\n",";")
+                    )
+                    |> String.concat "\n"
+                let path = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "vars.txt")
+                System.IO.File.WriteAllText(path, vars)
+            with
+            | _ -> ()
         }
     Async.Start action
 

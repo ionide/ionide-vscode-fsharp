@@ -24,7 +24,7 @@
             "type": "shell",
             "windows": {
                 "command": "${workspaceRoot}/build.cmd",
-                "type": "process" // some people have bash as default in windows
+                "type": "process"
             },
             "label": "Watch",
             "args": [
