@@ -612,18 +612,18 @@ NUGET
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
      (0806de880fd09d8fcd7df13bc66a16cf5c3b39d2)
-      build: build.cmd LocalRelease
-      os: windows
-     (0806de880fd09d8fcd7df13bc66a16cf5c3b39d2)
-      build: build.sh LocalRelease
-      os: mono
-  remote: https://github.com/ionide/Forge.git
-     (c93b121310522d1fb173755e6edc7769a8fa6fa9)
       build: build.cmd
       os: windows
-     (c93b121310522d1fb173755e6edc7769a8fa6fa9)
+     (0806de880fd09d8fcd7df13bc66a16cf5c3b39d2)
       build: build.sh
-      os: mono
+      os: osx
+  remote: https://github.com/ionide/Forge.git
+     (c76950f5ae84dce2d7ed13679e1933781eb830b8)
+      build: build.cmd
+      os: window
+     (c76950f5ae84dce2d7ed13679e1933781eb830b8)
+      build: build.sh
+      os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
      (c734d2a01482561542403c08dd3cf9603ced05f3)
 GITHUB
