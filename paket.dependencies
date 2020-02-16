@@ -7,12 +7,13 @@ nuget Fable.HtmlConverter < 2.0
 nuget Fable.Import.Node < 2.0
 nuget Fable.Import.Browser < 2.0
 
-git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd LocalRelease", OS: windows
-git https://github.com/fsharp/FsAutoComplete.git master build:"build.sh LocalRelease", OS: mono
+git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd", OS: windows
+git https://github.com/fsharp/FsAutoComplete.git master build:"build.sh", OS: osx
 
-git https://github.com/ionide/Forge.git master build:"build.cmd", OS: windows
-git https://github.com/ionide/Forge.git master build:"build.sh", OS: mono
-git https://github.com/ionide/ionide-fsgrammar.git
+git https://github.com/ionide/Forge.git master build:"build.cmd", OS: window
+git https://github.com/ionide/Forge.git master build:"build.sh", OS: osx
+
+git https://github.com/ionide/ionide-fsgrammar.git master
 
 github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
 github ionide/ionide-vscode-helpers src/Helpers.fs
