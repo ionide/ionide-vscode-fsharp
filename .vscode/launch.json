@@ -14,29 +14,10 @@
 			"sourceMaps": false
 		},
 		{
-            "preLaunchTask": "BuildExperimental",
-			"name": "Build and Launch Experimental Extension",
-			"type": "extensionHost",
-			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release-exp" ],
-			"stopOnEntry": false,
-			"request": "launch",
-			"sourceMaps": false
-		},
-		{
 			"name": "Launch Only",
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
-			"stopOnEntry": false,
-			"request": "launch",
-			"sourceMaps": false
-		},
-		{
-			"name": "Launch Experimental Only",
-			"type": "extensionHost",
-			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release-exp" ],
 			"stopOnEntry": false,
 			"request": "launch",
 			"sourceMaps": false

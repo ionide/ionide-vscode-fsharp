@@ -85,11 +85,9 @@ accurate comments, etc.).
 ### Prerequisites
 
 - [Visual Studio Code][vscode] 🙄
-- [Mono][mono]
-- [.NET Core 2.0][dotnet]
+- [.NET Core 3.1][dotnet]
 - [Node.js][nodejs]
 - [Yarn][yarn]
-- [MSBuildTools2015][msbuildtools2015]
 
 ### Building
 
@@ -113,12 +111,12 @@ If `dotnet restore` gives the error ` The tools version "14.0" is unrecognized`,
 
 If `dotnet restore` gives the error `error MSB4126: The specified solution configuration "Debug|x64" is invalid`, there's a good chance you have the `Platform` environment variable set to "x64".  Unset the variable and try the restore command again.
 
-If `./build.sh` gives errors, you may need to run `./build.sh Build` one time.
+If `./build.sh` gives errors, you may need to run `./build.sh -t Build` one time.
 
 
 Everything is done via `build.cmd` \ `build.sh`.
 
-- `build Build` does a full-build, including package installation and copying some necessary files.<br/>
+- `build -t Build` does a full-build, including package installation and copying some necessary files.<br/>
   It should always be done at least once after any clone/pull.
 - If a git dependency fails to build paket won't re-do it you can run their build scripts manually:
   - In `paket-files\github.com\fsharp\FsAutoComplete` run `build LocalRelease`
@@ -156,8 +154,6 @@ Remove the settings from steps 3 and 4 to go back to FSAC bundled in Ionide exte
 ### Dependencies
 
 [dotnet]: https://www.microsoft.com/net/download/core
-[mono]: http://www.mono-project.com/download/
 [nodejs]: https://nodejs.org/en/download/
 [yarn]: https://yarnpkg.com/en/docs/install
 [vscode]: https://code.visualstudio.com/Download
-[msbuildtools2015]: https://www.microsoft.com/en-us/download/details.aspx?id=48159&wa=wsignin1.0
