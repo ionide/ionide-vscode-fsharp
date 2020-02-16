@@ -16,10 +16,12 @@ jobs:
     displayName: Install Yarn
     inputs:
       versionSpec: "1.10.1"
-  - script: .\build.cmd InstallVSCE
-    displayName: Install VSCE
-  - script: .\build.cmd BuildPackag
-    displayName: BuildPackage
+  - script: dotnet tool restore
+    displayName: Install Tools
+  - script: dotnet fake build --target InstallVSCE
+    displayName: Build InstallVSCE
+  - script: dotnet fake build --target BuildPackage
+    displayName: Build BuildPackage
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: 'temp'
@@ -40,8 +42,10 @@ jobs:
     displayName: Install Yarn
     inputs:
       versionSpec: "1.10.1"
-  - script: .\build.sh InstallVSCE
-    displayName: Install VSCE
-  - script: .\build.sh BuildPackage extVersionSuffix=%ExtVersionSuffix%
-    displayName: BuildPackage
+  - script: dotnet tool restore
+    displayName: Install Tools
+  - script: dotnet fake build --target InstallVSCE
+    displayName: Build InstallVSCE
+  - script: dotnet fake build --target BuildPackage
+    displayName: Build BuildPackage
 
