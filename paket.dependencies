@@ -1,6 +1,4 @@
-version 5.207.0
-
-source https://www.nuget.org/api/v2
+source https://api.nuget.org/v3/index.json
 storage:none
 
 clitool dotnet-fable < 2.0
@@ -10,13 +8,10 @@ nuget Fable.Import.Node < 2.0
 nuget Fable.Import.Browser < 2.0
 
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd LocalRelease", OS: windows
-git https://github.com/ionide/Forge.git master build:"fake build -t Publish", OS: windows
-
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.sh LocalRelease", OS: mono
-git https://github.com/ionide/Forge.git master build:"fake build -t Publish", OS: mono
 
+git https://github.com/ionide/Forge.git master build:"fake build -t Publish"
 git https://github.com/ionide/ionide-fsgrammar.git
-git https://github.com/ionide/forge-templates.git netcoreTemplates
 
 github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
 github ionide/ionide-vscode-helpers src/Helpers.fs
@@ -24,7 +19,20 @@ github ionide/ionide-vscode-helpers src/Fable.Import.Showdown.fs
 github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.LanguageServer.fs
 
 group build
-    source https://www.nuget.org/api/v2
+  source https://api.nuget.org/v3/index.json
 
-    github fsharp/FAKE modules/Octokit/Octokit.fsx
-    nuget Fake
+  nuget Fake.Core.Target
+  nuget Fake.Core.Process
+  nuget Fake.Core.ReleaseNotes
+  nuget Fake.Core.Environment
+  nuget Fake.Core.UserInput
+  nuget Fake.DotNet.Cli
+  nuget Fake.DotNet.AssemblyInfoFile
+  nuget Fake.DotNet.Paket
+  nuget Fake.DotNet.MsBuild
+  nuget Fake.IO.FileSystem
+  nuget Fake.IO.Zip
+  nuget Fake.Api.GitHub
+  nuget Fake.Tools.Git
+  nuget Fake.JavaScript.Yarn
+
