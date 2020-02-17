@@ -8,26 +8,38 @@ jobs:
     displayName: 'Use .NET Core Sdk from global.json'
     inputs:
       useGlobalJson: true
+
   - task: NodeTool@0
     displayName: Install Node
     inputs:
       versionSpec: "10.15.1"
+
   - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
     displayName: Install Yarn
     inputs:
       versionSpec: "1.10.1"
+
   - script: dotnet tool restore
     displayName: Install Tools
+
   - script: dotnet paket restore
     displayName: Run paket restore
-  - script: dotnet fake build --target InstallVSCE
-    displayName: Build InstallVSCE
+
+  - task: Npm@1
+    displayName: Install VSCE
+    inputs:
+       command: 'custom'
+       customCommand: 'install -g vsce'
+
   - script: dotnet fake build --target BuildPackage
-    displayName: Build BuildPackage
+    displayName: Build Package
+
   - task: PublishBuildArtifacts@1
+    displayName: Publish Artifacts
     inputs:
       pathtoPublish: 'temp'
       artifactName: 'ionide-fsharp-vscode-ext'
+
 - job: IonideFsharp_MacOS
   pool:
     vmImage: 'macOS-10.13'
@@ -36,20 +48,29 @@ jobs:
     displayName: 'Use .NET Core Sdk from global.json'
     inputs:
       useGlobalJson: true
+
   - task: NodeTool@0
     displayName: Install Node
     inputs:
       versionSpec: "10.15.1"
+
   - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
     displayName: Install Yarn
     inputs:
       versionSpec: "1.10.1"
+
   - script: dotnet tool restore
     displayName: Install Tools
+
   - script: dotnet paket restore
     displayName: Run paket restore
-  - script: dotnet fake build --target InstallVSCE
-    displayName: Build InstallVSCE
+
+  - task: Npm@1
+    displayName: Install VSCE
+    inputs:
+       command: 'custom'
+       customCommand: 'install -g vsce'
+
   - script: dotnet fake build --target BuildPackage
-    displayName: Build BuildPackage
+    displayName: Build Package
 
