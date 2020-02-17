@@ -25,11 +25,10 @@ jobs:
   - script: dotnet paket restore
     displayName: Run paket restore
 
-  - task: Npm@1
-    displayName: Install VSCE
+  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+    displayName: 'Install VSCE'
     inputs:
-       command: 'custom'
-       customCommand: 'install -g vsce'
+      arguments: global add vsce
 
   - script: dotnet fake build --target BuildPackage
     displayName: Build Package
@@ -65,11 +64,10 @@ jobs:
   - script: dotnet paket restore
     displayName: Run paket restore
 
-  - task: Npm@1
-    displayName: Install VSCE
+  - task: geeklearningio.gl-vsts-tasks-yarn.yarn-task.Yarn@3
+    displayName: 'Install VSCE'
     inputs:
-       command: 'custom'
-       customCommand: 'install -g vsce'
+      arguments: global add vsce
 
   - script: dotnet fake build --target BuildPackage
     displayName: Build Package
