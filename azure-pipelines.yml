@@ -18,6 +18,8 @@ jobs:
       versionSpec: "1.10.1"
   - script: dotnet tool restore
     displayName: Install Tools
+  - script: dotnet paket restore
+    displayName: Run paket restore
   - script: dotnet fake build --target InstallVSCE
     displayName: Build InstallVSCE
   - script: dotnet fake build --target BuildPackage
@@ -44,6 +46,8 @@ jobs:
       versionSpec: "1.10.1"
   - script: dotnet tool restore
     displayName: Install Tools
+  - script: dotnet paket restore
+    displayName: Run paket restore
   - script: dotnet fake build --target InstallVSCE
     displayName: Build InstallVSCE
   - script: dotnet fake build --target BuildPackage
