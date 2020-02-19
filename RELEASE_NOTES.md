@@ -1,3 +1,15 @@
+### 4.6.0 - 19.02.2020
+* Infrastructure - update build process and dependencies
+* Update Forge - add `rollForward`
+* Update FSAC:
+  - Update FSharp.Analyzers.SDK to 0.3.0
+  - Update FSI references version-finding algorithm to probe packs dir as well as runtimes dir
+  - Allows analyzer paths to be absolute
+  - Fix return type in signatures in documentation formatter
+  - Introduce new logger
+  - Update Fantomas to 3.2.0
+  - Lot of small bug fixes and code improvements (thanks @forki)
+
 ### 4.5.0 - 18.01.2020
 * Solution explorer - Add .fs file extension if needed
 * FSAC  `dotnet new` integration, replace Forge scaffolding
