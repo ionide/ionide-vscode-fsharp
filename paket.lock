@@ -611,13 +611,13 @@ NUGET
       FSharp.Core (>= 4.3.4) - restriction: >= netstandard2.0
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (535a5c3de560de2f3fe5c244b8b1de7cf076acd5)
+     (d849d7200382f5da2c0179c5a555783644cb7c0b)
       build: build.cmd
       os: win
-     (535a5c3de560de2f3fe5c244b8b1de7cf076acd5)
+     (d849d7200382f5da2c0179c5a555783644cb7c0b)
       build: build.sh
       os: linux
-     (535a5c3de560de2f3fe5c244b8b1de7cf076acd5)
+     (d849d7200382f5da2c0179c5a555783644cb7c0b)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/Forge.git
@@ -631,7 +631,7 @@ GIT
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (19cd230ee979a349bdddd58e92c16c083d7fde2a)
+     (af2a9a88639f384c6e5d1340d510dc6fb743d514)
 GITHUB
   remote: ionide/ionide-vscode-helpers
     src/Fable.Import.Showdown.fs (04ea0e33def49df18d6325c101c428bf02ab5440)
@@ -881,7 +881,7 @@ NUGET
       NuGet.Packaging (>= 5.4) - restriction: >= netstandard2.0
       System.Dynamic.Runtime (>= 4.3) - restriction: && (< net472) (>= netstandard2.0)
     NuGet.Versioning (5.4) - restriction: >= netstandard2.0
-    Octokit (0.41) - restriction: || (>= net462) (>= netstandard2.0)
+    Octokit (0.42) - restriction: || (>= net462) (>= netstandard2.0)
     runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard2.0) (< xamarinios) (< xamarinmac)) (&& (< net45) (>= net462) (>= netstandard1.6))
     runtime.debian.9-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard2.0) (< xamarinios) (< xamarinmac)) (&& (< net45) (>= net462) (>= netstandard1.6))
     runtime.fedora.23-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: || (&& (< monoandroid) (< net45) (>= netstandard2.0) (< xamarinios) (< xamarinmac)) (&& (< net45) (>= net462) (>= netstandard1.6))
