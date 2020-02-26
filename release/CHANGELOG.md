@@ -1,3 +1,11 @@
+### 4.6.1 - 26.02.2020
+* Update FsGrammar definition
+* Update FSAC:
+  - Update FCS to 34.0
+  - Update dotnet-proj-info to 0.38
+  - Update FsLint to 0.13.3
+
+
 ### 4.6.0 - 19.02.2020
 * Infrastructure - update build process and dependencies
 * Update Forge - add `rollForward`
