@@ -611,13 +611,13 @@ NUGET
       FSharp.Core (>= 4.3.4) - restriction: >= netstandard2.0
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (d849d7200382f5da2c0179c5a555783644cb7c0b)
+     (6d7c2b86a056be198ef3fb55b858178f05254ab0)
       build: build.cmd
       os: win
-     (d849d7200382f5da2c0179c5a555783644cb7c0b)
+     (6d7c2b86a056be198ef3fb55b858178f05254ab0)
       build: build.sh
       os: linux
-     (d849d7200382f5da2c0179c5a555783644cb7c0b)
+     (6d7c2b86a056be198ef3fb55b858178f05254ab0)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/Forge.git
