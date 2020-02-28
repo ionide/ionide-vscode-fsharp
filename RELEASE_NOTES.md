@@ -1,3 +1,7 @@
+### 4.6.3 - 28.02.2020
+* Update FSAC:
+  - Update FSharp.Analyzers.SDK (FCS 34.1)
+
 ### 4.6.2 - 26.02.2020
 * Update FSAC:
   - Use prerelease version of Fantomas (FCS 34.1)
