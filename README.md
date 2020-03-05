@@ -75,13 +75,11 @@ The library is available under [MIT license](https://github.com/ionide/ionide-vs
 
 Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
-## Sponsors
+## Our Sponsors
 
-Ionide couldn't be created without support of [Lambda Factory](https://lambdafactory.io). If your company would be interested in supporting development of Ionide, or acquiring commercial support sent us email - lambda_factory@outlook.com
+Ionide couldn't be created without the support of [Lambda Factory](https://lambdafactory.io). If your company would be interested in supporting development of Ionide, or acquiring commercial support send us an email - lambda_factory@outlook.com.
 
-You can also support Ionide development on [Open Collective](https://opencollective.com/ionide).
-
-[![Open Collective](https://opencollective.com/ionide/donate/button.png?color=blue)](https://opencollective.com/ionide)
+You can also support Ionide development on [Open Collective](https://opencollective.com/ionide). [![Open Collective](https://opencollective.com/ionide/donate/button.png?color=blue)](https://opencollective.com/ionide)
 
 ### Partners
 
@@ -93,14 +91,10 @@ You can also support Ionide development on [Open Collective](https://opencollect
 
 ### Sponsors
 
-[Become a sponsor](https://opencollective.com/ionide) and get your logo on our README on Github, description in VSCode marketplace and on [ionide.io](http://ionide.io) with a link to your site.
+[Become a sponsor](https://opencollective.com/ionide) and get your logo on our README on Github, description in the VSCode marketplace and on [ionide.io](http://ionide.io) with a link to your site.
 
 <div align="center">
-<a href="https://opencollective.com/ionide/sponsor/0/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/0/avatar.svg?requireActive=false" height="50px"></a>
-<a href="https://opencollective.com/ionide/sponsor/1/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/1/avatar.svg?requireActive=false" height="50px"></a>
- <a href="https://opencollective.com/ionide/sponsor/2/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/2/avatar.svg?requireActive=false" height="50px"></a>
- <a href="http://www.miltonsecurity.com/" target="_blank"><img src="https://opencollective-production.s3-us-west-1.amazonaws.com/dec96cf0-3fd4-11e9-85d3-d3af44ed2d45.jpg" height="50px"></a>
- <a href="https://opencollective.com/ionide/sponsor/3/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/3/avatar.svg?requireActive=false" height="50px"></a>
- <a href="https://www.crosswordsolver.com/" target="_blank"><img src="https://images.opencollective.com/crosswordsolver/d4481d6/logo.png" height="50px"></a>
- 
+    <object type="image/svg+xml" data="https://opencollective.com/ionide/tiers/silver-sponsor.svg?avatarHeight=120&width=1000&button=false"></object>
+    <br/>
+    <object type="image/svg+xml" data="https://opencollective.com/ionide/tiers/bronze-sponsor.svg?avatarHeight=70&width=1000&button=false"></object>
 </div>
