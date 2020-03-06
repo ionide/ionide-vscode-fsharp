@@ -1,3 +1,75 @@
+### 4.6.3 - 28.02.2020
+* Update FSAC:
+  - Update FSharp.Analyzers.SDK (FCS 34.1)
+
+### 4.6.2 - 26.02.2020
+* Update FSAC:
+  - Use prerelease version of Fantomas (FCS 34.1)
+
+### 4.6.1 - 26.02.2020
+* Update FsGrammar definition
+* Update FSAC:
+  - Update FCS to 34.0
+  - Update dotnet-proj-info to 0.38
+  - Update FsLint to 0.13.3
+
+
+### 4.6.0 - 19.02.2020
+* Infrastructure - update build process and dependencies
+* Update Forge - add `rollForward`
+* Update FSAC:
+  - Update FSharp.Analyzers.SDK to 0.3.0
+  - Update FSI references version-finding algorithm to probe packs dir as well as runtimes dir
+  - Allows analyzer paths to be absolute
+  - Fix return type in signatures in documentation formatter
+  - Introduce new logger
+  - Update Fantomas to 3.2.0
+  - Lot of small bug fixes and code improvements (thanks @forki)
+
+### 4.5.0 - 18.01.2020
+* Solution explorer - Add .fs file extension if needed
+* FSAC  `dotnet new` integration, replace Forge scaffolding
+* Update FSAC:
+  - Fix issues with importing files in scripts by relative path
+  - `dotnet new` integration
+
+### 4.4.5 - 15.01.2020
+* Add support for untitled files
+* Update FSAC:
+  - Add support for untitled files
+
+### 4.4.4 - 15.01.2020
+* Update FSAC:
+  - Normalize path before serching in state in background service
+
+### 4.4.3 - 09.01.2020
+* Update FSAC:
+  - Fix off-by-one on doc formatting
+  - Using Fantomas 3.2 beta and reading the config file.
+
+### 4.4.2 - 24.12.2019
+* Update FSAC:
+  - Update FSharp.Analyzers.SDK to 0.2
+
+### 4.4.1 - 18.12.2019
+* Update FSAC:
+  - Fix a bug regarding `.fsx` files with new ProjectSystem (internal)
+
+### 4.4.0 - 17.12.2019
+* Update FSAC:
+  - Update to FCS 33
+  - Update to Fantomas 3.1
+  - Fix `<Note>` display in autocomplete
+  - Pick .Net Core TFM for scripts based on the runtime we detect
+  - Support `--load` and `--use` directives for F# scripts
+  - Reimplement F# Analyzers support
+  - Refactor ProjectSystem (internal)
+
+### 4.3.2 - 25.11.2019
+* Update FSAC:
+  - Fix how we assign FSI options
+  - Fix struct tuple rendering
+
 ### 4.3.1 - 11.11.2019
 * Update FSAC:
   - Fix `array` formatting with tuples

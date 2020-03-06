@@ -23,11 +23,11 @@ module ScriptRunner =
                 | "Windows_NT" ->
                     ("cmd.exe",
                      [| "/Q"; "/K" |],
-                     sprintf "cd \"%s\" && cls && \"%s\" \"%s\" \"%s\" && pause && exit" scriptDir fsiBinary flatArgs scriptFile)
+                     sprintf "cd \"%s\" && cls && \"%s\" %s \"%s\" && pause && exit" scriptDir fsiBinary flatArgs scriptFile)
                 | _ ->
                     ("sh",
                      [||],
-                     sprintf "cd \"%s\" && clear && \"%s\" \"%s\" \"%s\" && echo \"Press enter to close script...\" && read && exit" scriptDir fsiBinary flatArgs scriptFile)
+                     sprintf "cd \"%s\" && clear && \"%s\" %s \"%s\" && echo \"Press enter to close script...\" && read && exit" scriptDir fsiBinary flatArgs scriptFile)
 
             let title = node.path.basename scriptFile
             let terminal = window.createTerminal(title, shellCmd, shellArgs)

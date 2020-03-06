@@ -11,9 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{67EDE4A4
 		build.cmd = build.cmd
 		build.fsx = build.fsx
 		build.sh = build.sh
-		release\fsharp.configuration.json = release\fsharp.configuration.json
-		github-download.fsx = github-download.fsx
-		release\package.json = release\package.json
 		paket.dependencies = paket.dependencies
 		paket.lock = paket.lock
 		README.md = README.md
@@ -22,7 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{67EDE4A4
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "release", "release", "{BFA5D453-C8E9-42A8-9B45-59DD7544AF8C}"
 	ProjectSection(SolutionItems) = preProject
-		release\fsharp.configuration.json = release\fsharp.configuration.json
+		release\language-configuration.json = release\language-configuration.json
 		release\package.json = release\package.json
 	EndProjectSection
 EndProject

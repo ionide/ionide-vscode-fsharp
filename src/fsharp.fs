@@ -45,13 +45,18 @@ let activate (context : ExtensionContext) : Fable.Import.JS.Promise<Api> =
             |> Promise.onSuccess (fun _ ->
                 if showExplorer then
                     commands.executeCommand(VSCodeExtension.workbenchViewId ())
-                    |> ignore
-        )))
+                    |> ignore)
+            |> Promise.onSuccess (fun _ ->
+                LanguageService.loadAnalyzers ()
+                |> ignore
+            )
+        ))
         |> ignore
     )
     |> Promise.catch (fun error -> promise { () }) // prevent unhandled rejected promises
     |> Promise.map (fun _ ->
         if solutionExplorer then SolutionExplorer.activate context
+        Diagnostics.activate context
         LineLens.activate context
         QuickInfo.activate context
         Help.activate context

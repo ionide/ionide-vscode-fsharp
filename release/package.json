@@ -1,6 +1,6 @@
 {
 	"name": "Ionide-fsharp",
-	"version": "4.3.1",
+	"version": "4.6.3",
 	"publisher": "Ionide",
 	"contributors": [
 		{
@@ -136,22 +136,6 @@
 					"light": "./images/add-light.svg",
 					"dark": "./images/add-dark.svg"
 				}
-			},
-			{
-				"command": "fsharp.NewProjectNoFake",
-				"title": "F#: New Project (Without FAKE)",
-				"icon": {
-					"light": "./images/add-light.svg",
-					"dark": "./images/add-dark.svg"
-				}
-			},
-			{
-				"command": "fsharp.NewProjectScaffold",
-				"title": "F#: New Project (ProjectScaffold)"
-			},
-			{
-				"command": "fsharp.RefreshProjectTemplates",
-				"title": "F#: Refresh Project Templates"
 			},
 			{
 				"command": "fsharp.AddFileToProject",
@@ -320,11 +304,6 @@
 			{
 				"command": "fsharp.explorer.clearCache",
 				"title": "Clear project cache"
-			},
-			{
-				"command": "fsharp.diagnostics.toggle",
-				"title": "Toggle diagnostics",
-				"category": "F#"
 			},
 			{
 				"command": "fsharp.diagnostics.getInfos",
@@ -751,13 +730,11 @@
 				{
 					"command": "fsharp.NewProject",
 					"group": "navigation@1",
-					"alt": "fsharp.NewProjectNoFake",
 					"when": "view == ionide.projectExplorer"
 				},
 				{
 					"command": "fsharp.NewProject",
 					"group": "navigation@1",
-					"alt": "fsharp.NewProjectNoFake",
 					"when": "view == ionide.projectExplorerInActivity"
 				},
 				{
@@ -1609,10 +1586,7 @@
 		"workspaceContains:**/*.sln",
 		"onLanguage:fsharp",
 		"onCommand:fsi.Start",
-		"onCommand:fsharp.NewProject",
-		"onCommand:fsharp.NewProjectNoFake",
-		"onCommand:fsharp.NewProjectScaffold",
-		"onCommand:fsharp.RefreshProjectTemplates"
+		"onCommand:fsharp.NewProject"
 	],
 	"extensionDependencies": [
 		"vscode.fsharp"

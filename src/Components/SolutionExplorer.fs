@@ -507,6 +507,8 @@ module SolutionExplorer =
                 unbox ()
             )) |> context.subscriptions.Add
 
+    let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fs")
+
     let activate (context : ExtensionContext) =
         let emiter = EventEmitter<Model option>()
         let rootChanged = EventEmitter<Model>()
@@ -590,6 +592,7 @@ module SolutionExplorer =
                         let file' = node.path.join(proj |> node.path.dirname, file)
                         let from = node.path.relative(proj |> node.path.dirname, from)
                         let proj = node.path.relative(workspace.rootPath, proj)
+                        let file' = handleUntitled file'
                         node.fs.appendFileSync( file', "") |> unbox
                         Forge.addFileAbove from proj file'
                 )
@@ -610,6 +613,7 @@ module SolutionExplorer =
                         let file' = node.path.join(proj |> node.path.dirname, file)
                         let from = node.path.relative(proj |> node.path.dirname, from)
                         let proj = node.path.relative(workspace.rootPath, proj)
+                        let file' = handleUntitled file'
                         node.fs.appendFileSync( file', "") |> unbox
                         Forge.addFileBelow from proj file'
                 )
@@ -629,6 +633,7 @@ module SolutionExplorer =
                     if JS.isDefined file then
                         let file' = node.path.join(node.path.dirname proj, file)
                         let proj = node.path.relative(workspace.rootPath, proj)
+                        let file' = handleUntitled file'
                         node.fs.appendFileSync( file', "") |> unbox
                         Forge.addFile proj file'
                 )
