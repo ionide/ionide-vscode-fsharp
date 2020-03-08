@@ -16,7 +16,7 @@ You can support Ionide development on [Open Collective](https://opencollective.c
 
 * .NET Core SDK - .NET Core is modern, cross-platform implementation of .NET Framework. Ionide is requiring it for set of features such as project modifications or debugging. The core part of SDK is `dotnet` CLI tool that provides easy way to create, build and run F# projects. What's important - the `dotnet` tool can be used also to create applications targeting also Full Framework (like `net461`). For detailed instructions on installing .NET Core, visit [official step-by-step installation guide](https://www.microsoft.com/net/core).
 
-* VS Code C# plugin (optional, suggested) - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. To get it install [C# extension from VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp)
+* VS Code C# plugin (optional, suggested) - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. To get it install [C# extension from VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
 
 * F# (Windows, optional) - Easiest way to install latest versions of F# on Windows is using [VS Build Tools 2017](https://visualstudio.microsoft.com/downloads/?utm_medium=microsoft&utm_source=docs.microsoft.com&utm_campaign=button+cta&utm_content=download+vs2017#build-tools-for-visual-studio-2017). **Install .NET 4 Framework Target Pack**. If you use VS 2017, make sure that you've installed workload adding F# support. Required when running `net` version of FSAC.
 
