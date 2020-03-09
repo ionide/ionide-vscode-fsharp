@@ -16,7 +16,7 @@ You can support Ionide development on [Open Collective](https://opencollective.c
 
 * .NET Core SDK - .NET Core is modern, cross-platform implementation of .NET Framework. Ionide is requiring it for set of features such as project modifications or debugging. The core part of SDK is `dotnet` CLI tool that provides easy way to create, build and run F# projects. What's important - the `dotnet` tool can be used also to create applications targeting also Full Framework (like `net461`). For detailed instructions on installing .NET Core, visit [official step-by-step installation guide](https://www.microsoft.com/net/core).
 
-* VS Code C# plugin (optional, suggested) - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. To get it install [C# extension from VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp)
+* VS Code C# plugin (optional, suggested) - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. To get it install [C# extension from VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
 
 * F# (Windows, optional) - Easiest way to install latest versions of F# on Windows is using [VS Build Tools 2017](https://visualstudio.microsoft.com/downloads/?utm_medium=microsoft&utm_source=docs.microsoft.com&utm_campaign=button+cta&utm_content=download+vs2017#build-tools-for-visual-studio-2017). **Install .NET 4 Framework Target Pack**. If you use VS 2017, make sure that you've installed workload adding F# support. Required when running `net` version of FSAC.
 
@@ -75,13 +75,11 @@ The library is available under [MIT license](https://github.com/ionide/ionide-vs
 
 Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
-## Sponsors
+## Our Sponsors
 
-Ionide couldn't be created without support of [Lambda Factory](https://lambdafactory.io). If your company would be interested in supporting development of Ionide, or acquiring commercial support sent us email - lambda_factory@outlook.com
+Ionide couldn't be created without the support of [Lambda Factory](https://lambdafactory.io). If your company would be interested in supporting development of Ionide, or acquiring commercial support send us an email - lambda_factory@outlook.com.
 
-You can also support Ionide development on [Open Collective](https://opencollective.com/ionide).
-
-[![Open Collective](https://opencollective.com/ionide/donate/button.png?color=blue)](https://opencollective.com/ionide)
+You can also support Ionide development on [Open Collective](https://opencollective.com/ionide). [![Open Collective](https://opencollective.com/ionide/donate/button.png?color=blue)](https://opencollective.com/ionide)
 
 ### Partners
 
@@ -93,14 +91,10 @@ You can also support Ionide development on [Open Collective](https://opencollect
 
 ### Sponsors
 
-[Become a sponsor](https://opencollective.com/ionide) and get your logo on our README on Github, description in VSCode marketplace and on [ionide.io](http://ionide.io) with a link to your site.
+[Become a sponsor](https://opencollective.com/ionide) and get your logo on our README on Github, description in the VSCode marketplace and on [ionide.io](http://ionide.io) with a link to your site.
 
 <div align="center">
-<a href="https://opencollective.com/ionide/sponsor/0/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/0/avatar.svg?requireActive=false" height="50px"></a>
-<a href="https://opencollective.com/ionide/sponsor/1/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/1/avatar.svg?requireActive=false" height="50px"></a>
- <a href="https://opencollective.com/ionide/sponsor/2/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/2/avatar.svg?requireActive=false" height="50px"></a>
- <a href="http://www.miltonsecurity.com/" target="_blank"><img src="https://opencollective-production.s3-us-west-1.amazonaws.com/dec96cf0-3fd4-11e9-85d3-d3af44ed2d45.jpg" height="50px"></a>
- <a href="https://opencollective.com/ionide/sponsor/3/website?requireActive=false" target="_blank"><img src="https://opencollective.com/ionide/sponsor/3/avatar.svg?requireActive=false" height="50px"></a>
- <a href="https://www.crosswordsolver.com/" target="_blank"><img src="https://images.opencollective.com/crosswordsolver/d4481d6/logo.png" height="50px"></a>
- 
+    <object type="image/svg+xml" data="https://opencollective.com/ionide/tiers/silver-sponsor.svg?avatarHeight=120&width=1000&button=false"></object>
+    <br/>
+    <object type="image/svg+xml" data="https://opencollective.com/ionide/tiers/bronze-sponsor.svg?avatarHeight=70&width=1000&button=false"></object>
 </div>
