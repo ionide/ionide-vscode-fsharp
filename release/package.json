@@ -1384,6 +1384,15 @@
 					"description": "The prefix displayed before the signature",
 					"default": "  // "
 				},
+				"FSharp.tooltipMode": {
+					"type": "string",
+					"description": "Control if tooltip should show only the summary or all the information",
+					"enum": [
+						"summary",
+						"full"
+					],
+					"default": "full"
+				},
 				"FSharp.disableFailedProjectNotifications": {
 					"type": "boolean",
 					"default": false,
