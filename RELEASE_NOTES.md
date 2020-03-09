@@ -1,3 +1,10 @@
+### 4.6.4 - 09.03.2020
+* Update FsGrammar definition
+* Update FSAC:
+  - Update FCS to 34.1.1
+  - Update FSharp.Analyzers.SDK to 0.4
+  - Update FAKE integration
+
 ### 4.6.3 - 28.02.2020
 * Update FSAC:
   - Update FSharp.Analyzers.SDK (FCS 34.1)
