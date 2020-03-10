@@ -1,3 +1,9 @@
+### 4.7.0 - 09.03.2020
+* Use new documentation parser
+* Generate documentation using xmldocs rather than
+* Update FSAC:
+  - new documentation parser
+
 ### 4.6.4 - 09.03.2020
 * Update FsGrammar definition
 * Update FSAC:
