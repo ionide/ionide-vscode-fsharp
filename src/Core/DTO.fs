@@ -284,7 +284,8 @@ module DTO =
 
     type SignatureData =
         { OutputType : string
-          Parameters : Parameter list list }
+          Parameters : Parameter list list
+          Generics : string list }
 
     type RangesAtPosition = {Ranges: Range list list}
 

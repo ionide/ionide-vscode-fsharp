@@ -16,7 +16,10 @@ module InfoPanel =
 
     module Panel =
 
-        let showdown = Fable.Import.Showdown.showdown.Converter.Create()
+        let showdownOptions = Fable.Import.Showdown.showdown.getDefaultOptions() :?> Fable.Import.Showdown.Showdown.ConverterOptions
+        showdownOptions.tables <- Some true
+
+        let showdown = Fable.Import.Showdown.showdown.Converter.Create(showdownOptions)
 
         let mutable panel : WebviewPanel option = None
 
@@ -30,7 +33,6 @@ module InfoPanel =
                 | _ -> false
             else
                 false
-
 
         let setContent str =
             panel |> Option.iter (fun p ->
@@ -79,7 +81,6 @@ module InfoPanel =
 
                 let commentContent =
                     res.Comment
-                    |> Markdown.createCommentString
 
                 let footerContent =
                     res.Footer
