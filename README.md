@@ -94,7 +94,7 @@ You can also support Ionide development on [Open Collective](https://opencollect
 [Become a sponsor](https://opencollective.com/ionide) and get your logo on our README on Github, description in the VSCode marketplace and on [ionide.io](http://ionide.io) with a link to your site.
 
 <div align="center">
-    <object type="image/svg+xml" data="https://opencollective.com/ionide/tiers/silver-sponsor.svg?avatarHeight=120&width=1000&button=false"></object>
+    <img src="https://opencollective.com/ionide/tiers/silver-sponsor.svg?avatarHeight=120&width=1000&button=false"/>
     <br/>
-    <object type="image/svg+xml" data="https://opencollective.com/ionide/tiers/bronze-sponsor.svg?avatarHeight=70&width=1000&button=false"></object>
+    <img src="https://opencollective.com/ionide/tiers/bronze-sponsor.svg?avatarHeight=120&width=1000&button=false"/>
 </div>
