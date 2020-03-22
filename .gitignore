@@ -72,7 +72,10 @@ issueList.md
 release/package-lock\.json
 *.vsix
 /release/bin_netcore/
-/.ionide
 /vendor/.paket/Paket.Restore.targets
 /release-exp/
 vars.txt
+funcs.txt
+types.txt
+.ionide
+.fake
