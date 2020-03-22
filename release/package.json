@@ -114,6 +114,10 @@
 				"title": "FSI: Generate script file with references from project"
 			},
 			{
+				"command": "fsi.OpenWatcher",
+				"title": "FSI: Open Watcher"
+			},
+			{
 				"command": "fsharp.scriptrunner.run",
 				"title": "F#: Run script",
 				"icon": {
@@ -1523,6 +1527,11 @@
 				"FSharp.dotNetRoot": {
 					"type": "string",
 					"description": "Sets the root path for finding dotnet SDK references. Primarily used for FSX Scripts."
+				},
+				"FSharp.addFsiWatcher": {
+					"type": "bool",
+					"default": false,
+					"description": "Enables the variables view for the fsi"
 				}
 			}
 		},
