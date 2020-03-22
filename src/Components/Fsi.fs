@@ -70,24 +70,81 @@ module Fsi =
                     panel <- Some p
             }
 
-        let handler (uri: string) =
-            node.fs.readFile(uri, (fun _ buf ->
+        let varsUri = path.join(VSCodeExtension.ionidePluginPath (), "watcher", "vars.txt")
+        let typesUri = path.join(VSCodeExtension.ionidePluginPath (), "watcher", "types.txt")
+        let funcUri = path.join(VSCodeExtension.ionidePluginPath (), "watcher", "funcs.txt")
+
+
+        let handler () =
+            let mutable varsContent = ""
+            let mutable typesContent = ""
+            let mutable funcsContent = ""
+
+
+            node.fs.readFile(varsUri, (fun _ buf ->
                 let cnt = buf.toString()
-                cnt
-                |> String.split [| '\n' |]
-                |> Seq.map (fun row ->
-                    let x = row.Split([|"###IONIDESEP###"|], StringSplitOptions.None)
-                    sprintf "<tr><td>%s</td><td>%s</td><td>%s</td></tr>" x.[0] x.[1] x.[2]
-                )
-                |> String.concat "\n"
-                |> sprintf """<table><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Value</th><th style="width: 20%%">Type</th></tr>%s</table>"""
-                |> setContent
+                varsContent <-
+                    cnt
+                    |> String.split [| '\n' |]
+                    |> Seq.map (fun row ->
+                        let x = row.Split([|"###IONIDESEP###"|], StringSplitOptions.None)
+                        sprintf "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td></tr>" x.[0] x.[1] x.[2]
+                    )
+                    |> String.concat "\n"
+                    |> sprintf """</br><h3>Declared values</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Value</th><th style="width: 20%%">Type</th></tr>%s</table>"""
+
+
+                setContent (varsContent + "\n\n" + funcsContent + "\n\n" + typesContent)
+            ))
+
+            node.fs.readFile(funcUri, (fun _ buf ->
+                let cnt = buf.toString()
+                funcsContent <-
+                    cnt
+                    |> String.split [| '\n' |]
+                    |> Seq.map (fun row ->
+                        let x = row.Split([|"###IONIDESEP###"|], StringSplitOptions.None)
+                        sprintf "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td></tr>" x.[0] x.[1] x.[2]
+                    )
+                    |> String.concat "\n"
+                    |> sprintf """</br><h3>Declared functions</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Parameters</th><th style="width: 20%%">Returned type</th></tr>%s</table>"""
+
+
+                setContent (varsContent + "\n\n" + funcsContent + "\n\n" + typesContent)
+            ))
+
+            node.fs.readFile(typesUri, (fun _ buf ->
+                let cnt = buf.toString()
+                typesContent <-
+                    if String.IsNullOrWhiteSpace cnt then
+                        ""
+                    else
+                        cnt
+                        |> String.split [| '\n' |]
+                        |> Seq.map (fun row ->
+                            let x = row.Split([|"###IONIDESEP###"|], StringSplitOptions.None)
+                            let signature =
+                                if x.[1].Contains "#|#" then
+                                   "| " + x.[1].Replace("#|#", "</br>| ")
+                                else x.[1]
+                            sprintf "<tr><td>%s</td><td><code>%s</code></td></tr>" x.[0] signature
+                        )
+                        |> String.concat "\n"
+                        |> sprintf """</br><h3>Declared types</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 85%%">Signature</th></tr>%s</table>"""
+
+
+                setContent (varsContent + "\n\n" + funcsContent + "\n\n" + typesContent)
             ))
 
         let activate dispsables =
-            let p = path.join(VSCodeExtension.ionidePluginPath (), "watcher", "vars.txt")
-            fs.watchFile (p, (fun st st2 ->
-                handler p
+            fs.watchFile (varsUri, (fun st st2 ->
+                handler ()
+            ))
+            fs.watchFile (typesUri, (fun st st2 ->
+                handler ()
+            ))
+            fs.watchFile (funcUri, (fun st st2 ->
+                handler ()
             ))
 
 
