@@ -187,9 +187,8 @@ module Fsi =
             |> Configuration.get false
 
         let addWatcher =
-            // "FSharp.addFsiWatcher"
-            // |> Configuration.get false
-            true
+            "FSharp.addFsiWatcher"
+            |> Configuration.get false
 
         let parms =
             let fsiParams =
