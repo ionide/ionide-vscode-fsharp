@@ -12,6 +12,20 @@
                 "command": "${workspaceRoot}/build.cmd",
                 "type": "process" // some people have bash as default in windows
             },
+            "label": "Extension Build",
+            "args": [],
+            "group": {
+                "isDefault": true,
+                "kind": "build"
+            }
+        },
+        {
+            "command": "${workspaceRoot}/build.sh",
+            "type": "shell",
+            "windows": {
+                "command": "${workspaceRoot}/build.cmd",
+                "type": "process" // some people have bash as default in windows
+            },
             "label": "Full Build",
             "args": [
                 "-t",
@@ -31,7 +45,6 @@
                 "-t",
                 "Watch"
             ],
-            "group": "build",
             "isBackground": true,
             "problemMatcher": []
         }
