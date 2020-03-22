@@ -47,27 +47,35 @@ module Fsi =
 
         let openPanel () =
             promise {
-                match panel with
-                | Some p ->
-                    p.reveal (!! -2, true)
-                | None ->
-                    let opts =
-                        createObj [
-                            "enableCommandUris" ==> true
-                            "enableFindWidget" ==> true
-                            "retainContextWhenHidden" ==> true
-                        ]
-                    let viewOpts =
-                        createObj [
-                            "preserveFocus" ==> true
-                            "viewColumn" ==> -2
-                        ]
-                    let p = window.createWebviewPanel("fsiWatcher", "FSI Watcher", !!viewOpts , opts)
-                    let onClose () =
-                        panel <- None
+                let addWatcher =
+                    "FSharp.addFsiWatcher"
+                    |> Configuration.get false
+                if not addWatcher then
+                    let! res = window.showInformationMessage("FSI Watcher is an experimental feature, and it needs to be enabled with `FSharp.addFsiWatcher` setting", "Enable", "Ignore")
+                    if res = "Enable" then
+                        do! Configuration.setGlobal "FSharp.addFsiWatcher" true
+                else
+                    match panel with
+                    | Some p ->
+                        p.reveal (!! -2, true)
+                    | None ->
+                        let opts =
+                            createObj [
+                                "enableCommandUris" ==> true
+                                "enableFindWidget" ==> true
+                                "retainContextWhenHidden" ==> true
+                            ]
+                        let viewOpts =
+                            createObj [
+                                "preserveFocus" ==> true
+                                "viewColumn" ==> -2
+                            ]
+                        let p = window.createWebviewPanel("fsiWatcher", "FSI Watcher", !!viewOpts , opts)
+                        let onClose () =
+                            panel <- None
 
-                    p.onDidDispose.Invoke(!!onClose) |> ignore
-                    panel <- Some p
+                        p.onDidDispose.Invoke(!!onClose) |> ignore
+                        panel <- Some p
             }
 
         let varsUri = path.join(VSCodeExtension.ionidePluginPath (), "watcher", "vars.txt")
