@@ -10,16 +10,21 @@ module Gitignore =
     open Ionide.VSCode.FSharp
 
     let GITIGNORE_KEY = "FSharp.suggestGitignore"
+    let private logger = ConsoleAndOutputChannelLogger(Some "GitIngnore", Level.DEBUG, None, Some Level.DEBUG)
+    let gitignorePath () =
+        path.join(workspace.workspaceFolders.[0].uri.fsPath , ".gitignore")
 
     let checkGitignore patterns =
         let patterns = Set.ofSeq patterns
         try
+            logger.Debug("gitignore path:", (gitignorePath ()))
             let lines =
-                fs.readFileSync(".gitignore", "utf8")
+                fs.readFileSync(gitignorePath (), "utf8")
                 |> String.split [| '\n' |]
 
             (patterns, lines)
             ||> Array.fold (fun notFoundPats line ->
+                let line = line.Trim()
                 if notFoundPats |> Set.contains line
                 then notFoundPats |> Set.remove line
                 else notFoundPats
@@ -28,7 +33,7 @@ module Gitignore =
 
     let writePatternsToGitignore patterns =
         let data = patterns |> String.concat System.Environment.NewLine
-        fs.appendFileSync(".gitignore", data, "utf8")
+        fs.appendFileSync(gitignorePath (), System.Environment.NewLine + data, "utf8")
 
     let disablePromptGlobally () =
         Configuration.setGlobal GITIGNORE_KEY false

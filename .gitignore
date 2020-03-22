@@ -60,7 +60,6 @@ release/schemas
 release_test/bin
 
 temp
-.fake
 .vs
 *.js
 *.js.map
