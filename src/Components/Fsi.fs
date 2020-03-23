@@ -11,6 +11,52 @@ open Ionide.VSCode.Helpers
 module node = Fable.Import.Node.Exports
 
 module Fsi =
+    module SdkScriptsNotify =
+
+        open Fable.Core
+        open Fable.Import.Node
+        open Fable.Import.vscode
+        open Ionide.VSCode.Helpers
+        open Ionide.VSCode.FSharp
+
+        let suggestKey = "FSharp.suggestSdkScripts"
+        let useKey = "FSharp.useSdkScripts"
+
+        let shouldNotifyAboutSdkScripts () =
+            let k = Configuration.get false useKey
+            match LanguageService.clientType with
+            | LanguageService.Types.FSACTargetRuntime.NetcoreFdd -> not k
+            | _ -> false
+
+
+        let disablePromptGlobally () =
+            Configuration.setGlobal suggestKey false
+
+        let disablePromptForProject () =
+            Configuration.set suggestKey false
+
+        let setUseSdk () =
+            Configuration.setGlobal useKey true
+
+
+        let checkForPatternsAndPromptUser () = promise {
+            if shouldNotifyAboutSdkScripts () then
+                let! choice = window.showInformationMessage("You are running .Net Core version of FsAutoComplete, we recommend also using .Net Core version of F# REPL (`dotnet fsi`). Should we change your settings (`FSharp.useSdkScripts`). This requires .Net Core 3.X?", [|"Update settings"; "Ignore"; "Don't show again"|])
+                match choice with
+                | "Update settings" ->
+                    do! setUseSdk ()
+                | "Ignore" ->
+                    do! disablePromptForProject ()
+                | "Don't show again" ->
+                    do! disablePromptGlobally ()
+                | _ -> ()
+        }
+
+        let activate (_context: ExtensionContext) =
+            if Configuration.get true suggestKey
+            then checkForPatternsAndPromptUser () |> ignore
+            else ()
+
 
     module Watcher =
         let mutable panel : WebviewPanel option = None
@@ -410,6 +456,8 @@ module Fsi =
 
     let activate (context : ExtensionContext) =
         Watcher.activate(!!context.subscriptions)
+        SdkScriptsNotify.activate context
+
         window.onDidCloseTerminal $ (handleCloseTerminal, (), context.subscriptions) |> ignore
 
         commands.registerCommand("fsi.Start", start |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
