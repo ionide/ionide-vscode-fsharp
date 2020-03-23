@@ -1,3 +1,11 @@
+### 4.8.0 - 23.03.2020
+* Update to latest version of LSP client
+* Update FSAC:
+  - fix default SDK root path for Linux
+* Add notification if `.gitignore` doesn't contain `.ionide` and `.fake`
+* Add notification if FSAC is run on .Net Core but `useSdkScripts` is not enabled
+* Add FSI Watcher
+
 ### 4.7.0 - 09.03.2020
 * Use new documentation parser
 * Generate documentation using xmldocs rather than
