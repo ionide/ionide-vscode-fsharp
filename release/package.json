@@ -1519,6 +1519,11 @@
 					"default": true,
 					"description": "Allow Ionide to prompt whenever internal data files aren't included in your project's .gitignore"
 				},
+				"FSharp.suggestSdkScripts": {
+					"type": "boolean",
+					"default": true,
+					"description": "Allow Ionide to prompt to use SdkScripts"
+				},
 				"FSharp.useSdkScripts": {
 					"type": "boolean",
 					"default": false,

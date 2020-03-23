@@ -28,7 +28,7 @@ module Notifications =
     let mutable notifyWorkspaceHandler : Option<Choice<ProjectResult,ProjectLoadingResult,(string * ErrorData),string> -> unit> = None
 
 module LanguageService =
-    module internal Types =
+    module Types =
         type PlainNotification= { content: string }
 
         type ConfigValue<'a> =
@@ -72,6 +72,7 @@ module LanguageService =
         }
 
     let mutable client : LanguageClient option = None
+    let mutable clientType : Types.FSACTargetRuntime = Types.FSACTargetRuntime.NetcoreFdd
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
@@ -653,36 +654,46 @@ Consider:
 
         // .Net framework handling
         | Types.UserSpecified Types.FSACTargetRuntime.NET, _ , _ when Environment.isWin ->
+            clientType <- Types.FSACTargetRuntime.NET
             return spawnNetWin ()
         | Types.UserSpecified Types.FSACTargetRuntime.NET, Some mono, _ ->
+            clientType <- Types.FSACTargetRuntime.NET
             return spawnNetMono mono
         | Types.UserSpecified Types.FSACTargetRuntime.NET, None, _ ->
+            clientType <- Types.FSACTargetRuntime.NET
             return! monoNotFound ()
 
         // dotnet SDK handling
         | Types.UserSpecified Types.FSACTargetRuntime.NetcoreFdd, _, Some dotnet ->
+            clientType <- Types.FSACTargetRuntime.NetcoreFdd
             return spawnNetCore dotnet
         | Types.UserSpecified Types.FSACTargetRuntime.NetcoreFdd, _, None ->
+            clientType <- Types.FSACTargetRuntime.NetcoreFdd
             return! dotnetNotFound ()
 
         // when we infer a runtime then we can suggest to the user our other options
         // .NET framework handling (looks similar to above just with suggestion)
         | Types.Implied Types.FSACTargetRuntime.NET, None, Some _dotnet when Environment.isWin ->
+            clientType <- Types.FSACTargetRuntime.NET
             suggestNetCore() |> ignore
             return spawnNetWin ()
         | Types.Implied Types.FSACTargetRuntime.NET, Some mono, Some _dotnet ->
+            clientType <- Types.FSACTargetRuntime.NET
             suggestNetCore() |> ignore
             return spawnNetMono mono
         | Types.Implied Types.FSACTargetRuntime.NET, None, Some _dotnet ->
+            clientType <- Types.FSACTargetRuntime.NET
             suggestNetCore() |> ignore
             return! monoNotFound ()
 
         // these case actually never happens right now (see the `targetRuntime` calculation above), but it's here for completeness,
         // IE a scenario in which dotnet isn't found but we have located the proper execution environment for .Net framework
         | Types.Implied Types.FSACTargetRuntime.NetcoreFdd, None, None when Environment.isWin ->
+            clientType <- Types.FSACTargetRuntime.NetcoreFdd
             suggestNet () |> ignore
             return! dotnetNotFound ()
         | Types.Implied Types.FSACTargetRuntime.NetcoreFdd, Some mono, None when not Environment.isWin ->
+            clientType <- Types.FSACTargetRuntime.NetcoreFdd
             suggestNet () |> ignore
             return! dotnetNotFound ()
 
