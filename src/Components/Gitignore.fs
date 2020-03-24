@@ -24,7 +24,7 @@ module Gitignore =
 
             (patterns, lines)
             ||> Array.fold (fun notFoundPats line ->
-                let line = line.Trim()
+                let line = line.Trim('\t', ' ', '/', '\\')
                 if notFoundPats |> Set.contains line
                 then notFoundPats |> Set.remove line
                 else notFoundPats
