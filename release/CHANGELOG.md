@@ -1,3 +1,8 @@
+### 4.8.1 - 25.03.2020
+* Update FSAC:
+  - support loading project with overridden `BaseIntermediateOutputPath`
+* Recognize .gitignore paths that contain slashes at the start or the end.
+
 ### 4.8.0 - 23.03.2020
 * Update to latest version of LSP client
 * Update FSAC:
