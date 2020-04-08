@@ -15,6 +15,12 @@ module CodeRange =
                    float range.EndLine - 1.,
                    float range.EndColumn - 1.)
 
+    let fromHighlightingDTO (range : DTO.Range) : CodeRange =
+        CodeRange (float range.StartLine - 1.,
+                   float range.StartColumn,
+                   float range.EndLine - 1.,
+                   float range.EndColumn)
+
     let fromSimplifiedNameRange (range : DTO.Range) : CodeRange =
         CodeRange (float range.StartLine - 1.,
                    float range.StartColumn - 2.,

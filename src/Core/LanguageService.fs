@@ -71,6 +71,9 @@ module LanguageService =
             TextDocuments: TextDocumentIdentifier[]
         }
 
+        type HighlightingRequest = {FileName : string; }
+
+
     let mutable client : LanguageClient option = None
     let mutable clientType : Types.FSACTargetRuntime = Types.FSACTargetRuntime.NetcoreFdd
 
@@ -367,6 +370,18 @@ module LanguageService =
             }
             cl.sendRequest("fsharp/loadAnalyzers", req)
             |> Promise.map (ignore)
+
+    let getHighlighting (f) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.HighlightingRequest= {
+                FileName = f
+            }
+            cl.sendRequest("fsharp/higlighting", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<HighlightingResult>
+            )
 
 
     module FakeSupport =
