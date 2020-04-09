@@ -378,7 +378,7 @@ module LanguageService =
             let req : Types.HighlightingRequest= {
                 FileName = f
             }
-            cl.sendRequest("fsharp/higlighting", req)
+            cl.sendRequest("fsharp/highlighting", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
                 res.content |> ofJson<HighlightingResult>
             )

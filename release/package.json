@@ -1207,7 +1207,19 @@
 			"[fsharp]": {
 				"editor.useTabStops": false
 			}
+
 		},
+		"semanticTokenScopes": [
+			{
+				"language": "fsharp",
+				"scopes": {
+					"mutable": ["variable.fsharp.mutable"],
+					"disposable": ["variable.fsharp.mutable"],
+					"operator": ["keyword.symbol.fsharp"],
+					"cexpr": ["keyword.control.fsharp"]
+				}
+			}
+		],
 		"configuration": {
 			"type": "object",
 			"title": "F#",

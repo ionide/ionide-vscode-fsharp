@@ -17,6 +17,14 @@
     ".git",
     "paket-files",
     "release"
-  ]
-
+  ],
+  "editor.tokenColorCustomizationsExperimental": {
+    "mutable": {
+      "fontStyle": "underline",
+      "foreground": "#ff14eb"
+    },
+    "disposable": {
+      "foreground": "#ff8b2c"
+    }
+  },
 }

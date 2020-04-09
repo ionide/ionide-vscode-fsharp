@@ -12,7 +12,8 @@ module HighlightingProvider =
     let tokenTypes = [|
         "comment"; "string"; "keyword"; "number"; "regexp"; "operator"; "namespace";
         "type"; "struct"; "class"; "interface"; "enum"; "enumMember"; "typeParameter"; "function";
-        "member"; "macro"; "variable"; "parameter"; "property"; "label"; "mutable"; "printf"; "disposable" |]
+        "member"; "macro"; "variable"; "parameter"; "property"; "label";
+        "mutable"; "disposable"; "cexpr" |] //Last row - custom F# specific types
 
     let legend = SemanticTokensLegend(tokenTypes)
 
