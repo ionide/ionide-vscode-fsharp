@@ -15,15 +15,16 @@ module HighlightingProvider =
         "member"; "macro"; "variable"; "parameter"; "property"; "label"; "mutable"; "printf"; "disposable" |]
 
     let legend = SemanticTokensLegend(tokenTypes)
-    let builder = SemanticTokensBuilder(legend)
 
     let provider =
         { new DocumentSemanticTokensProvider
           with
             member __.provideDocumentSemanticTokens(textDocument, ct) =
                 promise {
+                    let builder = SemanticTokensBuilder(legend)
                     let! res = LanguageService.getHighlighting (textDocument.fileName)
                     res.Data.Highlights
+                    |> Array.sortBy(fun n -> n.Range.StartLine * 1000000 + n.Range.StartColumn)
                     |> Array.iter (fun n ->
                         builder.push(CodeRange.fromDTO n.Range, n.TokenType)
 
