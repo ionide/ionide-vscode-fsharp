@@ -1,3 +1,9 @@
+### 4.9.0 - 09.04.2020
+* Add semantic highlighting
+* Update FSAC:
+  - add support for semantic highlighting
+  - update Fantomas to 3.3.0
+
 ### 4.8.1 - 25.03.2020
 * Update FSAC:
   - support loading project with overridden `BaseIntermediateOutputPath`
