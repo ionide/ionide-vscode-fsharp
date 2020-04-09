@@ -319,6 +319,12 @@ module DTO =
     type FsdnResponse =
         { Functions: string [] }
 
+    type HighlightingRange = {Range: Range; TokenType: string}
+
+    type HighlightingResponse = {
+        Highlights: HighlightingRange []
+    }
+
     type ResponseError<'T> =
         { Code : int
           Message : string
@@ -383,6 +389,7 @@ module DTO =
     type CompileResult = Result<CompileData>
     type AnalyzerResult = Result<AnalyzerResponse>
     type FsdnResult = Result<FsdnResponse>
+    type HighlightingResult = Result<HighlightingResponse>
 
 
     module DotnetNew =

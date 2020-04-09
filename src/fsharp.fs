@@ -19,9 +19,6 @@ type Api =
       DebugProject : DTO.Project -> string [] -> Fable.Import.JS.Promise<unit> }
 
 let activate (context : ExtensionContext) : Fable.Import.JS.Promise<Api> =
-    let df = createEmpty<DocumentFilter>
-    df.language <- Some "fsharp"
-    let df' : DocumentSelector = df |> U3.Case2
 
     let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
@@ -73,6 +70,7 @@ let activate (context : ExtensionContext) : Fable.Import.JS.Promise<Api> =
         CodeLensHelpers.activate context
         FakeTargetsOutline.activate context
         Gitignore.activate context
+        HighlightingProvider.activate context
 
         let buildProject project = promise {
             let! exit = MSBuild.buildProjectPath "Build" project
