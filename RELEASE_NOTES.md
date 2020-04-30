@@ -1,3 +1,13 @@
+### 4.10.0 - 30.04.2020
+* Update FSAC:
+  - Add integration with the extendable `#r`
+  - Add support for `#r nuget`
+  - Update to FCS 35.0
+  - Update `dotnet-project-info`, Fantomas (4.0 preview), and FSharpLint
+  - Add caching for `FSharpProjectOptions` for script files
+  - Fix floats being reported with random generic parameter
+  - Use `system.runtime` members instead of `environment` for determining platform
+
 ### 4.9.0 - 09.04.2020
 * Add semantic highlighting
 * Update FSAC:
