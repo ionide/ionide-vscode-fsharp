@@ -1,3 +1,8 @@
+### 4.10.1 - 03.05.2020
+* Fix type of `FSharp.addFsiWatcher` setting
+* Update FSAC:
+  - Performance fix for the projects with more than 2 p2p references
+
 ### 4.10.0 - 30.04.2020
 * Update FSAC:
   - Add integration with the extendable `#r`
