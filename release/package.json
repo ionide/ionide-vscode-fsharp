@@ -1546,7 +1546,7 @@
 					"description": "Sets the root path for finding dotnet SDK references. Primarily used for FSX Scripts."
 				},
 				"FSharp.addFsiWatcher": {
-					"type": "bool",
+					"type": "boolean",
 					"default": false,
 					"description": "Enables the variables view for the fsi"
 				}
