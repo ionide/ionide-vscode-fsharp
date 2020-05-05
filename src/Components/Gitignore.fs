@@ -20,7 +20,7 @@ module Gitignore =
             logger.Debug("gitignore path:", (gitignorePath ()))
             let lines =
                 fs.readFileSync(gitignorePath (), "utf8")
-                |> String.split [| '\n' |]
+                |> String.split [| '\n'; '\r' |]
 
             (patterns, lines)
             ||> Array.fold (fun notFoundPats line ->
