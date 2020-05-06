@@ -1,3 +1,11 @@
+### 4.11.0 - 06.05.2020
+* Add GenerateBinlog config
+* Update FSAC:
+  - Try improve project loading to use internal DPI cache
+  - Add GenerateBinlog config
+  - Update to latest Fantomas
+  - Update to latest `dotnet-proj-info` - huge performance improvements
+
 ### 4.10.1 - 03.05.2020
 * Fix type of `FSharp.addFsiWatcher` setting
 * Update FSAC:
