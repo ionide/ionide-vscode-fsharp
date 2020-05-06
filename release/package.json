@@ -1549,6 +1549,11 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Enables the variables view for the fsi"
+				},
+				"FSharp.generateBinlog": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enables generation of `.binlog` file for project loading. It works only for fresh, non-cached project loading. Run `F#: Clear Cache` and reload window to force fresh loading of all projects"
 				}
 			}
 		},
