@@ -22,6 +22,7 @@ module Project =
         | Loaded of proj : Project
         | Failed of path : string * error : string
         | NotRestored of path : string * error : string
+        | LanguageNotSupported of path: string
 
     let private emptyProjectsMap : Dictionary<ProjectFilePath,ProjectLoadingState> = Dictionary()
 
@@ -299,7 +300,8 @@ module Project =
                 true
             | Some (ProjectLoadingState.Loaded _)
             | Some (ProjectLoadingState.Failed _)
-            | Some (ProjectLoadingState.NotRestored _) ->
+            | Some (ProjectLoadingState.NotRestored _)
+            | Some (ProjectLoadingState.LanguageNotSupported _ ) ->
                 false
 
         projs
@@ -650,6 +652,8 @@ module Project =
                     Some (true, d.Project, ProjectLoadingState.NotRestored (d.Project, msg) )
                 | ErrorData.ProjectParsingFailed d ->
                     Some (true, d.Project, ProjectLoadingState.Failed (d.Project, msg) )
+                | ErrorData.LangugageNotSupported d ->
+                    Some (true, d.Project, ProjectLoadingState.LanguageNotSupported(d.Project))
                 | _ ->
                     if not disableShowNotification then
                         "Project loading failed"

@@ -335,16 +335,19 @@ module DTO =
        | GenericError = 1
        | ProjectNotRestored = 100
        | ProjectParsingFailed = 101
+       | LanguageNotSupported = 102
 
     module ErrorDataTypes =
         type ProjectNotRestoredData = { Project : ProjectFilePath }
         type ProjectParsingFailedData = { Project : ProjectFilePath }
+        type LanguageNotSupportedData = { Project : ProjectFilePath }
 
     [<RequireQualifiedAccess>]
     type ErrorData =
        | GenericError
        | ProjectNotRestored of ErrorDataTypes.ProjectNotRestoredData
        | ProjectParsingFailed of ErrorDataTypes.ProjectParsingFailedData
+       | LangugageNotSupported of ErrorDataTypes.LanguageNotSupportedData
 
     type UnusedDeclaration =
         { Range : Range

@@ -25,6 +25,7 @@ module SolutionExplorer =
         | ProjectLoading of parent : Model option ref * path : string * name : string
         | ProjectFailedToLoad of parent : Model option ref * path : string * name : string * error : string
         | ProjectNotRestored of parent : Model option ref * path : string * name : string * error : string
+        | ProjectLanguageNotSupported of parent : Model option ref * path : string * name : string
         | Project of parent : Model option ref * path : string * name : string * Files : Model list * ProjectReferencesList : Model  * ReferenceList : Model * isExe : bool * project : DTO.Project
         | Folder of parent : Model option ref * name : string * path : string * Files : Model list * projectPath : string
         | File of parent : Model option ref * path : string * name : string * projectPath : string
@@ -73,6 +74,7 @@ module SolutionExplorer =
         | ProjectLoading (parent, _, _) -> parent
         | ProjectFailedToLoad (parent, _, _, _) -> parent
         | ProjectNotRestored (parent, _, _, _) -> parent
+        | ProjectLanguageNotSupported (parent, _, _) -> parent
         | Project (parent, _, _, _, _, _, _, _) -> parent
         | Folder (parent, _, _, _, _) -> parent
         | File (parent, _, _, _) -> parent
@@ -168,6 +170,9 @@ module SolutionExplorer =
             Model.ProjectFailedToLoad (ref None, p, node.path.basename p, err)
         | Project.ProjectLoadingState.NotRestored (p, err) ->
             Model.ProjectNotRestored (ref None, p, node.path.basename p, err)
+        | Project.ProjectLoadingState.LanguageNotSupported (p) ->
+            Model.ProjectLanguageNotSupported (ref None, p, node.path.basename p)
+
 
     let getFolders model =
         let rec loop model lst =
@@ -233,6 +238,7 @@ module SolutionExplorer =
         | ProjectLoading _ -> []
         | ProjectFailedToLoad _ -> []
         | ProjectNotRestored _ -> []
+        | ProjectLanguageNotSupported _ -> []
         | Project (_, _, _, files, projs, refs, _, _) ->
             [
                  // SHOULD REFS BE DISPLAYED AT ALL? THOSE ARE RESOLVED BY MSBUILD REFS
@@ -256,6 +262,7 @@ module SolutionExplorer =
         | ProjectLoading (_, _, name) -> sprintf "%s (loading..)" name
         | ProjectFailedToLoad (_, _, name, _) -> sprintf "%s (load failed)" name
         | ProjectNotRestored (_, _, name, _) -> sprintf "%s (not restored)" name
+        | ProjectLanguageNotSupported(_, _, name) -> sprintf "%s (language not supported)" name
         | Project (_, _, name,_, _,_, _, _) -> name
         | ReferenceList _ -> "References"
         | ProjectReferencesList (_, refs, _) -> "Project References"
@@ -302,7 +309,7 @@ module SolutionExplorer =
                     match node with
                     | File _ | Reference _ | ProjectReference _ ->
                         vscode.TreeItemCollapsibleState.None
-                    | ProjectFailedToLoad _ | ProjectLoading _ | ProjectNotLoaded _ | ProjectNotRestored _
+                    | ProjectFailedToLoad _ | ProjectLoading _ | ProjectNotLoaded _ | ProjectNotRestored _ | ProjectLanguageNotSupported _
                     | Workspace _ | Solution _ ->
                         vscode.TreeItemCollapsibleState.Expanded
                     | WorkspaceFolder (_, _, items) ->
@@ -351,6 +358,7 @@ module SolutionExplorer =
                     | ProjectLoading _ -> "projectLoading"
                     | ProjectNotLoaded _ -> "projectNotLoaded"
                     | ProjectNotRestored _ -> "projectNotRestored"
+                    | ProjectLanguageNotSupported _ -> "projectLanguageNotSupported"
                     | Solution _ -> "solution"
                     | Workspace _ -> "workspace"
                     | WorkspaceFolder _ -> "workspaceFolder"
@@ -367,6 +375,7 @@ module SolutionExplorer =
                     | ProjectLoading (_, path, _)
                     | ProjectFailedToLoad (_, path, _, _)
                     | ProjectNotRestored (_, path, _, _)
+                    | ProjectLanguageNotSupported (_, path, _)
                     | Solution (_, path, _, _)  ->
                         ThemeIcon.File |> U4.Case4 |> Some, Uri.file path |> Some
                     | Folder (_, _, path, _,_) ->
@@ -456,7 +465,8 @@ module SolutionExplorer =
             | ProjectNotLoaded (_, path, _)
             | ProjectLoading (_, path, _)
             | ProjectFailedToLoad (_, path, _, _)
-            | ProjectNotRestored (_, path, _, _) ->
+            | ProjectNotRestored (_, path, _, _)
+            | ProjectLanguageNotSupported (_, path, _) ->
                 [ path, model ]
             | Project (_, path, _, children, _, _, _, _)
             | Solution (_, path, _, children) ->
@@ -668,6 +678,9 @@ module SolutionExplorer =
             let viewLoading path =
                 "<b>Status:</b> loading.."
 
+            let viewLanguageNotSupported path =
+                "<b>Status:</b> language not supported"
+
             let viewParsed (proj: Project) =
                 match getProjectModel proj with
                 | (Project(_,_,_, files, ProjectReferencesList(_,projRefs,_), ReferenceList(_, refs,_), _, _)) ->
@@ -788,6 +801,8 @@ module SolutionExplorer =
                             viewFailed path error
                         | Some (Project.ProjectLoadingState.Failed (path, error)) ->
                             viewFailed path error
+                        | Some(Project.ProjectLoadingState.LanguageNotSupported path) ->
+                            viewLanguageNotSupported path
                     | _ ->
                         sprintf "Requested uri: %s" (uri.toString())
             }
