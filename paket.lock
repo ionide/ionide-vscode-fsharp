@@ -574,13 +574,13 @@ GIT
       build: build.sh
       os: osx
   remote: https://github.com/ionide/Forge.git
-     (69db2d95545082092e691d0f9e5e8df7b27601a2)
+     (f191440cfac079503b59147ae4081f51d897e809)
       build: build.cmd
       os: win
-     (69db2d95545082092e691d0f9e5e8df7b27601a2)
+     (f191440cfac079503b59147ae4081f51d897e809)
       build: build.cmd
       os: linux
-     (69db2d95545082092e691d0f9e5e8df7b27601a2)
+     (f191440cfac079503b59147ae4081f51d897e809)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
