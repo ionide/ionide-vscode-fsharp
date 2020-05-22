@@ -462,7 +462,7 @@ Consider:
         }
 
         promise {
-            match Environment.configFSIPath with
+            match Environment.configFsiFilePath () with
             | Some path -> return Some path
             | None ->
                 let! fsacPaths = fsacConfig ()
@@ -470,9 +470,14 @@ Consider:
                 return fsiPath
         }
 
+    let fsiSdk () =
+        promise {
+            return Environment.configFsiSdkFilePath ()
+        }
+
     let fsc () =
         promise {
-            match Environment.configFSCPath with
+            match Environment.configFSCPath () with
             | Some path -> return Some path
             | None ->
                 let! fsacPaths = fsacConfig ()

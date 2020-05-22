@@ -1264,7 +1264,13 @@
 				"FSharp.fsiFilePath": {
 					"type": "string",
 					"default": "",
-					"description": "The path to the F# Interactive tool used by Ionide-FSharp",
+					"description": "The path to the F# Interactive tool used by Ionide-FSharp (.NET Framework only, on .NET Core `dotnet fsi` is run)",
+					"scope": "machine-overridable"
+				},
+				"FSharp.fsiSdkFilePath": {
+					"type": "string",
+					"default": "",
+					"description": "The path to the F# Interactive tool used by Ionide-FSharp (When using .NET SDK scripts)",
 					"scope": "machine-overridable"
 				},
 				"FSharp.keywordsAutocomplete": {

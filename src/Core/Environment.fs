@@ -46,10 +46,13 @@ module Environment =
 
     let private fscFileName = if isWin then "Fsc.exe" else "fsharpc"
 
-    let configFSIPath =
+    let configFsiFilePath () =
         Configuration.tryGet "FSharp.fsiFilePath"
 
-    let configFSCPath =
+    let configFsiSdkFilePath () =
+        Configuration.tryGet "FSharp.fsiSdkFilePath"
+
+    let configFSCPath () =
         Configuration.tryGet "FSharp.fsiFilePath"
         |> Option.bind (fun path -> try Some (node.path.dirname path </> fscFileName) with _ -> None) //dirname could fail so wrap that
 
