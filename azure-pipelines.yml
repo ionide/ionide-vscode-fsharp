@@ -41,7 +41,7 @@ jobs:
 
 - job: IonideFsharp_MacOS
   pool:
-    vmImage: 'macOS-10.13'
+    vmImage: 'macOS-10.14'
   steps:
   - task: UseDotNet@2
     displayName: 'Use .NET Core Sdk from global.json'
