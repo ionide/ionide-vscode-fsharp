@@ -69,11 +69,6 @@ module Project =
         let core = "<TargetFramework>netcoreapp"
         projectContent.IndexOf(core) >= 0
 
-    let isNetCoreApp2 (project : Project) =
-        let projectContent = (node.fs.readFileSync project.Project).toString()
-        let core = "<TargetFramework>netcoreapp2"
-        projectContent.IndexOf(core) >= 0
-
     let isSDKProject (project : Project) =
         match project.Info with
         | ProjectResponseInfo.DotnetSdk _ -> true
@@ -83,11 +78,6 @@ module Project =
         let projectContent = (node.fs.readFileSync project).toString()
         let sdk = "<Project Sdk=\""
         projectContent.IndexOf(sdk) >= 0
-
-    let isPortablePdbProject (project : Project) =
-        let projectContent = (node.fs.readFileSync project.Project).toString()
-        let portable = """<DebugType>portable</DebugType>"""
-        projectContent.IndexOf(portable) >= 0
 
     let isExeProject (project : Project) =
         match project.Output, isANetCoreAppProject project with
@@ -154,27 +144,6 @@ module Project =
 
         excluded
         |> Array.exists isSubDir
-
-    let private guessFor p =
-        let rec findFsProj dir =
-            if node.fs.lstatSync(U2.Case1 dir).isDirectory() then
-                let files = node.fs.readdirSync (U2.Case1 dir)
-                let projfile = files |> Seq.tryFind(fun s -> s.EndsWith(".fsproj"))
-                match projfile with
-                | None ->
-                    let projfile = files |> Seq.tryFind(fun s -> s.EndsWith "project.json")
-                    match projfile with
-                    | None ->
-                        try
-                            let parent = if dir.LastIndexOf(node.path.sep) > 0 then dir.Substring(0, dir.LastIndexOf node.path.sep) else ""
-                            if System.String.IsNullOrEmpty parent then None else findFsProj parent
-                        with
-                        | _ -> None
-                    | Some p -> dir + node.path.sep + p |> Some
-                | Some p -> dir + node.path.sep + p |> Some
-            else None
-
-        p |> node.path.dirname |> findFsProj
 
     let private findAll () =
         let rec findProjs dir =
@@ -261,8 +230,6 @@ module Project =
 
     let getLoaded = getInWorkspace >> List.choose chooseLoaded
 
-    let tryFindLoadedProject = tryFindInWorkspace >> Option.bind chooseLoaded
-
     let tryFindLoadedProjectByFile (filePath : string) =
         getLoaded ()
         |> List.tryPick (fun v ->
@@ -307,18 +274,6 @@ module Project =
         projs
         |> Array.exists loadingInProgress
 
-    let find fsFile =
-        // First check in loaded projects
-        match tryFindLoadedProjectByFile fsFile with
-        | Some p -> Choice1Of3 p // this was easy
-        | None ->
-            if isLoadingWorkspaceComplete () then
-                // 2 load in progress, dont try to parse
-                Choice2Of3 ()
-            else
-                // 3 loading is finished, but file not found. try guess (old behaviour)
-                Choice3Of3 (guessFor fsFile)
-
     let getLoadedSolution () = loadedWorkspace
 
     let getCaches () =
@@ -342,15 +297,6 @@ module Project =
         match workspace.rootPath with
         | null -> []
         | rootPath -> findProjs rootPath
-
-    let clearCacheIfOutdated () =
-        let cached = getCaches ()
-        cached |> Seq.iter (fun p ->
-            let stat = node.fs.statSync(U2.Case1 p)
-            if stat.mtime <= DateTime(2017, 08, 27) then
-                printfn "Cache outdated %s" p
-                node.fs.unlinkSync (U2.Case1 p)
-        )
 
     let clearCache () =
         let cached = getCaches ()
@@ -544,26 +490,6 @@ module Project =
             return Process.spawnWithShell exe "mono" cmd
         }
 
-    let buildWithMsbuild outputChannel (project : Project) =
-        promise {
-            let! msbuild = LanguageService.msbuild ()
-            match msbuild with
-            | Some msbuild ->
-                return! Process.spawnWithNotification msbuild "" (String.quote project.Project) outputChannel
-                |> Process.toPromise
-            | None ->
-                // TODO: fire notification that msbuild isn't available so....
-                return { Code = None; Signal = None }
-        }
-
-    let buildWithDotnet outputChannel (project : Project) =
-        promise {
-            let! childProcess = execWithDotnet outputChannel ("build " + (String.quote project.Project))
-            return!
-                childProcess
-                |> Process.toPromise
-        }
-
     let getLauncher outputChannel (project : Project) =
         let execDotnet = fun args ->
             let cmd = "run -p " + (String.quote project.Project) + if String.IsNullOrEmpty args then "" else " -- " + args
@@ -676,7 +602,6 @@ module Project =
             ()
 
     let private initWorkspaceHelper x  =
-        let disableInMemoryProject = "FSharp.disableInMemoryProjectReferences" |> Configuration.get false
         clearLoadedProjects ()
         loadedWorkspace <- Some x
         workspaceChangedEmitter.fire x
@@ -700,11 +625,6 @@ module Project =
         |> LanguageService.workspaceLoad
         |> Promise.map ignore
 
-    let reinitWorkspace () =
-        match loadedWorkspace with
-        | None -> Promise.empty
-        | Some wsp ->
-            initWorkspaceHelper  wsp
 
     let initWorkspace () =
         getWorkspace ()
