@@ -246,10 +246,6 @@ module MSBuild =
             return { Code = Some d.Data.Code; Signal = None }
         }
 
-    let buildProjectWithoutParseData target (path : string) =
-        let host = tryGetRightHost' path
-        invokeMSBuild path target (Some host)
-
     let restoreMailBox =
         let progressOpts = createEmpty<ProgressOptions>
         progressOpts.location <- ProgressLocation.Window

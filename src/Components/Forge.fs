@@ -197,7 +197,7 @@ module Forge =
                 let! template = window.showQuickPick ( n |> U2.Case1)
                 if JS.isDefined template then
                     let opts = createEmpty<InputBoxOptions>
-                    opts.prompt <- Some "Project directory (-o parameter)"
+                    opts.prompt <- Some "Project directory, relative to workspace root (-o parameter)"
                     let! dir = window.showInputBox (opts)
 
                     let opts = createEmpty<InputBoxOptions>
