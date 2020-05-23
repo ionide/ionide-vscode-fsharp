@@ -271,7 +271,9 @@ module Fsi =
                 let! dotnet = LanguageService.dotnet ()
                 match dotnet with
                 | Some dotnet ->
-                    return dotnet, [|yield "fsi"; yield! parms |]
+                    let! fsiSetting = LanguageService.fsiSdk ()
+                    let fsiArg = defaultArg fsiSetting "fsi"
+                    return dotnet, [|yield fsiArg; yield! parms |]
                 | None ->
                     return failwith "dotnet fsi requested but no dotnet SDK was found."
             else
