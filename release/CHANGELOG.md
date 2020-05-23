@@ -1,3 +1,7 @@
+### 4.11.1 - 06.05.2020
+* Handle notifications about `.csproj` correctly
+* Add fsi setting for .NET SDK `FSharp.fsiSdkFilePath`
+
 ### 4.11.0 - 06.05.2020
 * Add GenerateBinlog config
 * Update FSAC:
