@@ -1,3 +1,11 @@
+### 4.12.0 - 09.05.2020
+* Update -o prompt message with dotnet ne
+* Fix error propagation for failed standalone project requests
+* Update FSAC:
+  - Fix signature help off by one
+  - Fix path issue in windows (caching content for fsx files)
+  - Preserve order of params, exceptions und type args in tool tips
+
 ### 4.11.1 - 06.05.2020
 * Handle notifications about `.csproj` correctly
 * Add fsi setting for .NET SDK `FSharp.fsiSdkFilePath`
