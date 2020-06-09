@@ -296,9 +296,12 @@ module LanguageService =
             cl.sendRequest("fsharp/project", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
                 let res = res.content |> ofJson<obj>
-                deserializeProjectResult (res |> unbox)
+                match res?Kind |> unbox with
+                | "error" ->
+                    res?Data |> parseError |> Error
+                | _ ->
+                    deserializeProjectResult (res |> unbox) |> Ok
             )
-
 
     let workspacePeek dir deep excludedDirs =
         let rec mapItem (f : WorkspacePeekFoundSolutionItem) : WorkspacePeekFoundSolutionItem option =
