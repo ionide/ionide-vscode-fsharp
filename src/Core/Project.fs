@@ -224,7 +224,14 @@ module Project =
                         setAnyProjectContext true
                     | None ->
                         ()
-                | Error err -> failed err |> ignore)
+                | Error err -> 
+                    match failed err with
+                    | Some (path, state) ->
+                        updateInWorkspace path state
+                        loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
+                        setAnyProjectContext true
+                    | None ->
+                        ())
         else
             Promise.empty
 
