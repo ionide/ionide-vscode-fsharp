@@ -201,8 +201,7 @@ module Project =
             else
                 None
 
-        let failed (b : obj) =
-            let (msg : string), (err : ErrorData) = unbox b
+        let failed (msg : string, err : ErrorData) = 
             match err with
             | ErrorData.ProjectNotRestored _d when not comingFromRestore ->
                 projectNotRestoredLoadedEmitter.fire path
@@ -212,17 +211,20 @@ module Project =
                 Some (path, (ProjectLoadingState.Failed (path, msg)))
             | _ ->
                 Some (path, (ProjectLoadingState.Failed (path, msg)))
+
         if path.EndsWith ".fsproj" then
             LanguageService.project path
-            |> Promise.either (loaded >> Promise.lift) (failed >> Promise.lift)
-            |> Promise.map (fun proj ->
-                match proj with
-                | Some (path, state) ->
-                    updateInWorkspace path state
-                    loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
-                    setAnyProjectContext true
-                | None ->
-                    () )
+            |> Promise.map (fun r ->
+                match r with
+                | Ok proj ->
+                    match loaded proj with
+                    | Some (path, state) ->
+                        updateInWorkspace path state
+                        loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
+                        setAnyProjectContext true
+                    | None ->
+                        ()
+                | Error err -> failed err |> ignore)
         else
             Promise.empty
 
