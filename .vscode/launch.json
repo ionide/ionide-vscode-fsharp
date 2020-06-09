@@ -4,7 +4,7 @@
 	"configurations": [
 
 		{
-            "preLaunchTask": "Build",
+            "preLaunchTask": "Extension Build",
 			"name": "Build and Launch Extension",
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
