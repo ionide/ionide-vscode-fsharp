@@ -216,22 +216,16 @@ module Project =
             LanguageService.project path
             |> Promise.map (fun r ->
                 match r with
-                | Ok proj ->
-                    match loaded proj with
-                    | Some (path, state) ->
-                        updateInWorkspace path state
-                        loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
-                        setAnyProjectContext true
-                    | None ->
-                        ()
-                | Error err -> 
-                    match failed err with
-                    | Some (path, state) ->
-                        updateInWorkspace path state
-                        loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
-                        setAnyProjectContext true
-                    | None ->
-                        ())
+                | Ok proj -> loaded proj 
+                | Error err -> failed err)
+            |> Promise.map (fun r ->
+                match r with
+                | Some (path, state) ->
+                    updateInWorkspace path state
+                    loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
+                    setAnyProjectContext true
+                | None ->
+                    ())
         else
             Promise.empty
 
