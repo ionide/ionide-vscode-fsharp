@@ -1,3 +1,7 @@
+### 4.12.1 - 11.05.2020
+* Update FSAC:
+  - Fixes to `FSharpProject` command
+
 ### 4.12.0 - 09.05.2020
 * Update -o prompt message with dotnet ne
 * Fix error propagation for failed standalone project requests
