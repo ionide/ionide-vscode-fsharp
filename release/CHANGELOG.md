@@ -1,8 +1,13 @@
-### 4.12.1 - 11.05.2020
+### 4.13.0 - 16.06.2020
+* Update FSAC:
+  - Update FSharpLint rule url
+  - Support sourcelink for F# dependencies
+
+### 4.12.1 - 11.06.2020
 * Update FSAC:
   - Fixes to `FSharpProject` command
 
-### 4.12.0 - 09.05.2020
+### 4.12.0 - 09.06.2020
 * Update -o prompt message with dotnet ne
 * Fix error propagation for failed standalone project requests
 * Update FSAC:
