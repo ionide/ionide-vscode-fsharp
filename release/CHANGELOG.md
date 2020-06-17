@@ -1,3 +1,8 @@
+### 4.14.0 - 17.06.2020
+* Update FSAC:
+  - add go-to (F12) for `#load`
+  - improvements in autocomplete
+
 ### 4.13.0 - 16.06.2020
 * Update FSAC:
   - Update FSharpLint rule url
