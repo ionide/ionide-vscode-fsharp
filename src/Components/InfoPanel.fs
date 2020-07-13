@@ -41,9 +41,19 @@ module InfoPanel =
                     sprintf """
                     <html>
                     <head>
-                    <meta http-equiv="Content-Security-Policy" content="default-src 'none';">
+                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">
                     <style>
-                    pre {color: var(--textCodeBlock.background)}
+                    pre {
+                      color: var(--vscode-editor-foreground);
+                      font-family: var(--vscode-editor-font-family);
+                      font-weight: var(--vscode-editor-font-weight);
+                      font-size: var(--vscode-editor-font-size);
+                    }
+                    code {
+                      font-family: var(--vscode-editor-font-family);
+                      font-weight: var(--vscode-editor-font-weight);
+                      font-size: var(--vscode-editor-font-size);
+                    }
                     </style>
                     </head>
                     <body>
