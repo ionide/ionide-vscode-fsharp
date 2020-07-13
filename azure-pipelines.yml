@@ -30,6 +30,12 @@ jobs:
     inputs:
       arguments: global add vsce
 
+  - task: UseDotNet@2
+    displayName: 'Ensure .net core 2.0 runtime for "dotnet fable"'
+    inputs:
+      packageType: runtime
+      version: 2.0.x
+
   - script: dotnet fake build --target BuildPackage
     displayName: Build Package
 
