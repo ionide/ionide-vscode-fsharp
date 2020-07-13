@@ -36,6 +36,12 @@ jobs:
       packageType: runtime
       version: 2.0.x
 
+  - task: Npm@1
+    displayName: Ensure 'vsce' tool is available
+    inputs:
+      command: custom
+      customCommand: install -g vsce
+
   - script: dotnet fake build --target BuildPackage
     displayName: Build Package
 
