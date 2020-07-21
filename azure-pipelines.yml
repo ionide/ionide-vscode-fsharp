@@ -48,8 +48,16 @@ jobs:
   - task: PublishBuildArtifacts@1
     displayName: Publish Artifacts
     inputs:
-      pathtoPublish: 'temp'
+      pathtoPublish: 'release'
       artifactName: 'ionide-fsharp-vscode-ext'
+
+  - bash: |
+      yarn exec vsce publish --yarn
+    displayName: Publish Extension to Marketplace
+    workingDirectory: release
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    env:
+      VSCE_PAT: $(VSCE_PAT)
 
 - job: IonideFsharp_MacOS
   pool:
