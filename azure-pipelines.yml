@@ -51,13 +51,14 @@ jobs:
       pathtoPublish: 'release'
       artifactName: 'ionide-fsharp-vscode-ext'
 
-  - bash: |
-      yarn exec vsce publish --yarn
+  - script: dotnet fake build -t Release
     displayName: Publish Extension to Marketplace
-    workingDirectory: release
     condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
     env:
-      VSCE_PAT: $(VSCE_PAT)
+      nuget-key: $(nuget-key)
+      github-user: Krzysztof-Cieslak
+      github-pw: $(github-pw)
+      vsce-token: $(vsce-token)
 
 - job: IonideFsharp_MacOS
   pool:
