@@ -1,0 +1,38 @@
+name: Build Pull Requests
+
+on:
+  push:
+   tags:
+     - '*'
+
+jobs:
+  build:
+    runs-on: windows-latest # can by any, just picked windows
+
+    # this is the same as the build workflow, up until artifact upload + publish
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ matrix.dotnet }}
+    - uses: actions/setup-node@v2-beta
+      with:
+        node-version: '10.15.1'
+    - name: Restore tools
+      run: dotnet tool restore
+    - run: yarn global add vsce
+    - name: Run Test
+      run: dotnet fake build -t BuildPackage
+    - name: upload artifact package
+      uses: actions/upload-artifact@v2
+      with:
+        name: ionide-fsharp-vscode-ext
+        path: release/
+    - name: Publish Release
+      env:
+        nuget-key: $(nuget-key)
+        github-user: Krzysztof-Cieslak
+        github-pw: $(github-pw)
+        vsce-token: $(vsce-token)
+      run: dotnet fake build -t Release
