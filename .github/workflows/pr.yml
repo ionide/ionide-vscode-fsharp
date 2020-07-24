@@ -29,4 +29,4 @@ jobs:
       run: dotnet tool restore
     - run: yarn global add vsce
     - name: Run Test
-      run: dotnet fake build -t Test
+      run: dotnet fake build -t Build
