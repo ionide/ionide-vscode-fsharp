@@ -10,7 +10,9 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        # ubuntu build not supported in paket.dependencies for repo builds,
+        # need to add linux commands first
+        os: [windows-latest, macos-latest]
         dotnet: [3.1.201]
     runs-on: ${{ matrix.os }}
 
