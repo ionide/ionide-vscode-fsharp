@@ -27,4 +27,7 @@
       "foreground": "#ff8b2c"
     }
   },
+  "yaml.schemas": {
+    ".github/workflows": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json"
+  }
 }
