@@ -1,9 +1,9 @@
 name: Build Pull Requests
 
 on:
-  create:
-    tags:
-    - '*'
+  push:
+   tags:
+     - '*'
 
 jobs:
   build:
