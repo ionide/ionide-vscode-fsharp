@@ -158,15 +158,11 @@ let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
         |> Seq.tryFind (fun (s: string) -> s.Contains(gitOwner + "/" + gitName))
         |> function None -> gitHome + "/" + gitName | Some (s: string) -> s.Split().[0]
 
-    match Environment.environVarOrDefault "create-tag" "true" with
-    | "true" ->
-        Staging.stageAll ""
-        commit user email
-        Branches.pushBranch "" remote (Information.getBranchName "")
-        Branches.tag "" release.NugetVersion
-        Branches.pushTag "" remote release.NugetVersion
-    | _ ->
-        ()
+    Staging.stageAll ""
+    commit user email
+    Branches.pushBranch "" remote (Information.getBranchName "")
+    Branches.tag "" release.NugetVersion
+    Branches.pushTag "" remote release.NugetVersion
 
     let files = !! ("./temp" </> "*.vsix")
 
