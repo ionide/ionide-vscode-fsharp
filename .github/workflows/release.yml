@@ -1,4 +1,4 @@
-name: Build Pull Requests
+name: Release
 
 on:
   push:
@@ -31,9 +31,9 @@ jobs:
         path: release/
     - name: Publish Release
       env:
-        nuget-key: $(nuget-key)
+        nuget-key: ${{ secrets.NUGET_KEY }}
         github-user: Krzysztof-Cieslak
-        github-pw: $(github-pw)
-        vsce-token: $(vsce-token)
+        github-pw: ${{ secrets.USER_TOKEN }}
+        vsce-token: ${{ secrets.VSCE_TOKEN }}
         create-tag: false
       run: dotnet fake build -t Release
