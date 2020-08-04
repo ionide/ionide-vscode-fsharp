@@ -47,6 +47,7 @@
     <Compile Include="Components/CodeLensHelpers.fs" />
     <Compile Include="Components/FakeTargetsOutline.fs" />
     <Compile Include="Components/HighlightingProvider.fs" />
+    <Compile Include="Components/FSharpLiterate.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />

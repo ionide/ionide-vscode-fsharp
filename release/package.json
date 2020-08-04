@@ -489,6 +489,11 @@
 					"light": "./images/debug-mono-light.svg",
 					"dark": "./images/debug-mono-dark.svg"
 				}
+			},
+			{
+				"command": "fsharp.openFSharpLiterate",
+				"category": "F#",
+				"title": "Show F# Literate preview"
 			}
 		],
 		"viewsContainers": {

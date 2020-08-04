@@ -72,6 +72,7 @@ module LanguageService =
         }
 
         type HighlightingRequest = {FileName : string; }
+        type FSharpLiterateRequest = {FileName: string}
 
 
     let mutable client : LanguageClient option = None
@@ -387,6 +388,17 @@ module LanguageService =
                 res.content |> ofJson<HighlightingResult>
             )
 
+    let fsharpLiterate (f) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.FSharpLiterateRequest= {
+                FileName = f
+            }
+            cl.sendRequest("fsharp/fsharpLiterate", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<FSharpLiterateResult>
+            )
 
     module FakeSupport =
         open DTO.FakeSupport

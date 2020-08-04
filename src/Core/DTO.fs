@@ -393,6 +393,7 @@ module DTO =
     type AnalyzerResult = Result<AnalyzerResponse>
     type FsdnResult = Result<FsdnResponse>
     type HighlightingResult = Result<HighlightingResponse>
+    type FSharpLiterateResult = Result<string>
 
 
     module DotnetNew =
