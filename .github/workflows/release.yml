@@ -6,7 +6,7 @@ on:
      - '*'
 
 jobs:
-  build:
+  release:
     runs-on: windows-latest # can by any, just picked windows
 
     # this is the same as the build workflow, up until artifact upload + publish
@@ -21,7 +21,8 @@ jobs:
         node-version: '10.15.1'
     - name: Restore tools
       run: dotnet tool restore
-    - run: yarn global add vsce
+    - name: install VSCE globally
+      run: dotnet fake build -t InstallVSCE
     - name: Run Test
       run: dotnet fake build -t BuildPackage
     - name: upload artifact package
