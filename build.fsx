@@ -153,8 +153,12 @@ let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
     Commit.exec "" (sprintf "Bump version to %s" release.NugetVersion)
     Branches.pushBranch "" remote (Information.getBranchName "")
 
-    Branches.tag "" release.NugetVersion
-    Branches.pushTag "" remote release.NugetVersion
+    match Environment.environVarOrDefault "create-tag" "true" with
+    | "true" ->
+        Branches.tag "" release.NugetVersion
+        Branches.pushTag "" remote release.NugetVersion
+    | _ ->
+        ()
 
     let files = !! ("./temp" </> "*.vsix")
 
