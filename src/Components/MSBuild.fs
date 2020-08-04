@@ -186,7 +186,7 @@ module MSBuild =
             | None ->
                 logger.Debug("could not find a project that contained the file %s", window.activeTextEditor.document.fileName)
                 Promise.empty
-        | Document.Other ->
+        | _ ->
             logger.Debug("I don't know how to handle a project of type %s", window.activeTextEditor.document.languageId)
             Promise.empty
 

@@ -245,7 +245,7 @@ module FSharpLiterate =
         | Some _ ->
             let textEditor = window.activeTextEditor
             match textEditor.document with
-            | Document.FSharp -> Panel.update textEditor
+            | Document.FSharpScript | Document.Markdown -> Panel.update textEditor
             | _ -> ()
         | None ->
             ()

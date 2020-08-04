@@ -82,10 +82,12 @@ module Option =
 
 [<RequireQualifiedAccess>]
 module Document =
-    let (|FSharp|CSharp|VB|Other|) (document : TextDocument) =
-        if document.languageId = "fsharp" then FSharp
+    let (|FSharp|CSharp|VB|FSharpScript|Markdown|Other|) (document : TextDocument) =
+        if document.languageId = "fsharp" && document.fileName.EndsWith "fsx" then FSharpScript
+        else if document.languageId = "fsharp" then FSharp
         else if document.languageId = "csharp" then CSharp
         else if document.languageId = "vb" then VB
+        else if document.languageId = "markdown" then Markdown
         else Other
 
 [<RequireQualifiedAccess>]
