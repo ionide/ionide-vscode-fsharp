@@ -35,4 +35,5 @@ jobs:
         github-user: Krzysztof-Cieslak
         github-pw: $(github-pw)
         vsce-token: $(vsce-token)
+        create-tag: false
       run: dotnet fake build -t Release
