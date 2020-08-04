@@ -134,11 +134,20 @@ let publishToGallery releaseDir =
     Process.killAllByName "vsce"
     run vsceTool.Value (sprintf "publish --pat %s" token) releaseDir
 
+let commit user email =
+    let message = sprintf "Bump version to %s" release.NugetVersion
+    let command = sprintf "commit -m \"%s\" --author=\"%s %s\"" message user email
+    Fake.Tools.Git.CommandHelper.directRunGitCommandAndFail "." command
+
 let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
     let user =
         match Environment.environVarOrDefault "github-user" "" with
         | s when not (String.IsNullOrWhiteSpace s) -> s
         | _ -> UserInput.getUserInput "Username: "
+    let email =
+        match Environment.environVarOrDefault "user-email" "" with
+        | s when not (String.IsNullOrWhiteSpace s) -> s
+        | _ -> UserInput.getUserInput "Email: "
     let pw =
         match Environment.environVarOrDefault "github-pw" "" with
         | s when not (String.IsNullOrWhiteSpace s) -> s
@@ -149,12 +158,11 @@ let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
         |> Seq.tryFind (fun (s: string) -> s.Contains(gitOwner + "/" + gitName))
         |> function None -> gitHome + "/" + gitName | Some (s: string) -> s.Split().[0]
 
-    Staging.stageAll ""
-    Commit.exec "" (sprintf "Bump version to %s" release.NugetVersion)
-    Branches.pushBranch "" remote (Information.getBranchName "")
-
     match Environment.environVarOrDefault "create-tag" "true" with
     | "true" ->
+        Staging.stageAll ""
+        commit user email
+        Branches.pushBranch "" remote (Information.getBranchName "")
         Branches.tag "" release.NugetVersion
         Branches.pushTag "" remote release.NugetVersion
     | _ ->

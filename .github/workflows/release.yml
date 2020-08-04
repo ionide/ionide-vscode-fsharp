@@ -36,5 +36,6 @@ jobs:
         github-user: Krzysztof-Cieslak
         github-pw: ${{ secrets.USER_TOKEN }}
         vsce-token: ${{ secrets.VSCE_TOKEN }}
+        user-email: "krzysztof_cieslak@windowslive.com"
         create-tag: false
       run: dotnet fake build -t Release
