@@ -134,10 +134,12 @@ let publishToGallery releaseDir =
     Process.killAllByName "vsce"
     run vsceTool.Value (sprintf "publish --pat %s" token) releaseDir
 
-let commit user email =
-    let message = sprintf "Bump version to %s" release.NugetVersion
-    let command = sprintf "commit -m \"%s\" --author=\"%s <%s>\"" message user email
-    Fake.Tools.Git.CommandHelper.directRunGitCommandAndFail "." command
+let ensureGitUser user email =
+    match Fake.Tools.Git.CommandHelper.runGitCommand "." "config user.name" with
+    | true, [username], _ when username = user -> ()
+    | _, _, _ ->
+        Fake.Tools.Git.CommandHelper.directRunGitCommandAndFail "." (sprintf "config user.name %s" user)
+        Fake.Tools.Git.CommandHelper.directRunGitCommandAndFail "." (sprintf "config user.email %s" email)
 
 let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
     let user =
@@ -159,7 +161,8 @@ let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
         |> function None -> gitHome + "/" + gitName | Some (s: string) -> s.Split().[0]
 
     Staging.stageAll ""
-    commit user email
+    ensureGitUser user email
+    Commit.exec "." (sprintf "Bump version to %s" release.NugetVersion)
     Branches.pushBranch "" remote (Information.getBranchName "")
     Branches.tag "" release.NugetVersion
     Branches.pushTag "" remote release.NugetVersion
