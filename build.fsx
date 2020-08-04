@@ -136,7 +136,7 @@ let publishToGallery releaseDir =
 
 let commit user email =
     let message = sprintf "Bump version to %s" release.NugetVersion
-    let command = sprintf "commit -m \"%s\" --author=\"%s %s\"" message user email
+    let command = sprintf "commit -m \"%s\" --author=\"%s <%s>\"" message user email
     Fake.Tools.Git.CommandHelper.directRunGitCommandAndFail "." command
 
 let releaseGithub (release: ReleaseNotes.ReleaseNotes) =

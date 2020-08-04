@@ -1,6 +1,16 @@
 name: Release
 
-on: [workflow_dispatch]
+on: 
+  workflow_dispatch:
+    inputs:
+      username:
+        description: Github usernam of the person triggering the release
+        default: "Krzysztof-Cieslak"
+        required: true
+      email:
+        description: Email of the person triggering the release
+        default: "krzysztof_cieslak@windowslive.com"
+        required: true
 
 jobs:
   release:
@@ -30,8 +40,8 @@ jobs:
     - name: Publish Release
       env:
         nuget-key: ${{ secrets.NUGET_KEY }}
-        github-user: Krzysztof-Cieslak
+        github-user: ${{ github.event.inputs.username }}
         github-pw: ${{ secrets.USER_TOKEN }}
         vsce-token: ${{ secrets.VSCE_TOKEN }}
-        user-email: "krzysztof_cieslak@windowslive.com"
+        user-email: ${{ github.event.inputs.email }}
       run: dotnet fake build -t Release
