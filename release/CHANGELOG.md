@@ -1,3 +1,10 @@
+### 4.15.0 - 4.08.2020
+* Update FSAC:
+  - update fantomas to v4 beta 1
+  - go-to-definition for external types
+  - linter suggestion code actions are fixed
+  - initial literate programming integration via FSharp.Formatting
+
 ### 4.14.0 - 17.06.2020
 * Update FSAC:
   - add go-to (F12) for `#load`
