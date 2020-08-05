@@ -14,11 +14,15 @@ on:
 
 jobs:
   release:
-    runs-on: windows-latest # can by any, just picked windows
+    # this workflow is the same as the build workflow, up until artifact upload + publish
+    runs-on: windows-latest # can be any, just picked windows
 
-    # this is the same as the build workflow, up until artifact upload + publish
     steps:
-    - uses: actions/checkout@v1
+    # manual triggers are detached HEADs, so we need to checkout the branch
+    # to actually create + push a commit later on in the workflow
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.head_ref }}
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
