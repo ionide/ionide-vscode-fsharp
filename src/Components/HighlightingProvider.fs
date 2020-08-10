@@ -9,11 +9,14 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module HighlightingProvider =
+    let private logger = ConsoleAndOutputChannelLogger(Some "Project", Level.DEBUG, None, Some Level.DEBUG)
+
     let tokenTypes = [|
         "comment"; "string"; "keyword"; "number"; "regexp"; "operator"; "namespace";
         "type"; "struct"; "class"; "interface"; "enum"; "enumMember"; "typeParameter"; "function";
-        "member"; "macro"; "variable"; "parameter"; "property"; "label";
-        "mutable"; "disposable"; "cexpr" |] //Last row - custom F# specific types
+        "member"; "macro"; "variable"; "parameter"; "property"; "label"; "variable.readonly.defaultLibrary";
+        "property.readonly";
+        "mutable"; "disposable"; "cexpr"; |] //Last row - custom F# specific types
 
     let legend = SemanticTokensLegend(tokenTypes)
 
@@ -28,9 +31,8 @@ module HighlightingProvider =
                     |> Array.sortBy(fun n -> n.Range.StartLine * 1000000 + n.Range.StartColumn)
                     |> Array.iter (fun n ->
                         builder.push(CodeRange.fromDTO n.Range, n.TokenType)
-
-
                     )
+
                     return builder.build()
                 } |> unbox
         }
