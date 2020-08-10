@@ -1,3 +1,9 @@
+### 4.16.0 - 10.08.2020
+* Update FSAC:
+  - update fantomas to v4 beta 2
+  - update to FCS 37 (string interpolation supported, see [this thread](https://github.com/dotnet/fsharp/pull/8907#issuecomment-670229678) for instructions on how to try it out)
+  - fix a bug in FSX script reference resolution
+
 ### 4.15.0 - 4.08.2020
 * Update FSAC:
   - update fantomas to v4 beta 1
