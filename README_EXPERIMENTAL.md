@@ -1,7 +1,7 @@
 # [Ionide: Experimental FSharp](https://marketplace.visualstudio.com/items/Ionide.experimental-fsharp)
 **Enhanced F# Language Features for Visual Studio Code (EXPERIMENTAL VERSION)**
 
-_Part of the [Ionide](http://ionide.io) plugin suite._ Read detailed documentation at [Ionide docs page](http://ionide.io/docs).
+_Part of the [Ionide](http://ionide.io) plugin suite._ Read detailed documentation at [Ionide docs page](http://ionide.io).
 
 [![Version](https://vsmarketplacebadge.apphb.com/version/Ionide.experimental-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.experimental-fsharp) [![Installs](https://vsmarketplacebadge.apphb.com/downloads-short/Ionide.experimental-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.experimental-fsharp)
 [![Rating](https://vsmarketplacebadge.apphb.com/rating-star/Ionide.experimental-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.experimental-fsharp)
