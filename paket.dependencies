@@ -1,11 +1,30 @@
 source https://api.nuget.org/v3/index.json
 storage:none
 
-clitool dotnet-fable < 2.0
-nuget Fable.Core < 2.0
-nuget Fable.HtmlConverter < 2.0
-nuget Fable.Import.Node < 2.0
-nuget Fable.Import.Browser < 2.0
+nuget Fable.Core ~> 3.1.5
+nuget Fable.Promise ~> 2.1.0
+nuget Fable.Node ~> 1.0.2
+nuget Fable.HtmlConverter ~> 2.0.0
+nuget Thoth.Json ~> 4.1.0
+
+// todo: which are needed?
+nuget Fable.Browser.Blob ~> 1.1.0
+nuget Fable.Browser.Dom ~> 2.0.1
+nuget Fable.Browser.Event ~> 1.2.1
+nuget Fable.Browser.Performance ~> 1.0.0
+nuget Fable.Browser.Url ~> 1.0.0
+nuget Fable.Browser.WebSocket ~> 1.0.1
+nuget Fable.Browser.WebRTC ~> 1.2.0
+nuget Fable.Browser.WebStorage ~> 1.0.0
+nuget Fable.Browser.XMLHttpRequest ~> 1.1.2
+nuget Fable.Browser.Svg ~> 2.0.0
+nuget Fable.Browser.Css ~> 2.0.0
+nuget Fable.Browser.Worker ~> 1.0.1
+//nuget Fable.Browser.Geolocation ~> 1.0.0
+nuget Fable.Browser.Navigator ~> 1.0.0
+//nuget Fable.Browser.MediaStream ~> 2.0.1
+//nuget Fable.Browser.MediaQueryList ~> 1.1.1
+//nuget Fable.Browser.WebGL ~> 1.0.0
 
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd", OS: win
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.sh", OS: linux
@@ -18,13 +37,15 @@ git https://github.com/ionide/Forge.git master build:"build.sh", OS: osx
 
 git https://github.com/ionide/ionide-fsgrammar.git master
 
-github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
-github ionide/ionide-vscode-helpers src/Helpers.fs
-github ionide/ionide-vscode-helpers src/Fable.Import.Showdown.fs
-github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.LanguageServer.fs
+//todo: uncomment once it's updated
+//github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
+//github ionide/ionide-vscode-helpers src/Helpers.fs
+//github ionide/ionide-vscode-helpers src/Fable.Import.Showdown.fs
+//github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.LanguageServer.fs
 
 group build
   source https://api.nuget.org/v3/index.json
+  framework:netstandard2.0
 
   nuget Fake.Core.Target
   nuget Fake.Core.Process
@@ -40,4 +61,3 @@ group build
   nuget Fake.Api.GitHub
   nuget Fake.Tools.Git
   nuget Fake.JavaScript.Yarn
-
