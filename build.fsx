@@ -62,9 +62,8 @@ let npmTool =
 let vsceTool = lazy (platformTool "vsce" "vsce.cmd")
 
 let runFable additionalArgs =
-    let cmd = "webpack -- --config webpack.config.js " + additionalArgs
-    DotNet.exec (fun p -> { p with WorkingDirectory = "src"; } ) "fable" cmd
-    |> ignore
+    let cmd = "webpack " + additionalArgs 
+    Yarn.exec cmd id
 
 let copyFSAC releaseBin fsacBin =
     Directory.ensure releaseBin
@@ -211,8 +210,7 @@ Target.create "CopyDocs" (fun _ ->
 )
 
 Target.create "RunScript" (fun _ ->
-    // Ideally we would want a production (minized) build but UglifyJS fail on PerMessageDeflate.js as it contains non-ES6 javascript.
-    runFable ""
+    runFable "--mode production"
 )
 
 Target.create "CopyFSAC" (fun _ ->
