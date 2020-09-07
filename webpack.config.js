@@ -1,25 +1,25 @@
 var path = require("path");
-var webpack = require("webpack");
-var fableUtils = require("fable-utils");
 var nodeExternals = require('webpack-node-externals');
 
 function resolve(filePath) {
   return path.join(__dirname, filePath)
 }
 
+var babelOptions = {
+  presets: [
+    ["@babel/preset-env", {
+      "modules": false
+    }]
+  ],
+  plugins: ["@babel/plugin-transform-runtime"]
+}
 
-var babelOptions = fableUtils.resolveBabelOptions({
-  presets: [["es2015", { "modules": false }]],
-  plugins: ["transform-runtime"]
-});
-
-var isProduction = process.argv.indexOf("-p") >= 0;
-console.log("Bundling for " + (isProduction ? "production" : "development") + "...");
-
-module.exports = function(env) {
+module.exports = function(env, argv) {
+  var isProduction = argv.mode == "production"
+  console.log("Bundling for " + (isProduction ? "production" : "development") + "...");
 
   var ionideExperimental = (env && env.ionideExperimental);
-  var outputPath = ionideExperimental? "release-exp" : "release";
+  var outputPath = ionideExperimental ? "release-exp" : "release";
   console.log("Output path: " + outputPath);
 
   var compilerDefines = isProduction ? [] : ["DEBUG"];
@@ -29,13 +29,14 @@ module.exports = function(env) {
 
   return {
   target: 'node',
+  mode: isProduction ? "production" : "development",
   devtool: "source-map",
   entry: resolve('./src/Ionide.FSharp.fsproj'),
   output: {
     filename: 'fsharp.js',
     path: resolve('./' + outputPath),
     //library: 'IONIDEFSHARP',
-    libraryTarget: 'commonjs'
+    libraryTarget: 'commonjs2'
   },
   resolve: {
     modules: [resolve("./node_modules/")]
