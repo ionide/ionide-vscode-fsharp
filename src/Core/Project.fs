@@ -99,7 +99,7 @@ module Project =
             match v, state  with
             | ProjectLoadingState.Loaded _, ProjectLoadingState.Loading _ -> ()
             | _ ->
-                loadedProjects.Add(path, state)
+                loadedProjects.[path] <- state
                 statusUpdatedEmitter.fire ()
         | _ ->
             loadedProjects.Add(path, state)

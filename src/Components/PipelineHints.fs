@@ -60,7 +60,7 @@ module Documents =
             documents.Add(fileName, value)
             value
 
-    let inline set fileName value (documents : Documents) = documents.Add(fileName, value)
+    let inline set fileName value (documents : Documents) = documents.[fileName] <- value
 
     let update info (decorations : ResizeArray<DecorationOptions>) version (documents : Documents) =
         let updated =
