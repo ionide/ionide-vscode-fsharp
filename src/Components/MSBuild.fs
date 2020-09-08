@@ -1,16 +1,15 @@
 namespace Ionide.VSCode.FSharp
 
-open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 
 open DTO
 open Ionide.VSCode.Helpers
 open Ionide.VSCode.Helpers.Process
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 module MSBuild =
 
@@ -393,8 +392,8 @@ module MSBuild =
         Project.projectNotRestoredLoaded.Invoke(fun n -> restoreProjectWithoutParseData n |> unbox)
         |> context.subscriptions.Add
 
-        let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, unbox<Func<obj, obj>> action) |> context.subscriptions.Add
-        let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, Func<obj, obj, obj>(fun a b -> action a b |> unbox)) |> context.subscriptions.Add
+        let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, action |> objfy2) |> context.subscriptions.Add
+        let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, action |> objfy3) |> context.subscriptions.Add
 
         /// typed msbuild cmd. Optional project and msbuild host
         let typedMsbuildCmd f projOpt hostOpt =

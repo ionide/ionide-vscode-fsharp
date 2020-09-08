@@ -5,14 +5,13 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 open Ionide.VSCode.Helpers
 open System.Collections.Generic
 
 open DTO
 open DTO.FakeSupport
-open Ionide.VSCode.Helpers
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 module FakeTargetsOutline =
 
@@ -276,7 +275,7 @@ module FakeTargetsOutline =
             reallyRefresh.fire(None)
 
 
-    type [<Pojo>] RequestLaunch =
+    type RequestLaunch =
         { name : string
           ``type`` : string
           request : string
@@ -306,7 +305,7 @@ module FakeTargetsOutline =
         workspace.onDidChangeConfiguration.Invoke(unbox onDidChangeConfiguration)
             |> context.subscriptions.Add
 
-        commands.registerCommand("FAKE.targetsOutline.goTo", Func<obj, obj>(fun n ->
+        commands.registerCommand("FAKE.targetsOutline.goTo", objfy2 (fun n ->
             let m = unbox<Model> n
             match m.Declaration with
             | Some decl ->
@@ -374,22 +373,22 @@ module FakeTargetsOutline =
         let runTarget onlySingleTarget targetName =
             runFake false onlySingleTarget targetName :> obj
 
-        commands.registerCommand("fake.targetsOutline.reloadTargets", Func<obj, obj>(fun _ ->
+        commands.registerCommand("fake.targetsOutline.reloadTargets", objfy2 (fun _ ->
             refresh.fire undefined |> unbox
         )) |> context.subscriptions.Add
-        commands.registerCommand("fake.targetsOutline.runTarget", Func<obj, obj>(fun n ->
+        commands.registerCommand("fake.targetsOutline.runTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             runTarget false item.Label
         )) |> context.subscriptions.Add
-        commands.registerCommand("fake.targetsOutline.debugTarget", Func<obj, obj>(fun n ->
+        commands.registerCommand("fake.targetsOutline.debugTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             debugTarget false item.Label
         )) |> context.subscriptions.Add
-        commands.registerCommand("fake.targetsOutline.runSingleTarget", Func<obj, obj>(fun n ->
+        commands.registerCommand("fake.targetsOutline.runSingleTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             runTarget true item.Label
         )) |> context.subscriptions.Add
-        commands.registerCommand("fake.targetsOutline.debugSingleTarget", Func<obj, obj>(fun n ->
+        commands.registerCommand("fake.targetsOutline.debugSingleTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             debugTarget true item.Label
         )) |> context.subscriptions.Add

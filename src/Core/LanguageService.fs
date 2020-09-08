@@ -5,7 +5,7 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 open Ionide.VSCode.Helpers
 
 open DTO

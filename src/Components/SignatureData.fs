@@ -3,7 +3,6 @@ namespace Ionide.VSCode.FSharp
 open System
 open Fable.Import.vscode
 open DTO
-open Ionide.VSCode.Helpers
 
 module SignatureData =
 
@@ -58,6 +57,7 @@ module SignatureData =
 
 
     let activate (context : ExtensionContext) =
-        commands.registerCommand("fsharp.generateDoc", generateDoc |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.generateDoc", generateDoc |> objfy2) 
+        |> context.subscriptions.Add
 
         ()

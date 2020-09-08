@@ -5,11 +5,11 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 
 open DTO
 open Ionide.VSCode.Helpers
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 module Forge =
 
@@ -217,12 +217,12 @@ module Forge =
     let activate (context : ExtensionContext) =
         let watcher = workspace.createFileSystemWatcher ("**/*.fs")
 
-        commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> unbox<Func<obj,obj>> ) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.NewProject", newProject |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> objfy2 ) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.NewProject", newProject |> objfy2) |> context.subscriptions.Add
         commands.registerTextEditorCommand("fsharp.AddFileToProject", addCurrentFileToProject |> unbox) |> context.subscriptions.Add
         commands.registerTextEditorCommand("fsharp.RemoveFileFromProject", removeCurrentFileFromProject |> unbox) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.AddProjectReference", addProjectReference |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.RemoveProjectReference", removeProjectReference |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.AddProjectReference", addProjectReference |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.RemoveProjectReference", removeProjectReference |> objfy2) |> context.subscriptions.Add
 
         ()

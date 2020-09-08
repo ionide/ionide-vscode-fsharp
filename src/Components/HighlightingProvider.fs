@@ -1,8 +1,6 @@
 namespace Ionide.VSCode.FSharp
 
-open System
 open Fable.Core.JsInterop
-open Fable.Import
 open Fable.Import.vscode
 
 open DTO

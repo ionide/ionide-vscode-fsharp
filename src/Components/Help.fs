@@ -1,12 +1,9 @@
 namespace Ionide.VSCode.FSharp
 
-open System
-open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
 
 open DTO
-open Ionide.VSCode.Helpers
 
 module Help =
 
@@ -28,7 +25,7 @@ module Help =
 
     let activate (context : ExtensionContext) =
         let registerCommand com (f : unit -> _) =
-            vscode.commands.registerCommand(com, unbox<Func<obj,obj>> f)
+            vscode.commands.registerCommand(com, f |> objfy2)
             |> context.subscriptions.Add
 
         registerCommand "fsharp.getHelp" getHelp

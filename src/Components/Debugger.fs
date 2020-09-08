@@ -1,19 +1,18 @@
 namespace Ionide.VSCode.FSharp
 
-open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 open Ionide.VSCode.Helpers
 open DTO
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 [<RequireQualifiedAccess>]
 module LaunchJsonVersion2 =
 
-    type [<Pojo>] RequestLaunch =
+    type RequestLaunch =
         { name : string
           ``type`` : string
           request : string
@@ -35,7 +34,7 @@ module LaunchJsonVersion2 =
           console = "externalTerminal"
           stopAtEntry = false }
 
-    type [<Pojo>] RequestAttach =
+    type RequestAttach =
         { name : string
           ``type`` : string
           request : string
@@ -185,9 +184,9 @@ module Debugger =
 
 
     let activate (c : ExtensionContext) =
-        commands.registerCommand("fsharp.runDefaultProject", (buildAndRunDefault) |> unbox<Func<obj,obj>> ) |> c.subscriptions.Add
-        commands.registerCommand("fsharp.debugDefaultProject", (buildAndDebugDefault) |> unbox<Func<obj,obj>> ) |> c.subscriptions.Add
-        commands.registerCommand("fsharp.chooseDefaultProject", (chooseDefaultProject) |> unbox<Func<obj,obj>> ) |> c.subscriptions.Add
+        commands.registerCommand("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2 ) |> c.subscriptions.Add
+        commands.registerCommand("fsharp.debugDefaultProject", (buildAndDebugDefault) |> objfy2 ) |> c.subscriptions.Add
+        commands.registerCommand("fsharp.chooseDefaultProject", (chooseDefaultProject) |> objfy2 ) |> c.subscriptions.Add
 
         context <- Some c
         startup <- c.workspaceState.get<Project> "defaultProject"
