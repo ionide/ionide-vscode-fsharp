@@ -21,7 +21,7 @@
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
 			"stopOnEntry": false,
 			"request": "launch",
-			"sourceMaps": false
+			"sourceMaps": true
 		},
 		{
 			"name": "Launch Only",
@@ -30,7 +30,7 @@
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
 			"stopOnEntry": false,
 			"request": "launch",
-			"sourceMaps": false
+			"sourceMaps": true
 		}
 	]
 }
