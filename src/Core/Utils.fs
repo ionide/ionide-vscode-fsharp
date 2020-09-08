@@ -3,6 +3,16 @@ namespace Ionide.VSCode.FSharp
 open System
 open Fable.Import.vscode
 
+[<AutoOpen>]
+module Json =
+    open Thoth.Json
+
+    /// Previously `Fable.Core.JsInterop.ofJson`
+    /// Instantiate F# objects from JSON
+    let inline ofJson<'a> json : 'a = 
+        // see https://fable.io/blog/Migration-to-Fable2.html#breaking-changes
+        Decode.Auto.unsafeFromString<'a>(json)
+
 [<RequireQualifiedAccess>]
 module CodeRange =
 
@@ -124,16 +134,16 @@ module Utils =
 [<AutoOpen>]
 module JS =
     open Fable.Core
-    open Fable.Import.Node
+    open global.Node
 
     /// Schedules execution of a one-time callback after delay milliseconds.
     /// Returns a Timeout for use with `clearTimeout`.
     [<Emit("setTimeout($0, $1)")>]
-    let setTimeout (callback : unit -> unit) (delay : float) : Base.NodeJS.Timer = jsNative
+    let setTimeout (callback : unit -> unit) (delay : float) : Base.Timer = jsNative
 
     /// Cancels a Timeout object created by `setTimeout`.
     [<Emit("clearTimeout($0)")>]
-    let clearTimeout (timeout : Base.NodeJS.Timer) : unit = jsNative
+    let clearTimeout (timeout : Base.Timer) : unit = jsNative
 
     [<Emit("debugger")>]
     let debugger () : unit = failwith "JS Only"
@@ -209,24 +219,38 @@ module Array =
         | _ -> xs.[0..n-1], xs.[n..]
 
 module Promise =
+    open Fable.Core
 
-    open Fable.Import.JS
-    open Ionide.VSCode.Helpers
+    // source: https://github.com/ionide/ionide-vscode-helpers/blob/5e4c28c79ed565497cd481fac2f22ee2d8d28406/src/Helpers.fs#L98
+    let empty<'T> = Promise.lift (unbox<'T> null)
 
-    let suppress (pr : Promise<'T>) =
-        pr |> Ionide.VSCode.Helpers.Promise.catch (fun _ -> promise { () })
+    let onSuccess = Promise.tap
+
+    // source: https://github.com/ionide/ionide-vscode-helpers/blob/5e4c28c79ed565497cd481fac2f22ee2d8d28406/src/Helpers.fs#L92
+    let onFail a (pr: JS.Promise<_>) : JS.Promise<_> =
+        pr
+        |> Promise.catchBind (fun reason -> 
+                a reason |> ignore 
+                Promise.reject reason
+            )
+
+    let suppress (pr : JS.Promise<'T>) =
+        pr
+        |> Promise.either
+            (fun _ -> U2.Case1 ())
+            (fun _ -> U2.Case1 ())
 
     let executeForAll f items =
         match items with
-        | [] -> Ionide.VSCode.Helpers.Promise.lift (null |> unbox)
+        | [] -> empty
         | [x] -> f x
         | x::tail ->
-            tail |> List.fold (fun acc next -> acc |> Ionide.VSCode.Helpers.Promise.bind (fun _ -> f next)) (f x)
+            tail |> List.fold (fun acc next -> acc |> Promise.bind (fun _ -> f next)) (f x)
 
 module Event =
 
     let invoke (listener : 'T -> _) (event : Fable.Import.vscode.Event<'T>) =
-        event.Invoke(unbox<System.Func<_, _>>(fun a -> listener a))
+        event.Invoke(listener >> unbox)
 
 module Context =
 
@@ -338,3 +362,11 @@ module VSCodeExtension =
 
     let workbenchViewId () =
         sprintf "workbench.view.extension.%s" extensionName
+
+
+[<AutoOpen>]
+module Objectify =
+    let inline objfy2 (f: 'a -> 'b): obj -> obj = unbox f
+    let inline objfy3 (f: 'a -> 'b -> 'c): obj -> obj -> obj = unbox f
+    let inline objfy4 (f: 'a -> 'b -> 'c -> 'd): obj -> obj -> obj -> obj = unbox f
+    let inline objfy5 (f: 'a -> 'b -> 'c -> 'd -> 'e): obj -> obj -> obj -> obj -> obj = unbox f

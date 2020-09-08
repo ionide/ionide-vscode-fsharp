@@ -3,7 +3,7 @@ namespace Ionide.VSCode.FSharp
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Ionide.VSCode.Helpers
+open System.Text.RegularExpressions
 
 module LanguageConfiguration =
 
@@ -11,9 +11,9 @@ module LanguageConfiguration =
 
     let indentationRules =
         jsOptions<IndentationRule> (fun o ->
-            o.increaseIndentPattern <- JS.RegExp.Create("""^(\s*(module|type|let|static member|member)\b.*=\s*)$|^(\s*(with get|and set)\b.*=.*)$|^(\s*(if|elif|then|else|static member|member)).*$""")
+            o.increaseIndentPattern <- Regex("""^(\s*(module|type|let|static member|member)\b.*=\s*)$|^(\s*(with get|and set)\b.*=.*)$|^(\s*(if|elif|then|else|static member|member)).*$""")
 
-            o.decreaseIndentPattern <- JS.RegExp.Create("""^(\s*(else|elif|and)).*$""")
+            o.decreaseIndentPattern <- Regex("""^(\s*(else|elif|and)).*$""")
         )
 
     let setLanguageConfiguration (triggerNotification : bool) (context : ExtensionContext) =
@@ -29,7 +29,7 @@ module LanguageConfiguration =
                                 action.indentAction <- IndentAction.Indent
                                 action.appendText <- Some "/// "
                             )
-                            rule.beforeText <- JS.RegExp.Create("^\s*\/{3}.*$")
+                            rule.beforeText <- Regex("^\s*\/{3}.*$")
                         )
 
                     |]

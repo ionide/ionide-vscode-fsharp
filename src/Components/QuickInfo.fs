@@ -6,7 +6,6 @@ open Ionide.VSCode.Helpers
 
 module Fsdn =
 
-    open System
     open Fable.Core
     open Fable.Core.JsInterop
 

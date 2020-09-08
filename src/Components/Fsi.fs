@@ -4,19 +4,15 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 
 open DTO
 open Ionide.VSCode.Helpers
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 module Fsi =
     module SdkScriptsNotify =
 
-        open Fable.Core
-        open Fable.Import.Node
-        open Fable.Import.vscode
-        open Ionide.VSCode.Helpers
         open Ionide.VSCode.FSharp
 
         let suggestKey = "FSharp.suggestSdkScripts"
@@ -136,7 +132,7 @@ module Fsi =
 
 
             node.fs.readFile(varsUri, (fun _ buf ->
-                let cnt = buf.toString()
+                let cnt = buf.ToString()
                 varsContent <-
                     cnt
                     |> String.split [| '\n' |]
@@ -152,7 +148,7 @@ module Fsi =
             ))
 
             node.fs.readFile(funcUri, (fun _ buf ->
-                let cnt = buf.toString()
+                let cnt = buf.ToString()
                 funcsContent <-
                     cnt
                     |> String.split [| '\n' |]
@@ -168,7 +164,7 @@ module Fsi =
             ))
 
             node.fs.readFile(typesUri, (fun _ buf ->
-                let cnt = buf.toString()
+                let cnt = buf.ToString()
                 typesContent <-
                     if String.IsNullOrWhiteSpace cnt then
                         ""
@@ -462,12 +458,12 @@ module Fsi =
 
         window.onDidCloseTerminal $ (handleCloseTerminal, (), context.subscriptions) |> ignore
 
-        commands.registerCommand("fsi.Start", start |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendLine", sendLine |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendSelection", sendSelection |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendLastSelection", sendLastSelection |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendFile", sendFile |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendText", sendText |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendProjectReferences", sendReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsi.OpenWatcher", Watcher.openPanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsi.Start", start |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendLine", sendLine |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendSelection", sendSelection |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendLastSelection", sendLastSelection |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendFile", sendFile |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendText", sendText |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsi.SendProjectReferences", sendReferences |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsi.OpenWatcher", Watcher.openPanel |> objfy2) |> context.subscriptions.Add

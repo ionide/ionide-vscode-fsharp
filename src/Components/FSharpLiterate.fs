@@ -1,12 +1,10 @@
 namespace Ionide.VSCode.FSharp
 
-open System
 open Fable.Import.vscode
-open Fable.Import.Node
-open Ionide.VSCode.Helpers
+open global.Node
 open Fable.Core.JsInterop
 
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 module FSharpLiterate =
     module private Panel =
@@ -263,4 +261,4 @@ module FSharpLiterate =
     let activate (context : ExtensionContext) =
         workspace.onDidSaveTextDocument.Invoke(unbox fileSaved) |> context.subscriptions.Add
         window.onDidChangeActiveTextEditor.Invoke(unbox updatePanel) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.openFSharpLiterate", openPanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.openFSharpLiterate", openPanel |> objfy2) |> context.subscriptions.Add

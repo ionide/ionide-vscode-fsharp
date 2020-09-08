@@ -1,12 +1,13 @@
 namespace Ionide.VSCode.FSharp
 
 open System
+open Fable.Core
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 
 open Ionide.VSCode.Helpers
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 module Diagnostics =
 
@@ -19,17 +20,17 @@ module Diagnostics =
                 resolve(outputString)
             )
             |> Process.onError (fun e ->
-                let error = unbox<JS.Error> e
-                reject (error.message)
+                let error = unbox<Exception> e
+                reject error
             )
             |> Process.onErrorOutput (fun e ->
-                let error = unbox<JS.Error> e
-                reject (error.message)
+                let error = unbox<Exception> e
+                reject error
             )
             |> ignore
         )
         |> Promise.onFail (fun error ->
-            Fable.Import.Browser.console.error(
+            Browser.Dom.console.error(
                 """
 ["IONIDE-DIAGNOSTICS"]
 Failed to execute command:
@@ -195,15 +196,15 @@ Error: %s
 
     let getIonideLogs () =
         let writeStream =
-            node.path.join(Exports.os.tmpdir(), "ionide", "FSAC_logs")
+            node.path.join(Api.os.tmpdir(), "ionide", "FSAC_logs")
             |> Environment.ensureDirectory
-            |> fun dir -> Exports.path.join(dir, DateTime.Now.ToString("yyyyMMdd-HHmmss.log"))
-            |> Exports.fs.createWriteStream
+            |> fun dir -> Api.path.join(dir, DateTime.Now.ToString("yyyyMMdd-HHmmss.log"))
+            |> Api.fs.createWriteStream
 
         Promise.create(fun resolve reject ->
             writeStream.on("error", reject) |> ignore
             writeStream.on("close", (fun _ -> resolve writeStream.path)) |> ignore
-            writeStream.write(node.buffer.Buffer.Create(Logging.getIonideLogs ())) |> ignore
+            writeStream.write(Logging.getIonideLogs ()) |> ignore
             writeStream.close()
         )
         |> Promise.bind(fun path ->
@@ -224,14 +225,14 @@ Error: %s
             )
         )
         |> Promise.onFail(fun error ->
-            Fable.Import.Browser.console.error(error)
+            Browser.Dom.console.error(error)
             vscode.window.showErrorMessage("Couldn't retrieved the FSAC logs file") |> ignore
         )
 
 
     let activate (context : ExtensionContext) =
-        commands.registerCommand("fsharp.diagnostics.getInfos", getDiagnosticsInfos |> unbox<Func<obj,obj>> )
+        commands.registerCommand("fsharp.diagnostics.getInfos", getDiagnosticsInfos |> objfy2)
         |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.diagnostics.getIonideLogs", getIonideLogs |> unbox<Func<obj,obj>>)
+        commands.registerCommand("fsharp.diagnostics.getIonideLogs", getIonideLogs |> objfy2)
         |> context.subscriptions.Add
