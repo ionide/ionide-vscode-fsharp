@@ -2,10 +2,20 @@
 {
 	"version": "0.2.0",
 	"configurations": [
-
+ 
 		{
-            "preLaunchTask": "Extension Build",
+      "preLaunchTask": "Extension Build",
 			"name": "Build and Launch Extension",
+			"type": "extensionHost",
+			"runtimeExecutable": "${execPath}",
+			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
+			"stopOnEntry": false,
+			"request": "launch",
+			"sourceMaps": false
+		},
+		{
+      "preLaunchTask": "Extension Build (dev)",
+			"name": "Build (dev) and Launch Extension",
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
 			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],

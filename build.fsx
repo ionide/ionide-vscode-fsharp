@@ -196,7 +196,7 @@ Target.create "DotNetRestore" <| fun _ ->
     DotNet.restore id "src"
 
 Target.create "Watch" (fun _ ->
-    runFable "--watch"
+    runFable "--mode development --watch"
 )
 
 Target.create "InstallVSCE" ( fun _ ->
@@ -211,6 +211,10 @@ Target.create "CopyDocs" (fun _ ->
 
 Target.create "RunScript" (fun _ ->
     runFable "--mode production"
+)
+
+Target.create "RunDevScript" (fun _ ->
+    runFable "--mode development"
 )
 
 Target.create "CopyFSAC" (fun _ ->
@@ -276,6 +280,7 @@ Target.create "ReleaseGitHub" (fun _ ->
 
 Target.create "Default" ignore
 Target.create "Build" ignore
+Target.create "BuildDev" ignore
 Target.create "BuildExp" ignore
 Target.create "Release" ignore
 Target.create "ReleaseExp" ignore
@@ -309,5 +314,14 @@ Target.create "BuildPackages" ignore
 ==> "ReleaseGitHub"
 ==> "PublishToGallery"
 ==> "Release"
+
+"YarnInstall" ==> "Watch"
+"DotNetRestore" ==> "Watch"
+
+"YarnInstall" ==> "RunDevScript"
+"DotNetRestore" ==> "RunDevScript"
+
+"RunDevScript"
+==> "BuildDev"
 
 Target.runOrDefault "Default"
