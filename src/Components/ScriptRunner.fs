@@ -1,10 +1,8 @@
 namespace Ionide.VSCode.FSharp
 
-open System
 open Fable.Import.vscode
-open Fable.Import.Node
-open Ionide.VSCode.Helpers
-module node = Fable.Import.Node.Exports
+open global.Node
+module node = Node.Api
 
 module ScriptRunner =
 
@@ -37,4 +35,4 @@ module ScriptRunner =
 
 
     let activate (context : ExtensionContext) =
-        commands.registerCommand("fsharp.scriptrunner.run", runFile |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.scriptrunner.run", runFile |> objfy2) |> context.subscriptions.Add

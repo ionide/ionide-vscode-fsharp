@@ -5,12 +5,10 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 open Ionide.VSCode.Helpers
 open DTO
-open Fable
-open Fable.Import.vscode
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 module InfoPanel =
 
@@ -318,11 +316,11 @@ module InfoPanel =
         context.subscriptions.Add(Notifications.onDocumentParsed.Invoke(unbox documentParsedHandler))
         context.subscriptions.Add(Notifications.tooltipRequested.Invoke(!! tooltipRequested))
 
-        commands.registerCommand("fsharp.openInfoPanel", openPanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.updateInfoPanel", updatePanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.openInfoPanel.lock", lockPanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.openInfoPanel.unlock", unlockPanel |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.showDocumentation", showDocumentation |> unbox<Func<obj,obj>>) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.openInfoPanel", openPanel |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.updateInfoPanel", updatePanel |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.openInfoPanel.lock", lockPanel |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.openInfoPanel.unlock", unlockPanel |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.showDocumentation", showDocumentation |> objfy2) |> context.subscriptions.Add
 
         if startLocked then Panel.locked <- true
         if show && window.visibleTextEditors |> Seq.exists isFsharpTextEditor

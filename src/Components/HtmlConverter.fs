@@ -1,10 +1,8 @@
 namespace Ionide.VSCode.FSharp
 
-open System
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Ionide.VSCode.Helpers
 open HtmlConverter.Converter
 
 module HtmlConverter =
@@ -25,5 +23,5 @@ module HtmlConverter =
 
 
     let activate (context : ExtensionContext) =
-        commands.registerCommand("fsharp.htmlConverter.convert", convert |> unbox<Func<obj,obj>>)
+        commands.registerCommand("fsharp.htmlConverter.convert", convert |> objfy2)
         |> context.subscriptions.Add

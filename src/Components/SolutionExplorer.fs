@@ -5,13 +5,13 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 open Ionide.VSCode.Helpers
 open System.Collections.Generic
 open System.Text.RegularExpressions
 
 open DTO
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 module SolutionExplorer =
 
@@ -512,10 +512,9 @@ module SolutionExplorer =
             treeView.onDidChangeVisibility.Invoke(unbox onDidChangeTreeVisibility')
                 |> context.subscriptions.Add
 
-            commands.registerCommand("fsharp.revealInSolutionExplorer", Func<obj, obj>(fun m ->
-                revealTextEditor treeView state window.activeTextEditor true
-                unbox ()
-            )) |> context.subscriptions.Add
+            commands.registerCommand("fsharp.revealInSolutionExplorer", (fun _ -> revealTextEditor treeView state window.activeTextEditor true) |> objfy2) 
+            |> context.subscriptions.Add
+                
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fs")
 
@@ -531,21 +530,21 @@ module SolutionExplorer =
             emiter.fire (undefined) |> unbox)
         |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.refresh", Func<obj, obj>(fun _ ->
+        commands.registerCommand("fsharp.explorer.refresh", objfy2 (fun _ ->
             emiter.fire (undefined) |> unbox
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.clearCache", Func<obj, obj>(fun _ ->
+        commands.registerCommand("fsharp.explorer.clearCache", objfy2 (fun _ ->
             Project.clearCache ()
             |> unbox
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.msbuild.pickHost", Func<obj, obj>(fun _ ->
+        commands.registerCommand("fsharp.explorer.msbuild.pickHost", objfy2 (fun _ ->
             MSBuild.pickMSbuildHostType ()
             |> unbox
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.moveUp", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.moveUp", objfy2 (fun m ->
             match unbox m with
             | File (_, p, _, _) ->
                 Forge.moveFileUpPath p
@@ -553,7 +552,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.moveDown", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.moveDown", objfy2 (fun m ->
             match unbox m with
             | File (_, p, _, _) ->
                 Forge.moveFileDownPath p
@@ -561,7 +560,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.moveToFolder", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.moveToFolder", objfy2 (fun m ->
             let folders =
                 getRoot()
                 |> getFolders
@@ -573,7 +572,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.removeFile", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.removeFile", objfy2 (fun m ->
             match unbox m with
             | File (_, p, _, _) ->
                 Forge.removeFilePath p
@@ -581,7 +580,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.renameFile", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.renameFile", objfy2 (fun m ->
             match unbox m with
             | File (_, old, _, proj) ->
                 Forge.renameFilePath old proj
@@ -589,7 +588,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.addAbove", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.addAbove", objfy2 (fun m ->
             match unbox m with
             | File (_, from, name, proj) ->
                 let opts = createEmpty<InputBoxOptions>
@@ -610,7 +609,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.addBelow", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.addBelow", objfy2 (fun m ->
             match unbox m with
             | File (_, from, name, proj) ->
                 let opts = createEmpty<InputBoxOptions>
@@ -631,7 +630,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.addFile", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.addFile", objfy2 (fun m ->
             match unbox m with
             | Project (_, proj, name, _,_,_,_,_) ->
                 let opts = createEmpty<InputBoxOptions>
@@ -651,7 +650,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.addProjecRef", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.addProjecRef", objfy2 (fun m ->
             match unbox m with
             | ProjectReferencesList (_, _, p) ->
                 Forge.addProjectReferencePath p
@@ -659,7 +658,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.removeProjecRef", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.removeProjecRef", objfy2 (fun m ->
             match unbox m with
             | ProjectReference (_, path, _, p) ->
                 Forge.removeProjectReferencePath path p
@@ -886,7 +885,7 @@ module SolutionExplorer =
         commands.registerCommand("fsharp.explorer.project.debug", (unbox >> runDebug >> box))
         |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.openProjectFile", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.openProjectFile", objfy2 (fun m ->
             let pathOpt =
                 match unbox m with
                 | ProjectNotLoaded (_, path, _) -> Some path
@@ -904,7 +903,7 @@ module SolutionExplorer =
 
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.msbuild.build", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.msbuild.build", objfy2 (fun m ->
             match unbox m with
             | Project (_, path, _, _, _, _, _, pr) ->
                 MSBuild.buildProjectPath "Build" pr
@@ -912,7 +911,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.msbuild.rebuild", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.msbuild.rebuild", objfy2 (fun m ->
             match unbox m with
             | Project (_, path, _, _, _, _, _, pr) ->
                 MSBuild.buildProjectPath "Rebuild" pr
@@ -920,7 +919,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.msbuild.clean", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.msbuild.clean", objfy2 (fun m ->
             match unbox m with
             | Project (_, path, _, _, _, _, _, pr) ->
                 MSBuild.buildProjectPath "Clean" pr
@@ -928,7 +927,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.msbuild.restore", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.msbuild.restore", objfy2 (fun m ->
             match unbox m with
             | Project (_, path, _, _, _, _, _, pr) ->
                 MSBuild.restoreProjectPath pr
@@ -939,7 +938,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.solution.build", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.solution.build", objfy2 (fun m ->
             match unbox m with
             | Solution (_, path, _, _) ->
                 MSBuild.buildSolution "Build" path
@@ -947,7 +946,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.solution.rebuild", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.solution.rebuild", objfy2 (fun m ->
             match unbox m with
             | Solution (_, path, _, _) ->
                 MSBuild.buildSolution "Rebuild" path
@@ -955,7 +954,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.solution.clean", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.solution.clean", objfy2 (fun m ->
             match unbox m with
             | Solution (_, path, _, _) ->
                 MSBuild.buildSolution "Clean" path
@@ -963,7 +962,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.solution.restore", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.solution.restore", objfy2 (fun m ->
             match unbox m with
             | Solution (_, path, _, _) ->
                 MSBuild.buildSolution "Restore" path
@@ -971,7 +970,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.project.run", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.project.run", objfy2 (fun m ->
             match unbox m with
             | Project (_, _, _, _, _, _, _, pr) ->
                 Debugger.buildAndRun pr
@@ -979,7 +978,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.project.setDefault", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.project.setDefault", objfy2 (fun m ->
             match unbox m with
             | Project (_, _, _, _, _, _, _, pr) ->
                 Debugger.setDefaultProject pr
@@ -987,7 +986,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.project.generateFSI", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.project.generateFSI", objfy2 (fun m ->
             match unbox m with
             | Project (_, _, _, _, _, _, _, pr) ->
                 Fsi.generateProjectReferencesForProject pr
@@ -995,7 +994,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.project.sendFSI", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.project.sendFSI", objfy2 (fun m ->
             match unbox m with
             | Project (_, _, _, _, _, _, _, pr) ->
                 Fsi.sendReferencesForProject pr
@@ -1003,7 +1002,7 @@ module SolutionExplorer =
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.solution.addProject", Func<obj, obj>(fun m ->
+        commands.registerCommand("fsharp.explorer.solution.addProject", objfy2 (fun m ->
             match unbox m with
             | Solution (_, _,name, _) ->
                 promise {

@@ -3,12 +3,10 @@ module Ionide.VSCode.FSharp.PipelineHints
 open System
 open System.Collections.Generic
 open Fable.Core
-open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 open Fable.Core.JsInterop
 open DTO
-open Ionide.VSCode.Helpers
 
 type Number = float
 

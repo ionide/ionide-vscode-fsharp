@@ -3,10 +3,8 @@ namespace Ionide.VSCode.FSharp
 
 module Gitignore =
 
-    open Fable.Core
-    open Fable.Import.Node
+    open global.Node
     open Fable.Import.vscode
-    open Ionide.VSCode.Helpers
     open Ionide.VSCode.FSharp
 
     let GITIGNORE_KEY = "FSharp.suggestGitignore"

@@ -3,12 +3,9 @@ module Ionide.VSCode.FSharp.LineLens
 open System
 open System.Collections.Generic
 open Fable.Core
-open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
 open Fable.Core.JsInterop
 open DTO
-open Ionide.VSCode.Helpers
 
 type Number = float
 

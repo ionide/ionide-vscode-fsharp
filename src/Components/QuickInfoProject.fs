@@ -2,9 +2,9 @@ namespace Ionide.VSCode.FSharp
 
 open Fable.Core
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 module QuickInfoProject =
 
@@ -46,7 +46,7 @@ module QuickInfoProject =
 
 
     let activate (context : ExtensionContext) =
-        commands.registerCommand("openProjectFileFromStatusbar", unbox<System.Func<obj,obj>> (fun _ -> handlerCommand))
+        commands.registerCommand("openProjectFileFromStatusbar", handlerCommand |> objfy2)
         |> context.subscriptions.Add
         item <- Some (window.createStatusBarItem (StatusBarAlignment.Right, 10000. ))
         context.subscriptions.Add(item.Value)

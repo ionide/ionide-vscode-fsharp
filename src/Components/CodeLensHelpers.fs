@@ -3,9 +3,9 @@ namespace Ionide.VSCode.FSharp
 open System
 open Fable.Core.JsInterop
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 module CodeLensHelpers =
 
@@ -24,4 +24,4 @@ module CodeLensHelpers =
 
     let activate (context : ExtensionContext) =
 
-        commands.registerCommand("fsharp.showReferences", showReferences |> unbox<Func<obj,obj, obj, obj>> ) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.showReferences", showReferences |> objfy4 ) |> context.subscriptions.Add

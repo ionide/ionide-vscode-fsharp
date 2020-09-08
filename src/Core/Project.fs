@@ -5,12 +5,12 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
-open Fable.Import.Node
+open global.Node
 open Ionide.VSCode.Helpers
 
 open DTO
 open System.Collections.Generic
-module node = Fable.Import.Node.Exports
+module node = Node.Api
 
 
 module Project =
@@ -54,7 +54,7 @@ module Project =
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
 
     let isANetCoreAppProject (project : Project) =
-        let projectContent = (node.fs.readFileSync project.Project).toString()
+        let projectContent = (node.fs.readFileSync project.Project).ToString()
         let netCoreTargets =
             [ "<TargetFramework>netcoreapp"
               "<Project Sdk=\"" ]
@@ -65,7 +65,7 @@ module Project =
         netCoreTargets |> Seq.exists findInProject
 
     let isNetCoreApp (project : Project) =
-        let projectContent = (node.fs.readFileSync project.Project).toString()
+        let projectContent = (node.fs.readFileSync project.Project).ToString()
         let core = "<TargetFramework>netcoreapp"
         projectContent.IndexOf(core) >= 0
 
@@ -75,7 +75,7 @@ module Project =
         | _ -> false
 
     let isSDKProjectPath (project : string) =
-        let projectContent = (node.fs.readFileSync project).toString()
+        let projectContent = (node.fs.readFileSync project).ToString()
         let sdk = "<Project Sdk=\""
         projectContent.IndexOf(sdk) >= 0
 
@@ -678,7 +678,7 @@ module Project =
 
     let activate (context : ExtensionContext) =
         CurrentWorkspaceConfiguration.setContext context
-        commands.registerCommand("fsharp.clearCache", clearCache |> unbox<Func<obj,obj>> )
+        commands.registerCommand("fsharp.clearCache", clearCache |> objfy2)
         |> context.subscriptions.Add
 
         Notifications.notifyWorkspaceHandler <- Some handleProjectParsedNotification
