@@ -177,7 +177,7 @@ module MSBuild =
         | Document.FSharp
         | Document.CSharp
         | Document.VB ->
-            let currentProject = Project.getLoaded () |> Seq.where (fun p -> p.Files |> List.exists (String.endWith window.activeTextEditor.document.fileName)) |> Seq.tryHead
+            let currentProject = Project.getLoaded () |> Seq.where (fun p -> p.Files |> Seq.exists (String.endWith window.activeTextEditor.document.fileName)) |> Seq.tryHead
             match currentProject with
             | Some p ->
                 logger.Debug("found project %s", p.Project)

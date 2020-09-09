@@ -238,8 +238,8 @@ module Project =
         |> List.tryPick (fun v ->
             let len =
                 v.Files
-                |> List.filter (fun f -> (f.ToUpperInvariant ()) = (filePath.ToUpperInvariant ()))
-                |> List.length
+                |> Seq.filter (fun f -> (f.ToUpperInvariant ()) = (filePath.ToUpperInvariant ()))
+                |> Seq.length
             if len > 0 then Some v else None )
 
     let rec foldFsproj (item : WorkspacePeekFoundSolutionItem) =
