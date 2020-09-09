@@ -130,13 +130,15 @@ module SolutionExplorer =
 
         let files =
             proj.Items
-            |> List.filter (fun p -> p.Name = "Compile")
-            |> List.map (fun p -> p.VirtualPath, p.FilePath)
+            |> Seq.filter (fun p -> p.Name = "Compile")
+            |> Seq.map (fun p -> p.VirtualPath, p.FilePath)
+            |> Seq.toList
             |> buildTree proj.Project
 
         let refs =
             proj.References
-            |> List.map (fun p -> Reference(ref None, p,node.path.basename p, proj.Project))
+            |> Seq.map (fun p -> Reference(ref None, p,node.path.basename p, proj.Project))
+            |> Seq.toList
             |> fun n ->
                 let result = ReferenceList(ref None, n, proj.Project)
                 setParentRefs n result
@@ -144,10 +146,11 @@ module SolutionExplorer =
 
         let projs =
             proj.References
-            |> List.choose (fun r ->
+            |> Seq.choose (fun r ->
                 projects
                 |> Array.tryFind (fun pr -> pr.Output = r))
-            |> List.map (fun p -> ProjectReference(ref None, p.Project, node.path.basename(p.Project, ".fsproj"), proj.Project))
+            |> Seq.map (fun p -> ProjectReference(ref None, p.Project, node.path.basename(p.Project, ".fsproj"), proj.Project))
+            |> Seq.toList
             |> fun n ->
                 let result = ProjectReferencesList(ref None, n, proj.Project)
                 setParentRefs n result
