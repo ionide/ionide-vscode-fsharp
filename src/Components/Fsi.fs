@@ -388,7 +388,8 @@ module Fsi =
         |> Option.iter (fun p ->
             sendCd window.activeTextEditor
             p.References
-            |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not )
+            |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not )
+            |> Seq.toList
             |> referenceAssemblies
             |> Promise.suppress
             |> ignore)
@@ -413,8 +414,8 @@ module Fsi =
             |> Project.tryFindLoadedProjectByFile
             |> Option.map (fun p ->
                 [|
-                    yield! p.References |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not ) |> List.map (sprintf "#r @\"%s\"")
-                    yield! p.Files |> List.map (sprintf "#load @\"%s\"")
+                    yield! p.References |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not ) |> Seq.map (sprintf "#r @\"%s\"")
+                    yield! p.Files |> Seq.map (sprintf "#load @\"%s\"")
                 |])
         promise {
             match ctn with
@@ -434,13 +435,13 @@ module Fsi =
         }
 
     let sendReferencesForProject project =
-        project.References  |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not )  |> referenceAssemblies |> Promise.suppress |> ignore
+        project.References  |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not ) |> Seq.toList |> referenceAssemblies |> Promise.suppress |> ignore
 
     let generateProjectReferencesForProject project =
         let ctn =
             [|
-                yield! project.References |> List.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not ) |> List.map (sprintf "#r @\"%s\"")
-                yield! project.Files |> List.map (sprintf "#load @\"%s\"")
+                yield! project.References |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not ) |> Seq.map (sprintf "#r @\"%s\"")
+                yield! project.Files |> Seq.map (sprintf "#load @\"%s\"")
             |]
         promise {
             let path = node.path.join(workspace.rootPath, "references.fsx")
