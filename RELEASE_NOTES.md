@@ -1,3 +1,11 @@
+### 4.17.0 - 10.09.2020
+* Update FSAC:
+  - update dotnet-proj-info
+  - update fantomas to v4
+  - implement pipeline hints
+  - add fsx files to `normalizePath`
+* Implement pipeline hints
+
 ### 4.16.0 - 10.08.2020
 * Update FSAC:
   - update fantomas to v4 beta 2
