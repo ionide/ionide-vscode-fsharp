@@ -365,6 +365,11 @@ module DTO =
 
     type CompileData = { Code : int }
 
+    type PieplineHint = {
+        Line: int
+        Types: string []
+    }
+
     type Result<'T> =
         { Kind : string
           Data : 'T }
@@ -394,6 +399,7 @@ module DTO =
     type FsdnResult = Result<FsdnResponse>
     type HighlightingResult = Result<HighlightingResponse>
     type FSharpLiterateResult = Result<string>
+    type PipelineHintsResult = Result<PieplineHint array>
 
 
     module DotnetNew =

@@ -1565,6 +1565,16 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Enables generation of `.binlog` file for project loading. It works only for fresh, non-cached project loading. Run `F#: Clear Cache` and reload window to force fresh loading of all projects"
+				},
+				"FSharp.pipelineHints.enabled": {
+					"type": "boolean",
+					"description": "Enables Pipeline hints",
+					"default": true
+				},
+				"FSharp.pipelineHints.prefix": {
+					"type": "string",
+					"description": "The prefix displayed before the signature",
+					"default": "  // "
 				}
 			}
 		},
@@ -1613,6 +1623,15 @@
 			{
 				"id": "fsharp.linelens",
 				"description": "Foreground color for F# LineLenses",
+				"defaults": {
+					"dark": "#696969",
+					"light": "#919191",
+					"highContrast": "#A2E2A2"
+				}
+			},
+			{
+				"id": "fsharp.pipelineHints",
+				"description": "Foreground color for F# Pipeline Hints",
 				"defaults": {
 					"dark": "#696969",
 					"light": "#919191",

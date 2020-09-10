@@ -1,4 +1,4 @@
-module Ionide.VSCode.FSharp.LineLens
+module Ionide.VSCode.FSharp.PipelineHints
 
 open System
 open System.Collections.Generic
@@ -12,47 +12,25 @@ open Ionide.VSCode.Helpers
 
 type Number = float
 
-let private logger = ConsoleAndOutputChannelLogger(Some "LineLens", Level.DEBUG, None, Some Level.DEBUG)
+let private logger = ConsoleAndOutputChannelLogger(Some "PipelineHints", Level.DEBUG, None, Some Level.DEBUG)
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-module LineLensConfig =
+module PipelineHintsConfig =
 
-    open System.Text.RegularExpressions
-
-    type EnabledMode =
-        | Never
-        | ReplaceCodeLens
-        | Always
-
-    let private parseEnabledMode (s : string) =
-        match s.ToLowerInvariant() with
-        | "never" -> Never
-        | "always" -> Always
-        | "replacecodelens"
-        | _ -> ReplaceCodeLens
-
-    type LineLensConfig =
-        { enabled : EnabledMode
+    type PipelineHintsConfig =
+        { enabled : bool
           prefix : string }
 
     let defaultConfig =
-        { enabled = ReplaceCodeLens
+        { enabled = true
           prefix = " //  " }
-
-    let private themeRegex = Regex("\s*theme\((.+)\)\s*")
 
     let getConfig () =
         let cfg = workspace.getConfiguration()
-        let fsharpCodeLensConfig = cfg.get("[fsharp]", JsObject.empty).tryGet<bool>("editor.codeLens")
 
-        { enabled = cfg.get("FSharp.lineLens.enabled", "replacecodelens") |> parseEnabledMode
-          prefix = cfg.get("FSharp.lineLens.prefix", defaultConfig.prefix) }
+        { enabled = cfg.get("FSharp.pipelineHints.enabled", defaultConfig.enabled)
+          prefix = cfg.get("FSharp.pipelineHints.prefix", defaultConfig.prefix) }
 
-    let isEnabled conf =
-        match conf.enabled with
-        | Always -> true
-        | ReplaceCodeLens -> true
-        | _ -> false
 
 module Documents =
 
@@ -111,14 +89,14 @@ module Documents =
             | _ -> None
             )
 
-let mutable private config = LineLensConfig.defaultConfig
+let mutable private config = PipelineHintsConfig.defaultConfig
 
-module LineLensDecorations =
+module PipelineHintsDecorations =
 
     let create range text =
         // What we add after the range
         let attachment = createEmpty<ThemableDecorationAttachmentRenderOptions>
-        attachment.color <- Some (U2.Case2 (ThemeColor "fsharp.linelens"))
+        attachment.color <- Some (U2.Case2 (ThemeColor "fsharp.pipelineHints"))
         attachment.contentText <- Some text
 
         // Theme for the range
@@ -142,79 +120,30 @@ type State =
 
 module DecorationUpdate =
 
-    let formatSignature (sign : SignatureData) : string =
-        let formatType =
-            function
-            | Contains "->" t -> sprintf "(%s)" t
-            | t -> t
+    let interestingSymbolPositions (doc : TextDocument) (lines : PieplineHint[]) : (CodeRange.CodeRange * string []) []  =
+        lines
+        |> Array.map (fun n ->
+            let textLine = doc.lineAt (float n.Line)
+            textLine.range, n.Types
+        )
 
-        let args =
-            sign.Parameters
-            |> List.map (fun group ->
-                group
-                |> List.map (fun p -> formatType p.Type)
-                |> String.concat " * "
-            )
-            |> String.concat " -> "
+    let private getSignature (range : CodeRange.CodeRange, tts: string []) =
+        let tt = tts.[0]
+        let id = tt.IndexOf("is")
+        let res = tt.Substring(id + 3)
+        range, "  " + res
 
-        if String.IsNullOrEmpty args then sign.OutputType else args + " -> " + formatType sign.OutputType
 
-    let interestingSymbolPositions (symbols : Symbols[]) : DTO.Range[] =
-        symbols |> Array.collect(fun syms ->
-            let interestingNested =
-                syms.Nested
-                |> Array.choose (fun sym ->
-                    if sym.GlyphChar <> "Fc"
-                       && sym.GlyphChar <> "M"
-                       && sym.GlyphChar <> "F"
-                       && sym.GlyphChar <> "P"
-                       || sym.IsAbstract
-                       || sym.EnclosingEntity = "I"  // interface
-                       || sym.EnclosingEntity = "R"  // record
-                       || sym.EnclosingEntity = "D"  // DU
-                       || sym.EnclosingEntity = "En" // enum
-                       || sym.EnclosingEntity = "E"  // exception
-                    then None
-                    else Some sym.BodyRange)
 
-            if syms.Declaration.GlyphChar <> "Fc" then
-                interestingNested
-            else
-                interestingNested |> Array.append [|syms.Declaration.BodyRange|])
-
-    let private lineRange (doc : TextDocument) (range : DTO.Range) : CodeRange.CodeRange =
-        let lineNumber = float range.StartLine - 1.
-        let textLine = doc.lineAt lineNumber
-        textLine.range
-
-    let private getSignature (fileName : string) (range : DTO.Range) =
+    let private declarationsResultToSignatures (doc : TextDocument) (declarationsResult: DTO.PipelineHintsResult) fileName =
         promise {
-            let! signaturesResult =
-                LanguageService.signatureData
-                    fileName
-                    range.StartLine
-                    (range.StartColumn - 1)
-            let signaturesResult = if isNotNull signaturesResult then Some signaturesResult else None
-            return signaturesResult |> Option.map (fun r -> range, formatSignature r.Data)
-        }
-
-    let private signatureToDecoration (doc : TextDocument) (range : DTO.Range, signature : string) =
-        LineLensDecorations.create (lineRange doc range) (config.prefix + signature)
-
-    let private onePerLine (ranges : Range[]) =
-        ranges
-        |> Array.groupBy(fun r -> r.StartLine)
-        |> Array.choose (fun (_, ranges) -> if ranges.Length = 1 then Some (ranges.[0]) else None)
-
-    let private needUpdate (fileName : string) (version : Number) { documents = documents }=
-        (documents |> Documents.tryGetCachedAtVersion fileName version).IsSome
-
-    let private declarationsResultToSignatures declarationsResult fileName =
-        promise {
-            let interesting = declarationsResult.Data |> interestingSymbolPositions
-            let interesting = onePerLine interesting
-            let! signatures = interesting |> Array.map (getSignature fileName) |> Promise.all
-            return signatures |> Seq.choose id
+            let interesting =
+                declarationsResult.Data
+                |> interestingSymbolPositions doc
+            let signatures =
+                interesting
+                |> Array.map (getSignature)
+            return signatures
         }
 
     /// Update the decorations stored for the document.
@@ -229,13 +158,13 @@ module DecorationUpdate =
                 logger.Debug("Found existing decorations in cache for '%s' @%d", fileName, version)
                 return Some info
             | None when document.version = version ->
-                let text = document.getText()
-                let! declarationsResult = LanguageService.lineLenses fileName
-                if document.version = version && isNotNull declarationsResult then
-                    let! signatures = declarationsResultToSignatures declarationsResult fileName
+                let! hintsResults = LanguageService.pipelineHints fileName
+                if document.version = version && isNotNull hintsResults then
+
+                    let! signatures = declarationsResultToSignatures document hintsResults fileName
                     let info = state.documents |> Documents.getOrAdd fileName
                     if document.version = version && info.cache.IsNone || info.cache.Value.version <> version then
-                        let decorations = signatures |> Seq.map (signatureToDecoration document) |> ResizeArray
+                        let decorations = signatures |> Seq.map (fun (r, s) -> PipelineHintsDecorations.create r (config.prefix + s)) |> ResizeArray
 
                         logger.Debug("New decorations generated for '%s' @%d", fileName, version)
                         return Some (state.documents |> Documents.update info decorations version)
@@ -307,7 +236,7 @@ let private closedTextDocumentHandler (textDocument : TextDocument) =
 let install () =
     logger.Debug "Installing"
 
-    let decorationType = window.createTextEditorDecorationType(LineLensDecorations.decorationType)
+    let decorationType = window.createTextEditorDecorationType(PipelineHintsDecorations.decorationType)
     let disposables = ResizeArray<Disposable>()
 
     disposables.Add(window.onDidChangeVisibleTextEditors.Invoke(unbox textEditorsChangedHandler))
@@ -337,9 +266,9 @@ let uninstall () =
 let configChangedHandler () =
     logger.Debug("Config Changed event")
 
-    let wasEnabled = (LineLensConfig.isEnabled config) && state <> None
-    config <- LineLensConfig.getConfig ()
-    let isEnabled = LineLensConfig.isEnabled config
+    let wasEnabled = (config.enabled) && state <> None
+    config <- PipelineHintsConfig.getConfig ()
+    let isEnabled = config.enabled
 
     if wasEnabled <> isEnabled then
         if isEnabled then
@@ -355,3 +284,13 @@ let activate (context : ExtensionContext) =
 
     configChangedHandler ()
     ()
+
+
+let t =
+    [1.. 10]
+    |> List.filter (fun n -> n % 2 = 0)
+    |> List.map (Some)
+    |> List.mapi (fun i n -> Option.isSome n)
+    |> List.isEmpty
+    |> fun n -> "asd"
+    |> fun n -> DateTime.Now

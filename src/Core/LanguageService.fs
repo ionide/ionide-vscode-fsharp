@@ -73,6 +73,7 @@ module LanguageService =
 
         type HighlightingRequest = {FileName : string; }
         type FSharpLiterateRequest = {FileName: string}
+        type FSharpPieplineHintsRequest = {FileName: string}
 
 
     let mutable client : LanguageClient option = None
@@ -398,6 +399,18 @@ module LanguageService =
             cl.sendRequest("fsharp/fsharpLiterate", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
                 res.content |> ofJson<FSharpLiterateResult>
+            )
+
+    let pipelineHints (f) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : Types.FSharpPieplineHintsRequest= {
+                FileName = f
+            }
+            cl.sendRequest("fsharp/pipelineHint", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<PipelineHintsResult>
             )
 
     module FakeSupport =

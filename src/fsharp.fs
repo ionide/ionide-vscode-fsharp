@@ -72,6 +72,7 @@ let activate (context : ExtensionContext) : Fable.Import.JS.Promise<Api> =
         Gitignore.activate context
         HighlightingProvider.activate context
         FSharpLiterate.activate context
+        PipelineHints.activate context
 
         let buildProject project = promise {
             let! exit = MSBuild.buildProjectPath "Build" project
