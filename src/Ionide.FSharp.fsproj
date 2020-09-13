@@ -4,31 +4,33 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <!-- todo: remove and use Fable.HtmlConverter once it's updated -->
-    <Compile Include="../../html-to-elmish/src/HtmlConverter/htmlparser2.fs">
+    <Compile Include="..\paket-files\Booksbaum\html-to-elmish\src\HtmlConverter\htmlparser2.fs">
+      <Paket>True</Paket>
       <Link>paket-files/htmlparser2.fs</Link>
     </Compile>
-    <Compile Include="../../html-to-elmish/src/HtmlConverter/References.fs">
+    <Compile Include="..\paket-files\Booksbaum\html-to-elmish\src\HtmlConverter\References.fs">
+      <Paket>True</Paket>
       <Link>paket-files/References.fs</Link>
     </Compile>
-    <Compile Include="../../html-to-elmish/src/HtmlConverter/Converter.fs">
+    <Compile Include="..\paket-files\Booksbaum\html-to-elmish\src\HtmlConverter\Converter.fs">
+      <Paket>True</Paket>
       <Link>paket-files/Converter.fs</Link>
     </Compile>
-    <!-- todo: remove and use files from github repo once it's updated -->
-    <Compile Include="../../ionide-vscode-helpers/src/Fable.Import.VSCodeDebugger.fs">
-      <Link>paket-files/Fable.Import.VSCodeDebugger.fs</Link>
-    </Compile>
-    <Compile Include="../../ionide-vscode-helpers/src/Fable.Import.VSCode.fs">
+    <Compile Include="..\paket-files\Booksbaum\ionide-vscode-helpers\src\Fable.Import.VSCode.fs">
+      <Paket>True</Paket>
       <Link>paket-files/Fable.Import.VSCode.fs</Link>
     </Compile>
-    <Compile Include="../../ionide-vscode-helpers/src/Fable.Import.VSCode.LanguageServer.fs">
-      <Link>paket-files/Fable.Import.VSCode.LanguageServer.fs</Link>
+    <Compile Include="..\paket-files\Booksbaum\ionide-vscode-helpers\src\Helpers.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/Helpers.fs</Link>
     </Compile>
-    <Compile Include="../../ionide-vscode-helpers/src/Fable.Import.Showdown.fs">
+    <Compile Include="..\paket-files\Booksbaum\ionide-vscode-helpers\src\Fable.Import.Showdown.fs">
+      <Paket>True</Paket>
       <Link>paket-files/Fable.Import.Showdown.fs</Link>
     </Compile>
-    <Compile Include="../../ionide-vscode-helpers/src/Helpers.fs">
-      <Link>paket-files/Helpers.fs</Link>
+    <Compile Include="..\paket-files\Booksbaum\ionide-vscode-helpers\src\Fable.Import.VSCode.LanguageServer.fs">
+      <Paket>True</Paket>
+      <Link>paket-files/Fable.Import.VSCode.LanguageServer.fs</Link>
     </Compile>
     <None Include="paket.references" />
     <Compile Include="Imports/Node.Util.fs" />
