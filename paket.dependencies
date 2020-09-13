@@ -4,27 +4,11 @@ storage:none
 nuget Fable.Core ~> 3.1.5
 nuget Fable.Promise ~> 2.1.0
 nuget Fable.Node ~> 1.0.2
+nuget Fable.Browser.Dom ~> 2.0.1
+
 //nuget Fable.HtmlConverter ~> 2.0.0
 nuget Thoth.Json ~> 4.1.0
 
-// todo: which are needed?
-nuget Fable.Browser.Blob ~> 1.1.0
-nuget Fable.Browser.Dom ~> 2.0.1
-nuget Fable.Browser.Event ~> 1.2.1
-nuget Fable.Browser.Performance ~> 1.0.0
-nuget Fable.Browser.Url ~> 1.0.0
-nuget Fable.Browser.WebSocket ~> 1.0.1
-nuget Fable.Browser.WebRTC ~> 1.2.0
-nuget Fable.Browser.WebStorage ~> 1.0.0
-nuget Fable.Browser.XMLHttpRequest ~> 1.1.2
-nuget Fable.Browser.Svg ~> 2.0.0
-nuget Fable.Browser.Css ~> 2.0.0
-nuget Fable.Browser.Worker ~> 1.0.1
-//nuget Fable.Browser.Geolocation ~> 1.0.0
-nuget Fable.Browser.Navigator ~> 1.0.0
-//nuget Fable.Browser.MediaStream ~> 2.0.1
-//nuget Fable.Browser.MediaQueryList ~> 1.1.1
-//nuget Fable.Browser.WebGL ~> 1.0.0
 
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.cmd", OS: win
 git https://github.com/fsharp/FsAutoComplete.git master build:"build.sh", OS: linux
