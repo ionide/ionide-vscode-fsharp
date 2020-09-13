@@ -29,6 +29,11 @@ NUGET
     Thoth.Json (4.1)
       Fable.Core (>= 3.1.4) - restriction: >= netstandard2.0
       FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
+GITHUB
+  remote: Booksbaum/html-to-elmish
+    src/HtmlConverter/Converter.fs (73f90c56f93d3b1bf49b4e73a6c9650b52770fc8)
+    src/HtmlConverter/htmlparser2.fs (73f90c56f93d3b1bf49b4e73a6c9650b52770fc8)
+    src/HtmlConverter/References.fs (73f90c56f93d3b1bf49b4e73a6c9650b52770fc8)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
      (401e981277fa2910c9ee69d9545e1cbe07f5bdba)
@@ -52,6 +57,12 @@ GIT
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
      (af037b23ca4c61b02799957a61cbd05b44355caf)
+GITHUB
+  remote: Booksbaum/ionide-vscode-helpers
+    src/Fable.Import.Showdown.fs (ada99c8728c372994c0a8a00136bc0b23adbed28)
+    src/Fable.Import.VSCode.fs (ada99c8728c372994c0a8a00136bc0b23adbed28)
+    src/Fable.Import.VSCode.LanguageServer.fs (ada99c8728c372994c0a8a00136bc0b23adbed28)
+    src/Helpers.fs (ada99c8728c372994c0a8a00136bc0b23adbed28)
 GROUP build
 RESTRICTION: == netstandard2.0
 NUGET
