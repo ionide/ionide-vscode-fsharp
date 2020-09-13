@@ -1,68 +1,22 @@
 STORAGE: NONE
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    Fable.Browser.Blob (1.1)
+    Fable.Browser.Blob (1.1) - restriction: >= netstandard2.0
       Fable.Core (>= 3.0) - restriction: >= netstandard2.0
       FSharp.Core (>= 4.6.2) - restriction: >= netstandard2.0
-    Fable.Browser.Css (2.0)
-      Fable.Browser.Dom (>= 1.2) - restriction: >= netstandard2.0
-      Fable.Browser.Svg (>= 1.0) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
     Fable.Browser.Dom (2.0.1)
       Fable.Browser.Blob (>= 1.1) - restriction: >= netstandard2.0
       Fable.Browser.Event (>= 1.2.1) - restriction: >= netstandard2.0
       Fable.Browser.WebStorage (>= 1.0) - restriction: >= netstandard2.0
       Fable.Core (>= 3.0) - restriction: >= netstandard2.0
       FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
-    Fable.Browser.Event (1.2.1)
+    Fable.Browser.Event (1.2.1) - restriction: >= netstandard2.0
       Fable.Core (>= 3.0) - restriction: >= netstandard2.0
       FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
-    Fable.Browser.Geolocation (1.0) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
-    Fable.Browser.MediaStream (2.0.1) - restriction: >= netstandard2.0
-      Fable.Browser.Dom (>= 2.0.1) - restriction: >= netstandard2.0
-      Fable.Browser.Event (>= 1.2.1) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
-    Fable.Browser.Navigator (1.0.1)
-      Fable.Browser.Geolocation (>= 1.0) - restriction: >= netstandard2.0
-      Fable.Browser.MediaStream (>= 2.0.1) - restriction: >= netstandard2.0
-      Fable.Browser.Worker (>= 1.0.1) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7.2) - restriction: >= netstandard2.0
-    Fable.Browser.Performance (1.0)
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.5.2) - restriction: >= netstandard2.0
-    Fable.Browser.Svg (2.0)
-      Fable.Browser.Dom (>= 2.0) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
-    Fable.Browser.Url (1.0)
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.5.2) - restriction: >= netstandard2.0
-    Fable.Browser.WebRTC (1.2)
-      Fable.Browser.MediaStream (>= 2.0) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.1) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7.1) - restriction: >= netstandard2.0
-    Fable.Browser.WebSocket (1.0.1)
-      Fable.Browser.Event (>= 1.2.1) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
-    Fable.Browser.WebStorage (1.0)
+    Fable.Browser.WebStorage (1.0) - restriction: >= netstandard2.0
       Fable.Browser.Event (>= 1.0) - restriction: >= netstandard2.0
       Fable.Core (>= 3.0) - restriction: >= netstandard2.0
       FSharp.Core (>= 4.5.2) - restriction: >= netstandard2.0
-    Fable.Browser.Worker (1.0.1)
-      Fable.Browser.Event (>= 1.2.1) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
-    Fable.Browser.XMLHttpRequest (1.1.2)
-      Fable.Browser.Blob (>= 1.1) - restriction: >= netstandard2.0
-      Fable.Browser.Event (>= 1.2.1) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
     Fable.Core (3.1.5)
       FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
     Fable.Node (1.0.2)
