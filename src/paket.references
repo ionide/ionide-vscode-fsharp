@@ -14,7 +14,7 @@ Fable.Browser.Css
 Fable.Browser.Worker
 Fable.Browser.Navigator
 
-Fable.HtmlConverter
+//Fable.HtmlConverter
 Thoth.Json
 
 //File:Fable.Import.VSCode.fs

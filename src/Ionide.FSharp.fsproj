@@ -4,6 +4,16 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <!-- todo: remove and use Fable.HtmlConverter once it's updated -->
+    <Compile Include="../../html-to-elmish/src/HtmlConverter/htmlparser2.fs">
+      <Link>paket-files/htmlparser2.fs</Link>
+    </Compile>
+    <Compile Include="../../html-to-elmish/src/HtmlConverter/References.fs">
+      <Link>paket-files/References.fs</Link>
+    </Compile>
+    <Compile Include="../../html-to-elmish/src/HtmlConverter/Converter.fs">
+      <Link>paket-files/Converter.fs</Link>
+    </Compile>
     <!-- todo: remove and use files from github repo once it's updated -->
     <Compile Include="../../ionide-vscode-helpers/src/Fable.Import.VSCodeDebugger.fs">
       <Link>paket-files/Fable.Import.VSCodeDebugger.fs</Link>
