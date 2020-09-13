@@ -1,18 +1,7 @@
 Fable.Core
 Fable.Promise
 Fable.Node
-
-Fable.Browser.Event
-Fable.Browser.Performance
-Fable.Browser.Url
-Fable.Browser.WebSocket
-Fable.Browser.WebRTC
-Fable.Browser.WebStorage
-Fable.Browser.XMLHttpRequest
-Fable.Browser.Svg
-Fable.Browser.Css
-Fable.Browser.Worker
-Fable.Browser.Navigator
+Fable.Browser.Dom
 
 //Fable.HtmlConverter
 Thoth.Json
