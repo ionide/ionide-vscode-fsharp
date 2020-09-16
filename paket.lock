@@ -59,11 +59,11 @@ GIT
   remote: https://github.com/ionide/ionide-fsgrammar.git
      (af037b23ca4c61b02799957a61cbd05b44355caf)
 GITHUB
-  remote: Booksbaum/ionide-vscode-helpers
-    src/Fable.Import.Showdown.fs (ada99c8728c372994c0a8a00136bc0b23adbed28)
-    src/Fable.Import.VSCode.fs (ada99c8728c372994c0a8a00136bc0b23adbed28)
-    src/Fable.Import.VSCode.LanguageServer.fs (ada99c8728c372994c0a8a00136bc0b23adbed28)
-    src/Helpers.fs (ada99c8728c372994c0a8a00136bc0b23adbed28)
+  remote: ionide/ionide-vscode-helpers
+    src/Fable.Import.Showdown.fs (6e63e926e1af0c425134640bf2c4d5c154681fcb)
+    src/Fable.Import.VSCode.fs (6e63e926e1af0c425134640bf2c4d5c154681fcb)
+    src/Fable.Import.VSCode.LanguageServer.fs (6e63e926e1af0c425134640bf2c4d5c154681fcb)
+    src/Helpers.fs (6e63e926e1af0c425134640bf2c4d5c154681fcb)
 GROUP build
 STORAGE: NONE
 RESTRICTION: == netstandard2.0
