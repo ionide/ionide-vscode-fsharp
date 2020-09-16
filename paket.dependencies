@@ -1,5 +1,6 @@
 source https://api.nuget.org/v3/index.json
 storage:none
+framework: netstandard2.0
 
 nuget Fable.Core ~> 3.1.5
 nuget Fable.Promise ~> 2.1.0
@@ -38,6 +39,7 @@ github Booksbaum/ionide-vscode-helpers:fable-upgrade src/Fable.Import.VSCode.Lan
 
 group build
   source https://api.nuget.org/v3/index.json
+  storage:none
   framework:netstandard2.0
 
   nuget Fake.Core.Target
