@@ -1,34 +1,35 @@
 STORAGE: NONE
+RESTRICTION: == netstandard2.0
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    Fable.Browser.Blob (1.1) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.6.2) - restriction: >= netstandard2.0
+    Fable.Browser.Blob (1.1)
+      Fable.Core (>= 3.0)
+      FSharp.Core (>= 4.6.2)
     Fable.Browser.Dom (2.0.1)
-      Fable.Browser.Blob (>= 1.1) - restriction: >= netstandard2.0
-      Fable.Browser.Event (>= 1.2.1) - restriction: >= netstandard2.0
-      Fable.Browser.WebStorage (>= 1.0) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
-    Fable.Browser.Event (1.2.1) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
-    Fable.Browser.WebStorage (1.0) - restriction: >= netstandard2.0
-      Fable.Browser.Event (>= 1.0) - restriction: >= netstandard2.0
-      Fable.Core (>= 3.0) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.5.2) - restriction: >= netstandard2.0
+      Fable.Browser.Blob (>= 1.1)
+      Fable.Browser.Event (>= 1.2.1)
+      Fable.Browser.WebStorage (>= 1.0)
+      Fable.Core (>= 3.0)
+      FSharp.Core (>= 4.7)
+    Fable.Browser.Event (1.2.1)
+      Fable.Core (>= 3.0)
+      FSharp.Core (>= 4.7)
+    Fable.Browser.WebStorage (1.0)
+      Fable.Browser.Event (>= 1.0)
+      Fable.Core (>= 3.0)
+      FSharp.Core (>= 4.5.2)
     Fable.Core (3.1.5)
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
+      FSharp.Core (>= 4.7)
     Fable.Node (1.0.2)
-      Fable.Core (>= 3.1.2) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
+      Fable.Core (>= 3.1.2)
+      FSharp.Core (>= 4.7)
     Fable.Promise (2.1)
-      Fable.Core (>= 3.1.5) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
-    FSharp.Core (4.7.2) - restriction: >= netstandard2.0
+      Fable.Core (>= 3.1.5)
+      FSharp.Core (>= 4.7)
+    FSharp.Core (4.7.2)
     Thoth.Json (4.1)
-      Fable.Core (>= 3.1.4) - restriction: >= netstandard2.0
-      FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
+      Fable.Core (>= 3.1.4)
+      FSharp.Core (>= 4.7)
 GITHUB
   remote: Booksbaum/html-to-elmish
     src/HtmlConverter/Converter.fs (73f90c56f93d3b1bf49b4e73a6c9650b52770fc8)
@@ -64,6 +65,7 @@ GITHUB
     src/Fable.Import.VSCode.LanguageServer.fs (ada99c8728c372994c0a8a00136bc0b23adbed28)
     src/Helpers.fs (ada99c8728c372994c0a8a00136bc0b23adbed28)
 GROUP build
+STORAGE: NONE
 RESTRICTION: == netstandard2.0
 NUGET
   remote: https://api.nuget.org/v3/index.json
