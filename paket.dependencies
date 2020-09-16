@@ -27,15 +27,10 @@ git https://github.com/ionide/Forge.git master build:"build.sh", OS: osx
 
 git https://github.com/ionide/ionide-fsgrammar.git master
 
-//todo: change back to ionide once merged
-//github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
-//github ionide/ionide-vscode-helpers src/Helpers.fs
-//github ionide/ionide-vscode-helpers src/Fable.Import.Showdown.fs
-//github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.LanguageServer.fs
-github Booksbaum/ionide-vscode-helpers:fable-upgrade src/Fable.Import.VSCode.fs
-github Booksbaum/ionide-vscode-helpers:fable-upgrade src/Helpers.fs
-github Booksbaum/ionide-vscode-helpers:fable-upgrade src/Fable.Import.Showdown.fs
-github Booksbaum/ionide-vscode-helpers:fable-upgrade src/Fable.Import.VSCode.LanguageServer.fs
+github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
+github ionide/ionide-vscode-helpers src/Helpers.fs
+github ionide/ionide-vscode-helpers src/Fable.Import.Showdown.fs
+github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.LanguageServer.fs
 
 group build
   source https://api.nuget.org/v3/index.json
