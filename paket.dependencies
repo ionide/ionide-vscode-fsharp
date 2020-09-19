@@ -7,11 +7,7 @@ nuget Fable.Promise ~> 2.1.0
 nuget Fable.Node ~> 1.0.2
 nuget Fable.Browser.Dom ~> 2.0.1
 
-//todo: change back to HtmlConverter once merged
-//nuget Fable.HtmlConverter
-github Booksbaum/html-to-elmish:fable-upgrade src/HtmlConverter/htmlparser2.fs
-github Booksbaum/html-to-elmish:fable-upgrade src/HtmlConverter/References.fs
-github Booksbaum/html-to-elmish:fable-upgrade src/HtmlConverter/Converter.fs
+nuget Fable.HtmlConverter ~> 2.1.0
 
 nuget Thoth.Json ~> 4.1.0
 

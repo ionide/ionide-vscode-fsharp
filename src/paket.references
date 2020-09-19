@@ -3,11 +3,7 @@ Fable.Promise
 Fable.Node
 Fable.Browser.Dom
 
-//todo: change back once merged
-//Fable.HtmlConverter
-File:htmlparser2.fs
-File:References.fs
-File:Converter.fs
+Fable.HtmlConverter
 
 Thoth.Json
 
