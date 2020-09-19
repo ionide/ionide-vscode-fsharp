@@ -20,6 +20,9 @@ NUGET
       FSharp.Core (>= 4.5.2)
     Fable.Core (3.1.5)
       FSharp.Core (>= 4.7)
+    Fable.HtmlConverter (2.1)
+      Fable.Core (>= 3.1.5)
+      Thoth.Json (>= 4.1)
     Fable.Node (1.0.2)
       Fable.Core (>= 3.1.2)
       FSharp.Core (>= 4.7)
@@ -30,11 +33,6 @@ NUGET
     Thoth.Json (4.1)
       Fable.Core (>= 3.1.4)
       FSharp.Core (>= 4.7)
-GITHUB
-  remote: Booksbaum/html-to-elmish
-    src/HtmlConverter/Converter.fs (73f90c56f93d3b1bf49b4e73a6c9650b52770fc8)
-    src/HtmlConverter/htmlparser2.fs (73f90c56f93d3b1bf49b4e73a6c9650b52770fc8)
-    src/HtmlConverter/References.fs (73f90c56f93d3b1bf49b4e73a6c9650b52770fc8)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
      (401e981277fa2910c9ee69d9545e1cbe07f5bdba)
