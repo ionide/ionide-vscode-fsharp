@@ -62,13 +62,8 @@ let npmTool =
 let vsceTool = lazy (platformTool "vsce" "vsce.cmd")
 
 let runFable additionalArgs =
-    let cmd = "webpack " + additionalArgs 
+    let cmd = "webpack " + additionalArgs
     Yarn.exec cmd id
-
-let copyFSAC releaseBin fsacBin =
-    Directory.ensure releaseBin
-    Shell.cleanDir releaseBin
-    Shell.copyDir releaseBin fsacBin (fun _ -> true)
 
 let copyFSACNetcore releaseBinNetcore fsacBinNetcore =
     Directory.ensure releaseBinNetcore
@@ -217,15 +212,10 @@ Target.create "RunDevScript" (fun _ ->
     runFable "--mode development"
 )
 
-Target.create "CopyFSAC" (fun _ ->
-    let fsacBin = sprintf "%s/bin/release" fsacDir
-    let releaseBin = "release/bin"
-    copyFSAC releaseBin fsacBin
-)
 
 Target.create "CopyFSACNetcore" (fun _ ->
     let fsacBinNetcore = sprintf "%s/bin/release_netcore" fsacDir
-    let releaseBinNetcore = "release/bin_netcore"
+    let releaseBinNetcore = "release/bin"
 
     copyFSACNetcore releaseBinNetcore fsacBinNetcore
 )
@@ -296,7 +286,6 @@ Target.create "BuildPackages" ignore
 "Clean"
 ==> "RunScript"
 ==> "CopyDocs"
-==> "CopyFSAC"
 ==> "CopyFSACNetcore"
 ==> "CopyForge"
 ==> "CopyGrammar"
