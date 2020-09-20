@@ -572,7 +572,7 @@ Consider:
 
         let spawnNetCore dotnet =
             let fsautocompletePath =
-                if String.IsNullOrEmpty fsacNetcorePath then VSCodeExtension.ionidePluginPath () + "/bin_netcore/fsautocomplete.dll"
+                if String.IsNullOrEmpty fsacNetcorePath then VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.dll"
                 else fsacNetcorePath
             printfn "FSAC (NETCORE): '%s'" fsautocompletePath
             let args =
