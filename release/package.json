@@ -1534,7 +1534,7 @@
 				},
 				"FSharp.useSdkScripts": {
 					"type": "boolean",
-					"default": false,
+					"default": true,
 					"description": "Use 'dotnet fsi' instead of 'fsi.exe'/'fsharpi'"
 				},
 				"FSharp.dotNetRoot": {
