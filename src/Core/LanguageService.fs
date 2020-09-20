@@ -18,7 +18,6 @@ module Notifications =
           /// BEWARE: Live object, might have changed since the parsing
           document : TextDocument }
 
-
     let onDocumentParsedEmitter = EventEmitter<DocumentParsedEvent>()
     let onDocumentParsed = onDocumentParsedEmitter.event
 
@@ -31,13 +30,6 @@ module LanguageService =
     module Types =
         type PlainNotification= { content: string }
 
-        type ConfigValue<'a> =
-        | UserSpecified of 'a
-        | Implied of 'a
-
-        type [<RequireQualifiedAccess>] FSACTargetRuntime =
-        | NET
-        | NetcoreFdd
 
         /// Position in a text document expressed as zero-based line and zero-based character offset.
         /// A position is between two characters like an ‘insert’ cursor in a editor.
@@ -77,7 +69,6 @@ module LanguageService =
 
 
     let mutable client : LanguageClient option = None
-    let mutable clientType : Types.FSACTargetRuntime = Types.FSACTargetRuntime.NetcoreFdd
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
@@ -561,82 +552,22 @@ Consider:
         cl
 
     let getOptions () = promise {
-        let runtimeSettingsKey = "FSharp.fsacRuntime"
-
-        let targetRuntime: Types.ConfigValue<Types.FSACTargetRuntime> =
-            let configured = Configuration.tryGet runtimeSettingsKey
-
-            match configured with
-            | Some "netcore" ->
-                Types.UserSpecified Types.FSACTargetRuntime.NetcoreFdd
-            | Some "net" ->
-                Types.UserSpecified Types.FSACTargetRuntime.NET
-            | Some v ->
-                Types.Implied Types.FSACTargetRuntime.NetcoreFdd
-            | None ->
-                Types.Implied Types.FSACTargetRuntime.NetcoreFdd
-
-        let setRuntime runtime =
-            let value =
-                match runtime with
-                | Types.FSACTargetRuntime.NET -> "net"
-                | Types.FSACTargetRuntime.NetcoreFdd -> "netcore"
-            Configuration.set runtimeSettingsKey value
-            |> Promise.bind (fun _ -> vscode.window.showInformationMessage("Please reload your VSCode instance for this change to take effect"))
-            |> Promise.map ignore
-
-        let suggestNet () =
-            promise {
-                let! result = vscode.window.showInformationMessage("Consider using the .NET Framework/Mono language services by setting `FSharp.fsacRuntime` to `net` and installing .NET/Mono as appropriate for your system.", "Use .Net Framework")
-                match result with
-                | "Use .Net Framework" -> do! setRuntime Types.FSACTargetRuntime.NET
-                | _ -> ()
-            }
-
-        let suggestNetCore () = promise {
-            let! result = vscode.window.showInformationMessage("Consider using the .NET Core language services by setting `FSharp.fsacRuntime` to `netcore`", "Use .Net Core")
-            match result with
-            | "Use .Net Core" -> do! setRuntime Types.FSACTargetRuntime.NetcoreFdd
-            | _ -> ()
-        }
-
-        let monoNotFound () = promise {
-            let msg = """
-            Cannot start .NET Framework/Mono language services because `mono` was not found.
-            Consider:
-            * setting the `FSharp.monoPath` settings key to a `mono` binary,
-            * including `mono` in your PATH, or
-            * installing the .NET Core SDK and using the `FSharp.fsacRuntime` `netcore` language settings
-            """
-            let! result = vscode.window.showErrorMessage(msg, "Use .Net Core")
-            let! _ =
-                match result with
-                | "Use .Net Core" -> setRuntime Types.FSACTargetRuntime.NetcoreFdd
-                | _ -> promise.Return ()
-            return failwith "no `mono` binary found"
-        }
 
         let dotnetNotFound () = promise {
             let msg = """
             Cannot start .NET Core language services because `dotnet` was not found.
             Consider:
             * setting the `FSharp.dotnetRoot` settings key to a directory with a `dotnet` binary,
-            * including `dotnet` in your PATH,
-            * installing .NET Core into one of the default locations, or
-            * using the `net` `FSharp.fsacRuntime` to use mono instead
+            * including `dotnet` in your PATH, or
+            * installing .NET Core into one of the default locations.
             """
-            let! result = vscode.window.showErrorMessage(msg, "Use .Net Framework")
-            let! _ =
-                match result with
-                | "Use .Net Framework" -> setRuntime Types.FSACTargetRuntime.NET
-                | _ -> promise.Return ()
+            let! result = vscode.window.showErrorMessage(msg)
             return failwith "no `dotnet` binary found"
         }
 
         let backgroundSymbolCache = "FSharp.enableBackgroundServices" |> Configuration.get true
         let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
         let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
-        let fsacNetPath = "FSharp.fsac.netExePath" |> Configuration.get ""
         let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
         let spawnNetCore dotnet =
@@ -658,96 +589,16 @@ Consider:
                 "transport" ==> 0
             ]
 
-        let spawnNetWin () =
-            let fsautocompletePath =
-                if String.IsNullOrEmpty fsacNetPath then VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
-                else fsacNetPath
-            printfn "FSAC (NET): '%s'" fsautocompletePath
-            let args =
-                [
-                    if backgroundSymbolCache then yield "--background-service-enabled"
-                    if verbose then yield  "--verbose"
-                ] |> ResizeArray
-
-            createObj [
-                "command" ==> fsautocompletePath
-                "args" ==> args
-                "transport" ==> 0
-            ]
-
-        let spawnNetMono mono =
-            let fsautocompletePath =
-                if String.IsNullOrEmpty fsacNetPath then VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.exe"
-                else fsacNetPath
-            printfn "FSAC (MONO): '%s'" fsautocompletePath
-            let args =
-                [
-                    yield fsautocompletePath
-                    if backgroundSymbolCache then yield "--background-service-enabled"
-                    if verbose then yield  "--verbose"
-                ] |> ResizeArray
-
-            createObj [
-                "command" ==> mono
-                "args" ==> args
-                "transport" ==> 0
-            ]
-
-        let! mono = Environment.mono
         let! dotnet = Environment.dotnet
 
-        printfn "RUNTIME: %A, MONO: %A, DOTNET: %A" targetRuntime mono dotnet
-        // The matrix here is a 2x3 table: .Net/.Net Core target on one axis, Windows/Mono/Dotnet execution environment on the other
-        match targetRuntime, mono, dotnet with
-        // for any configuration, if the user specifies the framework to use do not suggest another framework for them
-
-        // .Net framework handling
-        | Types.UserSpecified Types.FSACTargetRuntime.NET, _ , _ when Environment.isWin ->
-            clientType <- Types.FSACTargetRuntime.NET
-            return spawnNetWin ()
-        | Types.UserSpecified Types.FSACTargetRuntime.NET, Some mono, _ ->
-            clientType <- Types.FSACTargetRuntime.NET
-            return spawnNetMono mono
-        | Types.UserSpecified Types.FSACTargetRuntime.NET, None, _ ->
-            clientType <- Types.FSACTargetRuntime.NET
-            return! monoNotFound ()
+        printfn "DOTNET PATH: %A" dotnet
+        match dotnet with
 
         // dotnet SDK handling
-        | Types.UserSpecified Types.FSACTargetRuntime.NetcoreFdd, _, Some dotnet ->
-            clientType <- Types.FSACTargetRuntime.NetcoreFdd
+        | Some dotnet ->
             return spawnNetCore dotnet
-        | Types.UserSpecified Types.FSACTargetRuntime.NetcoreFdd, _, None ->
-            clientType <- Types.FSACTargetRuntime.NetcoreFdd
+        | None ->
             return! dotnetNotFound ()
-
-        // when we infer a runtime then we can suggest to the user our other options
-        // .NET framework handling (looks similar to above just with suggestion)
-        | Types.Implied Types.FSACTargetRuntime.NET, None, Some _dotnet when Environment.isWin ->
-            clientType <- Types.FSACTargetRuntime.NET
-            suggestNetCore() |> ignore
-            return spawnNetWin ()
-        | Types.Implied Types.FSACTargetRuntime.NET, Some mono, Some _dotnet ->
-            clientType <- Types.FSACTargetRuntime.NET
-            suggestNetCore() |> ignore
-            return spawnNetMono mono
-        | Types.Implied Types.FSACTargetRuntime.NET, None, Some _dotnet ->
-            clientType <- Types.FSACTargetRuntime.NET
-            suggestNetCore() |> ignore
-            return! monoNotFound ()
-
-        // these case actually never happens right now (see the `targetRuntime` calculation above), but it's here for completeness,
-        // IE a scenario in which dotnet isn't found but we have located the proper execution environment for .Net framework
-        | Types.Implied Types.FSACTargetRuntime.NetcoreFdd, None, None when Environment.isWin ->
-            clientType <- Types.FSACTargetRuntime.NetcoreFdd
-            suggestNet () |> ignore
-            return! dotnetNotFound ()
-        | Types.Implied Types.FSACTargetRuntime.NetcoreFdd, Some mono, None when not Environment.isWin ->
-            clientType <- Types.FSACTargetRuntime.NetcoreFdd
-            suggestNet () |> ignore
-            return! dotnetNotFound ()
-
-        | runtime, mono, dotnet ->
-            return failwithf "unsupported combination of runtime/mono/dotnet: %O/%O/%O" runtime mono dotnet
 
     }
 
@@ -789,7 +640,6 @@ Consider:
 
     let start (c : ExtensionContext) =
         promise {
-
             let! startOpts = getOptions ()
             let cl = createClient startOpts
             c.subscriptions.Add (cl.start ())
