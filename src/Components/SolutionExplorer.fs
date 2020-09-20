@@ -515,9 +515,9 @@ module SolutionExplorer =
             treeView.onDidChangeVisibility.Invoke(unbox onDidChangeTreeVisibility')
                 |> context.subscriptions.Add
 
-            commands.registerCommand("fsharp.revealInSolutionExplorer", (fun _ -> revealTextEditor treeView state window.activeTextEditor true) |> objfy2) 
+            commands.registerCommand("fsharp.revealInSolutionExplorer", (fun _ -> revealTextEditor treeView state window.activeTextEditor true) |> objfy2)
             |> context.subscriptions.Add
-                
+
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fs")
 
@@ -539,11 +539,6 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.clearCache", objfy2 (fun _ ->
             Project.clearCache ()
-            |> unbox
-        )) |> context.subscriptions.Add
-
-        commands.registerCommand("fsharp.explorer.msbuild.pickHost", objfy2 (fun _ ->
-            MSBuild.pickMSbuildHostType ()
             |> unbox
         )) |> context.subscriptions.Add
 
