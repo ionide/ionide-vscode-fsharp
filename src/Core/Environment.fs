@@ -18,31 +18,6 @@ module Environment =
         if isWin then a + @"\" + b
         else a + "/" + b
 
-    let private fileExists file =
-        try
-            node.fs.statSync(U2.Case1 file).isFile()
-        with
-        | _ -> false
-
-    let private programFilesX86 =
-        let wow64 = ``process``.env?``PROCESSOR_ARCHITEW6432`` |> unbox<string>
-        let globalArch = ``process``.env?``PROCESSOR_ARCHITECTURE`` |> unbox<string>
-        match wow64, globalArch with
-        | "AMD64", "AMD64" | null, "AMD64" | "x86", "AMD64" -> ``process``.env?``ProgramFiles(x86)`` |> unbox<string>
-        | _ -> ``process``.env?``ProgramFiles`` |> unbox<string>
-        |> fun detected ->
-            if detected = null then @"C:\Program Files (x86)\"
-            else detected
-
-    // Always returns host program files folder
-    let private platformProgramFiles =
-        programFilesX86
-        |> String.replace " (x86)" ""
-
-    let private findFirstValidFilePath exeName directoryList =
-        directoryList
-        |> List.map (fun v -> v </> exeName)
-        |> List.tryFind fileExists
 
     let private fscFileName = if isWin then "Fsc.exe" else "fsharpc"
 
