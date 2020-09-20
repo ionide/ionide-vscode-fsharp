@@ -1235,25 +1235,10 @@
 					"description": "The path to the 'fsautocomplete.dll', useful for debugging a self-built fsac.",
 					"scope": "machine-overridable"
 				},
-				"FSharp.fsac.netExePath": {
-					"type": "string",
-					"default": "",
-					"description": "The path to the 'fsautocomplete.exe', useful for debugging a self-built fsac.",
-					"scope": "machine-overridable"
-				},
 				"FSharp.fsac.attachDebugger": {
 					"type": "boolean",
 					"default": false,
 					"description": "Appends the '--attachdebugger' argument to fsac, this will allow you to attach the debugger."
-				},
-				"FSharp.fsacRuntime": {
-					"type": "string",
-					"description": "Choose the runtime of FsAutocomplete (FSAC). Requires restart.",
-					"enum": [
-						"net",
-						"netcore"
-					],
-					"default": "netcore"
 				},
 				"FSharp.workspaceModePeekDeepLevel": {
 					"type": "integer",

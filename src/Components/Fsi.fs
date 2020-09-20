@@ -20,9 +20,7 @@ module Fsi =
 
         let shouldNotifyAboutSdkScripts () =
             let k = Configuration.get false useKey
-            match LanguageService.clientType with
-            | LanguageService.Types.FSACTargetRuntime.NetcoreFdd -> not k
-            | _ -> false
+            not k
 
 
         let disablePromptGlobally () =
