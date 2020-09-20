@@ -19,7 +19,7 @@ module Fsi =
         let useKey = "FSharp.useSdkScripts"
 
         let shouldNotifyAboutSdkScripts () =
-            let k = Configuration.get false useKey
+            let k = Configuration.get true useKey
             not k
 
 
