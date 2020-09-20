@@ -214,10 +214,6 @@
 				"title": "MSBuild: Restore project"
 			},
 			{
-				"command": "MSBuild.switchMSbuildHostType",
-				"title": "MSBuild: Switch host type"
-			},
-			{
 				"command": "MSBuild.buildCurrentSolution",
 				"title": "MSBuild: Build current solution"
 			},
@@ -378,10 +374,6 @@
 			{
 				"command": "fsharp.explorer.project.generateFSI",
 				"title": "Generate references for FSI"
-			},
-			{
-				"command": "fsharp.explorer.msbuild.pickHost",
-				"title": "F#: Pick MsBuild Host"
 			},
 			{
 				"command": "fsharp.runDefaultProject",
@@ -619,10 +611,6 @@
 					"when": "false"
 				},
 				{
-					"command": "fsharp.explorer.msbuild.pickHost",
-					"when": "false"
-				},
-				{
 					"command": "fsharp.explorer.project.run",
 					"when": "false"
 				},
@@ -776,16 +764,6 @@
 				{
 					"command": "fsharp.changeWorkspace",
 					"group": "modification@1",
-					"when": "view == ionide.projectExplorerInActivity"
-				},
-				{
-					"command": "fsharp.explorer.msbuild.pickHost",
-					"group": "modification@2",
-					"when": "view == ionide.projectExplorer"
-				},
-				{
-					"command": "fsharp.explorer.msbuild.pickHost",
-					"group": "modification@2",
 					"when": "view == ionide.projectExplorerInActivity"
 				},
 				{
@@ -1348,17 +1326,6 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Automatically shows MsBuild output panel"
-				},
-				"FSharp.msbuildHost": {
-					"type": "string",
-					"default": "auto",
-					"description": "MSBuild host",
-					"enum": [
-						".net",
-						".net core",
-						"ask at first use",
-						"auto"
-					]
 				},
 				"FSharp.resolveNamespaces": {
 					"type": "boolean",
