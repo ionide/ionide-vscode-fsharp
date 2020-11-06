@@ -928,10 +928,10 @@ module SolutionExplorer =
         commands.registerCommand("fsharp.explorer.msbuild.restore", objfy2 (fun m ->
             match unbox m with
             | Project (_, path, _, _, _, _, _, pr) ->
-                MSBuild.restoreProjectPath pr
+                MSBuild.restoreKnownProject pr
                 |> unbox
             | ProjectNotRestored (_, path, _, _) ->
-                MSBuild.restoreProjectWithoutParseData path
+                MSBuild.restoreProjectAsync path
                 |> unbox
             | _ -> undefined
         )) |> context.subscriptions.Add

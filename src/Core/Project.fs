@@ -69,11 +69,6 @@ module Project =
         let core = "<TargetFramework>netcoreapp"
         projectContent.IndexOf(core) >= 0
 
-    let isSDKProject (project : Project) =
-        match project.Info with
-        | ProjectResponseInfo.DotnetSdk _ -> true
-        | _ -> false
-
     let isSDKProjectPath (project : string) =
         let projectContent = (node.fs.readFileSync project).ToString()
         let sdk = "<Project Sdk=\""
@@ -201,7 +196,7 @@ module Project =
             else
                 None
 
-        let failed (msg : string, err : ErrorData) = 
+        let failed (msg : string, err : ErrorData) =
             match err with
             | ErrorData.ProjectNotRestored _d when not comingFromRestore ->
                 projectNotRestoredLoadedEmitter.fire path
@@ -216,7 +211,7 @@ module Project =
             LanguageService.project path
             |> Promise.map (fun r ->
                 match r with
-                | Ok proj -> loaded proj 
+                | Ok proj -> loaded proj
                 | Error err -> failed err)
             |> Promise.map (fun r ->
                 match r with
@@ -304,7 +299,7 @@ module Project =
     let clearCache () =
         let cached = getCaches ()
         cached |> Seq.iter (U2.Case1 >> node.fs.unlinkSync)
-        window.showInformationMessage("Cache cleared")
+        window.showInformationMessage("Project Cache cleared")
 
     let countProjectsInSln (sln : WorkspacePeekFoundSolution) =
         sln.Items |> Array.map foldFsproj |> Array.sumBy Array.length
@@ -701,10 +696,3 @@ module Project =
         )) |> context.subscriptions.Add
 
         initWorkspace ()
-        |> Promise.onSuccess (fun _ ->
-            setTimeout (fun _ ->
-                getNotLoaded ()
-                |> List.iter (fun n -> load false n |> ignore)
-            ) 1000.
-            |> ignore
-        )
