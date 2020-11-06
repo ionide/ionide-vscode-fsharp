@@ -175,7 +175,7 @@
 			},
 			{
 				"command": "fsharp.clearCache",
-				"title": "F#: Clear Cache"
+				"title": "F#: Clear Project Cache"
 			},
 			{
 				"command": "fsharp.changeWorkspace",
@@ -1516,7 +1516,7 @@
 				"FSharp.generateBinlog": {
 					"type": "boolean",
 					"default": false,
-					"description": "Enables generation of `.binlog` file for project loading. It works only for fresh, non-cached project loading. Run `F#: Clear Cache` and reload window to force fresh loading of all projects"
+					"description": "Enables generation of `.binlog` file for project loading. It works only for fresh, non-cached project loading. Run `F#: Clear Project Cache` and reload window to force fresh loading of all projects"
 				},
 				"FSharp.pipelineHints.enabled": {
 					"type": "boolean",
