@@ -104,7 +104,7 @@ module MSBuild =
             return { Code = Some d.Data.Code; Signal = None }
         }
 
-    let restoreMailBox =
+    let private restoreMailBox =
         let progressOpts = createEmpty<ProgressOptions>
         progressOpts.location <- ProgressLocation.Window
 
@@ -124,7 +124,7 @@ module MSBuild =
             messageLoop()
         )
 
-    let restoreProject (projOpt: string option) =
+    let private restoreProjectCmd (projOpt: string option) =
         buildProject "Restore" projOpt
         |> Promise.onSuccess (fun exit ->
             let failed = exit.Code <> Some 0
@@ -134,7 +134,7 @@ module MSBuild =
             | _ -> ()
         )
 
-    let private restoreProjectAsync (path : string) =
+    let restoreProjectAsync (path : string) =
         restoreMailBox.Post(path, fun exit ->
             let failed = exit.Code <> Some 0
             if failed then
@@ -143,11 +143,8 @@ module MSBuild =
             else
                 Project.load true path)
 
-    let restoreProjectPath (project : Project) =
+    let restoreKnownProject (project : Project) =
         restoreProjectAsync project.Project
-
-    let restoreProjectWithoutParseData (path : string) =
-        restoreProjectAsync path
 
     let buildSolution target sln = promise {
         let! _ = invokeMSBuild sln target
@@ -175,68 +172,13 @@ module MSBuild =
                 f path
 
         let initWorkspace _n = Project.initWorkspace ()
-        let loadProject path = Project.load false path
 
         let solutionWatcher = vscode.workspace.createFileSystemWatcher("**/*.sln")
         solutionWatcher.onDidCreate.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox) |> ignore
         solutionWatcher.onDidChange.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox) |> ignore
 
-        let projectWatcher = vscode.workspace.createFileSystemWatcher("**/*.fsproj")
-        projectWatcher.onDidCreate.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox) |> ignore
-        projectWatcher.onDidChange.Invoke(fun n -> unlessIgnored n.fsPath loadProject |> unbox) |> ignore
-
-        let assetWatcher = vscode.workspace.createFileSystemWatcher("**/project.assets.json")
-
-        let getFsProjFromAssets (n:Uri)=
-            let objDir = node.path.dirname n.fsPath
-            let fsprojDir = node.path.join(objDir, "..")
-            let files = node.fs.readdirSync (U2.Case1 fsprojDir)
-            let fsprojOpt = files |> Seq.tryFind(fun n -> n.EndsWith ".fsproj")
-            let fsprojOptNotIgnored =
-                match fsprojOpt with
-                | Some fsproj ->
-                    let p = node.path.join(fsprojDir, fsproj)
-                    if Project.isIgnored p then
-                        None
-                    else
-                        Some fsproj
-                | None ->
-                    None
-            fsprojOptNotIgnored, fsprojDir
-
-        assetWatcher.onDidDelete.Invoke(fun n ->
-            let (fsprojOpt, fsprojDir) = getFsProjFromAssets n
-            match fsprojOpt with
-            | Some fsproj ->
-                let p = node.path.join(fsprojDir, fsproj)
-                let fsacCache = node.path.join(fsprojDir, "obj", "fsac.cache")
-                node.fs.unlinkSync(U2.Case1 fsacCache)
-                restoreProjectWithoutParseData p
-                |> unbox
-            | None -> undefined
-        ) |> context.subscriptions.Add
-
-        assetWatcher.onDidCreate.Invoke(fun n ->
-            let (fsprojOpt, fsprojDir) = getFsProjFromAssets n
-            match fsprojOpt with
-            | Some fsproj ->
-                let p = node.path.join(fsprojDir, fsproj)
-                Project.load false p
-                |> unbox
-            | None -> undefined
-        ) |> context.subscriptions.Add
-
-        assetWatcher.onDidChange.Invoke(fun n ->
-            let (fsprojOpt, fsprojDir) = getFsProjFromAssets n
-            match fsprojOpt with
-            | Some fsproj ->
-                let p = node.path.join(fsprojDir, fsproj)
-                Project.load false p
-                |> unbox
-            | None -> undefined
-        ) |> context.subscriptions.Add
-
-        Project.projectNotRestoredLoaded.Invoke(fun n -> restoreProjectWithoutParseData n |> unbox)
+        //Restore any project that returns NotRestored status
+        Project.projectNotRestoredLoaded.Invoke(fun n -> restoreProjectAsync n |> unbox)
         |> context.subscriptions.Add
 
         let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, action |> objfy2) |> context.subscriptions.Add
@@ -259,4 +201,4 @@ module MSBuild =
         registerCommand2 "MSBuild.buildSelected" (typedMsbuildCmd (buildProject "Build"))
         registerCommand2 "MSBuild.rebuildSelected" (typedMsbuildCmd (buildProject "Rebuild"))
         registerCommand2 "MSBuild.cleanSelected" (typedMsbuildCmd (buildProject "Clean"))
-        registerCommand2 "MSBuild.restoreSelected" (typedMsbuildCmd restoreProject)
+        registerCommand2 "MSBuild.restoreSelected" (typedMsbuildCmd restoreProjectCmd)

@@ -18,8 +18,8 @@ NUGET
       Fable.Browser.Event (>= 1.0)
       Fable.Core (>= 3.0)
       FSharp.Core (>= 4.5.2)
-    Fable.Core (3.1.5)
-      FSharp.Core (>= 4.7)
+    Fable.Core (3.1.6)
+      FSharp.Core (>= 4.7.1)
     Fable.HtmlConverter (2.1)
       Fable.Core (>= 3.1.5)
       Thoth.Json (>= 4.1)
@@ -29,39 +29,39 @@ NUGET
     Fable.Promise (2.1)
       Fable.Core (>= 3.1.5)
       FSharp.Core (>= 4.7)
-    FSharp.Core (4.7.2)
+    FSharp.Core (5.0)
     Thoth.Json (4.1)
       Fable.Core (>= 3.1.4)
       FSharp.Core (>= 4.7)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (401e981277fa2910c9ee69d9545e1cbe07f5bdba)
+     (1fb6ea93a6983c5bd396f9a603eb500e22023998)
       build: build.cmd
       os: win
-     (401e981277fa2910c9ee69d9545e1cbe07f5bdba)
+     (1fb6ea93a6983c5bd396f9a603eb500e22023998)
       build: build.sh
       os: linux
-     (401e981277fa2910c9ee69d9545e1cbe07f5bdba)
+     (1fb6ea93a6983c5bd396f9a603eb500e22023998)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/Forge.git
-     (22e1f197ea0081f401f3539d50d487fe98dfc026)
+     (7e7a102df0e52acc970d39c0804661639f7c70bb)
       build: build.cmd
       os: win
-     (22e1f197ea0081f401f3539d50d487fe98dfc026)
+     (7e7a102df0e52acc970d39c0804661639f7c70bb)
       build: build.cmd
       os: linux
-     (22e1f197ea0081f401f3539d50d487fe98dfc026)
+     (7e7a102df0e52acc970d39c0804661639f7c70bb)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (af037b23ca4c61b02799957a61cbd05b44355caf)
+     (ab82ac584fe647ac2b9dce76e407bedc78a14211)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Showdown.fs (6e63e926e1af0c425134640bf2c4d5c154681fcb)
-    src/Fable.Import.VSCode.fs (6e63e926e1af0c425134640bf2c4d5c154681fcb)
-    src/Fable.Import.VSCode.LanguageServer.fs (6e63e926e1af0c425134640bf2c4d5c154681fcb)
-    src/Helpers.fs (6e63e926e1af0c425134640bf2c4d5c154681fcb)
+    src/Fable.Import.Showdown.fs (d446548df92f3691acce437f4313437e7a88976d)
+    src/Fable.Import.VSCode.fs (d446548df92f3691acce437f4313437e7a88976d)
+    src/Fable.Import.VSCode.LanguageServer.fs (d446548df92f3691acce437f4313437e7a88976d)
+    src/Helpers.fs (d446548df92f3691acce437f4313437e7a88976d)
 GROUP build
 STORAGE: NONE
 RESTRICTION: == netstandard2.0
@@ -194,13 +194,13 @@ NUGET
     FSharp.Control.Reactive (4.4.2)
       FSharp.Core (>= 4.7.2)
       System.Reactive (>= 4.4.1)
-    FSharp.Core (4.7.2)
-    Microsoft.Build (16.6)
-    Microsoft.Build.Framework (16.6)
+    FSharp.Core (5.0)
+    Microsoft.Build (16.7)
+    Microsoft.Build.Framework (16.7)
       System.Security.Permissions (>= 4.7)
-    Microsoft.Build.Tasks.Core (16.6)
-      Microsoft.Build.Framework (>= 16.6)
-      Microsoft.Build.Utilities.Core (>= 16.6)
+    Microsoft.Build.Tasks.Core (16.7)
+      Microsoft.Build.Framework (>= 16.7)
+      Microsoft.Build.Utilities.Core (>= 16.7)
       Microsoft.Win32.Registry (>= 4.3)
       System.CodeDom (>= 4.4)
       System.Collections.Immutable (>= 1.5)
@@ -209,19 +209,14 @@ NUGET
       System.Resources.Extensions (>= 4.6)
       System.Security.Permissions (>= 4.7)
       System.Threading.Tasks.Dataflow (>= 4.9)
-    Microsoft.Build.Tasks.Git (1.0)
-    Microsoft.Build.Utilities.Core (16.6)
-      Microsoft.Build.Framework (>= 16.6)
+    Microsoft.Build.Utilities.Core (16.7)
+      Microsoft.Build.Framework (>= 16.7)
       Microsoft.Win32.Registry (>= 4.3)
       System.Collections.Immutable (>= 1.5)
       System.Security.Permissions (>= 4.7)
       System.Text.Encoding.CodePages (>= 4.0.1)
     Microsoft.NETCore.Platforms (3.1.3)
     Microsoft.NETCore.Targets (3.1)
-    Microsoft.SourceLink.Common (1.0)
-    Microsoft.SourceLink.GitHub (1.0)
-      Microsoft.Build.Tasks.Git (>= 1.0)
-      Microsoft.SourceLink.Common (>= 1.0)
     Microsoft.Win32.Primitives (4.3)
       Microsoft.NETCore.Platforms (>= 1.1)
       Microsoft.NETCore.Targets (>= 1.1)
@@ -232,12 +227,11 @@ NUGET
       System.Security.AccessControl (>= 4.7)
       System.Security.Principal.Windows (>= 4.7)
     Mono.Posix.NETStandard (1.0)
-    MSBuild.StructuredLogger (2.1.176)
+    MSBuild.StructuredLogger (2.1.215)
       Microsoft.Build (>= 16.4)
       Microsoft.Build.Framework (>= 16.4)
       Microsoft.Build.Tasks.Core (>= 16.4)
       Microsoft.Build.Utilities.Core (>= 16.4)
-      Microsoft.SourceLink.GitHub (>= 1.0)
     Newtonsoft.Json (12.0.3)
     NuGet.Common (5.7)
       NuGet.Frameworks (>= 5.7)

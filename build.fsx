@@ -228,7 +228,7 @@ Target.create "CopyForge" (fun _ ->
 )
 
 Target.create "CopyGrammar" (fun _ ->
-    let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammar"
+    let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammars"
     let fsgrammarRelease = "release/syntaxes"
 
     copyGrammar fsgrammarDir fsgrammarRelease
