@@ -282,13 +282,3 @@ let activate (context : ExtensionContext) =
 
     configChangedHandler ()
     ()
-
-
-let t =
-    [1.. 10]
-    |> List.filter (fun n -> n % 2 = 0)
-    |> List.map (Some)
-    |> List.mapi (fun i n -> Option.isSome n)
-    |> List.isEmpty
-    |> fun n -> "asd"
-    |> fun n -> DateTime.Now
