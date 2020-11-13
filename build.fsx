@@ -70,11 +70,6 @@ let copyFSACNetcore releaseBinNetcore fsacBinNetcore =
     Shell.cleanDir releaseBinNetcore
     Shell.copyDir releaseBinNetcore fsacBinNetcore (fun _ -> true)
 
-let copyForge paketFilesForge releaseForge =
-    Directory.ensure releaseForge
-    Shell.cleanDir releaseForge
-    Shell.copyDir releaseForge (sprintf "%s/temp/" paketFilesForge) (fun _ -> true)
-
 let copyGrammar fsgrammarDir fsgrammarRelease =
     Directory.ensure fsgrammarRelease
     Shell.cleanDir fsgrammarRelease
@@ -220,13 +215,6 @@ Target.create "CopyFSACNetcore" (fun _ ->
     copyFSACNetcore releaseBinNetcore fsacBinNetcore
 )
 
-Target.create "CopyForge" (fun _ ->
-    let forgeDir = "paket-files/github.com/ionide/Forge"
-    let releaseForge = "release/bin_forge"
-
-    copyForge forgeDir releaseForge
-)
-
 Target.create "CopyGrammar" (fun _ ->
     let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammars"
     let fsgrammarRelease = "release/syntaxes"
@@ -287,7 +275,6 @@ Target.create "BuildPackages" ignore
 ==> "RunScript"
 ==> "CopyDocs"
 ==> "CopyFSACNetcore"
-==> "CopyForge"
 ==> "CopyGrammar"
 ==> "CopySchemas"
 ==> "CopyLib"
