@@ -215,7 +215,6 @@ module Forge =
 
 
     let activate (context : ExtensionContext) =
-        let watcher = workspace.createFileSystemWatcher ("**/*.fs")
 
         commands.registerCommand("fsharp.MoveFileUp", moveFileUp |> objfy2 ) |> context.subscriptions.Add
         commands.registerCommand("fsharp.MoveFileDown", moveFileDown |> objfy2) |> context.subscriptions.Add
