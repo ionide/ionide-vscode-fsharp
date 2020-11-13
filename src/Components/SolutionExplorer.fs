@@ -521,6 +521,40 @@ module SolutionExplorer =
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fs")
 
+    let newProject () =
+        promise {
+            let! templates = LanguageService.dotnetNewList ()
+
+            let n =
+                templates
+                |> List.map (fun t ->
+                    let res = createEmpty<QuickPickItem>
+                    res.label <- t.Name
+                    res.description <- t.ShortName
+                    res
+                ) |> ResizeArray
+
+            let cwd = vscode.workspace.rootPath;
+            if JS.isDefined cwd then
+                let! template = window.showQuickPick ( n |> U2.Case1)
+                if JS.isDefined template then
+                    let opts = createEmpty<InputBoxOptions>
+                    opts.prompt <- Some "Project directory, relative to workspace root (-o parameter)"
+                    let! dir = window.showInputBox (opts)
+
+                    let opts = createEmpty<InputBoxOptions>
+                    opts.prompt <- Some "Project name (-n parameter)"
+                    let! name =  window.showInputBox(opts)
+                    if JS.isDefined dir && JS.isDefined name then
+                        let output = if String.IsNullOrWhiteSpace dir then None else Some dir
+                        let name = if String.IsNullOrWhiteSpace name then None else Some name
+
+                        let! _ = LanguageService.dotnetNewRun template.description name output
+                        ()
+            else
+                window.showErrorMessage "No open folder." |> ignore
+        }
+
     let activate (context : ExtensionContext) =
         let emiter = EventEmitter<Model option>()
         let rootChanged = EventEmitter<Model>()
@@ -533,6 +567,10 @@ module SolutionExplorer =
             emiter.fire (undefined) |> unbox)
         |> context.subscriptions.Add
 
+        commands.registerCommand("fsharp.NewProject", newProject |> objfy2)
+        |> context.subscriptions.Add
+
+
         commands.registerCommand("fsharp.explorer.refresh", objfy2 (fun _ ->
             emiter.fire (undefined) |> unbox
         )) |> context.subscriptions.Add
@@ -544,64 +582,37 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.moveUp", objfy2 (fun m ->
             match unbox m with
-            | File (_, p, _, _) ->
-                Forge.moveFileUpPath p
-                |> unbox
+            | File (_, _, name, proj) -> FsProjEdit.moveFileUpPath proj name
             | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.moveDown", objfy2 (fun m ->
             match unbox m with
-            | File (_, p, _, _) ->
-                Forge.moveFileDownPath p
-                |> unbox
-            | _ -> undefined
-        )) |> context.subscriptions.Add
-
-        commands.registerCommand("fsharp.explorer.moveToFolder", objfy2 (fun m ->
-            let folders =
-                getRoot()
-                |> getFolders
-
-            match unbox m with
-            | File (_, p, _, pp) ->
-                Forge.moveFileToFolder folders p pp
-                |> unbox
+            | File (_, _, name, proj) -> FsProjEdit.moveFileDownPath proj name
             | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.removeFile", objfy2 (fun m ->
             match unbox m with
-            | File (_, p, _, _) ->
-                Forge.removeFilePath p
-                |> unbox
+            | File (_, _, name, proj) -> FsProjEdit.removeFilePath proj name
             | _ -> undefined
         )) |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.renameFile", objfy2 (fun m ->
-            match unbox m with
-            | File (_, old, _, proj) ->
-                Forge.renameFilePath old proj
-                |> unbox
-            | _ -> undefined
-        )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.addAbove", objfy2 (fun m ->
             match unbox m with
-            | File (_, from, name, proj) ->
+            | File (_, _, name, proj) ->
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "new.fs"
                 opts.prompt <- Some "New file name, relative to project file"
                 opts.value <- Some "new.fs"
                 window.showInputBox(opts)
-                |> Promise.map (fun file ->
+                |> Promise.bind (fun file ->
                     if JS.isDefined file then
-                        let file' = node.path.join(proj |> node.path.dirname, file)
-                        let from = node.path.relative(proj |> node.path.dirname, from)
-                        let proj = node.path.relative(workspace.rootPath, proj)
-                        let file' = handleUntitled file'
-                        node.fs.appendFileSync( file', "") |> unbox
-                        Forge.addFileAbove from proj file'
+                        let file' = handleUntitled file
+                        FsProjEdit.addFileAbove proj name file'
+                    else
+                        Promise.empty
                 )
                 |> unbox
             | _ -> undefined
@@ -609,7 +620,7 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.addBelow", objfy2 (fun m ->
             match unbox m with
-            | File (_, from, name, proj) ->
+            | File (_, fr_om, name, proj) ->
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "new.fs"
                 opts.prompt <- Some "New file name, relative to project file"
@@ -617,12 +628,10 @@ module SolutionExplorer =
                 window.showInputBox(opts)
                 |> Promise.map (fun file ->
                     if JS.isDefined file then
-                        let file' = node.path.join(proj |> node.path.dirname, file)
-                        let from = node.path.relative(proj |> node.path.dirname, from)
-                        let proj = node.path.relative(workspace.rootPath, proj)
-                        let file' = handleUntitled file'
-                        node.fs.appendFileSync( file', "") |> unbox
-                        Forge.addFileBelow from proj file'
+                        let file' = handleUntitled file
+                        FsProjEdit.addFileBelow proj name file'
+                    else
+                        Promise.empty
                 )
                 |> unbox
             | _ -> undefined
@@ -630,7 +639,7 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.addFile", objfy2 (fun m ->
             match unbox m with
-            | Project (_, proj, name, _,_,_,_,_) ->
+            | Project (_, proj, _, _,_,_,_,_) ->
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "new.fs"
                 opts.prompt <- Some "New file name, relative to opened directory"
@@ -638,11 +647,10 @@ module SolutionExplorer =
                 window.showInputBox(opts)
                 |> Promise.map (fun file ->
                     if JS.isDefined file then
-                        let file' = node.path.join(node.path.dirname proj, file)
-                        let proj = node.path.relative(workspace.rootPath, proj)
-                        let file' = handleUntitled file'
-                        node.fs.appendFileSync( file', "") |> unbox
-                        Forge.addFile proj file'
+                        let file' = handleUntitled file
+                        FsProjEdit.addFile proj file'
+                    else
+                        Promise.empty
                 )
                 |> unbox
             | _ -> undefined
@@ -650,17 +658,13 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.addProjecRef", objfy2 (fun m ->
             match unbox m with
-            | ProjectReferencesList (_, _, p) ->
-                Forge.addProjectReferencePath p
-                |> unbox
+            | ProjectReferencesList (_, _, p) -> FsProjEdit.addProjectReferencePath p
             | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.removeProjecRef", objfy2 (fun m ->
             match unbox m with
-            | ProjectReference (_, path, _, p) ->
-                Forge.removeProjectReferencePath path p
-                |> unbox
+            | ProjectReference (_, path, _, p) -> FsProjEdit.removeProjectReferencePath path p
             | _ -> undefined
         )) |> context.subscriptions.Add
 

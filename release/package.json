@@ -126,14 +126,6 @@
 				}
 			},
 			{
-				"command": "fsharp.MoveFileUp",
-				"title": "F#: Move File Up"
-			},
-			{
-				"command": "fsharp.MoveFileDown",
-				"title": "F#: Move File Down"
-			},
-			{
 				"command": "fsharp.NewProject",
 				"title": "F#: New Project",
 				"icon": {
@@ -141,30 +133,7 @@
 					"dark": "./images/add-dark.svg"
 				}
 			},
-			{
-				"command": "fsharp.AddFileToProject",
-				"title": "F#: Add Current File To Project"
-			},
-			{
-				"command": "fsharp.RemoveFileFromProject",
-				"title": "F#: Remove Current File From Project"
-			},
-			{
-				"command": "fsharp.AddProjectReference",
-				"title": "F#: Add Project Reference"
-			},
-			{
-				"command": "fsharp.RemoveProjectReference",
-				"title": "F#: Remove Project Reference"
-			},
-			{
-				"command": "fsharp.AddReference",
-				"title": "F#: Add Reference"
-			},
-			{
-				"command": "fsharp.RemoveReference",
-				"title": "F#: Remove Reference"
-			},
+
 			{
 				"command": "fsharp.getHelp",
 				"title": "F#: Get Help"
@@ -240,10 +209,6 @@
 					"light": "./images/down-mono-light.svg",
 					"dark": "./images/down-mono-dark.svg"
 				}
-			},
-			{
-				"command": "fsharp.explorer.moveToFolder",
-				"title": "Move file to folder"
 			},
 			{
 				"command": "fsharp.explorer.removeFile",
@@ -539,14 +504,6 @@
 					"when": "false"
 				},
 				{
-					"command": "fsharp.explorer.renameFile",
-					"when": "false"
-				},
-				{
-					"command": "fsharp.explorer.moveToFolder",
-					"when": "false"
-				},
-				{
 					"command": "fsharp.explorer.addAbove",
 					"when": "false"
 				},
@@ -661,22 +618,6 @@
 				{
 					"command": "fsharp.scriptrunner.run",
 					"when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'"
-				},
-				{
-					"command": "fsharp.MoveFileUp",
-					"when": "editorLangId == 'fsharp'"
-				},
-				{
-					"command": "fsharp.MoveFileDown",
-					"when": "editorLangId == 'fsharp'"
-				},
-				{
-					"command": "fsharp.AddFileToProject",
-					"when": "editorLangId == 'fsharp'"
-				},
-				{
-					"command": "fsharp.RemoveFileFromProject",
-					"when": "editorLangId == 'fsharp'"
 				},
 				{
 					"command": "fsharp.getHelp",
@@ -829,19 +770,9 @@
 					"group": "inline@2"
 				},
 				{
-					"command": "fsharp.explorer.moveToFolder",
-					"when": "viewItem == ionide.projectExplorer.file",
-					"group": "1_navigation@3"
-				},
-				{
 					"command": "fsharp.explorer.removeFile",
 					"when": "viewItem == ionide.projectExplorer.file",
 					"group": "1_navigation@4"
-				},
-				{
-					"command": "fsharp.explorer.renameFile",
-					"when": "viewItem == ionide.projectExplorer.file",
-					"group": "2_modification@1"
 				},
 				{
 					"command": "fsharp.explorer.addAbove",

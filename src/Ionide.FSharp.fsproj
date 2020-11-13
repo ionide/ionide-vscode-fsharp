@@ -28,13 +28,13 @@
     <Compile Include="Core/Logging.fs" />
     <Compile Include="Core/LanguageService.fs" />
     <Compile Include="Core/Project.fs" />
+    <Compile Include="Core/FsProjEdit.fs" />
     <Compile Include="Components/Diagnostics.fs" />
     <Compile Include="Components/Gitignore.fs" />
     <Compile Include="Components/LanguageConfiguration.fs" />
     <Compile Include="Components/SignatureData.fs" />
     <Compile Include="Components/Fsi.fs" />
     <Compile Include="Components/ScriptRunner.fs" />
-    <Compile Include="Components/Forge.fs" />
     <Compile Include="Components/LineLens.fs" />
     <Compile Include="Components/QuickInfo.fs" />
     <Compile Include="Components/QuickInfoProject.fs" />
