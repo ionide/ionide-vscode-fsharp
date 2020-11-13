@@ -1,3 +1,21 @@
+### 5.0.0-preview01
+* Update Fable to 2.X
+* Update FSAC:
+  - Update to .NET 5 runtime
+  - Update to FCS 38
+  - Implement fsproj watcher
+  - Implement fsproj editing
+  - Add range selection provider
+* Remove choice of FSAC runtime
+* Remove option to pick MsBuild host
+* Remove watcher on fsproj files
+* Remove some old commands that have better alternatives nowadays
+* Remove some not needed code, and general cleanup
+* Remove Forge
+* Use `dotnet fsi` as default
+* Use background service as default
+* Use reference code lenses as default
+
 ### 4.17.0 - 10.09.2020
 * Update FSAC:
   - update dotnet-proj-info
