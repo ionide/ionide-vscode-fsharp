@@ -417,6 +417,13 @@ module DTO =
 
         type DotnetNewRunResponse = Result<string>
 
+    module FsProj =
+        type DotnetProjectRequest = { Target: string; Reference: string }
+
+        type DotnetFileRequest = { FsProj: string; File: string }
+
+        type DotnetFile2Request = { FsProj: string; File: string; NewFile: string }
+
     module FakeSupport =
         type FakeContext =
             { DotNetRuntime : string }

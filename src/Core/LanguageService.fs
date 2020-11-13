@@ -247,6 +247,120 @@ module LanguageService =
                 ()
             )
 
+    let dotnetAddProject (target: string)  (reference: string) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : FsProj.DotnetProjectRequest = {
+                Target = target
+                Reference = reference
+            }
+
+            cl.sendRequest("fsharp/dotnetaddproject", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                ()
+            )
+
+    let dotnetRemoveProject (target: string)  (reference: string) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : FsProj.DotnetProjectRequest = {
+                Target = target
+                Reference = reference
+            }
+
+            cl.sendRequest("fsharp/dotnetremoveproject", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                ()
+            )
+
+    let dotnetAddSln (target: string)  (reference: string) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : FsProj.DotnetProjectRequest = {
+                Target = target
+                Reference = reference
+            }
+
+            cl.sendRequest("fsharp/dotnetaddsln", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                ()
+            )
+
+    let fsprojMoveFileUp (fsproj: string)  (file: string) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : FsProj.DotnetFileRequest  = {
+                FsProj = fsproj
+                File = file
+            }
+            printfn "TEST8 %A" req
+
+            cl.sendRequest("fsproj/moveFileUp", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                ()
+
+            )
+    let fsprojMoveFileDown (fsproj: string)  (file: string) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : FsProj.DotnetFileRequest  = {
+                FsProj = fsproj
+                File = file
+            }
+
+            cl.sendRequest("fsproj/moveFileDown", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                ()
+            )
+
+    let fsprojAddFileAbove (fsproj: string) (file: string) (newFile: string) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : FsProj.DotnetFile2Request   = {
+                FsProj = fsproj
+                File = file
+                NewFile = newFile
+            }
+
+            cl.sendRequest("fsproj/addFileAbove", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                ()
+            )
+
+    let fsprojAddFileBelow (fsproj: string) (file: string) (newFile: string) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : FsProj.DotnetFile2Request   = {
+                FsProj = fsproj
+                File = file
+                NewFile = newFile
+            }
+
+            cl.sendRequest("fsproj/addFileBelow", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                ()
+            )
+
+    let fsprojAddFile (fsproj: string) (file: string)=
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req : FsProj.DotnetFileRequest   = {
+                FsProj = fsproj
+                File = file
+            }
+
+            cl.sendRequest("fsproj/addFile", req)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                ()
+            )
 
     let private deserializeProjectResult (res : ProjectResult) =
         let parseInfo (f : obj) =

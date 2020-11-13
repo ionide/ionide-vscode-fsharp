@@ -60,7 +60,6 @@ let activate (context : ExtensionContext) : JS.Promise<Api> =
         SignatureData.activate context
         Debugger.activate context
         Fsdn.activate context
-        Forge.activate context
         Fsi.activate context
         ScriptRunner.activate context
         LanguageConfiguration.activate context
