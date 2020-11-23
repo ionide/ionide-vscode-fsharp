@@ -12,6 +12,15 @@ module node = Node.Api
 
 module InfoPanel =
 
+    let private isFsharpTextEditor (textEditor : TextEditor) =
+            if JS.isDefined textEditor && JS.isDefined textEditor.document then
+                let doc = textEditor.document
+                match doc with
+                | Document.FSharp -> true
+                | _ -> false
+            else
+                false
+
     module Panel =
 
         let showdownOptions = Fable.Import.Showdown.showdown.getDefaultOptions() :?> Fable.Import.Showdown.Showdown.ConverterOptions
@@ -22,15 +31,6 @@ module InfoPanel =
         let mutable panel : WebviewPanel option = None
 
         let mutable locked = false
-
-        let private isFsharpTextEditor (textEditor : TextEditor) =
-            if JS.isDefined textEditor && JS.isDefined textEditor.document then
-                let doc = textEditor.document
-                match doc with
-                | Document.FSharp -> true
-                | _ -> false
-            else
-                false
 
         let setContent str =
             panel |> Option.iter (fun p ->
@@ -323,4 +323,6 @@ module InfoPanel =
         commands.registerCommand("fsharp.showDocumentation", showDocumentation |> objfy2) |> context.subscriptions.Add
 
         if startLocked then Panel.locked <- true
-        if show then openPanel () |> ignore
+        if show && window.visibleTextEditors |> Seq.exists isFsharpTextEditor
+         then openPanel () |> ignore
+         else ()
