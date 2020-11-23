@@ -139,7 +139,7 @@ The new extension window will appear with window title `Extension development ho
 ### Working with FSAC
 
 1. Open FSAC from a new instance of VSCode from the directory: `paket-files/github.com/fsharp/FsAutoComplete`
-2. Build the FSAC solution and copy the dll output from the output log, it should be something like: `paket-files/github.com/fsharp/FsAutoComplete/src/FsAutoComplete/bin/Debug/netcoreapp2.1/fsautocomplete.dll`.  Note `netcoreapp2.1` may be a different version.
+2. Build the FSAC solution and copy the dll output from the output log, it should be something like: `paket-files/github.com/fsharp/FsAutoComplete/src/FsAutoComplete/bin/Debug/net5.0/fsautocomplete.dll`.
 3. In the instance of VSCode that you have Ionide open, open settings (`CMD ,` or `Ctrl ,`), and find the section `FSharp > Fsac: Net Core Dll Path` and paste the output you copied from step 3.
 4. Now find the section `FSharp > Fsac: Attach Debugger` and check the check box.
 5. Close settings

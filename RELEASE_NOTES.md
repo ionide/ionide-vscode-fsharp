@@ -1,11 +1,14 @@
-### 5.0.0-preview01
+### 5.0.0-preview02 - 23.11.2020
+
 * Update Fable to 2.X
 * Update FSAC:
-  - Update to .NET 5 runtime
-  - Update to FCS 38
-  - Implement fsproj watcher
-  - Implement fsproj editing
-  - Add range selection provider
+  * Update to .NET 5 runtime
+  * Update to FCS 38
+  * Implement fsproj watcher
+  * Implement fsproj editing
+  * Add range selection provider
+  * Add many new code fixes
+  * Default to .NET SDK for script typechecking
 * Remove choice of FSAC runtime
 * Remove option to pick MsBuild host
 * Remove watcher on fsproj files
