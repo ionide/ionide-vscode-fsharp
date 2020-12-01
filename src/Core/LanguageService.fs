@@ -682,6 +682,7 @@ Consider:
         let backgroundSymbolCache = "FSharp.enableBackgroundServices" |> Configuration.get true
         let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
         let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
+        let fsacSilencedLogs = "FSharp.fsac.silencedLogs" |> Configuration.get [||]
         let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
         let spawnNetCore dotnet =
@@ -695,6 +696,10 @@ Consider:
                     if fsacAttachDebugger then yield "--attachdebugger"
                     if backgroundSymbolCache then yield "--background-service-enabled"
                     if verbose then yield  "--verbose"
+                    if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0
+                    then
+                        yield "--filter"
+                        yield fsacSilencedLogs |> String.concat ","
                 ] |> ResizeArray
 
             createObj [

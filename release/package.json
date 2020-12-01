@@ -1149,6 +1149,14 @@
 					"default": false,
 					"description": "Appends the '--attachdebugger' argument to fsac, this will allow you to attach the debugger."
 				},
+				"FSharp.fsac.silencedLogs": {
+					"type": "array",
+					"default": [],
+					"description": "An array of log categories for FSAC to filter out. These can be found by viewing your log output and noting the text in between the brackets in the log line. For example, in the log ling `[16:07:14.626 INF] [Compiler] done compiling foo.fsx`, the category is 'Compiler'. ",
+					"items": {
+						"type": "string"
+					}
+				},
 				"FSharp.workspaceModePeekDeepLevel": {
 					"type": "integer",
 					"default": 4,
