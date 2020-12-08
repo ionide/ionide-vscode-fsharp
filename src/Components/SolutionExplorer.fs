@@ -716,6 +716,7 @@ module SolutionExplorer =
                             | Reference(_,p, _, _) -> p
                             | _ -> failwith "Should not happend, we filtered the `refs` list before"
                         )
+                    let info = proj.Info
 
                     [ yield "<b>Status:</b> parsed correctly"
                       yield ""
@@ -725,29 +726,24 @@ module SolutionExplorer =
                       yield sprintf "<b>Output</b>: %s" proj.Output
 
                       yield ""
-                      match proj.Info with
-                      | ProjectResponseInfo.DotnetSdk info ->
-                          yield sprintf "<b>Project Type</b>: .NET Sdk (dotnet/sdk)"
-                          yield ""
-                          yield sprintf "<b>Configuration</b>: %s" info.Configuration
-                          yield sprintf "<b>Target Framework</b>: %s (%s %s)" info.TargetFramework info.TargetFrameworkIdentifier info.TargetFrameworkVersion
-                          yield ""
-                          let boolToString x = if x then "yes" else "no"
-                          yield sprintf "<b>Restored successfully</b>: %s" (info.RestoreSuccess |> boolToString)
-                          yield ""
-                          let crossgen = not (info.TargetFrameworks |> Seq.isEmpty)
-                          yield sprintf "<b>Crossgen (multiple target frameworks)</b>: %s" (crossgen |> boolToString)
-                          if crossgen then
-                            yield "<b>NOTE: You're using multiple target frameworks. As of now you can't choose which target framework should be used by FSAC. Instead, the first target framework from the list is selected. To change the target framework used by FSAC, simply place it on the first position on the &lt;TargetFrameworks&gt; list.</b>"
-                            yield "For more info see this issue: https://github.com/ionide/ionide-vscode-fsharp/issues/278"
-                          yield "<ul>"
-                          for tfm in info.TargetFrameworks do
-                            yield sprintf "<li>%s</li>" tfm
-                          yield "</ul>"
-                      | ProjectResponseInfo.Verbose ->
-                          yield sprintf "<b>Project Type</b>: old/verbose sdk"
-                      | ProjectResponseInfo.ProjectJson ->
-                          yield sprintf "<b>Project Type</b>: project.json"
+
+                      yield sprintf "<b>Project Type</b>: .NET Sdk (dotnet/sdk)"
+                      yield ""
+                      yield sprintf "<b>Configuration</b>: %s" info.Configuration
+                      yield sprintf "<b>Target Framework</b>: %s (%s %s)" info.TargetFramework info.TargetFrameworkIdentifier info.TargetFrameworkVersion
+                      yield ""
+                      let boolToString x = if x then "yes" else "no"
+                      yield sprintf "<b>Restored successfully</b>: %s" (info.RestoreSuccess |> boolToString)
+                      yield ""
+                      let crossgen = not (info.TargetFrameworks |> Seq.isEmpty)
+                      yield sprintf "<b>Crossgen (multiple target frameworks)</b>: %s" (crossgen |> boolToString)
+                      if crossgen then
+                        yield "<b>NOTE: You're using multiple target frameworks. As of now you can't choose which target framework should be used by FSAC. Instead, the first target framework from the list is selected. To change the target framework used by FSAC, simply place it on the first position on the &lt;TargetFrameworks&gt; list.</b>"
+                        yield "For more info see this issue: https://github.com/ionide/ionide-vscode-fsharp/issues/278"
+                      yield "<ul>"
+                      for tfm in info.TargetFrameworks do
+                        yield sprintf "<li>%s</li>" tfm
+                      yield "</ul>"
                       yield ""
                       yield "<b>Files</b>:"
                       yield! files

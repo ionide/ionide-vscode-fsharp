@@ -362,22 +362,6 @@ module LanguageService =
                 ()
             )
 
-    let private deserializeProjectResult (res : ProjectResult) =
-        let parseInfo (f : obj) =
-            match f?SdkType |> unbox with
-            | "dotnet/sdk" ->
-                ProjectResponseInfo.DotnetSdk (f?Data |> unbox)
-            | "verbose" ->
-                ProjectResponseInfo.Verbose
-            | "project.json" ->
-                ProjectResponseInfo.ProjectJson
-            | _ ->
-                f |> unbox
-
-        { res with
-            Data = { res.Data with
-                        Info = parseInfo(res.Data.Info) } }
-
     let parseError (err : obj) =
         let data =
             match err?Code |> unbox with
@@ -407,7 +391,7 @@ module LanguageService =
                 | "error" ->
                     res?Data |> parseError |> Error
                 | _ ->
-                    deserializeProjectResult (res |> unbox) |> Ok
+                    res |> unbox<ProjectResult> |> Ok
             )
 
     let workspacePeek dir deep excludedDirs =
@@ -731,7 +715,7 @@ Consider:
                     let onMessage res =
                         match res?Kind |> unbox with
                         | "project" ->
-                            res |> unbox<ProjectResult> |> deserializeProjectResult |> Choice1Of4 |> cb
+                            res |> unbox<ProjectResult> |> Choice1Of4 |> cb
                         | "projectLoading" ->
                             res |> unbox<ProjectLoadingResult> |> Choice2Of4 |> cb
                         | "error" ->

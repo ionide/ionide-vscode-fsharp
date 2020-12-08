@@ -207,12 +207,7 @@ module DTO =
 
     type ProjectLoading = { Project : ProjectFilePath }
 
-    [<RequireQualifiedAccess>]
-    type ProjectResponseInfo =
-        | DotnetSdk of ProjectResponseInfoDotnetSdk
-        | Verbose
-        | ProjectJson
-    and ProjectResponseInfoDotnetSdk =
+    type ProjectResponseInfoDotnetSdk =
         { IsTestProject : bool
           Configuration : string
           IsPackable : bool
@@ -242,7 +237,7 @@ module DTO =
           References : ProjectReferencePath array
           Logs : Map<string, string>
           OutputType : string
-          Info : ProjectResponseInfo
+          Info : ProjectResponseInfoDotnetSdk
           Items: ProjectResponseItem array
           AdditionalInfo : Map<string, string> }
 
