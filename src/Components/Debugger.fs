@@ -78,14 +78,7 @@ module Debugger =
         cfg?program <- programPath
 
     let debuggerRuntime project =
-        match project.Info with
-        | ProjectResponseInfo.DotnetSdk dotnetSdk ->
-            match dotnetSdk.TargetFrameworkIdentifier with
-            | ".NETCoreApp" -> Some "coreclr"
-            | _ -> Some "clr"
-        | ProjectResponseInfo.Verbose ->
-            if Environment.isWin then None else Some "mono"
-        | ProjectResponseInfo.ProjectJson -> Some "coreclr"
+        Some "coreclr"
 
     let debugProject (project : Project) (args : string []) =
         promise {
