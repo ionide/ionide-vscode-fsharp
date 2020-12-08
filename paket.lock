@@ -35,13 +35,13 @@ NUGET
       FSharp.Core (>= 4.7)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (398f4d3adf5097ab681b30f6a70b74669f15551b)
+     (b2cb76737693af7fab51ebe07ea1a4ee09183a48)
       build: build.cmd
       os: win
-     (398f4d3adf5097ab681b30f6a70b74669f15551b)
+     (b2cb76737693af7fab51ebe07ea1a4ee09183a48)
       build: build.sh
       os: linux
-     (398f4d3adf5097ab681b30f6a70b74669f15551b)
+     (b2cb76737693af7fab51ebe07ea1a4ee09183a48)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
@@ -294,7 +294,7 @@ NUGET
     System.Security.AccessControl (5.0)
       System.Security.Principal.Windows (>= 5.0)
     System.Security.Cryptography.Cng (5.0)
-    System.Security.Cryptography.Pkcs (5.0)
+    System.Security.Cryptography.Pkcs (5.0.1)
       System.Buffers (>= 4.5.1)
       System.Formats.Asn1 (>= 5.0)
       System.Memory (>= 4.5.4)
