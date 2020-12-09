@@ -49,9 +49,15 @@ module LanguageService =
         type DocumentUri = string
 
         type TextDocumentIdentifier = {Uri: DocumentUri }
+        type VersionedTextDocumentIdentifier = {Uri: DocumentUri; Version: int option }
 
         type TextDocumentPositionParams = {
             TextDocument: TextDocumentIdentifier
+            Position: Position
+        }
+
+        type VersionedTextDocumentPositionParams = {
+            TextDocument: VersionedTextDocumentIdentifier
             Position: Position
         }
 
@@ -70,7 +76,7 @@ module LanguageService =
 
     let mutable client : LanguageClient option = None
 
-    let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
+    let handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
 
     let compilerLocation () =
