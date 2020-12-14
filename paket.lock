@@ -35,13 +35,13 @@ NUGET
       FSharp.Core (>= 4.7)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (73e0c3f3c298bfb6a5a8c3823664e325fe8a0a0a)
+     (9ed22311a0e3d6477c9885602fc8cc7687f4b728)
       build: build.cmd
       os: win
-     (73e0c3f3c298bfb6a5a8c3823664e325fe8a0a0a)
+     (9ed22311a0e3d6477c9885602fc8cc7687f4b728)
       build: build.sh
       os: linux
-     (73e0c3f3c298bfb6a5a8c3823664e325fe8a0a0a)
+     (9ed22311a0e3d6477c9885602fc8cc7687f4b728)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
@@ -181,7 +181,7 @@ NUGET
       FSharp.Core (>= 4.7.2)
     FParsec (1.1.1)
       FSharp.Core (>= 4.3.4)
-    FSharp.Control.Reactive (4.4.2)
+    FSharp.Control.Reactive (4.5)
       FSharp.Core (>= 4.7.2)
       System.Reactive (>= 4.4.1)
     FSharp.Core (5.0)
