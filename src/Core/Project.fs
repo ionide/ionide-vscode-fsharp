@@ -53,21 +53,10 @@ module Project =
 
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
 
-    let isANetCoreAppProject (project : Project) =
-        let projectContent = (node.fs.readFileSync project.Project).ToString()
-        let netCoreTargets =
-            [ "<TargetFramework>netcoreapp"
-              "<Project Sdk=\"" ]
-
-        let findInProject (toFind : string) =
-            projectContent.IndexOf(toFind) >= 0
-
-        netCoreTargets |> Seq.exists findInProject
-
     let isNetCoreApp (project : Project) =
-        let projectContent = (node.fs.readFileSync project.Project).ToString()
-        let core = "<TargetFramework>netcoreapp"
-        projectContent.IndexOf(core) >= 0
+        project.Info.TargetFramework
+        :: project.Info.TargetFrameworks
+        |> Seq.exists (fun tfm -> tfm = "net5.0" || tfm.StartsWith "netcoreapp")
 
     let isSDKProjectPath (project : string) =
         let projectContent = (node.fs.readFileSync project).ToString()
@@ -75,7 +64,7 @@ module Project =
         projectContent.IndexOf(sdk) >= 0
 
     let isExeProject (project : Project) =
-        match project.Output, isANetCoreAppProject project with
+        match project.Output, isNetCoreApp project with
         | _, true ->
             project.OutputType.ToLowerInvariant() <> "lib"
         | out, _ when out |> String.endWith ".exe" -> true
