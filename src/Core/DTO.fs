@@ -203,7 +203,7 @@ module DTO =
 
     type ProjectFilePath = string
     type SourceFilePath = string
-    type ProjectReferencePath = string
+    type ResolvedReferencePath = string
 
     type ProjectLoading = { Project : ProjectFilePath }
 
@@ -230,11 +230,22 @@ module DTO =
           Metadata: Map<string, string>
         }
 
+    type ProjectReference =
+        { RelativePath: string
+          ProjectFileName: string }
+
+    type PackageReference =
+        { Name: string
+          Version: string
+          FullPath: string }
+
     type Project =
         { Project : ProjectFilePath
           Files : SourceFilePath array
           Output : string
-          References : ProjectReferencePath array
+          References : ResolvedReferencePath array
+          ProjectReferences: ProjectReference array
+          PackageReferences: PackageReference array
           Logs : Map<string, string>
           OutputType : string
           Info : ProjectResponseInfoDotnetSdk

@@ -19,7 +19,7 @@ module SolutionExplorer =
         | Workspace of Projects : Model list
         | Solution of parent : Model option ref * path : string * name : string * items : Model list
         | WorkspaceFolder of parent : Model option ref * name : string * items : Model list
-        | ReferenceList of parent : Model option ref * References : Model list * projectPath : string
+        | PackageReferenceList of parent : Model option ref * References : Model list * projectPath : string
         | ProjectReferencesList of parent : Model option ref * Projects : Model list * ProjectPath : string
         | ProjectNotLoaded of parent : Model option ref * path : string * name : string
         | ProjectLoading of parent : Model option ref * path : string * name : string
@@ -29,7 +29,7 @@ module SolutionExplorer =
         | Project of parent : Model option ref * path : string * name : string * Files : Model list * ProjectReferencesList : Model  * ReferenceList : Model * isExe : bool * project : DTO.Project
         | Folder of parent : Model option ref * name : string * path : string * Files : Model list * projectPath : string
         | File of parent : Model option ref * path : string * name : string * projectPath : string
-        | Reference of parent : Model option ref * path : string * name : string * projectPath : string
+        | PackageReference of parent : Model option ref * path : string * name : string * projectPath : string
         | ProjectReference of parent : Model option ref * path : string * name : string * projectPath : string
 
     type NodeEntry =
@@ -68,7 +68,7 @@ module SolutionExplorer =
         | Workspace _ -> ref None
         | Solution (parent, _, _, _) -> parent
         | WorkspaceFolder (parent, _, _) -> parent
-        | ReferenceList (parent, _, _) -> parent
+        | PackageReferenceList (parent, _, _) -> parent
         | ProjectReferencesList (parent, _, _) -> parent
         | ProjectNotLoaded (parent, _, _) -> parent
         | ProjectLoading (parent, _, _) -> parent
@@ -78,7 +78,7 @@ module SolutionExplorer =
         | Project (parent, _, _, _, _, _, _, _) -> parent
         | Folder (parent, _, _, _, _) -> parent
         | File (parent, _, _, _) -> parent
-        | Reference (parent, _, _, _) -> parent
+        | PackageReference (parent, _, _, _) -> parent
         | ProjectReference (parent, _, _, _) -> parent
 
     let inline setParentRef (model : Model) (parent : Model) =
@@ -135,21 +135,20 @@ module SolutionExplorer =
             |> Seq.toList
             |> buildTree proj.Project
 
-        let refs =
-            proj.References
-            |> Seq.map (fun p -> Reference(ref None, p,node.path.basename p, proj.Project))
+        let packageRefs =
+            proj.PackageReferences
+            |> Seq.distinctBy (fun p -> p.Name)
+            |> Seq.map (fun p -> PackageReference(ref None, p.FullPath,p.Name + " " + p.Version, proj.Project))
             |> Seq.toList
             |> fun n ->
-                let result = ReferenceList(ref None, n, proj.Project)
+                let result = PackageReferenceList(ref None, n, proj.Project)
                 setParentRefs n result
                 result
 
         let projs =
-            proj.References
-            |> Seq.choose (fun r ->
-                projects
-                |> Array.tryFind (fun pr -> pr.Output = r))
-            |> Seq.map (fun p -> ProjectReference(ref None, p.Project, node.path.basename(p.Project, ".fsproj"), proj.Project))
+            proj.ProjectReferences
+            |> Seq.distinctBy (fun p -> p.ProjectFileName)
+            |> Seq.map (fun p -> ProjectReference(ref None, p.ProjectFileName, node.path.basename(p.ProjectFileName, ".fsproj"), proj.Project))
             |> Seq.toList
             |> fun n ->
                 let result = ProjectReferencesList(ref None, n, proj.Project)
@@ -157,9 +156,9 @@ module SolutionExplorer =
                 result
 
         let name = node.path.basename(proj.Project, ".fsproj")
-        let result = Project(ref None, proj.Project, name,files, projs, refs, Project.isExeProject proj, proj)
+        let result = Project(ref None, proj.Project, name,files, projs, packageRefs, Project.isExeProject proj, proj)
         setParentRefs files result
-        setParentRef refs result
+        setParentRef packageRefs result
         setParentRef projs result
         result
 
@@ -249,11 +248,11 @@ module SolutionExplorer =
                 yield projs
                 yield! files
             ]
-        | ReferenceList (_, refs, _) -> refs
+        | PackageReferenceList (_, refs, _) -> refs
         | ProjectReferencesList (_, refs, _) -> refs
         | Folder (_, _,_,files, _) -> files
         | File _ -> []
-        | Reference _ -> []
+        | PackageReference _ -> []
         | ProjectReference _ -> []
 
     let private getLabel node =
@@ -267,11 +266,11 @@ module SolutionExplorer =
         | ProjectNotRestored (_, _, name, _) -> sprintf "%s (not restored)" name
         | ProjectLanguageNotSupported(_, _, name) -> sprintf "%s (language not supported)" name
         | Project (_, _, name,_, _,_, _, _) -> name
-        | ReferenceList _ -> "References"
+        | PackageReferenceList _ -> "Package References"
         | ProjectReferencesList (_, refs, _) -> "Project References"
         | Folder (_, n,_, _, _) -> n
         | File (_, _, name, _) -> name
-        | Reference (_, _, name, _) ->
+        | PackageReference (_, _, name, _) ->
             if name.ToLowerInvariant().EndsWith(".dll") then
                 name.Substring(0, name.Length - 4)
             else
@@ -310,7 +309,7 @@ module SolutionExplorer =
             member this.getTreeItem(node) =
                 let collaps =
                     match node with
-                    | File _ | Reference _ | ProjectReference _ ->
+                    | File _ | PackageReference _ | ProjectReference _ ->
                         vscode.TreeItemCollapsibleState.None
                     | ProjectFailedToLoad _ | ProjectLoading _ | ProjectNotLoaded _ | ProjectNotRestored _ | ProjectLanguageNotSupported _
                     | Workspace _ | Solution _ ->
@@ -329,10 +328,10 @@ module SolutionExplorer =
                             vscode.TreeItemCollapsibleState.Expanded
                         else
                             vscode.TreeItemCollapsibleState.Collapsed
-                    | Folder _ | Project _ | ProjectReferencesList _ | ReferenceList _ ->
+                    | Folder _ | Project _ | ProjectReferencesList _ | PackageReferenceList _ ->
                         vscode.TreeItemCollapsibleState.Collapsed
 
-                let ti = new TreeItem(getLabel node, collaps)
+                let ti = TreeItem(getLabel node, collaps)
 
                 let command =
                     match node with
@@ -351,11 +350,11 @@ module SolutionExplorer =
                     match node with
                     | File _  -> "file"
                     | ProjectReferencesList _ -> "projectRefList"
-                    | ReferenceList _ -> "referencesList"
+                    | PackageReferenceList _ -> "referencesList"
                     | Project (_, _, _, _, _, _, false, _) -> "project"
                     | Project (_, _, _, _, _, _, true, _) -> "projectExe"
                     | ProjectReference _  -> "projectRef"
-                    | Reference _  -> "reference"
+                    | PackageReference _  -> "reference"
                     | Folder _ -> "folder"
                     | ProjectFailedToLoad _ -> "projectLoadFailed"
                     | ProjectLoading _ -> "projectLoading"
@@ -385,19 +384,19 @@ module SolutionExplorer =
                         ThemeIcon.Folder |> U4.Case4 |> Some, Uri.file path |> Some
                     | WorkspaceFolder _  ->
                         ThemeIcon.Folder |> U4.Case4 |> Some, None
-                    | Reference (_, path, _, _) | ProjectReference (_, path, _, _) ->
+                    | PackageReference (_, path, _, _) | ProjectReference (_, path, _, _) ->
                         p.light <- (plugPath + "/images/circuit-board-light.svg") |> U3.Case1
                         p.dark <- (plugPath + "/images/circuit-board-dark.svg") |> U3.Case1
                         p |> U4.Case3 |> Some, Uri.file path |> Some
                     | Workspace _
-                    | ReferenceList _
+                    | PackageReferenceList _
                     | ProjectReferencesList _ ->
                         None, None
                 ti.iconPath <- icon
                 ti.resourceUri <- resourceUri
                 ti.id <-
                     match node with
-                    | ReferenceList (_, _, pp) | ProjectReferencesList (_, _,pp) | Reference (_, _, _, pp) | ProjectReference (_, _, _, pp)  ->
+                    | PackageReferenceList (_, _, pp) | ProjectReferencesList (_, _,pp) | PackageReference (_, _, _, pp) | ProjectReference (_, _, _, pp)  ->
                         Some ((defaultArg ti.label "") + "||" + pp)
                     | Folder (_, _,_, _, pp) | File (_, _, _, pp) ->
                         (resourceUri |> Option.map(fun u -> (defaultArg ti.label "") + "||" + u.toString() + "||" + pp))
@@ -480,9 +479,9 @@ module SolutionExplorer =
             | WorkspaceFolder (_, _, children)
             | Workspace children ->
                 children |> List.collect getModelPerFile
-            | Reference _
+            | PackageReference _
             | ProjectReference _
-            | ReferenceList _
+            | PackageReferenceList _
             | ProjectReferencesList _->
                 []
 
@@ -684,36 +683,26 @@ module SolutionExplorer =
 
             let viewParsed (proj: Project) =
                 match getProjectModel proj with
-                | (Project(_,_,_, files, ProjectReferencesList(_,projRefs,_), ReferenceList(_, refs,_), _, _)) ->
+                | (Project(_,_,_, files, ProjectReferencesList(_,projRefs,_), PackageReferenceList(_, refs,_), _, project)) ->
                     let files =
-                        files
-                        |> List.filter (function
-                            | File _ -> true
-                            | _ -> false)
-                        |> List.map (function
-                            | File(_,p, _, _) -> p
-                            | _ -> failwith "Should not happend, we filtered the `files` list before"
-                        )
+                        project.Files
 
                     let projRefs =
-                        projRefs
-                        |> List.filter (function
-                            | ProjectReference _ -> true
-                            | _ -> false
-                        )
-                        |> List.map (function
-                            | ProjectReference(_,p, _, _) -> p
-                            | _ -> failwith "Should not happend, we filtered the `projRefs` list before"
-                        )
+                        project.ProjectReferences
+                        |> Array.map (fun n -> n.ProjectFileName)
+
+                    let packageRefs =
+                        project.PackageReferences
+                        |> Array.map (fun n -> n.Name + " " + n.Version)
 
                     let refs =
                         refs
                         |> List.filter (function
-                            | Reference _ -> true
+                            | PackageReference _ -> true
                             | _ -> false
                         )
                         |> List.map (function
-                            | Reference(_,p, _, _) -> p
+                            | PackageReference(_,p, _, _) -> p
                             | _ -> failwith "Should not happend, we filtered the `refs` list before"
                         )
                     let info = proj.Info
@@ -740,10 +729,10 @@ module SolutionExplorer =
                       if crossgen then
                         yield "<b>NOTE: You're using multiple target frameworks. As of now you can't choose which target framework should be used by FSAC. Instead, the first target framework from the list is selected. To change the target framework used by FSAC, simply place it on the first position on the &lt;TargetFrameworks&gt; list.</b>"
                         yield "For more info see this issue: https://github.com/ionide/ionide-vscode-fsharp/issues/278"
-                      yield "<ul>"
-                      for tfm in info.TargetFrameworks do
-                        yield sprintf "<li>%s</li>" tfm
-                      yield "</ul>"
+                        yield "<ul>"
+                        for tfm in info.TargetFrameworks do
+                            yield sprintf "<li>%s</li>" tfm
+                        yield "</ul>"
                       yield ""
                       yield "<b>Files</b>:"
                       yield! files
@@ -751,7 +740,10 @@ module SolutionExplorer =
                       yield "<b>Project References</b>:"
                       yield! projRefs
                       yield ""
-                      yield "<b>References</b>:"
+                      yield "<b>Package References</b>:"
+                      yield! packageRefs
+                      yield ""
+                      yield "<b>Resolved References</b>:"
                       yield! refs
                       ]
                     |> String.concat "<br />"

@@ -377,7 +377,7 @@ module Fsi =
         |> Promise.suppress // prevent unhandled promise exception
         |> ignore
 
-    let private referenceAssembly (path : ProjectReferencePath) = path |> sprintf "#r @\"%s\"" |> send
+    let private referenceAssembly (path : ResolvedReferencePath) = path |> sprintf "#r @\"%s\"" |> send
     let private referenceAssemblies = Promise.executeForAll referenceAssembly
 
     let private sendReferences () =
