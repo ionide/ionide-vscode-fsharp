@@ -9,7 +9,7 @@ module Json =
 
     /// Previously `Fable.Core.JsInterop.ofJson`
     /// Instantiate F# objects from JSON
-    let inline ofJson<'a> json : 'a = 
+    let inline ofJson<'a> json : 'a =
         // see https://fable.io/blog/Migration-to-Fable2.html#breaking-changes
         Decode.Auto.unsafeFromString<'a>(json)
 
@@ -229,8 +229,8 @@ module Promise =
     // source: https://github.com/ionide/ionide-vscode-helpers/blob/5e4c28c79ed565497cd481fac2f22ee2d8d28406/src/Helpers.fs#L92
     let onFail a (pr: JS.Promise<_>) : JS.Promise<_> =
         pr
-        |> Promise.catchBind (fun reason -> 
-                a reason |> ignore 
+        |> Promise.catchBind (fun reason ->
+                a reason |> ignore
                 Promise.reject reason
             )
 
