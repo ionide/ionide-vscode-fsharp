@@ -1,4 +1,4 @@
-### 5.0.0-preview02 - 23.11.2020
+### 5.0.0-preview03 - 14.12.2020
 
 * Update Fable to 2.X
 * Update FSAC:
@@ -9,6 +9,7 @@
   * Add range selection provider
   * Add many new code fixes
   * Default to .NET SDK for script typechecking
+  * Port to new version of dotnet-proj-info
 * Remove choice of FSAC runtime
 * Remove option to pick MsBuild host
 * Remove watcher on fsproj files
@@ -18,6 +19,10 @@
 * Use `dotnet fsi` as default
 * Use background service as default
 * Use reference code lenses as default
+* Improve solution explorer:
+  * Add support for C# projects
+  * Display referenced NuGet packages
+  * Fix bugs with displayed project references
 
 ### 4.17.0 - 10.09.2020
 * Update FSAC:
