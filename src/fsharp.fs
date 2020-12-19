@@ -8,7 +8,6 @@ open Fable.Import.vscode
 open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
 open global.Node.ChildProcess
-open Debugger
 
 type Api =
     { ProjectLoadedEvent : Event<DTO.Project>
@@ -19,13 +18,8 @@ type Api =
 
 let activate (context : ExtensionContext) : JS.Promise<Api> =
 
-    let resolve = "FSharp.resolveNamespaces" |> Configuration.get false
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
-
-    let analyzers = "FSharp.enableAnalyzers" |> Configuration.get false
     let showExplorer = "FSharp.showExplorerOnStartup" |> Configuration.get true
-
-    let init = DateTime.Now
 
     LanguageService.start context
     |> Promise.onSuccess (fun _ ->
@@ -86,7 +80,7 @@ let activate (context : ExtensionContext) : JS.Promise<Api> =
             | None -> return ""
         }
 
-        let event = Fable.Import.vscode.EventEmitter<DTO.Project>()
+        let event = EventEmitter<DTO.Project>()
         Project.projectLoaded.Invoke(fun n ->
             !!(setTimeout (fun _ -> event.fire n) 500.)
         ) |> ignore
@@ -95,7 +89,7 @@ let activate (context : ExtensionContext) : JS.Promise<Api> =
           BuildProject = buildProject
           BuildProjectFast = buildProjectFast
           GetProjectLauncher = Project.getLauncher
-          DebugProject = debugProject }
+          DebugProject = Debugger.debugProject }
     )
 
 let deactivate(disposables : Disposable[]) =
