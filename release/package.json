@@ -1230,6 +1230,21 @@
 					"default": "failwith \"Not Implemented\"",
 					"description": "Generated member default body"
 				},
+				"FSharp.abstractClassStubGeneration": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enables abstract class stub generation"
+                },
+                "FSharp.abstractClassStubGenerationObjectIdentifier": {
+					"type": "string",
+					"default": "this",
+					"description": "Generated member default object identifier"
+                },
+                "FSharp.abstractClassStubGenerationMethodBody": {
+					"type": "string",
+					"default": "failwith \"Not Implemented\"",
+					"description": "Generated member default body"
+				},
 				"FSharp.unusedOpensAnalyzer": {
 					"type": "boolean",
 					"default": true,
