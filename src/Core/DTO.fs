@@ -374,6 +374,7 @@ module DTO =
     type PieplineHint = {
         Line: int
         Types: string []
+        PrecedingNonPipeExprLine : int option
     }
 
     type Result<'T> =

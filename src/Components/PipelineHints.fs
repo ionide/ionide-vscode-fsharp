@@ -118,19 +118,31 @@ type State =
 
 module DecorationUpdate =
 
-    let interestingSymbolPositions (doc : TextDocument) (lines : PieplineHint[]) : (CodeRange.CodeRange * string []) []  =
+    let interestingSymbolPositions (doc : TextDocument) (lines : PieplineHint[]) : (CodeRange.CodeRange * string [] * CodeRange.CodeRange option) []  =
         lines
         |> Array.map (fun n ->
             let textLine = doc.lineAt (float n.Line)
-            textLine.range, n.Types
+            let previousTextLine = n.PrecedingNonPipeExprLine |> Option.map (fun l -> (doc.lineAt (float l)).range)
+            textLine.range, n.Types, previousTextLine
         )
 
-    let private getSignature (range : CodeRange.CodeRange, tts: string []) =
-        let tt = tts.[0]
+    let private getSignature (index : int) (range : CodeRange.CodeRange, tts: string []) =
+        let tt = tts.[index]
         let id = tt.IndexOf("is")
         let res = tt.Substring(id + 3)
         range, "  " + res
 
+    let private getSignatures (range : CodeRange.CodeRange, tts: string [], previousNonPipeLine : CodeRange.CodeRange option) =
+        match previousNonPipeLine with
+        | Some previousLine ->
+            [|
+                getSignature 0 (previousLine, tts)
+                getSignature 1 (range, tts)
+            |]
+        | None ->
+            [|
+                getSignature 1 (range, tts)
+            |]
 
 
     let private declarationsResultToSignatures (doc : TextDocument) (declarationsResult: DTO.PipelineHintsResult) fileName =
@@ -140,7 +152,7 @@ module DecorationUpdate =
                 |> interestingSymbolPositions doc
             let signatures =
                 interesting
-                |> Array.map (getSignature)
+                |> Array.collect (getSignatures)
             return signatures
         }
 
