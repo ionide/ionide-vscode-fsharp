@@ -1,4 +1,4 @@
-### 5.0.0-preview03 - 14.12.2020
+### 5.0.0 - 21.12.2020
 
 * Update Fable to 2.X
 * Update FSAC:
@@ -10,6 +10,9 @@
   * Add many new code fixes
   * Default to .NET SDK for script typechecking
   * Port to new version of dotnet-proj-info
+  * Update Fantomas to 4.3
+  * Background service will now remove symbol cache entries from non-existing files
+  * Improvements to pipeline hints
 * Remove choice of FSAC runtime
 * Remove option to pick MsBuild host
 * Remove watcher on fsproj files
