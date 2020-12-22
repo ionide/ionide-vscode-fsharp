@@ -1,3 +1,7 @@
+### 5.0.1 - 22.12.2020
+* Update FSAC:
+  * Update DPI to 0.45.1
+
 ### 5.0.0 - 21.12.2020
 
 * Update Fable to 2.X
