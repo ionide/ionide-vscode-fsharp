@@ -1,3 +1,8 @@
+### 5.0.2 - 23.12.2020
+* Update FSAC:
+  * Update FCS to 38.0.2
+    * fixes #r issues in scripts
+
 ### 5.0.1 - 22.12.2020
 * Update FSAC:
   * Update DPI to 0.45.1
