@@ -7,7 +7,7 @@ open DTO
 open Ionide.VSCode.Helpers
 
 module HighlightingProvider =
-    let private logger = ConsoleAndOutputChannelLogger(Some "Project", Level.DEBUG, None, Some Level.DEBUG)
+    let private logger = ConsoleAndOutputChannelLogger(Some "HighlightingProvider", Level.DEBUG, None, Some Level.DEBUG)
 
     let tokenTypes = [|
         "comment"; "string"; "keyword"; "number"; "regexp"; "operator"; "namespace";
@@ -16,9 +16,8 @@ module HighlightingProvider =
         "property.readonly";
         "mutable"; "disposable"; "cexpr"; |] //Last row - custom F# specific types
 
-    let legend = SemanticTokensLegend(tokenTypes)
 
-    let provider =
+    let provider legend =
         { new DocumentSemanticTokensProvider
           with
             member __.provideDocumentSemanticTokens(textDocument, ct) =
@@ -36,10 +35,14 @@ module HighlightingProvider =
         }
 
     let activate (context : ExtensionContext) =
-        let df = createEmpty<DocumentFilter>
-        df.language <- Some "fsharp"
+        try
+            let df = createEmpty<DocumentFilter>
+            df.language <- Some "fsharp"
 
+            let legend = SemanticTokensLegend(tokenTypes)
+            languages.registerDocumentSemanticTokensProvider(!!df, provider legend, legend )  |> context.subscriptions.Add
 
-        languages.registerDocumentSemanticTokensProvider(!!df, provider, legend )  |> context.subscriptions.Add
-
-        ()
+            ()
+        with
+        | ex ->
+            logger.Debug("Couldn't activate HighlightingProvider", ex)
