@@ -183,7 +183,7 @@ module InfoPanel =
 
         let update (textEditor : TextEditor) (selections : ResizeArray<Selection>) =
             promise {
-                if isFsharpTextEditor textEditor && selections.Count > 0 then
+                if isFsharpTextEditor textEditor && selections.Count > 0 && panel.IsSome then
                     let doc = textEditor.document
                     let pos = selections.[0].active
                     let! res = LanguageService.documentation doc.fileName (int pos.line) (int pos.character)
@@ -198,7 +198,7 @@ module InfoPanel =
 
         let update' (textEditor : TextEditor) (pos : Position) =
             promise {
-                if isFsharpTextEditor textEditor  then
+                if isFsharpTextEditor textEditor && panel.IsSome  then
                     let doc = textEditor.document
                     let! res = LanguageService.documentation doc.fileName (int pos.line) (int pos.character)
                     let res = mapContent res
