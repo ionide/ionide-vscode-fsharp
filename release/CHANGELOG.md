@@ -1,3 +1,12 @@
+### 5.1.0 - 28.12.2020
+* Handle potential exception in HighlightingProvider activation (GitPod)
+* Update FSAC:
+  * Improve memory usage in Background Service
+  * Improve memory usage in main process by removing AST from internal cache
+  * Update Fantomas to 4.4 prerelease
+  * Don't parse `.fs` files that don't belong to `.fsproj`
+  * Enable initial support for directly opened `.fsx` files
+
 ### 5.0.3 - 23.12.2020
 * Update FSAC:
   * Update FCS to 38.0.2
