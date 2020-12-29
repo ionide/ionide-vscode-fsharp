@@ -1,8 +1,5 @@
 {
-  "scripts": {
-    "build": "webpack",
-    "watch": "webpack --watch"
-  },
+  "scripts": {},
   "dependencies": {
     "htmlparser2": "^4.1.0"
   },
@@ -15,8 +12,6 @@
     "@types/ws": "^7.2.6",
     "axios": "^0.20.0",
     "babel-loader": "^8.1.0",
-    "fable-compiler": "^2.13.0",
-    "fable-loader": "^2.1.9",
     "mocha": "^8.1.3",
     "showdown": "^1.9.1",
     "toml": "^3.0.0",
@@ -24,7 +19,6 @@
     "vscode-languageclient": "^6.1.3",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",
-    "webpack-node-externals": "^2.5.2",
     "ws": "^7.3.1",
     "xhr2": "^0.2.0"
   }

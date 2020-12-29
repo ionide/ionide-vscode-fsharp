@@ -9,9 +9,15 @@
       ]
     },
     "paket": {
-      "version": "5.249.2",
+      "version": "5.257.0",
       "commands": [
         "paket"
+      ]
+    },
+    "fable": {
+      "version": "3.0.5",
+      "commands": [
+        "fable"
       ]
     }
   }
