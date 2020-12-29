@@ -65,7 +65,7 @@ module LanguageService =
 
         type HighlightingRequest = {FileName : string; }
         type FSharpLiterateRequest = {FileName: string}
-        type FSharpPieplineHintsRequest = {FileName: string}
+        type FSharpPipelineHintsRequest = {FileName: string}
 
 
     let mutable client : LanguageClient option = None
@@ -494,7 +494,7 @@ module LanguageService =
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req : Types.FSharpPieplineHintsRequest= {
+            let req : Types.FSharpPipelineHintsRequest= {
                 FileName = f
             }
             cl.sendRequest("fsharp/pipelineHint", req)

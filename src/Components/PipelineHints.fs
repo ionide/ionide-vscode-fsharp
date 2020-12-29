@@ -118,7 +118,7 @@ type State =
 
 module DecorationUpdate =
 
-    let interestingSymbolPositions (doc : TextDocument) (lines : PieplineHint[]) : (CodeRange.CodeRange * string [] * CodeRange.CodeRange option) []  =
+    let interestingSymbolPositions (doc : TextDocument) (lines : PipelineHint[]) : (CodeRange.CodeRange * string [] * CodeRange.CodeRange option) []  =
         lines
         |> Array.map (fun n ->
             let textLine = doc.lineAt (float n.Line)

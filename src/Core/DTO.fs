@@ -371,7 +371,7 @@ module DTO =
 
     type CompileData = { Code : int }
 
-    type PieplineHint = {
+    type PipelineHint = {
         Line: int
         Types: string []
         PrecedingNonPipeExprLine : int option
@@ -406,7 +406,7 @@ module DTO =
     type FsdnResult = Result<FsdnResponse>
     type HighlightingResult = Result<HighlightingResponse>
     type FSharpLiterateResult = Result<string>
-    type PipelineHintsResult = Result<PieplineHint array>
+    type PipelineHintsResult = Result<PipelineHint array>
 
 
     module DotnetNew =
