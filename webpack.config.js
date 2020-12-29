@@ -1,5 +1,4 @@
 var path = require("path");
-var nodeExternals = require('webpack-node-externals');
 
 function resolve(filePath) {
   return path.join(__dirname, filePath)
@@ -31,7 +30,7 @@ module.exports = function(env, argv) {
   target: 'node',
   mode: isProduction ? "production" : "development",
   devtool: "source-map",
-  entry: resolve('./src/Ionide.FSharp.fsproj'),
+  entry: './out/fsharp.js',
   output: {
     filename: 'fsharp.js',
     path: resolve('./' + outputPath),
@@ -52,16 +51,6 @@ module.exports = function(env, argv) {
   },
   module: {
     rules: [
-      {
-        test: /\.fs(x|proj)?$/,
-        use: {
-          loader: "fable-loader",
-          options: {
-            babel: babelOptions,
-            define: compilerDefines
-          }
-        }
-      },
       {
         test: /\.js$/,
         exclude: /node_modules/,

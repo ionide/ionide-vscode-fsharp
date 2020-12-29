@@ -61,9 +61,62 @@ let npmTool =
 
 let vsceTool = lazy (platformTool "vsce" "vsce.cmd")
 
-let runFable additionalArgs =
-    let cmd = "webpack " + additionalArgs
-    Yarn.exec cmd id
+module Fable =
+    type Command =
+        | Build
+        | Watch
+        | Clean
+    type Webpack =
+        | WithoutWebpack
+        | WithWebpack of args: string option
+    type Args = {
+        Command: Command
+        Debug: bool
+        ProjectPath: string
+        OutDir: string option
+        AdditionalFableArgs: string option
+        Webpack: Webpack
+    }
+
+    let DefaultArgs = {
+        Command = Build
+        Debug = true
+        ProjectPath = "./src/Ionide.FSharp.fsproj"
+        OutDir = Some "./out"
+        AdditionalFableArgs = None
+        Webpack = WithoutWebpack
+    }
+
+    let private mkArgs args =
+        let fableCmd =
+            match args.Command with
+            | Build -> ""
+            | Watch -> "watch"
+            | Clean -> "clean"
+        let fableProjPath = args.ProjectPath
+        let fableDebug = if args.Debug then "--define DEBUG" else ""
+        let fableOutDir =
+            match args.OutDir with
+            | Some dir -> sprintf "--outDir %s" dir
+            | None -> ""
+        let fableAdditionalArgs = args.AdditionalFableArgs |> Option.defaultValue ""
+        let webpackCmd =
+            match args.Webpack with
+            | WithoutWebpack -> ""
+            | WithWebpack webpackArgs ->
+                sprintf "--%s webpack %s %s"
+                    (match args.Command with | Watch -> "runWatch" | _ -> "run")
+                    (if args.Debug then "--mode=development" else "--mode=production")
+                    (webpackArgs |> Option.defaultValue "")
+
+        // $"{fableCmd} {fableProjPath} {fableOutDir} {fableDebug} {fableAdditionalArgs} {webpackCmd}"
+        sprintf "%s %s %s %s %s %s" fableCmd fableProjPath fableOutDir fableDebug fableAdditionalArgs webpackCmd
+
+    let run args =
+        let cmd = mkArgs args
+        let result = DotNet.exec id "fable" cmd
+        if not result.OK then
+            failwithf "Error while running 'dotnet fable' with args: %s" cmd
 
 let copyFSACNetcore releaseBinNetcore fsacBinNetcore =
     Directory.ensure releaseBinNetcore
@@ -175,6 +228,7 @@ Target.initEnvironment ()
 
 Target.create "Clean" (fun _ ->
     Shell.cleanDir "./temp"
+    Shell.cleanDir "./out"  // used for fable output -> then bundled with webpack into release folder
     Shell.copyFiles "release" ["README.md"; "LICENSE.md"]
     Shell.copyFile "release/CHANGELOG.md" "RELEASE_NOTES.md"
 )
@@ -186,7 +240,7 @@ Target.create "DotNetRestore" <| fun _ ->
     DotNet.restore id "src"
 
 Target.create "Watch" (fun _ ->
-    runFable "--mode development --watch"
+    Fable.run { Fable.DefaultArgs with Command = Fable.Watch; Debug = true; Webpack = Fable.WithWebpack None }
 )
 
 Target.create "InstallVSCE" ( fun _ ->
@@ -200,11 +254,11 @@ Target.create "CopyDocs" (fun _ ->
 )
 
 Target.create "RunScript" (fun _ ->
-    runFable "--mode production"
+    Fable.run { Fable.DefaultArgs with Command = Fable.Build; Debug = false; Webpack = Fable.WithWebpack None }
 )
 
 Target.create "RunDevScript" (fun _ ->
-    runFable "--mode development"
+    Fable.run { Fable.DefaultArgs with Command = Fable.Build; Debug = true; Webpack = Fable.WithWebpack None }
 )
 
 
