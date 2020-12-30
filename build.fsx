@@ -72,17 +72,21 @@ module Fable =
     type Args = {
         Command: Command
         Debug: bool
+        Experimental: bool
         ProjectPath: string
         OutDir: string option
+        Defines: string list
         AdditionalFableArgs: string option
         Webpack: Webpack
     }
 
     let DefaultArgs = {
         Command = Build
-        Debug = true
+        Debug = false
+        Experimental = false
         ProjectPath = "./src/Ionide.FSharp.fsproj"
         OutDir = Some "./out"
+        Defines = []
         AdditionalFableArgs = None
         Webpack = WithoutWebpack
     }
@@ -95,22 +99,25 @@ module Fable =
             | Clean -> "clean"
         let fableProjPath = args.ProjectPath
         let fableDebug = if args.Debug then "--define DEBUG" else ""
+        let fableExperimental = if args.Experimental then "--define IONIDE_EXPERIMENTAL" else ""
         let fableOutDir =
             match args.OutDir with
             | Some dir -> sprintf "--outDir %s" dir
             | None -> ""
+        let fableDefines = args.Defines |> List.map (sprintf "--define %s") |> String.concat " "
         let fableAdditionalArgs = args.AdditionalFableArgs |> Option.defaultValue ""
         let webpackCmd =
             match args.Webpack with
             | WithoutWebpack -> ""
             | WithWebpack webpackArgs ->
-                sprintf "--%s webpack %s %s"
+                sprintf "--%s webpack %s %s %s"
                     (match args.Command with | Watch -> "runWatch" | _ -> "run")
                     (if args.Debug then "--mode=development" else "--mode=production")
+                    (if args.Experimental then "--env.ionideExperimental" else "")
                     (webpackArgs |> Option.defaultValue "")
 
-        // $"{fableCmd} {fableProjPath} {fableOutDir} {fableDebug} {fableAdditionalArgs} {webpackCmd}"
-        sprintf "%s %s %s %s %s %s" fableCmd fableProjPath fableOutDir fableDebug fableAdditionalArgs webpackCmd
+        // $"{fableCmd} {fableProjPath} {fableOutDir} {fableDebug} {fableExperimental} {fableDefines} {fableAdditionalArgs} {webpackCmd}"
+        sprintf "%s %s %s %s %s %s %s %s" fableCmd fableProjPath fableOutDir fableDebug fableExperimental fableDefines fableAdditionalArgs webpackCmd
 
     let run args =
         let cmd = mkArgs args
@@ -257,6 +264,10 @@ Target.create "RunScript" (fun _ ->
     Fable.run { Fable.DefaultArgs with Command = Fable.Build; Debug = false; Webpack = Fable.WithWebpack None }
 )
 
+Target.create "RunExpScript" (fun _ ->
+    Fable.run { Fable.DefaultArgs with Command = Fable.Build; Debug = false; Experimental = true; Webpack = Fable.WithWebpack None }
+)
+
 Target.create "RunDevScript" (fun _ ->
     Fable.run { Fable.DefaultArgs with Command = Fable.Build; Debug = true; Webpack = Fable.WithWebpack None }
 )
@@ -352,5 +363,11 @@ Target.create "BuildPackages" ignore
 
 "RunDevScript"
 ==> "BuildDev"
+
+
+"YarnInstall" ==> "RunExpScript"
+"DotNetRestore" ==> "RunExpScript"
+"RunExpScript"
+==> "BuildExp"
 
 Target.runOrDefault "Default"

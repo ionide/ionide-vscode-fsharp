@@ -21,11 +21,6 @@ module.exports = function(env, argv) {
   var outputPath = ionideExperimental ? "release-exp" : "release";
   console.log("Output path: " + outputPath);
 
-  var compilerDefines = isProduction ? [] : ["DEBUG"];
-  if (ionideExperimental) {
-    compilerDefines.push("IONIDE_EXPERIMENTAL");
-  }
-
   return {
   target: 'node',
   mode: isProduction ? "production" : "development",
