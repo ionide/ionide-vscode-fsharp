@@ -264,10 +264,6 @@ Target.create "RunScript" (fun _ ->
     Fable.run { Fable.DefaultArgs with Command = Fable.Build; Debug = false; Webpack = Fable.WithWebpack None }
 )
 
-Target.create "RunExpScript" (fun _ ->
-    Fable.run { Fable.DefaultArgs with Command = Fable.Build; Debug = false; Experimental = true; Webpack = Fable.WithWebpack None }
-)
-
 Target.create "RunDevScript" (fun _ ->
     Fable.run { Fable.DefaultArgs with Command = Fable.Build; Debug = true; Webpack = Fable.WithWebpack None }
 )
@@ -324,7 +320,6 @@ Target.create "ReleaseGitHub" (fun _ ->
 Target.create "Default" ignore
 Target.create "Build" ignore
 Target.create "BuildDev" ignore
-Target.create "BuildExp" ignore
 Target.create "Release" ignore
 Target.create "BuildPackages" ignore
 
@@ -363,11 +358,5 @@ Target.create "BuildPackages" ignore
 
 "RunDevScript"
 ==> "BuildDev"
-
-
-"YarnInstall" ==> "RunExpScript"
-"DotNetRestore" ==> "RunExpScript"
-"RunExpScript"
-==> "BuildExp"
 
 Target.runOrDefault "Default"
