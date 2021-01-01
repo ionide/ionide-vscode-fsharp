@@ -115,10 +115,14 @@ module Debugger =
                 cfg?preLaunchTask <- None
 
                 let folder = workspace.workspaceFolders.[0]
-                let! _ = MSBuild.buildProjectPath "Build" project
-                // let! res = vscode.commands.executeCommand("vscode.startDebug", cfg)
-                let! res =  debug.startDebugging(folder, unbox cfg)
-                return ()
+                let! msbuildExit = MSBuild.buildProjectPath "Build" project
+                match msbuildExit.Code with
+                    | Some code when code <> 0 ->
+                        return! Promise.reject (sprintf "msbuild 'Build' failed with exit code %i" code)
+                    | _ ->
+                        // let! res = vscode.commands.executeCommand("vscode.startDebug", cfg)
+                        let! res =  debug.startDebugging(folder, unbox cfg)
+                        return ()
         }
 
     let mutable startup = None
