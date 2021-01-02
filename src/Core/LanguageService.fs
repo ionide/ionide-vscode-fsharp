@@ -295,7 +295,7 @@ module LanguageService =
         | Some cl ->
             let req : FsProj.DotnetFileRequest  = {
                 FsProj = fsproj
-                File = file
+                FileVirtualPath = file
             }
             printfn "TEST8 %A" req
 
@@ -310,7 +310,7 @@ module LanguageService =
         | Some cl ->
             let req : FsProj.DotnetFileRequest  = {
                 FsProj = fsproj
-                File = file
+                FileVirtualPath = file
             }
 
             cl.sendRequest("fsproj/moveFileDown", req)
@@ -324,7 +324,7 @@ module LanguageService =
         | Some cl ->
             let req : FsProj.DotnetFile2Request   = {
                 FsProj = fsproj
-                File = file
+                FileVirtualPath = file
                 NewFile = newFile
             }
 
@@ -339,7 +339,7 @@ module LanguageService =
         | Some cl ->
             let req : FsProj.DotnetFile2Request   = {
                 FsProj = fsproj
-                File = file
+                FileVirtualPath = file
                 NewFile = newFile
             }
 
@@ -354,7 +354,7 @@ module LanguageService =
         | Some cl ->
             let req : FsProj.DotnetFileRequest   = {
                 FsProj = fsproj
-                File = file
+                FileVirtualPath = file
             }
 
             cl.sendRequest("fsproj/addFile", req)

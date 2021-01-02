@@ -592,20 +592,22 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.moveDown", objfy2 (fun m ->
             match unbox m with
-            | File (_, _, name, _, proj) -> FsProjEdit.moveFileDownPath proj name
+            | File (_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileDownPath proj virtPath
+            // | File (_, _, name, _, proj) -> FsProjEdit.moveFileDownPath proj name
             | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.removeFile", objfy2 (fun m ->
             match unbox m with
-            | File (_, _, name, _, proj) -> FsProjEdit.removeFilePath proj name
+            | File (_, _, name, Some virtPath, proj) -> FsProjEdit.removeFilePath proj virtPath
+            // | File (_, _, name, _, proj) -> FsProjEdit.removeFilePath proj name
             | _ -> undefined
         )) |> context.subscriptions.Add
 
 
         commands.registerCommand("fsharp.explorer.addAbove", objfy2 (fun m ->
             match unbox m with
-            | File (_, _, name, _, proj) ->
+            | File (_, _, name, Some virtPath, proj) ->
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "new.fs"
                 opts.prompt <- Some "New file name, relative to project file"
@@ -614,7 +616,7 @@ module SolutionExplorer =
                 |> Promise.bind (fun file ->
                     if JS.isDefined file then
                         let file' = handleUntitled file
-                        FsProjEdit.addFileAbove proj name file'
+                        FsProjEdit.addFileAbove proj virtPath file'
                     else
                         Promise.empty
                 )
@@ -624,7 +626,7 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.addBelow", objfy2 (fun m ->
             match unbox m with
-            | File (_, fr_om, name, _, proj) ->
+            | File (_, fr_om, name, Some virtPath, proj) ->
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "new.fs"
                 opts.prompt <- Some "New file name, relative to project file"
@@ -633,7 +635,7 @@ module SolutionExplorer =
                 |> Promise.map (fun file ->
                     if JS.isDefined file then
                         let file' = handleUntitled file
-                        FsProjEdit.addFileBelow proj name file'
+                        FsProjEdit.addFileBelow proj virtPath file'
                     else
                         Promise.empty
                 )
