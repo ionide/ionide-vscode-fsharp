@@ -28,13 +28,14 @@ module SolutionExplorer =
         | ProjectLanguageNotSupported of parent : Model option ref * path : string * name : string
         | Project of parent : Model option ref * path : string * name : string * Files : Model list * ProjectReferencesList : Model  * ReferenceList : Model * isExe : bool * project : DTO.Project
         | Folder of parent : Model option ref * name : string * path : string * Files : Model list * projectPath : string
-        | File of parent : Model option ref * path : string * name : string * projectPath : string
+        | File of parent : Model option ref * path : string * name : string * virtualPath : string option * projectPath : string
         | PackageReference of parent : Model option ref * path : string * name : string * projectPath : string
         | ProjectReference of parent : Model option ref * path : string * name : string * projectPath : string
 
     type NodeEntry =
         { Key : string
           FilePath: string
+          VirtualPath : string
           Children : Dictionary<string, NodeEntry> }
 
     let inline pathCombine a b =
@@ -46,13 +47,13 @@ module SolutionExplorer =
             | [ ] -> state
             | [ key ] ->
                 if not (state.Children.ContainsKey key) then
-                    let x = { Key = key; FilePath = filepath; Children = new Dictionary<_,_>() }
+                    let x = { Key = key; FilePath = filepath; VirtualPath = virtualPath; Children = new Dictionary<_,_>() }
                     state.Children.Add(key,x)
                 state
             | dirName :: xs ->
                 if not (state.Children.ContainsKey dirName) then
                     let dirPath = pathCombine state.FilePath dirName
-                    let x = { Key = dirName; FilePath = dirPath; Children = new Dictionary<_,_>() }
+                    let x = { Key = dirName; FilePath = dirPath; VirtualPath = virtualPath; Children = new Dictionary<_,_>() }
                     state.Children.Add(dirName,x)
                 let item = state.Children.[dirName]
                 addhelper item xs
@@ -77,7 +78,7 @@ module SolutionExplorer =
         | ProjectLanguageNotSupported (parent, _, _) -> parent
         | Project (parent, _, _, _, _, _, _, _) -> parent
         | Folder (parent, _, _, _, _) -> parent
-        | File (parent, _, _, _) -> parent
+        | File (parent, _, _, _, _) -> parent
         | PackageReference (parent, _, _, _) -> parent
         | ProjectReference (parent, _, _, _) -> parent
 
@@ -113,11 +114,11 @@ module SolutionExplorer =
             setParentRefs childs result
             result
         else
-            File(ref None, entry.FilePath, entry.Key, projPath)
+            File(ref None, entry.FilePath, entry.Key, Some entry.VirtualPath, projPath)
 
     let buildTree projPath (files : (string * string) list) =
         let projDir = dirName projPath
-        let entry = {Key = ""; FilePath = projDir; Children = new Dictionary<_,_>()}
+        let entry = {Key = ""; FilePath = projDir; VirtualPath = ""; Children = new Dictionary<_,_>()}
         files |> List.iter (fun (virtualPath, path) -> add' entry virtualPath path)
         entry.Children
         |> Seq.map (fun n -> toModel projPath n.Value )
@@ -206,7 +207,7 @@ module SolutionExplorer =
             | WorkspacePeekFoundSolutionItemKind.Folder folder ->
                 let files =
                     folder.Files
-                    |> Array.map (fun f -> Model.File (ref None, f,node.path.basename(f),""))
+                    |> Array.map (fun f -> Model.File (ref None, f,node.path.basename(f), None, ""))
                 let items = folder.Items |> Array.map getItem
                 let result = Model.WorkspaceFolder (ref None, item.Name, (Seq.append files items |> List.ofSeq))
                 setParentRefs files result
@@ -269,7 +270,7 @@ module SolutionExplorer =
         | PackageReferenceList _ -> "Package References"
         | ProjectReferencesList (_, refs, _) -> "Project References"
         | Folder (_, n,_, _, _) -> n
-        | File (_, _, name, _) -> name
+        | File (_, _, name, _, _) -> name
         | PackageReference (_, _, name, _) ->
             if name.ToLowerInvariant().EndsWith(".dll") then
                 name.Substring(0, name.Length - 4)
@@ -335,7 +336,7 @@ module SolutionExplorer =
 
                 let command =
                     match node with
-                    | File (_, p, _, _) ->
+                    | File (_, p, _, _, _) ->
                         let c = createEmpty<Command>
                         c.command <- "vscode.open"
                         c.title <- "open"
@@ -371,7 +372,7 @@ module SolutionExplorer =
 
                 let icon, resourceUri =
                     match node with
-                    | File (_, path, _, _)
+                    | File (_, path, _, _, _)
                     | Project (_, path, _, _, _, _, _, _)
                     | ProjectNotLoaded (_, path, _)
                     | ProjectLoading (_, path, _)
@@ -398,7 +399,7 @@ module SolutionExplorer =
                     match node with
                     | PackageReferenceList (_, _, pp) | ProjectReferencesList (_, _,pp) | PackageReference (_, _, _, pp) | ProjectReference (_, _, _, pp)  ->
                         Some ((defaultArg ti.label "") + "||" + pp)
-                    | Folder (_, _,_, _, pp) | File (_, _, _, pp) ->
+                    | Folder (_, _,_, _, pp) | File (_, _, _, _, pp) ->
                         (resourceUri |> Option.map(fun u -> (defaultArg ti.label "") + "||" + u.toString() + "||" + pp))
                     | _ ->
                         (resourceUri |> Option.map(fun u -> (defaultArg ti.label "") + "||" + u.toString()))
@@ -463,7 +464,7 @@ module SolutionExplorer =
 
         let rec private getModelPerFile (model : Model) : (string * Model) list =
             match model with
-            | File (_, path, _, _)
+            | File (_, path, _, _, _)
             | ProjectNotLoaded (_, path, _)
             | ProjectLoading (_, path, _)
             | ProjectFailedToLoad (_, path, _, _)
@@ -581,26 +582,27 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.moveUp", objfy2 (fun m ->
             match unbox m with
-            | File (_, _, name, proj) -> FsProjEdit.moveFileUpPath proj name
+            | File (_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileUpPath proj virtPath
+            // | File (_, _, name, proj) -> FsProjEdit.moveFileUpPath proj name
             | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.moveDown", objfy2 (fun m ->
             match unbox m with
-            | File (_, _, name, proj) -> FsProjEdit.moveFileDownPath proj name
+            | File (_, _, name, _, proj) -> FsProjEdit.moveFileDownPath proj name
             | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.removeFile", objfy2 (fun m ->
             match unbox m with
-            | File (_, _, name, proj) -> FsProjEdit.removeFilePath proj name
+            | File (_, _, name, _, proj) -> FsProjEdit.removeFilePath proj name
             | _ -> undefined
         )) |> context.subscriptions.Add
 
 
         commands.registerCommand("fsharp.explorer.addAbove", objfy2 (fun m ->
             match unbox m with
-            | File (_, _, name, proj) ->
+            | File (_, _, name, _, proj) ->
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "new.fs"
                 opts.prompt <- Some "New file name, relative to project file"
@@ -619,7 +621,7 @@ module SolutionExplorer =
 
         commands.registerCommand("fsharp.explorer.addBelow", objfy2 (fun m ->
             match unbox m with
-            | File (_, fr_om, name, proj) ->
+            | File (_, fr_om, name, _, proj) ->
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "new.fs"
                 opts.prompt <- Some "New file name, relative to project file"
