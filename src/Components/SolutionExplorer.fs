@@ -586,21 +586,18 @@ module SolutionExplorer =
         commands.registerCommand("fsharp.explorer.moveUp", objfy2 (fun m ->
             match unbox m with
             | File (_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileUpPath proj virtPath
-            // | File (_, _, name, proj) -> FsProjEdit.moveFileUpPath proj name
             | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.moveDown", objfy2 (fun m ->
             match unbox m with
             | File (_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileDownPath proj virtPath
-            // | File (_, _, name, _, proj) -> FsProjEdit.moveFileDownPath proj name
             | _ -> undefined
         )) |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.removeFile", objfy2 (fun m ->
             match unbox m with
             | File (_, _, name, Some virtPath, proj) -> FsProjEdit.removeFilePath proj virtPath
-            // | File (_, _, name, _, proj) -> FsProjEdit.removeFilePath proj name
             | _ -> undefined
         )) |> context.subscriptions.Add
 
