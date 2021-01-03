@@ -610,7 +610,7 @@ module SolutionExplorer =
             | File (_, _, name, Some virtPath, proj) ->
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "new.fs"
-                opts.prompt <- Some "New file name, relative to project file"
+                opts.prompt <- Some "New file name, relative to selected file"
                 opts.value <- Some "new.fs"
                 window.showInputBox(opts)
                 |> Promise.bind (fun file ->
@@ -629,7 +629,7 @@ module SolutionExplorer =
             | File (_, fr_om, name, Some virtPath, proj) ->
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "new.fs"
-                opts.prompt <- Some "New file name, relative to project file"
+                opts.prompt <- Some "New file name, relative to selected file"
                 opts.value <- Some "new.fs"
                 window.showInputBox(opts)
                 |> Promise.map (fun file ->
@@ -648,7 +648,7 @@ module SolutionExplorer =
             | Project (_, proj, _, _,_,_,_,_) ->
                 let opts = createEmpty<InputBoxOptions>
                 opts.placeHolder <- Some "new.fs"
-                opts.prompt <- Some "New file name, relative to opened directory"
+                opts.prompt <- Some "New file name, relative to project file"
                 opts.value <- Some "new.fs"
                 window.showInputBox(opts)
                 |> Promise.map (fun file ->
