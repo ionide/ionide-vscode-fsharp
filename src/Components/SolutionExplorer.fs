@@ -36,27 +36,27 @@ module SolutionExplorer =
         { Key : string
           FilePath: string
           VirtualPath : string
-          Children : Dictionary<string, NodeEntry> }
+          mutable Children : NodeEntry list }
 
     let inline pathCombine a b =
         a + node.path.sep + b
 
     let add' root (virtualPath: string) filepath =
         let rec addhelper state items =
-            match items with
-            | [ ] -> state
-            | [ key ] ->
-                if not (state.Children.ContainsKey key) then
-                    let x = { Key = key; FilePath = filepath; VirtualPath = virtualPath; Children = new Dictionary<_,_>() }
-                    state.Children.Add(key,x)
+            match items, state.Children with
+            | [ ], _ -> state
+            | [ key ], children when children |> List.exists (fun c -> c.Key = key) -> state
+            | [ key ], _ ->
+                let x = { Key = key; FilePath = filepath; VirtualPath = virtualPath; Children = [] }
+                state.Children <- x :: state.Children
                 state
-            | dirName :: xs ->
-                if not (state.Children.ContainsKey dirName) then
-                    let dirPath = pathCombine state.FilePath dirName
-                    let x = { Key = dirName; FilePath = dirPath; VirtualPath = virtualPath; Children = new Dictionary<_,_>() }
-                    state.Children.Add(dirName,x)
-                let item = state.Children.[dirName]
-                addhelper item xs
+            | dirName :: xs, lastFileOrDir :: _ when dirName = lastFileOrDir.Key ->
+                addhelper lastFileOrDir xs
+            | dirName :: xs, _ ->
+                let dirPath = pathCombine state.FilePath dirName
+                let x = { Key = dirName; FilePath = dirPath; VirtualPath = virtualPath; Children = [] }
+                state.Children <- x :: state.Children
+                addhelper x xs
 
         virtualPath.Split('/')
         |> List.ofArray
@@ -105,10 +105,10 @@ module SolutionExplorer =
 *)
 
     let rec toModel (projPath: string) (entry : NodeEntry)  =
-        if entry.Children.Count > 0 then
+        if entry.Children.Length > 0 then
             let childs =
                 entry.Children
-                |> Seq.map (fun n -> toModel projPath n.Value)
+                |> Seq.map (toModel projPath)
                 |> Seq.toList
             let result = Folder(ref None, entry.Key, entry.FilePath, childs, projPath)
             setParentRefs childs result
@@ -118,10 +118,11 @@ module SolutionExplorer =
 
     let buildTree projPath (files : (string * string) list) =
         let projDir = dirName projPath
-        let entry = {Key = ""; FilePath = projDir; VirtualPath = ""; Children = new Dictionary<_,_>()}
+        let entry = {Key = ""; FilePath = projDir; VirtualPath = ""; Children = []}
         files |> List.iter (fun (virtualPath, path) -> add' entry virtualPath path)
         entry.Children
-        |> Seq.map (fun n -> toModel projPath n.Value )
+        |> Seq.rev
+        |> Seq.map (toModel projPath)
         |> Seq.toList
 
     let private getProjectModel (proj: Project) =
@@ -251,7 +252,7 @@ module SolutionExplorer =
             ]
         | PackageReferenceList (_, refs, _) -> refs
         | ProjectReferencesList (_, refs, _) -> refs
-        | Folder (_, _,_,files, _) -> files
+        | Folder (_, _,_,files, _) -> files |> List.rev
         | File _ -> []
         | PackageReference _ -> []
         | ProjectReference _ -> []
@@ -399,7 +400,9 @@ module SolutionExplorer =
                     match node with
                     | PackageReferenceList (_, _, pp) | ProjectReferencesList (_, _,pp) | PackageReference (_, _, _, pp) | ProjectReference (_, _, _, pp)  ->
                         Some ((defaultArg ti.label "") + "||" + pp)
-                    | Folder (_, _,_, _, pp) | File (_, _, _, _, pp) ->
+                    | Folder _ ->
+                        None
+                    | File (_, _, _, _, pp) ->
                         (resourceUri |> Option.map(fun u -> (defaultArg ti.label "") + "||" + u.toString() + "||" + pp))
                     | _ ->
                         (resourceUri |> Option.map(fun u -> (defaultArg ti.label "") + "||" + u.toString()))
