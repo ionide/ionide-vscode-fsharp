@@ -35,13 +35,13 @@ NUGET
       FSharp.Core (>= 4.7)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (2f57e13296dea36438ca417f6223c29ac842b91b)
+     (49ca2e91f06b2456f9ed8b8c8bd4ccf59bad7180)
       build: build.cmd
       os: win
-     (2f57e13296dea36438ca417f6223c29ac842b91b)
+     (49ca2e91f06b2456f9ed8b8c8bd4ccf59bad7180)
       build: build.sh
       os: linux
-     (2f57e13296dea36438ca417f6223c29ac842b91b)
+     (49ca2e91f06b2456f9ed8b8c8bd4ccf59bad7180)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
@@ -216,7 +216,7 @@ NUGET
       System.Security.AccessControl (>= 5.0)
       System.Security.Principal.Windows (>= 5.0)
     Mono.Posix.NETStandard (1.0)
-    MSBuild.StructuredLogger (2.1.215)
+    MSBuild.StructuredLogger (2.1.272)
       Microsoft.Build (>= 16.4)
       Microsoft.Build.Framework (>= 16.4)
       Microsoft.Build.Tasks.Core (>= 16.4)
