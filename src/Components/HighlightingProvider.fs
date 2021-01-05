@@ -24,10 +24,10 @@ module HighlightingProvider =
                 promise {
                     let builder = SemanticTokensBuilder(legend)
                     let! res = LanguageService.getHighlighting (textDocument.fileName)
-                    res.Data.Highlights
-                    |> Array.sortBy(fun n -> n.Range.StartLine * 1000000 + n.Range.StartColumn)
+                    res.highlights
+                    |> Array.sortBy(fun n -> n.range.start.line * 1000000. + n.range.start.character)
                     |> Array.iter (fun n ->
-                        builder.push(CodeRange.fromDTO n.Range, n.TokenType)
+                        builder.push(n.range, n.tokenType)
                     )
 
                     return builder.build()

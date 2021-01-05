@@ -67,7 +67,6 @@ module LanguageService =
         type FSharpLiterateRequest = {FileName: string}
         type FSharpPipelineHintsRequest = {FileName: string}
 
-
     let mutable client : LanguageClient option = None
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
@@ -466,7 +465,7 @@ module LanguageService =
             cl.sendRequest("fsharp/loadAnalyzers", req)
             |> Promise.map (ignore)
 
-    let getHighlighting (f) =
+    let getHighlighting (f): JS.Promise<HighlightingResponse> =
         match client with
         | None -> Promise.empty
         | Some cl ->
@@ -474,9 +473,7 @@ module LanguageService =
                 FileName = f
             }
             cl.sendRequest("fsharp/highlighting", req)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
-                res.content |> ofJson<HighlightingResult>
-            )
+            |> Promise.map (fun (res: obj) -> res?data)
 
     let fsharpLiterate (f) =
         match client with
