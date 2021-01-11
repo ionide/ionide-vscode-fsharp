@@ -427,9 +427,9 @@ module DTO =
     module FsProj =
         type DotnetProjectRequest = { Target: string; Reference: string }
 
-        type DotnetFileRequest = { FsProj: string; File: string }
+        type DotnetFileRequest = { FsProj: string; FileVirtualPath: string }
 
-        type DotnetFile2Request = { FsProj: string; File: string; NewFile: string }
+        type DotnetFile2Request = { FsProj: string; FileVirtualPath: string; NewFile: string }
 
     module FakeSupport =
         type FakeContext =
