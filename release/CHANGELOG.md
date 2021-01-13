@@ -1,3 +1,16 @@
+### 5.2.0 - 13.01.2020
+* Update Fable to 3.X
+* Only send FSharpDocumentation request when panel is open
+* Don't start debug if build has failed
+* Solution explorer: Compile order and better support for directories
+* Update FSAC:
+  * Improve semantic highlighting
+  * Re-enable `.binlog` generation
+  * Add additional path normalization to handle some edge cases in Windows
+  * Improve `.fsproj` mainpulation commands
+  * Update `ProjInfo` to `0.46`
+  * Add server requests in LSP implementation
+
 ### 5.1.0 - 28.12.2020
 * Handle potential exception in HighlightingProvider activation (GitPod)
 * Update FSAC:
