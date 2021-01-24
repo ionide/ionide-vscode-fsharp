@@ -60,6 +60,7 @@ let npmTool =
     platformTool "npm"  "npm.cmd"
 
 let vsceTool = lazy (platformTool "vsce" "vsce.cmd")
+let ovsxTool = lazy (platformTool "ovsx" "ovsx.cmd")
 
 module Fable =
     type Command =
@@ -174,6 +175,9 @@ let setVersion (release: ReleaseNotes.ReleaseNotes) releaseDir =
     let versionString = sprintf "\"%O\"" release.NugetVersion
     setPackageJsonField "version" versionString releaseDir
 
+let setCsharpDependencyForOvsx releaseDir =
+    setPackageJsonField "extensionDependencies" "[\"muhammad-sammy.csharp\"]" releaseDir
+
 let publishToGallery releaseDir =
     let token =
         match Environment.environVarOrDefault "vsce-token" "" with
@@ -182,6 +186,19 @@ let publishToGallery releaseDir =
 
     Process.killAllByName "vsce"
     run vsceTool.Value (sprintf "publish --pat %s" token) releaseDir
+
+let buildPackageForOvsx dir =
+    setCsharpDependencyForOvsx dir
+    buildPackage dir
+
+let publishToOpenVsx releaseDir =
+    let token =
+        match Environment.environVarOrDefault "ovsx-token" "" with
+        | s when not (String.IsNullOrWhiteSpace s) -> s
+        | _ -> UserInput.getUserPassword "OVSX Token: "
+
+    Process.killAllByName "ovsx"
+    run ovsxTool.Value (sprintf "publish --pat %s" token) releaseDir
 
 let ensureGitUser user email =
     match Fake.Tools.Git.CommandHelper.runGitCommand "." "config user.name" with
@@ -255,6 +272,11 @@ Target.create "InstallVSCE" ( fun _ ->
     run npmTool "install -g vsce" ""
 )
 
+Target.create "InstallOVSX" ( fun _ ->
+    Process.killAllByName  "npm"
+    run npmTool "install -g ovsx" ""
+)
+
 Target.create "CopyDocs" (fun _ ->
     Shell.copyFiles "release" ["README.md"; "LICENSE.md"]
     Shell.copyFile "release/CHANGELOG.md" "RELEASE_NOTES.md"
@@ -301,12 +323,20 @@ Target.create "BuildPackage" ( fun _ ->
     buildPackage "release"
 )
 
+Target.create "buildPackageForOvsx" ( fun _ ->
+    buildPackageForOvsx "release"
+)
+
 Target.create "SetVersion" (fun _ ->
     setVersion release "release"
 )
 
 Target.create "PublishToGallery" ( fun _ ->
     publishToGallery "release"
+)
+
+Target.create "PublishToOpenVSX" ( fun _ ->
+    publishToOpenVsx "release"
 )
 
 Target.create "ReleaseGitHub" (fun _ ->
