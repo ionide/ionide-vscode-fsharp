@@ -62,7 +62,6 @@ let activate (context : ExtensionContext) : JS.Promise<Api> =
         CodeLensHelpers.activate context
         FakeTargetsOutline.activate context
         Gitignore.activate context
-        HighlightingProvider.activate context
         FSharpLiterate.activate context
         PipelineHints.activate context
 

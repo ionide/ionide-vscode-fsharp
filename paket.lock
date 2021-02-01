@@ -35,13 +35,13 @@ NUGET
       FSharp.Core (>= 4.7)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (4373a5e69e866c778257b32b8ca159855f156a58)
+     (7891522a2213b3a8ad6cf6acddd778db810f058a)
       build: build.cmd
       os: win
-     (4373a5e69e866c778257b32b8ca159855f156a58)
+     (7891522a2213b3a8ad6cf6acddd778db810f058a)
       build: build.sh
       os: linux
-     (4373a5e69e866c778257b32b8ca159855f156a58)
+     (7891522a2213b3a8ad6cf6acddd778db810f058a)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
@@ -216,27 +216,27 @@ NUGET
       System.Security.AccessControl (>= 5.0)
       System.Security.Principal.Windows (>= 5.0)
     Mono.Posix.NETStandard (1.0)
-    MSBuild.StructuredLogger (2.1.272)
+    MSBuild.StructuredLogger (2.1.303)
       Microsoft.Build (>= 16.4)
       Microsoft.Build.Framework (>= 16.4)
       Microsoft.Build.Tasks.Core (>= 16.4)
       Microsoft.Build.Utilities.Core (>= 16.4)
     Newtonsoft.Json (12.0.3)
-    NuGet.Common (5.8)
-      NuGet.Frameworks (>= 5.8)
-    NuGet.Configuration (5.8)
-      NuGet.Common (>= 5.8)
+    NuGet.Common (5.8.1)
+      NuGet.Frameworks (>= 5.8.1)
+    NuGet.Configuration (5.8.1)
+      NuGet.Common (>= 5.8.1)
       System.Security.Cryptography.ProtectedData (>= 4.4)
-    NuGet.Frameworks (5.8)
-    NuGet.Packaging (5.8)
+    NuGet.Frameworks (5.8.1)
+    NuGet.Packaging (5.8.1)
       Newtonsoft.Json (>= 9.0.1)
-      NuGet.Configuration (>= 5.8)
-      NuGet.Versioning (>= 5.8)
-      System.Security.Cryptography.Cng (>= 5.0.0-preview.3.20214.6)
-      System.Security.Cryptography.Pkcs (>= 5.0.0-preview.3.20214.6)
-    NuGet.Protocol (5.8)
-      NuGet.Packaging (>= 5.8)
-    NuGet.Versioning (5.8)
+      NuGet.Configuration (>= 5.8.1)
+      NuGet.Versioning (>= 5.8.1)
+      System.Security.Cryptography.Cng (>= 5.0)
+      System.Security.Cryptography.Pkcs (>= 5.0)
+    NuGet.Protocol (5.8.1)
+      NuGet.Packaging (>= 5.8.1)
+    NuGet.Versioning (5.8.1)
     Octokit (0.48)
     System.Buffers (4.5.1)
     System.CodeDom (5.0)
