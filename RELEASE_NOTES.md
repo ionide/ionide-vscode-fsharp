@@ -1,3 +1,9 @@
+### 5.3.0 - 03.02.2020
+
+* Update FSAC:
+  * LSP support for semantic highlighting
+  * improvements to workspace/symbol
+
 ### 5.2.0 - 13.01.2020
 * Update Fable to 3.X
 * Only send FSharpDocumentation request when panel is open
