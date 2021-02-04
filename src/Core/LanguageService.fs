@@ -637,7 +637,6 @@ Consider:
             opts.synchronize <- Some synch
             opts.revealOutputChannelOn <- Some Client.RevealOutputChannelOn.Never
 
-
             opts.initializationOptions <- Some !^(Some initOpts)
 
             opts
@@ -674,7 +673,10 @@ Consider:
             let args =
                 [
                     yield fsautocompletePath
-                    if fsacAttachDebugger then yield "--attachdebugger"
+                    if fsacAttachDebugger
+                    then
+                        yield "--attachdebugger"
+                        yield "--wait-for-debugger"
                     if backgroundSymbolCache then yield "--background-service-enabled"
                     if verbose then yield  "--verbose"
                     if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0
