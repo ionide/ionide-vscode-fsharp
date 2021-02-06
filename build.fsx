@@ -319,10 +319,6 @@ Target.create "PublishToGallery" ( fun _ ->
     publishToGallery "release"
 )
 
-Target.create "PublishToOpenVsix" (fun _  ->
-    printfn "See https://www.vsixgallery.com/devguide"
-)
-
 Target.create "ReleaseGitHub" (fun _ ->
     releaseGithub release
 )
