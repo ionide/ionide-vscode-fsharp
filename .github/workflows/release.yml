@@ -49,3 +49,11 @@ jobs:
         vsce-token: ${{ secrets.VSCE_TOKEN }}
         user-email: ${{ github.event.inputs.email }}
       run: dotnet fake build -t Release
+    - name: Build OpenVsix package
+      run: dotnet fake build -t BuildPackgeOpenVsix
+    - name: Publish to Open VSX Registry
+      uses: HaaLeo/publish-vscode-extension@v0
+      id: publishToOpenVSX
+      with:
+        packagePath: "./temp"
+        pat: ${{ secrets.OPEN_VSX_TOKEN }}
