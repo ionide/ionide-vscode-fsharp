@@ -301,12 +301,26 @@ Target.create "BuildPackage" ( fun _ ->
     buildPackage "release"
 )
 
+Target.create "BuildPackgeOpenVsix" (fun _ ->
+    let packageJsonPath = "release" </> "package.json"
+    let packageJsonContent = System.IO.File.ReadAllText(packageJsonPath)
+    try
+        let updatedPackageJsonContent = packageJsonContent.Replace("ms-dotnettools.csharp", "muhammad-sammy.csharp")
+        buildPackage "release"
+    finally
+        System.IO.File.WriteAllText(packageJsonPath, packageJsonContent)
+)
+
 Target.create "SetVersion" (fun _ ->
     setVersion release "release"
 )
 
 Target.create "PublishToGallery" ( fun _ ->
     publishToGallery "release"
+)
+
+Target.create "PublishToOpenVsix" (fun _  ->
+    printfn "See https://www.vsixgallery.com/devguide"
 )
 
 Target.create "ReleaseGitHub" (fun _ ->
