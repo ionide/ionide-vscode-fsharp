@@ -50,10 +50,10 @@ jobs:
         user-email: ${{ github.event.inputs.email }}
       run: dotnet fake build -t Release
     - name: Build OpenVsix package
-      run: dotnet fake build -t BuildPackgeOpenVsix
+      run: dotnet fake build -t BuildPackageOpenVsix
     - name: Publish to Open VSX Registry
       uses: HaaLeo/publish-vscode-extension@v0
       id: publishToOpenVSX
       with:
-        packagePath: "./temp"
+        packagePath: "./release"
         pat: ${{ secrets.OPEN_VSX_TOKEN }}

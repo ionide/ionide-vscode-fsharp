@@ -301,14 +301,11 @@ Target.create "BuildPackage" ( fun _ ->
     buildPackage "release"
 )
 
-Target.create "BuildPackgeOpenVsix" (fun _ ->
+Target.create "BuildPackageOpenVsix" (fun _ ->
     let packageJsonPath = "release" </> "package.json"
     let packageJsonContent = System.IO.File.ReadAllText(packageJsonPath)
-    try
-        let updatedPackageJsonContent = packageJsonContent.Replace("ms-dotnettools.csharp", "muhammad-sammy.csharp")
-        buildPackage "release"
-    finally
-        System.IO.File.WriteAllText(packageJsonPath, packageJsonContent)
+    let updatedPackageJsonContent = packageJsonContent.Replace("ms-dotnettools.csharp", "muhammad-sammy.csharp")
+    System.IO.File.WriteAllText(packageJsonPath, updatedPackageJsonContent)
 )
 
 Target.create "SetVersion" (fun _ ->
