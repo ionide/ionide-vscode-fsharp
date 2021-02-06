@@ -1,3 +1,6 @@
+### 5.3.1 - 06.02.2020
+
+* Add publishing support for Open VSIX marketplace
 ### 5.3.0 - 03.02.2020
 
 * Update FSAC:
