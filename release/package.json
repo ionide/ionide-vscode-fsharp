@@ -133,7 +133,10 @@
 					"dark": "./images/add-dark.svg"
 				}
 			},
-
+			{
+				"command": "fsharp.AddFileToProject",
+				"title": "F#: Add Current File To Project"
+			},
 			{
 				"command": "fsharp.getHelp",
 				"title": "F#: Get Help"
@@ -593,6 +596,10 @@
 				},
 				{
 					"command": "fsi.SendLine",
+					"when": "editorLangId == 'fsharp'"
+				},
+				{
+					"command": "fsharp.AddFileToProject",
 					"when": "editorLangId == 'fsharp'"
 				},
 				{

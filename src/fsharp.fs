@@ -46,6 +46,7 @@ let activate (context : ExtensionContext) : JS.Promise<Api> =
     |> Promise.catch ignore // prevent unhandled rejected promises
     |> Promise.map (fun _ ->
         if solutionExplorer then SolutionExplorer.activate context
+        FsProjEdit.activate context
         Diagnostics.activate context
         LineLens.activate context
         QuickInfo.activate context
