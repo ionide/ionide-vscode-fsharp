@@ -35,13 +35,13 @@ NUGET
       FSharp.Core (>= 4.7)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (7891522a2213b3a8ad6cf6acddd778db810f058a)
+     (d9bf1894493cc81de147e29b01b9e17e35ce604b)
       build: build.cmd
       os: win
-     (7891522a2213b3a8ad6cf6acddd778db810f058a)
+     (d9bf1894493cc81de147e29b01b9e17e35ce604b)
       build: build.sh
       os: linux
-     (7891522a2213b3a8ad6cf6acddd778db810f058a)
+     (d9bf1894493cc81de147e29b01b9e17e35ce604b)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
