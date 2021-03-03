@@ -61,7 +61,7 @@ let activate (context : ExtensionContext) : JS.Promise<Api> =
         HtmlConverter.activate context
         InfoPanel.activate context
         CodeLensHelpers.activate context
-        FakeTargetsOutline.activate context
+        // FakeTargetsOutline.activate context
         Gitignore.activate context
         FSharpLiterate.activate context
         PipelineHints.activate context

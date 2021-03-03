@@ -1,3 +1,9 @@
+### 5.4.0 - 03.03.2021
+
+* Update FSAC:
+  * FCS 39
+  * Improved project cracking for dotnet SDK 5.0.200 and up
+
 ### 5.3.2 - 06.02.2020
 
 * Add publishing support for Open VSIX marketplace
