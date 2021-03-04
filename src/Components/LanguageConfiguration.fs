@@ -26,7 +26,7 @@ module LanguageConfiguration =
                         // Example: ///
                         jsOptions<OnEnterRule> (fun rule ->
                             rule.action <- jsOptions<EnterAction>(fun action ->
-                                action.indentAction <- IndentAction.Indent
+                                action.indentAction <- IndentAction.None
                                 action.appendText <- Some "/// "
                             )
                             rule.beforeText <- Regex("^\s*\/{3}.*$")
