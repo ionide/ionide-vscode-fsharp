@@ -1343,6 +1343,11 @@
 					"default": true,
 					"description": "Enables background services responsible for creating symbol cache and typechecking files in the background. Requires restart."
 				},
+				"FSharp.enableMSBuildProjectGraph": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enables experimental support for loading workspaces with MsBuild's ProjectGraph. This can improve load times. Requires restart."
+				},
 				"FSharp.enableReferenceCodeLens": {
 					"type": "boolean",
 					"default": true,
