@@ -660,6 +660,7 @@ Consider:
         }
 
         let backgroundSymbolCache = "FSharp.enableBackgroundServices" |> Configuration.get true
+        let enableProjectGraph = "FSharp.enableMSBuildProjectGraph" |> Configuration.get false
         let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
         let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
         let fsacSilencedLogs = "FSharp.fsac.silencedLogs" |> Configuration.get [||]
@@ -678,6 +679,7 @@ Consider:
                         yield "--attachdebugger"
                         yield "--wait-for-debugger"
                     if backgroundSymbolCache then yield "--background-service-enabled"
+                    if enableProjectGraph then yield "--project-graph-enabled"
                     if verbose then yield  "--verbose"
                     if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0
                     then
