@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       username:
-        description: Github usernam of the person triggering the release
+        description: Github username of the person triggering the release
         default: "Krzysztof-Cieslak"
         required: true
       email:

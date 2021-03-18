@@ -1,3 +1,14 @@
+### 5.4.1 - 16.03.2021
+
+* Update FSAC:
+  * performance updates for project cracking
+
+New options
+
+* `FSharp.enableMSBuildProjectGraph`
+  * Enables experimental support for loading workspaces with MsBuild's ProjectGraph. This can improve load times. Requires restart.
+
+
 ### 5.4.0 - 03.03.2021
 
 * Update FSAC:
