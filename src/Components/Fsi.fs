@@ -253,11 +253,12 @@ module Fsi =
                     fsiParams
 
             if Environment.isWin then
-                [ "--fsi-server-input-codepage:65001" ] @ fsiParams
+                // these flags are added to work around issues with the vscode terminal shell on windows
+                [ "--fsi-server-input-codepage:28591"
+                  "--fsi-server-output-codepage:65001" ] @ fsiParams
             else
                 fsiParams
             |> Array.ofList
-
 
         promise {
             if isSdk
