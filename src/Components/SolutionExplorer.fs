@@ -299,10 +299,11 @@ module SolutionExplorer =
                 event
 
             member this.getChildren(node) =
-                if JS.isDefined node then
+                match node with
+                | Some node ->
                     let r = getSubmodel node |> ResizeArray
                     r
-                else
+                | None ->
                     let root = getRoot()
                     rootChanged.fire root
                     let r = root |> getSubmodel |> ResizeArray
@@ -779,25 +780,27 @@ module SolutionExplorer =
 
             { new TextDocumentContentProvider with
                 member this.provideTextDocumentContent (uri: Uri) =
-                    match uri.path with
-                    | "projects/status" ->
-                        let q = node.querystring.parse(uri.query)
-                        let path : string = q?path |> unbox
-                        match Project.tryFindInWorkspace path with
-                        | None ->
-                            sprintf "Project '%s' not found" path
-                        | Some (Project.ProjectLoadingState.Loading path) ->
-                            viewLoading path
-                        | Some (Project.ProjectLoadingState.Loaded proj) ->
-                            viewParsed proj
-                        | Some (Project.ProjectLoadingState.NotRestored (path,error)) ->
-                            viewFailed path error
-                        | Some (Project.ProjectLoadingState.Failed (path, error)) ->
-                            viewFailed path error
-                        | Some(Project.ProjectLoadingState.LanguageNotSupported path) ->
-                            viewLanguageNotSupported path
-                    | _ ->
-                        sprintf "Requested uri: %s" (uri.toString())
+                    let message =
+                        match uri.path with
+                        | "projects/status" ->
+                            let q = node.querystring.parse(uri.query)
+                            let path : string = q?path |> unbox
+                            match Project.tryFindInWorkspace path with
+                            | None ->
+                                sprintf "Project '%s' not found" path
+                            | Some (Project.ProjectLoadingState.Loading path) ->
+                                viewLoading path
+                            | Some (Project.ProjectLoadingState.Loaded proj) ->
+                                viewParsed proj
+                            | Some (Project.ProjectLoadingState.NotRestored (path,error)) ->
+                                viewFailed path error
+                            | Some (Project.ProjectLoadingState.Failed (path, error)) ->
+                                viewFailed path error
+                            | Some(Project.ProjectLoadingState.LanguageNotSupported path) ->
+                                viewLanguageNotSupported path
+                        | _ ->
+                            sprintf "Requested uri: %s" (uri.toString())
+                    U2.Case1 message
             }
 
         vscode.workspace.registerTextDocumentContentProvider(DocumentSelector.Case1 "fsharp-workspace", wsProvider)

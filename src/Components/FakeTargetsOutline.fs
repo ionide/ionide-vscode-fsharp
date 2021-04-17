@@ -179,9 +179,10 @@ module FakeTargetsOutline =
                 reallyRefresh.event
 
             member this.getChildren(node) =
-                if JS.isDefined node then
+                match node with
+                | Some node ->
                     node.getChildren()
-                else
+                | None ->
                     let doc = window.activeTextEditor
                     if JS.isDefined doc
                     then

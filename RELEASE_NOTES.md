@@ -1,3 +1,13 @@
+### 5.5.0 - 17.04.2021
+
+* Update FSAC:
+  * Update Unused Binding CodeFix to handle more cases
+  * Enable faster typechecking when signature files are present for a module
+    * Happens transparently, but is mutually exclusive with analyzers.
+  * Fix the display of units of measure in tooltips (float<m/s> instead of float<MeasureInverse<MeasureProduct<.....>>>)
+  * Much better experience for signature help for function applications and method calls
+  * Update the Generate Abstract Class CodeFix to work for abstract classes that aren't defined in F#
+
 ### 5.4.1 - 16.03.2021
 
 * Update FSAC:
