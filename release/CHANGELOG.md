@@ -1,3 +1,7 @@
+### 5.5.1 - 18.04.2021
+
+* Update FSAC to fix a regression in `textDocument/completions`
+
 ### 5.5.0 - 17.04.2021
 
 * Update FSAC:
