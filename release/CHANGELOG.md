@@ -1,3 +1,7 @@
+### 5.5.3 - 23.04.2021
+
+* Update FSAC to get improved edge-case detection logic in several endpoints
+
 ### 5.5.2 - 18.04.2021
 
 * Update FSAC to get improved logic in `textDocument/signatureDate`
