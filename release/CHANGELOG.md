@@ -1,3 +1,8 @@
+### 5.5.4 - 30.04.2021
+
+* Update FSAC to get improved semantic token highlighting
+
+
 ### 5.5.3 - 23.04.2021
 
 * Update FSAC to get improved edge-case detection logic in several endpoints
