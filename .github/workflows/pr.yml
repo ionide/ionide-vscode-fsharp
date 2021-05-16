@@ -13,7 +13,7 @@ jobs:
         # ubuntu build not supported in paket.dependencies for repo builds,
         # need to add linux commands first
         os: [windows-latest, macos-latest]
-        dotnet: [5.0.100]
+        dotnet: [5.0.200]
     runs-on: ${{ matrix.os }}
 
     steps:
