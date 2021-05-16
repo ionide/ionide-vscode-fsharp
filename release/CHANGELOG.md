@@ -1,3 +1,10 @@
+### 5.5.5 - 15.05.2021
+
+* Update FSAC to version 0.46.0 get fixes for
+  * fsharp/signature endpoint
+  * analyzer support
+  * 2 new codefixes
+
 ### 5.5.4 - 30.04.2021
 
 * Update FSAC to get improved semantic token highlighting
