@@ -1,3 +1,11 @@
+### 5.5.6 - 18.06.2021
+
+* Update FSAC to version 0.46.4 to get fixes for
+  * the 'open namespace' codefix/completion item
+  * the way function-typed parameters are rendered
+  * fantomas updates
+  * fsharplint reenablement
+
 ### 5.5.5 - 15.05.2021
 
 * Update FSAC to version 0.46.0 get fixes for
