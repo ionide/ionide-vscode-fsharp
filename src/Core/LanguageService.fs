@@ -684,7 +684,7 @@ Consider:
                     if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0
                     then
                         yield "--filter"
-                        yield fsacSilencedLogs |> String.concat ","
+                        yield! fsacSilencedLogs
                 ] |> ResizeArray
 
             createObj [
