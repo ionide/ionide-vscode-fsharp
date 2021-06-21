@@ -1,3 +1,9 @@
+### 5.5.7 - 21.06.2021
+
+* [Fix parsing of multiple log category filters](https://github.com/ionide/ionide-vscode-fsharp/pull/1541) (thanks @Booksbaum)
+* Update FSAC to version 0.46.5 to get fixes for
+  * better diagnostics reporting with more error codes and help links
+
 ### 5.5.6 - 18.06.2021
 
 * Update FSAC to version 0.46.4 to get fixes for
