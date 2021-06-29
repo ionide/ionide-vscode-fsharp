@@ -328,7 +328,6 @@ Target.create "Default" ignore
 Target.create "Build" ignore
 Target.create "BuildDev" ignore
 Target.create "Release" ignore
-Target.create "BuildPackages" ignore
 
 "YarnInstall" ==> "RunScript"
 "DotNetRestore" ==> "RunScript"
