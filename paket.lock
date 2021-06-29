@@ -33,19 +33,19 @@ NUGET
     Fable.Promise (2.1)
       Fable.Core (>= 3.1.5)
       FSharp.Core (>= 4.7)
-    FSharp.Core (5.0.1)
+    FSharp.Core (5.0.2)
     Thoth.Json (4.1)
       Fable.Core (>= 3.1.4)
       FSharp.Core (>= 4.7)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (1e1f5e5338ecc69fb8103238d8fb44901d608dad)
+     (390f3bef90e51dba5bce283c6f98486d8ccbfe08)
       build: build.cmd
       os: win
-     (1e1f5e5338ecc69fb8103238d8fb44901d608dad)
+     (390f3bef90e51dba5bce283c6f98486d8ccbfe08)
       build: build.sh
       os: linux
-     (1e1f5e5338ecc69fb8103238d8fb44901d608dad)
+     (390f3bef90e51dba5bce283c6f98486d8ccbfe08)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
@@ -188,7 +188,7 @@ NUGET
     FSharp.Control.Reactive (5.0.2)
       FSharp.Core (>= 4.7.2)
       System.Reactive (>= 5.0)
-    FSharp.Core (5.0.1)
+    FSharp.Core (5.0.2)
     Microsoft.Build (16.10)
     Microsoft.Build.Framework (16.10)
       System.Security.Permissions (>= 4.7)
