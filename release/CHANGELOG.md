@@ -1,3 +1,10 @@
+### 5.5.8 - 29.06.2021
+
+* Update FSAC to version 0.46.7 to get fixes for
+  * RemoveUnusedBinding codefix
+  * UnusedValue codefix
+  * 'textDocument/codeAction' parameter values
+
 ### 5.5.7 - 21.06.2021
 
 * [Fix parsing of multiple log category filters](https://github.com/ionide/ionide-vscode-fsharp/pull/1541) (thanks @Booksbaum)
