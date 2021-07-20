@@ -76,6 +76,7 @@ module Fable =
         ProjectPath: string
         OutDir: string option
         Defines: string list
+        SourceMaps: bool
         AdditionalFableArgs: string option
         Webpack: Webpack
     }
@@ -88,6 +89,7 @@ module Fable =
         OutDir = Some "./out"
         Defines = []
         AdditionalFableArgs = None
+        SourceMaps = true
         Webpack = WithoutWebpack
     }
 
@@ -115,9 +117,10 @@ module Fable =
                     (if args.Debug then "--mode=development" else "--mode=production")
                     (if args.Experimental then "--env.ionideExperimental" else "")
                     (webpackArgs |> Option.defaultValue "")
+        let sourceMaps = if args.SourceMaps then "-s" else ""
 
-        // $"{fableCmd} {fableProjPath} {fableOutDir} {fableDebug} {fableExperimental} {fableDefines} {fableAdditionalArgs} {webpackCmd}"
-        sprintf "%s %s %s %s %s %s %s %s" fableCmd fableProjPath fableOutDir fableDebug fableExperimental fableDefines fableAdditionalArgs webpackCmd
+        // $"{fableCmd} {fableProjPath} {sourcemaps} {fableOutDir} {fableDebug} {fableExperimental} {fableDefines} {fableAdditionalArgs} {webpackCmd}"
+        sprintf "%s %s %s %s %s %s %s %s %s" fableCmd fableProjPath sourceMaps fableOutDir fableDebug fableExperimental fableDefines fableAdditionalArgs webpackCmd
 
     let run args =
         let cmd = mkArgs args

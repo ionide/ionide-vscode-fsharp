@@ -2,23 +2,26 @@
 {
 	"version": "0.2.0",
 	"configurations": [
- 
 		{
-      "preLaunchTask": "Extension Build",
+			"preLaunchTask": "Extension Build",
 			"name": "Build and Launch Extension",
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
+			"args": [
+				"--extensionDevelopmentPath=${workspaceRoot}/release"
+			],
 			"stopOnEntry": false,
 			"request": "launch",
-			"sourceMaps": false
+			"sourceMaps": true
 		},
 		{
-      "preLaunchTask": "Extension Build (dev)",
+			"preLaunchTask": "Extension Build (dev)",
 			"name": "Build (dev) and Launch Extension",
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
+			"args": [
+				"--extensionDevelopmentPath=${workspaceRoot}/release"
+			],
 			"stopOnEntry": false,
 			"request": "launch",
 			"sourceMaps": true
@@ -27,10 +30,12 @@
 			"name": "Launch Only",
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceRoot}/release" ],
+			"args": [
+				"--extensionDevelopmentPath=${workspaceRoot}/release"
+			],
 			"stopOnEntry": false,
 			"request": "launch",
 			"sourceMaps": true
-		}
+		},
 	]
 }

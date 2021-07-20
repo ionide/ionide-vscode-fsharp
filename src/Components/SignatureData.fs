@@ -9,7 +9,7 @@ module SignatureData =
     let generateDoc () =
         let editor = window.activeTextEditor.document
         match editor with
-        | Document.FSharp  ->
+        | Document.FSharp | Document.FSharpScript  ->
             let line = window.activeTextEditor.selection.active.line
             let col = window.activeTextEditor.selection.active.character
             LanguageService.generateDocumentation editor.fileName (int line) (int col)
