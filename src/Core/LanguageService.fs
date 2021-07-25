@@ -665,14 +665,14 @@ Consider:
         let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
         let fsacSilencedLogs = "FSharp.fsac.silencedLogs" |> Configuration.get [||]
         let verbose = "FSharp.verboseLogging" |> Configuration.get false
-
+        let fsacDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
         let spawnNetCore dotnet =
             let fsautocompletePath =
                 if String.IsNullOrEmpty fsacNetcorePath then VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.dll"
                 else fsacNetcorePath
             printfn "FSAC (NETCORE): '%s'" fsautocompletePath
             let args =
-                [
+                [   yield! fsacDotnetArgs
                     yield fsautocompletePath
                     if fsacAttachDebugger
                     then
