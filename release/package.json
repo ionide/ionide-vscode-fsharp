@@ -1145,6 +1145,14 @@
 			"type": "object",
 			"title": "F#",
 			"properties": {
+				"FSharp.fsac.dotnetArgs": {
+					"type" : "array",
+					"default": [],
+					"description": "additional CLI arguments to be provided to the dotnet runner for FSAC",
+					"items": {
+						"type": "string"
+					}
+				},
 				"FSharp.fsac.netCoreDllPath": {
 					"type": "string",
 					"default": "",

@@ -57,7 +57,7 @@ module SignatureData =
 
 
     let activate (context : ExtensionContext) =
-        commands.registerCommand("fsharp.generateDoc", generateDoc |> objfy2) 
+        commands.registerCommand("fsharp.generateDoc", generateDoc |> objfy2)
         |> context.subscriptions.Add
 
         ()
