@@ -553,59 +553,9 @@ Consider:
         compilerLocation ()
         |> Promise.map (fun c -> c.Data)
 
-    let fsi () =
-        let fileExists (path: string): JS.Promise<bool> =
-            Promise.create(fun success _failure ->
-                fs.access(!^path, fs.constants.F_OK, fun err -> success(err.IsNone)))
-
-        let getAnyCpuFsiPathFromCompilerLocation (location: CompilerLocation) = promise {
-            match location.Fsi with
-            | Some fsi ->
-                // Only rewrite if FSAC returned 'fsi.exe' (For future-proofing)
-                if path.basename fsi = "fsi.exe" then
-                    // If there is an anyCpu variant in the same dir we do the rewrite
-                    let anyCpuFile = path.join [| path.dirname fsi; "fsiAnyCpu.exe"|]
-                    let! anyCpuExists = fileExists anyCpuFile
-                    if anyCpuExists then
-                        return Some anyCpuFile
-                    else
-                        return Some fsi
-                else
-                    return Some fsi
-            | None ->
-                return None
-        }
-
-        promise {
-            match Environment.configFsiFilePath () with
-            | Some path -> return Some path
-            | None ->
-                let! fsacPaths = fsacConfig ()
-                let! fsiPath = getAnyCpuFsiPathFromCompilerLocation fsacPaths
-                return fsiPath
-        }
-
     let fsiSdk () =
         promise {
             return Environment.configFsiSdkFilePath ()
-        }
-
-    let fsc () =
-        promise {
-            match Environment.configFSCPath () with
-            | Some path -> return Some path
-            | None ->
-                let! fsacPaths = fsacConfig ()
-                return fsacPaths.Fsc
-        }
-
-    let msbuild () =
-        promise {
-            match Environment.configMSBuildPath with
-            | Some path -> return Some path
-            | None ->
-                let! fsacPaths = fsacConfig ()
-                return fsacPaths.MSBuild
         }
 
     let private createClient opts =

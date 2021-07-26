@@ -32,8 +32,7 @@ module MSBuild =
 
                 let cmd = sprintf "msbuild %s" command
                 logger.Info("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
-                let _ =
-                    if autoshow then outputChannel.show()
+                if autoshow then outputChannel.show()
                 return! Process.spawnWithNotification msbuildPath "" cmd outputChannel
                         |> Process.toPromise
             }

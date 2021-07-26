@@ -11,46 +11,6 @@ open Ionide.VSCode.Helpers
 module node = Node.Api
 
 module Fsi =
-    module SdkScriptsNotify =
-
-        open Ionide.VSCode.FSharp
-
-        let suggestKey = "FSharp.suggestSdkScripts"
-        let useKey = "FSharp.useSdkScripts"
-
-        let shouldNotifyAboutSdkScripts () =
-            let k = Configuration.get true useKey
-            not k
-
-
-        let disablePromptGlobally () =
-            Configuration.setGlobal suggestKey false
-
-        let disablePromptForProject () =
-            Configuration.set suggestKey false
-
-        let setUseSdk () =
-            Configuration.setGlobal useKey true
-
-
-        let checkForPatternsAndPromptUser () = promise {
-            if shouldNotifyAboutSdkScripts () then
-                let! choice = window.showInformationMessage("You are running .Net Core version of FsAutoComplete, we recommend also using .Net Core version of F# REPL (`dotnet fsi`). Should we change your settings (`FSharp.useSdkScripts`). This requires .Net Core 3.X?", [|"Update settings"; "Ignore"; "Don't show again"|])
-                match choice with
-                | "Update settings" ->
-                    do! setUseSdk ()
-                | "Ignore" ->
-                    do! disablePromptForProject ()
-                | "Don't show again" ->
-                    do! disablePromptGlobally ()
-                | _ -> ()
-        }
-
-        let activate (_context: ExtensionContext) =
-            if Configuration.get true suggestKey
-            then checkForPatternsAndPromptUser () |> ignore
-            else ()
-
 
     module Watcher =
         let mutable panel : WebviewPanel option = None
@@ -195,9 +155,6 @@ module Fsi =
                 handler ()
             ))
 
-
-
-
     let mutable fsiOutput : Terminal option = None
     let mutable fsiOutputPID : int option = None
     let mutable lastSelectionSent : string option = None
@@ -230,10 +187,6 @@ module Fsi =
             lastCurrentFile <- Some file
 
     let fsiBinaryAndParameters () =
-        let isSdk =
-            "FSharp.useSdkScripts"
-            |> Configuration.get false
-
         let addWatcher =
             "FSharp.addFsiWatcher"
             |> Configuration.get false
@@ -261,40 +214,23 @@ module Fsi =
             |> Array.ofList
 
         promise {
-            if isSdk
-            then
-                let! dotnet = LanguageService.dotnet ()
-                match dotnet with
-                | Some dotnet ->
-                    let! fsiSetting = LanguageService.fsiSdk ()
-                    let fsiArg = defaultArg fsiSetting "fsi"
-                    return dotnet, [|yield fsiArg; yield! parms |]
-                | None ->
-                    return failwith "dotnet fsi requested but no dotnet SDK was found."
-            else
-                let! fsi = LanguageService.fsi ()
-                match fsi with
-                | Some fsi ->
-                    return fsi, parms
-                | None ->
-                    return failwith ".Net Framework FSI was requested but not found"
+            let! dotnet = LanguageService.dotnet ()
+            match dotnet with
+            | Some dotnet ->
+                let! fsiSetting = LanguageService.fsiSdk ()
+                let fsiArg = defaultArg fsiSetting "fsi"
+                return dotnet, [| yield fsiArg; yield! parms |]
+            | None ->
+                return failwith "dotnet fsi requested but no dotnet SDK was found."
         }
 
     let private start () =
         fsiOutput |> Option.iter (fun n -> n.dispose())
-        let isSdk =
-            "FSharp.useSdkScripts"
-            |> Configuration.get false
-
         promise {
             let! (fsiBinary, fsiArguments) = fsiBinaryAndParameters ()
 
             let terminal =
-                if isSdk
-                then
-                    window.createTerminal("F# Interactive (.Net Core)", fsiBinary, fsiArguments)
-                else
-                    window.createTerminal("F# Interactive", fsiBinary, fsiArguments)
+                window.createTerminal("F# Interactive (.Net Core)", fsiBinary, fsiArguments)
 
             terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
             lastCd <- None
@@ -454,7 +390,6 @@ module Fsi =
 
     let activate (context : ExtensionContext) =
         Watcher.activate(!!context.subscriptions)
-        SdkScriptsNotify.activate context
 
         window.onDidCloseTerminal $ (handleCloseTerminal, (), context.subscriptions) |> ignore
 
