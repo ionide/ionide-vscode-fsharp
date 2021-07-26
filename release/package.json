@@ -1196,7 +1196,7 @@
 				"FSharp.linter": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables integration with [FSharpLint](https://fsprojects.github.io/FSharpLint/) for additional (user-defined) warnings"
+					"markdownDescription": "Enables integration with [FSharpLint](https://fsprojects.github.io/FSharpLint/) for additional (user-defined) warnings"
 				},
 				"FSharp.unionCaseStubGeneration": {
 					"type": "boolean",
@@ -1266,7 +1266,7 @@
 				"FSharp.fsiExtraParameters": {
 					"type": "array",
 					"default": [],
-					"description": "An array of additional command line parameters to pass to FSI when it is started. See [the documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list."
+					"markdownDescription": "An array of additional command line parameters to pass to FSI when it is started. See [the Microsoft documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list."
 				},
 				"FSharp.saveOnSendLastSelection": {
 					"type": "boolean",
@@ -1371,11 +1371,11 @@
 				"FSharp.enableTouchBar": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables TouchBar integration"
+					"description": "Enables TouchBar integration of build/run/debug buttons"
 				},
 				"FSharp.autoRevealInExplorer": {
 					"type": "string",
-					"description": "Controls whether the solution explorer should automatically reveal and select files when opening them.",
+					"description": "Controls whether the solution explorer should automatically reveal and select files when opening them. If `sameAsFileExplorer` is set, then the value of the `explorer.autoReveal` setting will be used instead.",
 					"enum": [
 						"sameAsFileExplorer",
 						"enabled",
@@ -1418,7 +1418,7 @@
 				"FSharp.verboseLogging": {
 					"type": "boolean",
 					"default": false,
-					"description": "Logs additional information to F# output channel. Requires restart."
+					"description": "Logs additional information to F# output channel. This is equivalent to passing the `--verbose` flag to FSAC. Requires restart."
 				},
 				"FAKE.targetsOutline": {
 					"type": "boolean",
@@ -1448,16 +1448,16 @@
 				"FSharp.addFsiWatcher": {
 					"type": "boolean",
 					"default": false,
-					"description": "Enables the variables view for the fsi"
+					"description": "Enables a panel for FSI that shows the value of all existing bindings in the FSI session"
 				},
 				"FSharp.generateBinlog": {
 					"type": "boolean",
 					"default": false,
-					"description": "Enables generation of `.binlog` file for project loading. It works only for fresh, non-cached project loading. Run `F#: Clear Project Cache` and reload window to force fresh loading of all projects"
+					"markdownDescription": "Enables generation of `msbuild.binlog` files for project loading. It works only for fresh, non-cached project loading. Run `F#: Clear Project Cache` and reload window to force fresh loading of all projects. These files can be loaded and inspected using the [MSBuild Structured Logger](https://github.com/KirillOsenkov/MSBuildStructuredLog)"
 				},
 				"FSharp.pipelineHints.enabled": {
 					"type": "boolean",
-					"description": "Enables Pipeline hints",
+					"description": "Enables PipeLine hints, which are like LineLenses that appear along each step of a chain of piped expressions",
 					"default": true
 				},
 				"FSharp.pipelineHints.prefix": {
