@@ -18,8 +18,8 @@ module Environment =
         if isWin then a + @"\" + b
         else a + "/" + b
 
-
-    let private fscFileName = if isWin then "Fsc.exe" else "fsharpc"
+    let configFsiFilePath () =
+        Configuration.tryGet "FSharp.fsiFilePath"
 
     let configFsiSdkFilePath () =
         Configuration.tryGet "FSharp.fsiSdkFilePath"

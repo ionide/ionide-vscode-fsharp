@@ -1177,6 +1177,12 @@
 					"default": 4,
 					"description": "The deep level of directory hierarchy when searching for sln/projects"
 				},
+				"FSharp.fsiFilePath": {
+					"type": "string",
+					"default": "",
+					"description": "The path to the F# Interactive tool used by Ionide-FSharp (.NET Framework only, on .NET Core `FSharp.fsiSdkFilePath` is used)",
+					"scope": "machine-overridable"
+				},
 				"FSharp.fsiSdkFilePath": {
 					"type": "string",
 					"default": "",
@@ -1440,6 +1446,16 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Allow Ionide to prompt whenever internal data files aren't included in your project's .gitignore"
+				},
+				"FSharp.suggestSdkScripts": {
+					"type": "boolean",
+					"default": true,
+					"description": "Allow Ionide to prompt to use SdkScripts"
+				},
+				"FSharp.useSdkScripts": {
+					"type": "boolean",
+					"default": true,
+					"description": "Use 'dotnet fsi' instead of 'fsi.exe'/'fsharpi' to start an FSI session"
 				},
 				"FSharp.dotNetRoot": {
 					"type": "string",
