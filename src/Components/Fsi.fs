@@ -11,6 +11,45 @@ open Ionide.VSCode.Helpers
 module node = Node.Api
 
 module Fsi =
+    module SdkScriptsNotify =
+
+        open Ionide.VSCode.FSharp
+
+        let suggestKey = "FSharp.suggestSdkScripts"
+        let useKey = "FSharp.useSdkScripts"
+
+        let shouldNotifyAboutSdkScripts () =
+            let k = Configuration.get true useKey
+            not k
+
+
+        let disablePromptGlobally () =
+            Configuration.setGlobal suggestKey false
+
+        let disablePromptForProject () =
+            Configuration.set suggestKey false
+
+        let setUseSdk () =
+            Configuration.setGlobal useKey true
+
+
+        let checkForPatternsAndPromptUser () = promise {
+            if shouldNotifyAboutSdkScripts () then
+                let! choice = window.showInformationMessage("You are running .Net Core version of FsAutoComplete, we recommend also using .Net Core version of F# REPL (`dotnet fsi`). Should we change your settings (`FSharp.useSdkScripts`). This requires .Net Core 3.X?", [|"Update settings"; "Ignore"; "Don't show again"|])
+                match choice with
+                | "Update settings" ->
+                    do! setUseSdk ()
+                | "Ignore" ->
+                    do! disablePromptForProject ()
+                | "Don't show again" ->
+                    do! disablePromptGlobally ()
+                | _ -> ()
+        }
+
+        let activate (_context: ExtensionContext) =
+            if Configuration.get true suggestKey
+            then checkForPatternsAndPromptUser () |> ignore
+            else ()
 
     module Watcher =
         let mutable panel : WebviewPanel option = None
