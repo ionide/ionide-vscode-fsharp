@@ -1,3 +1,12 @@
+### 5.6.0 - 26.07.2021
+
+* Update FSAC to version 0.47.0 to get fixes for
+  * allowing to run on .net 6
+  * 'dotnet new' template loading
+  * Fantomas update to 4.5.0
+  * 'workspace/applyEdit' data type fixes
+* remove a bunch of legacy mono config options that were no longer being used
+
 ### 5.5.9 - 29.06.2021
 
 * BUGFIX: republish 5.5.8 with lockfile additions so that FSAC is actually updated

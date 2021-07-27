@@ -590,24 +590,6 @@ Consider:
             return Environment.configFsiSdkFilePath ()
         }
 
-    let fsc () =
-        promise {
-            match Environment.configFSCPath () with
-            | Some path -> return Some path
-            | None ->
-                let! fsacPaths = fsacConfig ()
-                return fsacPaths.Fsc
-        }
-
-    let msbuild () =
-        promise {
-            match Environment.configMSBuildPath with
-            | Some path -> return Some path
-            | None ->
-                let! fsacPaths = fsacConfig ()
-                return fsacPaths.MSBuild
-        }
-
     let private createClient opts =
         let options =
             createObj [

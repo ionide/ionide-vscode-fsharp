@@ -1,5 +1,5 @@
 source https://api.nuget.org/v3/index.json
-storage:none
+storage: none
 framework: netstandard2.0
 
 nuget Fable.Core ~> 3.1.5
@@ -11,9 +11,9 @@ nuget Fable.HtmlConverter ~> 2.1.0
 
 nuget Thoth.Json ~> 4.1.0
 
-git https://github.com/fsharp/FsAutoComplete.git 0.46.7 build:"build.cmd", OS: win
-git https://github.com/fsharp/FsAutoComplete.git 0.46.7 build:"build.sh", OS: linux
-git https://github.com/fsharp/FsAutoComplete.git 0.46.7 build:"build.sh", OS: osx
+git https://github.com/fsharp/FsAutoComplete.git 0.47.0 build:"build.cmd", OS: win
+git https://github.com/fsharp/FsAutoComplete.git 0.47.0 build:"build.sh",  OS: linux
+git https://github.com/fsharp/FsAutoComplete.git 0.47.0 build:"build.sh",  OS: osx
 
 git https://github.com/ionide/ionide-fsgrammar.git master
 

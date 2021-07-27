@@ -1162,12 +1162,12 @@
 				"FSharp.fsac.attachDebugger": {
 					"type": "boolean",
 					"default": false,
-					"description": "Appends the '--attachdebugger' argument to fsac, this will allow you to attach the debugger."
+					"description": "Appends the '--attachdebugger' argument to fsac, this will allow you to attach a debugger."
 				},
 				"FSharp.fsac.silencedLogs": {
 					"type": "array",
 					"default": [],
-					"description": "An array of log categories for FSAC to filter out. These can be found by viewing your log output and noting the text in between the brackets in the log line. For example, in the log ling `[16:07:14.626 INF] [Compiler] done compiling foo.fsx`, the category is 'Compiler'. ",
+					"description": "An array of log categories for FSAC to filter out. These can be found by viewing your log output and noting the text in between the brackets in the log line. For example, in the log line `[16:07:14.626 INF] [Compiler] done compiling foo.fsx`, the category is 'Compiler'. ",
 					"items": {
 						"type": "string"
 					}
@@ -1177,16 +1177,10 @@
 					"default": 4,
 					"description": "The deep level of directory hierarchy when searching for sln/projects"
 				},
-				"FSharp.monoPath": {
-					"type": "string",
-					"default": "mono",
-					"description": "The path to Mono executable",
-					"scope": "machine-overridable"
-				},
 				"FSharp.fsiFilePath": {
 					"type": "string",
 					"default": "",
-					"description": "The path to the F# Interactive tool used by Ionide-FSharp (.NET Framework only, on .NET Core `dotnet fsi` is run)",
+					"description": "The path to the F# Interactive tool used by Ionide-FSharp (.NET Framework only, on .NET Core `FSharp.fsiSdkFilePath` is used)",
 					"scope": "machine-overridable"
 				},
 				"FSharp.fsiSdkFilePath": {
@@ -1203,62 +1197,62 @@
 				"FSharp.externalAutocomplete": {
 					"type": "boolean",
 					"default": false,
-					"description": "Includes external (from unopen modules and namespaces) symbols in autocomplete"
+					"description": "Includes external (from unopened modules and namespaces) symbols in autocomplete"
 				},
 				"FSharp.linter": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables integration with FSharpLinter (additional warnings)"
+					"markdownDescription": "Enables integration with [FSharpLint](https://fsprojects.github.io/FSharpLint/) for additional (user-defined) warnings"
 				},
 				"FSharp.unionCaseStubGeneration": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables pattern matching stub generation"
+					"description": "Enables a codefix that generates missing union cases when in a match expression"
 				},
 				"FSharp.unionCaseStubGenerationBody": {
 					"type": "string",
 					"default": "failwith \"Not Implemented\"",
-					"description": "Generated pattern matching case default body"
+					"description": "The expression to fill in the right-hand side of match cases when generating missing cases for a match on a discriminated union"
 				},
 				"FSharp.recordStubGeneration": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables record stub generation"
+					"description": "Enables a codefix that will generate missing record fields when inside a record construction expression"
 				},
 				"FSharp.recordStubGenerationBody": {
 					"type": "string",
 					"default": "failwith \"Not Implemented\"",
-					"description": "Generated record field default body"
+					"description": "The expression to fill in the right-hand side of record fields when generating missing fields for a record construction expression"
 				},
                 "FSharp.interfaceStubGeneration": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables interface stub generation"
+					"description": "Enables a codefix that generates missing interface members when inside of an interface implementation expression"
                 },
                 "FSharp.interfaceStubGenerationObjectIdentifier": {
 					"type": "string",
 					"default": "this",
-					"description": "Generated member default object identifier"
+					"description": "The name of the 'self' identifier in an interface member. For example, `this` in the expression `this.Member(x: int) = ()`"
                 },
                 "FSharp.interfaceStubGenerationMethodBody": {
 					"type": "string",
 					"default": "failwith \"Not Implemented\"",
-					"description": "Generated member default body"
+					"description": "The expression to fill in the right-hand side of interface members when generating missing members for an interface implementation expression"
 				},
 				"FSharp.abstractClassStubGeneration": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables abstract class stub generation"
+					"description": "Enables a codefix that generates missing members for an abstract class when in an type inheriting from that abstract class."
                 },
                 "FSharp.abstractClassStubGenerationObjectIdentifier": {
 					"type": "string",
 					"default": "this",
-					"description": "Generated member default object identifier"
+					"description": "The name of the 'self' identifier in an inherited member. For example, `this` in the expression `this.Member(x: int) = ()`"
                 },
                 "FSharp.abstractClassStubGenerationMethodBody": {
 					"type": "string",
 					"default": "failwith \"Not Implemented\"",
-					"description": "Generated member default body"
+					"description": "The expression to fill in the right-hand side of inherited members when generating missing members for an abstract base class"
 				},
 				"FSharp.unusedOpensAnalyzer": {
 					"type": "boolean",
@@ -1273,38 +1267,32 @@
 				"FSharp.simplifyNameAnalyzer": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables detection of symbols usages that can be simplified"
+					"description": "Enables detection of cases when names of functions and values can be simplified"
 				},
 				"FSharp.fsiExtraParameters": {
 					"type": "array",
 					"default": [],
-					"description": "Allows to pass extra parameters to FSI process"
+					"markdownDescription": "An array of additional command line parameters to pass to FSI when it is started. See [the Microsoft documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list."
 				},
 				"FSharp.saveOnSendLastSelection": {
 					"type": "boolean",
 					"default": false,
-					"description": "Save Current file before send LastSelection to FSI"
-				},
-				"FSharp.msbuildLocation": {
-					"type": "string",
-					"default": "",
-					"description": "Use a specific version of msbuild to build this project.",
-					"scope": "machine-overridable"
+					"description": "If enabled, the current file will be saved before sending the last selection to FSI for evaluation"
 				},
 				"FSharp.msbuildAutoshow": {
 					"type": "boolean",
 					"default": false,
-					"description": "Automatically shows MsBuild output panel"
+					"description": "Automatically shows the MSBuild output panel when MSBuild functionality is invoked"
 				},
 				"FSharp.resolveNamespaces": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables `resolve unopened namespaces and modules` code fix."
+					"description": "Enables a codefix that will suggest namespaces or module to open when a name is not recognized"
 				},
 				"FSharp.enableTreeView": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables solution explorer."
+					"description": "Enables the solution explorer view of the current workspace, which shows the workspace as MSBuild sees it"
 				},
 				"FSharp.excludeProjectDirectories": {
 					"type": "array",
@@ -1319,7 +1307,7 @@
 				},
 				"FSharp.lineLens.enabled": {
 					"type": "string",
-					"description": "Usage mode for LineLens",
+					"description": "Usage mode for LineLens. If `never`, LineLens will never be shown.  If `replaceCodeLens`, LineLens will be placed in a decoration on top of the current line.",
 					"enum": [
 						"never",
 						"replaceCodeLens",
@@ -1329,17 +1317,8 @@
 				},
 				"FSharp.lineLens.prefix": {
 					"type": "string",
-					"description": "The prefix displayed before the signature",
+					"description": "The prefix displayed before the signature in a LineLens",
 					"default": "  // "
-				},
-				"FSharp.tooltipMode": {
-					"type": "string",
-					"description": "Control if tooltip should show only the summary or all the information",
-					"enum": [
-						"summary",
-						"full"
-					],
-					"default": "full"
 				},
 				"FSharp.disableFailedProjectNotifications": {
 					"type": "boolean",
@@ -1354,17 +1333,17 @@
 				"FSharp.enableMSBuildProjectGraph": {
 					"type": "boolean",
 					"default": false,
-					"description": "Enables experimental support for loading workspaces with MsBuild's ProjectGraph. This can improve load times. Requires restart."
+					"description": "EXPERIMENTAL. Enables support for loading workspaces with MsBuild's ProjectGraph. This can improve load times. Requires restart."
 				},
 				"FSharp.enableReferenceCodeLens": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables additional code lenses showing number of references. Requires background services"
+					"description": "Enables additional code lenses showing number of references of a function or value. Requires background services to be enabled."
 				},
 				"FSharp.showProjectExplorerIn": {
 					"type": "string",
 					"default": "fsharp",
-					"description": "Set the activity (left bar) where the project explorer view will be displayed.\nRequires restart.",
+					"description": "Set the activity (left bar) where the project explorer view will be displayed. If `explorer`, then the project explorer will be a collapsible tab in the main explorer view, a sibling to the file system explorer. If `fsharp`, a new activity with the F# logo will be added and the project explorer will be rendered in this activity.Requires restart.",
 					"enum": [
 						"explorer",
 						"fsharp"
@@ -1374,7 +1353,7 @@
 				"FSharp.enableAnalyzers": {
 					"type": "boolean",
 					"default": false,
-					"description": "EXPERIMENTAL. Enables custom analyzers. Requires restart."
+					"description": "EXPERIMENTAL. Enables F# analyzers for custom code diagnostics. Requires restart."
 				},
 				"FSharp.analyzersPath": {
 					"type": "array",
@@ -1387,7 +1366,7 @@
 				},
 				"FSharp.workspacePath": {
 					"type": "string",
-					"description": "Path to the directory or solution file that should be loaded as a workspace.",
+					"description": "Path to the directory or solution file that should be loaded as a workspace. If set, no workspace probing or discovery is done by Ionide at all.",
 					"scope": "window"
 				},
 				"FSharp.showExplorerOnStartup": {
@@ -1398,11 +1377,11 @@
 				"FSharp.enableTouchBar": {
 					"type": "boolean",
 					"default": true,
-					"description": "Enables TouchBar integration"
+					"description": "Enables TouchBar integration of build/run/debug buttons"
 				},
 				"FSharp.autoRevealInExplorer": {
 					"type": "string",
-					"description": "Controls whether the solution explorer should automatically reveal and select files when opening them.",
+					"description": "Controls whether the solution explorer should automatically reveal and select files when opening them. If `sameAsFileExplorer` is set, then the value of the `explorer.autoReveal` setting will be used instead.",
 					"enum": [
 						"sameAsFileExplorer",
 						"enabled",
@@ -1445,7 +1424,7 @@
 				"FSharp.verboseLogging": {
 					"type": "boolean",
 					"default": false,
-					"description": "Logs additional information to F# output channel. Requires restart."
+					"description": "Logs additional information to F# output channel. This is equivalent to passing the `--verbose` flag to FSAC. Requires restart."
 				},
 				"FAKE.targetsOutline": {
 					"type": "boolean",
@@ -1476,7 +1455,7 @@
 				"FSharp.useSdkScripts": {
 					"type": "boolean",
 					"default": true,
-					"description": "Use 'dotnet fsi' instead of 'fsi.exe'/'fsharpi'"
+					"description": "Use 'dotnet fsi' instead of 'fsi.exe'/'fsharpi' to start an FSI session"
 				},
 				"FSharp.dotNetRoot": {
 					"type": "string",
@@ -1485,16 +1464,16 @@
 				"FSharp.addFsiWatcher": {
 					"type": "boolean",
 					"default": false,
-					"description": "Enables the variables view for the fsi"
+					"description": "Enables a panel for FSI that shows the value of all existing bindings in the FSI session"
 				},
 				"FSharp.generateBinlog": {
 					"type": "boolean",
 					"default": false,
-					"description": "Enables generation of `.binlog` file for project loading. It works only for fresh, non-cached project loading. Run `F#: Clear Project Cache` and reload window to force fresh loading of all projects"
+					"markdownDescription": "Enables generation of `msbuild.binlog` files for project loading. It works only for fresh, non-cached project loading. Run `F#: Clear Project Cache` and reload window to force fresh loading of all projects. These files can be loaded and inspected using the [MSBuild Structured Logger](https://github.com/KirillOsenkov/MSBuildStructuredLog)"
 				},
 				"FSharp.pipelineHints.enabled": {
 					"type": "boolean",
-					"description": "Enables Pipeline hints",
+					"description": "Enables PipeLine hints, which are like LineLenses that appear along each step of a chain of piped expressions",
 					"default": true
 				},
 				"FSharp.pipelineHints.prefix": {

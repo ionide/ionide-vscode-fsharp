@@ -18,18 +18,11 @@ module Environment =
         if isWin then a + @"\" + b
         else a + "/" + b
 
-
-    let private fscFileName = if isWin then "Fsc.exe" else "fsharpc"
-
     let configFsiFilePath () =
         Configuration.tryGet "FSharp.fsiFilePath"
 
     let configFsiSdkFilePath () =
         Configuration.tryGet "FSharp.fsiSdkFilePath"
-
-    let configFSCPath () =
-        Configuration.tryGet "FSharp.fsiFilePath"
-        |> Option.bind (fun path -> try Some (node.path.dirname path </> fscFileName) with _ -> None) //dirname could fail so wrap that
 
     // because the buffers from console output contain newlines, we need to trim them out if we want to have usable path inputs
     let spawnAndGetTrimmedOutput location linuxCmd command =
@@ -45,8 +38,6 @@ module Environment =
             spawnAndGetTrimmedOutput "which" "" toolName
             |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None )
 
-    let configMSBuildPath = Configuration.tryGet "FSharp.msbuildLocation"
-
     let dotnet =
         Configuration.tryGet "FSharp.dotnetRoot"
         |> Option.map (fun root ->
@@ -55,10 +46,6 @@ module Environment =
             |> Promise.lift)
         |> Option.defaultWith (fun () -> tryGetTool "dotnet" )
 
-    let mono =
-        Configuration.tryGet "FSharp.monoPath"
-        |> Option.map ( Some >> Promise.lift)
-        |> Option.defaultWith (fun () -> tryGetTool "mono")
 
     let ensureDirectory (path : string) =
         let root =

@@ -85,24 +85,6 @@ Error: %s
                     (dotnetVersion.Trim())
             txt.Trim()
 
-        let monoRuntime monoVersion msbuildVersion =
-            let txt =
-                sprintf
-                    """
-* Runtime: **.Net**
-* Mono version:
-```shell
-%s
-```
-* MSBuild version:
-```shell
-%s
-```
-                    """
-                    monoVersion
-                    msbuildVersion
-            txt.Trim()
-
         let msbuildInfo msbuildVersion =
             let txt =
                 sprintf
@@ -124,22 +106,13 @@ Error: %s
     let getMSBuildVersion () =
         promise {
             let! msbuild =
-                LanguageService.msbuild ()
+                LanguageService.dotnet()
                 |> Promise.bind (fun msb -> match msb with Some msb -> Promise.lift msb | None -> Promise.reject "MsBuild not found")
 
-            let! version = execCommand msbuild [ "/version" ]
+            let! version = execCommand msbuild [ "msbuild /version" ]
             return version.Trim()
         }
 
-    let getMonoVersion () =
-        promise {
-            let! mono = Environment.mono
-            match mono with
-            | Some mono ->
-                let! version = execCommand mono [ "--version" ]
-                return version.Trim()
-            | None -> return "No mono installation found"
-        }
 
     let getRuntimeInfos () =
         let netcoreInfos = promise {
@@ -150,16 +123,11 @@ Error: %s
                 return Templates.netcoreRuntime version
             | None -> return "No dotnet installation found"
         }
-        let monoInfos = promise {
-            if Process.isMono () then
-                let! monoVersion = getMonoVersion()
-                let! msbuildVersion = getMSBuildVersion ()
-                return Templates.monoRuntime monoVersion msbuildVersion
-            else
-                let! msbuildVersion = getMSBuildVersion ()
-                return Templates.msbuildInfo msbuildVersion
+        let msBuildInfos = promise {
+            let! msbuildVersion = getMSBuildVersion ()
+            return Templates.msbuildInfo msbuildVersion
         }
-        Promise.all [netcoreInfos; monoInfos]
+        Promise.all [netcoreInfos; msBuildInfos]
         |> Promise.map (String.concat "\n")
 
     let writeToFile (text : string) =

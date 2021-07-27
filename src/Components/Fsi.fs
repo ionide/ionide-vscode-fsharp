@@ -51,7 +51,6 @@ module Fsi =
             then checkForPatternsAndPromptUser () |> ignore
             else ()
 
-
     module Watcher =
         let mutable panel : WebviewPanel option = None
 
@@ -195,9 +194,6 @@ module Fsi =
                 handler ()
             ))
 
-
-
-
     let mutable fsiOutput : Terminal option = None
     let mutable fsiOutputPID : int option = None
     let mutable lastSelectionSent : string option = None
@@ -285,7 +281,6 @@ module Fsi =
         let isSdk =
             "FSharp.useSdkScripts"
             |> Configuration.get false
-
         promise {
             let! (fsiBinary, fsiArguments) = fsiBinaryAndParameters ()
 
