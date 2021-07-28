@@ -280,16 +280,6 @@ module Fsi =
     let fsiNetCoreName = "F# Interactive (.Net Core)"
     let fsiNetFrameworkName = "F# Interactive"
 
-    // type ProviderResult<'t> = U2<'t, JS.Promise<'t option>> option
-    // type TerminalOptions =
-    //     abstract name: string option with get, set
-    //     abstract shellArgs: U2<ResizeArray<string>, string> option with get, set
-    //     abstract shellPath: string option with get, set
-    // type TerminalProfile =
-    //     abstract options: TerminalOptions with get, set
-    // type TerminalProfileProvider =
-    //     abstract provideTerminalProfile: token: CancellationToken -> ProviderResult<TerminalProfile>
-
     let provider: TerminalProfileProvider =
         { new TerminalProfileProvider with
             override this.provideTerminalProfile(token: CancellationToken): ProviderResult<TerminalProfile> =
@@ -323,6 +313,12 @@ module Fsi =
         lastCurrentFile <- None
         fsiOutput <- Some terminal
 
+    let tryFindExistingTerminal () =
+        window.terminals
+        |> Seq.tryFind (fun t ->
+            t.name = fsiNetFrameworkName || t.name = fsiNetCoreName
+        )
+
     let private start () =
         fsiOutput |> Option.iter (fun n -> n.dispose())
         promise {
@@ -330,15 +326,21 @@ module Fsi =
                 match provider.provideTerminalProfile(createEmpty<_>) with
                 | None -> promise.Return None
                 | Some (U2.Case1 options) -> promise.Return (Some options)
-                | Some (U2.Case2 work) -> work |> Promise.ofThenable
+                | Some (U2.Case2 work) -> Promise.ofThenable work
             let profile =
                 match profile with
                 | Some opts -> opts
                 | None ->
                     window.showErrorMessage("Unable to spawn FSI", null) |> ignore
                     failwith "unable to spawn FSI"
-            let w = Fable.Core.JsInterop.import "window" "vscode"
-            let terminal: Terminal = w?createTerminal(profile.options) // setting up terminal state will happen on the terminal listener
+
+            let terminal =
+                match profile.options with
+                | U2.Case1 opts -> window.createTerminal opts
+                | U2.Case2 opts -> window.createTerminal opts
+
+            setupTerminalState terminal
+            sendCd window.activeTextEditor
             terminal.show(true)
             return terminal
         }
@@ -438,20 +440,32 @@ module Fsi =
         fsiOutput |> Option.iter (fun t -> t.dispose())
 
     let private handleCloseTerminal (terminal : Terminal) =
-        fsiOutput <- None
-        fsiOutputPID <- None
-        lastCd <- None
-        lastCurrentFile <- None
-        ()
+        fsiOutputPID
+        |> Option.iter (fun currentTerminalPID ->
+            terminal.processId
+            |> Promise.ofThenable
+            |> Promise.onSuccess (fun closedTerminalPID ->
+                if Option.map int closedTerminalPID = Some currentTerminalPID then
+                    fsiOutput <- None
+                    fsiOutputPID <- None
+                    lastCd <- None
+                    lastCurrentFile <- None)
+            |> Promise.suppress // prevent unhandled promise exception
+            |> ignore)
+        |> ignore
+        None
 
     // when a new terminal is created, if it's FSI and if we don't already have a terminal then setup the state for tracking FSI
-    let private handleOpenTerminal (terminal: Terminal): unit =
+    let private handleOpenTerminal (terminal: Terminal) =
         if terminal.name = fsiNetCoreName || terminal.name = fsiNetFrameworkName
         then
             clearOldTerminalState ()
             setupTerminalState terminal
             // initially have to set up the terminal to be in the correct start directory
             sendCd window.activeTextEditor
+
+        None
+
 
     let private generateProjectReferences () =
         let ctn =
