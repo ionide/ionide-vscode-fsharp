@@ -74,9 +74,7 @@ module Fsdn =
             |> box
             |> Some
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
 module QuickInfo =
 
@@ -93,7 +91,7 @@ module QuickInfo =
         let activate (context : ExtensionContext) =
             let newItem = window.createStatusBarItem (unbox 1, -10. )
             item <- Some newItem
-            context.subscriptions.Add(newItem |> box |> unbox)
+            context.subscriptions.Add (unbox (box newItem))
 
         let private isFsharpTextEditor (textEditor : TextEditor) =
             if JS.isDefined textEditor && JS.isDefined textEditor.document then
@@ -158,6 +156,6 @@ module QuickInfo =
     let activate (context : ExtensionContext) =
         StatusDisplay.activate context
 
-        context.subscriptions.Add(window.onDidChangeTextEditorSelection.Invoke(unbox selectionChanged) |> box |> unbox)
-        context.subscriptions.Add(window.onDidChangeActiveTextEditor.Invoke(unbox textEditorChanged) |> box |> unbox)
-        context.subscriptions.Add(Notifications.onDocumentParsed.Invoke(unbox documentParsedHandler) |> box |> unbox)
+        context.Subscribe(window.onDidChangeTextEditorSelection.Invoke(unbox selectionChanged))
+        context.Subscribe(window.onDidChangeActiveTextEditor.Invoke(unbox textEditorChanged))
+        context.Subscribe(Notifications.onDocumentParsed.Invoke(unbox documentParsedHandler))

@@ -313,9 +313,9 @@ module InfoPanel =
         let startLocked = "FSharp.infoPanelStartLocked" |> Configuration.get false
         let show = "FSharp.infoPanelShowOnStartup" |> Configuration.get false
 
-        context.subscriptions.Add(window.onDidChangeTextEditorSelection.Invoke(selectionChanged >> box >> Some) |> box |> unbox)
-        context.subscriptions.Add(Notifications.onDocumentParsed.Invoke(documentParsedHandler >> box >> Some) |> box |> unbox)
-        context.subscriptions.Add(Notifications.tooltipRequested.Invoke(tooltipRequested >> box >> Some) |> box |> unbox)
+        context.Subscribe(window.onDidChangeTextEditorSelection.Invoke(selectionChanged >> box >> Some))
+        context.Subscribe(Notifications.onDocumentParsed.Invoke(documentParsedHandler >> box >> Some))
+        context.Subscribe(Notifications.tooltipRequested.Invoke(tooltipRequested >> box >> Some))
 
         commands.registerCommand("fsharp.openInfoPanel", openPanel |> objfy2) |> context.Subscribe
         commands.registerCommand("fsharp.updateInfoPanel", updatePanel |> objfy2) |> context.Subscribe

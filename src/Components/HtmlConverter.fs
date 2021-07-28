@@ -27,6 +27,4 @@ module HtmlConverter =
 
     let activate (context : ExtensionContext) =
         commands.registerCommand("fsharp.htmlConverter.convert", convert |> objfy2)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe

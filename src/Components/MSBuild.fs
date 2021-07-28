@@ -181,9 +181,7 @@ module MSBuild =
 
         //Restore any project that returns NotRestored status
         Project.projectNotRestoredLoaded.Invoke(fun n -> restoreProjectAsync n |> unbox)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         let registerCommand com (action : unit -> _) = commands.registerCommand(com, action |> objfy2) |> context.Subscribe
         let registerCommand2 com (action : obj -> obj -> _) = commands.registerCommand(com, action |> objfy3) |> context.Subscribe

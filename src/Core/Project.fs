@@ -662,17 +662,13 @@ module Project =
     let activate (context : ExtensionContext) =
         CurrentWorkspaceConfiguration.setContext context
         commands.registerCommand("fsharp.clearCache", clearCache |> objfy2)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         Notifications.notifyWorkspaceHandler <- Some handleProjectParsedNotification
         workspaceNotificationAvaiable <- true
         ProjectStatus.item <- Some (window.createStatusBarItem (StatusBarAlignment.Right, 9000. ))
         statusUpdated.Invoke(!!ProjectStatus.statusUpdateHandler)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.changeWorkspace", (fun _ ->
             workspacePeek ()
@@ -681,9 +677,7 @@ module Project =
             |> box
             |> Some
             ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("showProjStatusFromIndicator", (fun _ ->
             let name = path.basename (ProjectStatus.path)
@@ -691,8 +685,6 @@ module Project =
             |> box
             |> Some
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         initWorkspace ()

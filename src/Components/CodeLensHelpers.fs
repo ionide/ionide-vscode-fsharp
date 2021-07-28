@@ -24,5 +24,4 @@ module CodeLensHelpers =
         commands.executeCommand("editor.action.showReferences", ResizeArray [Some (box uri); Some (box pos); Some (box locs);])
 
     let activate (context : ExtensionContext) =
-
-        commands.registerCommand("fsharp.showReferences", showReferences |> objfy4 ) |> box |> unbox context.subscriptions.Add
+        commands.registerCommand("fsharp.showReferences", showReferences |> objfy4 ) |> context.Subscribe

@@ -520,26 +520,18 @@ module SolutionExplorer =
 
             let onDidChangeActiveTextEditor' = onDidChangeActiveTextEditor treeView state
             window.onDidChangeActiveTextEditor.Invoke(unbox onDidChangeActiveTextEditor')
-            |> box
-            |> unbox
-            |> context.subscriptions.Add
+            |> context.Subscribe
 
             let onModelChanged' = onModelChanged treeView state
             rootChanged.Invoke(unbox onModelChanged')
-            |> box
-            |> unbox
-            |> context.subscriptions.Add
+            |> context.Subscribe
 
             let onDidChangeTreeVisibility' = onDidChangeTreeVisibility treeView state
             treeView.onDidChangeVisibility.Invoke(unbox onDidChangeTreeVisibility')
-            |> box
-            |> unbox
-            |> context.subscriptions.Add
+            |> context.Subscribe
 
             commands.registerCommand("fsharp.revealInSolutionExplorer", (fun _ -> revealTextEditor treeView state window.activeTextEditor true) |> objfy2)
-            |> box
-            |> unbox
-            |> context.subscriptions.Add
+            |> context.Subscribe
 
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fs")
@@ -614,31 +606,23 @@ module SolutionExplorer =
             emiter.fire None
             None
         )
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.NewProject", newProject |> objfy2)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
 
         commands.registerCommand("fsharp.explorer.refresh", objfy2 (fun _ ->
             emiter.fire None
             None
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.clearCache", objfy2 (fun _ ->
             Project.clearCache ()
             None
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.moveUp", objfy2 (fun m ->
             match unbox m with
@@ -647,9 +631,7 @@ module SolutionExplorer =
             |> ignore
             None
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.moveDown", objfy2 (fun m ->
             match unbox m with
@@ -658,9 +640,7 @@ module SolutionExplorer =
             |> ignore
             None
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.removeFile", objfy2 (fun m ->
             match unbox m with
@@ -669,8 +649,7 @@ module SolutionExplorer =
             |> ignore
             None
         ))
-        |> box
-        |> unbox|> context.subscriptions.Add
+        |> context.Subscribe
 
 
         commands.registerCommand("fsharp.explorer.addAbove", objfy2 (fun m ->
@@ -693,9 +672,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.addBelow", objfy2 (fun m ->
             match unbox m with
@@ -717,9 +694,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.addFile", objfy2 (fun m ->
             match unbox m with
@@ -741,27 +716,21 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.addProjecRef", objfy2 (fun m ->
             match unbox m with
             | ProjectReferencesList (_, _, p) -> FsProjEdit.addProjectReferencePath (Some p)
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.removeProjecRef", objfy2 (fun m ->
             match unbox m with
             | ProjectReference (_, path, _, p) -> FsProjEdit.removeProjectReferencePath path p
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         let treeOptions = createEmpty<TreeViewOptions<Model>>
         treeOptions.treeDataProvider <- provider
@@ -901,9 +870,7 @@ module SolutionExplorer =
             }
 
         workspace.registerTextDocumentContentProvider("fsharp-workspace", wsProvider)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         let getStatusText (path : string) =
             promise {
@@ -970,22 +937,13 @@ module SolutionExplorer =
                 Promise.empty
 
         commands.registerCommand("fsharp.explorer.showProjectLoadFailedInfo", (objfy2 projectStatusCommand))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.showProjectStatus", (objfy2 projectStatusCommand))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
-
-        // commands.registerCommand("fsharp.explorer.setLaunchSettings", (unbox >> setLaunchSettingsCommand >> box))
-        // |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.project.debug", (objfy2 runDebug))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.openProjectFile", objfy2 (fun m ->
             let pathOpt =
@@ -1004,9 +962,7 @@ module SolutionExplorer =
             | None -> undefined
 
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.msbuild.build", objfy2 (fun m ->
             match unbox m with
@@ -1015,9 +971,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.msbuild.rebuild", objfy2 (fun m ->
             match unbox m with
@@ -1026,9 +980,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.msbuild.clean", objfy2 (fun m ->
             match unbox m with
@@ -1037,9 +989,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.msbuild.restore", objfy2 (fun m ->
             match unbox m with
@@ -1051,9 +1001,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.solution.build", objfy2 (fun m ->
             match unbox m with
@@ -1062,9 +1010,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.solution.rebuild", objfy2 (fun m ->
             match unbox m with
@@ -1073,9 +1019,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.solution.clean", objfy2 (fun m ->
             match unbox m with
@@ -1084,9 +1028,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.solution.restore", objfy2 (fun m ->
             match unbox m with
@@ -1095,9 +1037,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.project.run", objfy2 (fun m ->
             match unbox m with
@@ -1106,9 +1046,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.project.setDefault", objfy2 (fun m ->
             match unbox m with
@@ -1117,9 +1055,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.project.generateFSI", objfy2 (fun m ->
             match unbox m with
@@ -1128,9 +1064,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.project.sendFSI", objfy2 (fun m ->
             match unbox m with
@@ -1139,9 +1073,7 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.explorer.solution.addProject", objfy2 (fun m ->
             match unbox m with
@@ -1161,8 +1093,6 @@ module SolutionExplorer =
                 |> unbox
             | _ -> undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         ()

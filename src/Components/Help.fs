@@ -27,8 +27,6 @@ module Help =
     let activate (context : ExtensionContext) =
         let registerCommand com (f : unit -> _) =
             commands.registerCommand(com, f |> objfy2)
-            |> box
-            |> unbox
-            |> context.subscriptions.Add
+            |> context.Subscribe
 
         registerCommand "fsharp.getHelp" getHelp

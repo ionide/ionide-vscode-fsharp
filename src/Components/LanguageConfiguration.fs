@@ -62,7 +62,7 @@ module LanguageConfiguration =
 
             window.showInformationMessage(msg, null) |> ignore
 
-        context.subscriptions.Add(disp |> box |> unbox)
+        context.Subscribe disp
 
     let onDidChangeConfiguration (ev : ConfigurationChangeEvent) (context : ExtensionContext) =
         let triggerNotification = ev.affectsConfiguration("FSharp.smartIndent")

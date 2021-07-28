@@ -89,6 +89,4 @@ module FsProjEdit =
 
     let activate (context: ExtensionContext) =
         commands.registerTextEditorCommand ("fsharp.AddFileToProject", addCurrentFileToProject |> unbox)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe

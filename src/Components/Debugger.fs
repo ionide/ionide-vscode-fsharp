@@ -184,9 +184,9 @@ module Debugger =
 
 
     let activate (c : ExtensionContext) =
-        commands.registerCommand("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2 ) |> box |> unbox |> c.subscriptions.Add
-        commands.registerCommand("fsharp.debugDefaultProject", (buildAndDebugDefault) |> objfy2 ) |> box |> unbox |> c.subscriptions.Add
-        commands.registerCommand("fsharp.chooseDefaultProject", (chooseDefaultProject) |> objfy2 ) |> box |> unbox |> c.subscriptions.Add
+        commands.registerCommand("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2 ) |> c.Subscribe
+        commands.registerCommand("fsharp.debugDefaultProject", (buildAndDebugDefault) |> objfy2 ) |> c.Subscribe
+        commands.registerCommand("fsharp.chooseDefaultProject", (chooseDefaultProject) |> objfy2 ) |> c.Subscribe
 
         context <- Some c
         startup <- c.workspaceState.get<Project> "defaultProject"

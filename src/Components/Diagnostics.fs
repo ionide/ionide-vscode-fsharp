@@ -199,11 +199,7 @@ Error: %s
 
     let activate (context : ExtensionContext) =
         commands.registerCommand("fsharp.diagnostics.getInfos", getDiagnosticsInfos |> objfy2)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("fsharp.diagnostics.getIonideLogs", getIonideLogs |> objfy2)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe

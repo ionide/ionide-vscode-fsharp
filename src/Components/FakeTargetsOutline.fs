@@ -305,22 +305,16 @@ module FakeTargetsOutline =
         let treeViewId = ShowInActivity.initializeAndGetId ()
 
         window.onDidChangeActiveTextEditor.Invoke(unbox onDidChangeActiveTextEditor)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         refresh.event.Invoke(fun uri ->
             if isEnabledFor uri then
                 reallyRefresh.fire(None)
             createEmpty)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         workspace.onDidChangeConfiguration.Invoke(unbox onDidChangeConfiguration)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("FAKE.targetsOutline.goTo", objfy2 (fun n ->
             let m = unbox<Model> n
@@ -337,9 +331,7 @@ module FakeTargetsOutline =
                 |> unbox
             | None -> JS.undefined
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         let runFake doDebug onlySingleTarget targetName =
             promise {
@@ -396,41 +388,31 @@ module FakeTargetsOutline =
         commands.registerCommand("fake.targetsOutline.reloadTargets", objfy2 (fun _ ->
             refresh.fire undefined |> unbox
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
         commands.registerCommand("fake.targetsOutline.runTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             runTarget false item.Label
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
         commands.registerCommand("fake.targetsOutline.debugTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             debugTarget false item.Label
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
         commands.registerCommand("fake.targetsOutline.runSingleTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             runTarget true item.Label
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
         commands.registerCommand("fake.targetsOutline.debugSingleTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             debugTarget true item.Label
         ))
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         let provider = createProvider ()
         let treeOptions = createEmpty<TreeViewOptions<Model>>
         treeOptions.treeDataProvider <- provider
         treeOptions.showCollapseAll <- Some true
         let treeView = window.createTreeView(treeViewId, treeOptions)
-        context.subscriptions.Add (treeView |> box |> unbox)
+        context.Subscribe treeView

@@ -50,16 +50,13 @@ module QuickInfoProject =
 
     let activate (context : ExtensionContext) =
         commands.registerCommand("openProjectFileFromStatusbar", handlerCommand |> objfy2)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
-        item <- Some (window.createStatusBarItem (StatusBarAlignment.Right, 10000. ))
-        context.subscriptions.Add(item.Value |> box |> unbox)
+        |> context.Subscribe
+        let statusBarItem = window.createStatusBarItem (StatusBarAlignment.Right, 10000. )
+        item <- Some statusBarItem
+        context.subscriptions.Add (unbox (box statusBarItem))
 
         window.onDidChangeActiveTextEditor.Invoke(unbox handler)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         if window.visibleTextEditors.Count > 0 then
             handler window.activeTextEditor
@@ -67,27 +64,19 @@ module QuickInfoProject =
         Project.projectLoaded.Invoke(fun _project ->
             handler window.activeTextEditor
             undefined)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         Project.projectNotRestoredLoaded.Invoke(fun _project ->
             handler window.activeTextEditor
             undefined)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         Project.workspaceChanged.Invoke(fun _workspacePeek ->
             handler window.activeTextEditor
             undefined)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
 
         Project.workspaceLoaded.Invoke(fun () ->
             handler window.activeTextEditor
             undefined)
-        |> box
-        |> unbox
-        |> context.subscriptions.Add
+        |> context.Subscribe
