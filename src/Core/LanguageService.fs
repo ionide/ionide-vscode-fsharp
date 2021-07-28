@@ -717,13 +717,12 @@ Consider:
 
             cl.onNotification("fsharp/fileParsed", (fun (a: Types.PlainNotification) ->
                 let fn = a.content
-                let te = window.visibleTextEditors |> Seq.find (fun n -> path.normalize(n.document.fileName).ToLower() = path.normalize(fn).ToLower())
-
-                let ev = {Notifications.fileName = a.content; Notifications.version = te.document.version; Notifications.document = te.document }
-
-                Notifications.onDocumentParsedEmitter.fire ev
-
-                ()
+                window.visibleTextEditors
+                |> Seq.tryFind (fun n -> path.normalize(n.document.fileName).ToLower() = path.normalize(fn).ToLower())
+                |> Option.iter (fun te ->
+                    let ev = {Notifications.fileName = a.content; Notifications.version = te.document.version; Notifications.document = te.document }
+                    Notifications.onDocumentParsedEmitter.fire ev
+                )
             ))
         )
 
