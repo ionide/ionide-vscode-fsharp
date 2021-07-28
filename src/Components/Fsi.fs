@@ -201,6 +201,9 @@ module Fsi =
     let mutable lastCd : string option = None
     let mutable lastCurrentFile : string option = None
 
+    let isSdk () =
+        Configuration.get false "FSharp.useSdkScripts"
+
     let sendCd (textEditor : TextEditor) =
         let file, dir =
             if JS.isDefined textEditor then
@@ -226,10 +229,6 @@ module Fsi =
             lastCurrentFile <- Some file
 
     let fsiBinaryAndParameters () =
-        let isSdk =
-            "FSharp.useSdkScripts"
-            |> Configuration.get false
-
         let addWatcher =
             "FSharp.addFsiWatcher"
             |> Configuration.get false
@@ -257,7 +256,7 @@ module Fsi =
             |> Array.ofList
 
         promise {
-            if isSdk
+            if isSdk ()
             then
                 let! dotnet = LanguageService.dotnet ()
                 match dotnet with
@@ -276,21 +275,58 @@ module Fsi =
                     return failwith ".Net Framework FSI was requested but not found"
         }
 
+    let fsiNetCoreName = "F# Interactive (.Net Core)"
+    let fsiNetFrameworkName = "F# Interactive"
+
+    type ProviderResult<'t> = U2<'t, JS.Promise<'t option>> option
+    type TerminalOptions =
+        abstract name: string option with get, set
+        abstract shellArgs: U2<ResizeArray<string>, string> option with get, set
+        abstract shellPath: string option with get, set
+    type TerminalProfile =
+        abstract options: TerminalOptions with get, set
+    type TerminalProfileProvider =
+        abstract provideTerminalProfile: token: CancellationToken -> ProviderResult<TerminalProfile>
+
+    let provider: TerminalProfileProvider =
+        { new TerminalProfileProvider with
+            override this.provideTerminalProfile(token: CancellationToken): ProviderResult<TerminalProfile> =
+                let work =
+                    promise {
+                        let! (fsiBinary, fsiArguments) = fsiBinaryAndParameters ()
+                        let fsiArguments = U2.Case1 (ResizeArray fsiArguments)
+                        let name =
+                            if isSdk ()
+                            then fsiNetCoreName
+                            else fsiNetFrameworkName
+
+                        let options: TerminalOptions = createEmpty<_>
+                        options.name <- Some name
+                        options.shellArgs <- Some fsiArguments
+                        options.shellPath <- Some fsiBinary
+                        let profile : TerminalProfile = createEmpty<_>
+                        profile.options <- options
+                        return Some profile
+                    }
+                Some (U2.Case2 work)
+            }
+
     let private start () =
         fsiOutput |> Option.iter (fun n -> n.dispose())
-        let isSdk =
-            "FSharp.useSdkScripts"
-            |> Configuration.get false
         promise {
-            let! (fsiBinary, fsiArguments) = fsiBinaryAndParameters ()
-
-            let terminal =
-                if isSdk
-                then
-                    window.createTerminal("F# Interactive (.Net Core)", fsiBinary, fsiArguments)
-                else
-                    window.createTerminal("F# Interactive", fsiBinary, fsiArguments)
-
+            let! profile =
+                match provider.provideTerminalProfile(createEmpty<_>) with
+                | None -> promise.Return None
+                | Some (U2.Case1 options) -> promise.Return (Some options)
+                | Some (U2.Case2 work) -> work
+            let profile =
+                match profile with
+                | Some opts -> opts
+                | None ->
+                    window.showErrorMessage("Unable to spawn FSI", null) |> ignore
+                    failwith "unable to spawn FSI"
+            let w = Fable.Core.JsInterop.import "window" "vscode"
+            let terminal: Terminal = w?createTerminal(profile.options)
             terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
             lastCd <- None
             lastCurrentFile <- None
@@ -450,7 +486,8 @@ module Fsi =
     let activate (context : ExtensionContext) =
         Watcher.activate(!!context.subscriptions)
         SdkScriptsNotify.activate context
-
+        let w = Fable.Core.JsInterop.import "window" "vscode"
+        w?registerTerminalProfileProvider("ionide-fsharp.fsi", provider) |> context.subscriptions.Add
         window.onDidCloseTerminal $ (handleCloseTerminal, (), context.subscriptions) |> ignore
 
         commands.registerCommand("fsi.Start", start |> objfy2) |> context.subscriptions.Add

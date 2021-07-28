@@ -1552,7 +1552,14 @@
 					"highContrast": "#FFFF00"
 				}
 			}
-		]
+		],
+		"terminal": {
+			"profiles": [{
+				"icon": "terminal",
+				"id": "ionide-fsharp.fsi",
+				"title": "F# Interactive"
+			}]
+		}
 	},
 	"activationEvents": [
 		"workspaceContains:**/*.fs",
