@@ -602,7 +602,8 @@ module Project =
                 |> Array.map fst
 
         match x with
-        | WorkspacePeekFound.Solution _
+        | WorkspacePeekFound.Solution _ ->
+            setAnyProjectContext true
         | WorkspacePeekFound.Directory _ when not(projs |> Array.isEmpty) ->
             setAnyProjectContext true
         | _ -> ()

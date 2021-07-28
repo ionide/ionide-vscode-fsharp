@@ -551,9 +551,26 @@ module SolutionExplorer =
                     let! name =  window.showInputBox(opts)
                     if JS.isDefined dir && JS.isDefined name then
                         let output = if String.IsNullOrWhiteSpace dir then None else Some dir
-                        let name = if String.IsNullOrWhiteSpace name then None else Some name
+                        let projName = if String.IsNullOrWhiteSpace name then None else Some name
 
-                        let! _ = LanguageService.dotnetNewRun template.description name output
+                        let! _ = LanguageService.dotnetNewRun template.description projName output
+                        let model = getSolution()
+                        //If it's the solution workspace we want to add project to the solution
+                        match model with
+                        | Some (Workspace [Solution (_,_, slnName, _)]) ->
+                            let pname =
+                                if projName.IsSome then projName.Value + ".fsproj" else
+                                if output.IsSome then output.Value + ".fsproj" else
+                                (path.dirname workspace.rootPath) + ".fsproj"
+
+                            let proj =
+                                path.join(workspace.rootPath, dir, name, pname)
+                            Project.execWithDotnet MSBuild.outputChannel (sprintf "sln %s add %s" slnName proj) |> ignore
+                        | _ ->
+                            //If it's the first project in the workspace we need to init the workspace
+                            if Project.getInWorkspace().IsEmpty then
+                                do! Project.initWorkspace()
+
                         ()
             else
                 window.showErrorMessage "No open folder." |> ignore
