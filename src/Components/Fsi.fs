@@ -311,6 +311,12 @@ module Fsi =
                 Some (U2.Case2 work)
             }
 
+    let private setupTerminalState (terminal: Terminal) =
+        terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
+        lastCd <- None
+        lastCurrentFile <- None
+        fsiOutput <- Some terminal
+
     let private start () =
         fsiOutput |> Option.iter (fun n -> n.dispose())
         promise {
@@ -326,12 +332,7 @@ module Fsi =
                     window.showErrorMessage("Unable to spawn FSI", null) |> ignore
                     failwith "unable to spawn FSI"
             let w = Fable.Core.JsInterop.import "window" "vscode"
-            let terminal: Terminal = w?createTerminal(profile.options)
-            terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
-            lastCd <- None
-            lastCurrentFile <- None
-            fsiOutput <- Some terminal
-            sendCd window.activeTextEditor
+            let terminal: Terminal = w?createTerminal(profile.options) // setting up terminal state will happen on the terminal listener
             terminal.show(true)
             return terminal
         }
@@ -424,19 +425,25 @@ module Fsi =
             |> Promise.suppress
             |> ignore)
 
+
+    let private clearOldTerminalState () =
+        fsiOutput |> Option.iter (fun t -> t.dispose())
+
     let private handleCloseTerminal (terminal : Terminal) =
-        fsiOutputPID
-        |> Option.iter (fun currentTerminalPID ->
-            terminal.processId
-            |> Promise.onSuccess (fun closedTerminalPID ->
-                if closedTerminalPID = currentTerminalPID then
-                    fsiOutput <- None
-                    fsiOutputPID <- None
-                    lastCd <- None
-                    lastCurrentFile <- None)
-            |> Promise.suppress // prevent unhandled promise exception
-            |> ignore)
-        |> ignore
+        fsiOutput <- None
+        fsiOutputPID <- None
+        lastCd <- None
+        lastCurrentFile <- None
+        ()
+
+    // when a new terminal is created, if it's FSI and if we don't already have a terminal then setup the state for tracking FSI
+    let private handleOpenTerminal (terminal: Terminal): unit =
+        if terminal.name = fsiNetCoreName || terminal.name = fsiNetFrameworkName
+        then
+            clearOldTerminalState ()
+            setupTerminalState terminal
+            // initially have to set up the terminal to be in the correct start directory
+            sendCd window.activeTextEditor
 
     let private generateProjectReferences () =
         let ctn =
@@ -488,8 +495,8 @@ module Fsi =
         SdkScriptsNotify.activate context
         let w = Fable.Core.JsInterop.import "window" "vscode"
         w?registerTerminalProfileProvider("ionide-fsharp.fsi", provider) |> context.subscriptions.Add
-        window.onDidCloseTerminal $ (handleCloseTerminal, (), context.subscriptions) |> ignore
-
+        window.onDidCloseTerminal.Invoke(handleCloseTerminal >> box) |> context.subscriptions.Add
+        (w?onDidOpenTerminal : Event<Terminal>).Invoke(handleOpenTerminal >> box) |> context.subscriptions.Add
         commands.registerCommand("fsi.Start", start |> objfy2) |> context.subscriptions.Add
         commands.registerCommand("fsi.SendLine", sendLine |> objfy2) |> context.subscriptions.Add
         commands.registerCommand("fsi.SendSelection", sendSelection |> objfy2) |> context.subscriptions.Add
