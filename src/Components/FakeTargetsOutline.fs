@@ -366,8 +366,18 @@ module FakeTargetsOutline =
                             let! _ = window.showErrorMessage("Cannot start fake as no dotnet runtime was found. Consider configuring one in ionide settings.", null)
                             ()
                         | Some dotnet ->
-                            let taskDef = createEmpty<TaskDefinition>
-                            taskDef.``type`` <- "fakerun"
+                            let taskDef =
+                                let data = Dictionary()
+                                { new TaskDefinition with
+                                                override this.Item
+                                                    with get (name: string): obj option =
+                                                        data.TryGet name
+                                                    and set (name: string) (v: obj option): unit =
+                                                        match v with
+                                                        | None -> data.Remove (name) |> ignore
+                                                        | Some v -> data.[name] <- v
+                                                override this.``type``: string = "fakerun"
+                                                }
                             let opts = createEmpty<ProcessExecutionOptions>
                             opts.cwd <- Some cfg.cwd
                             let procExp = vscode.ProcessExecution.Create(dotnet, ResizeArray [| yield fakeRuntime; yield! args |], opts)
