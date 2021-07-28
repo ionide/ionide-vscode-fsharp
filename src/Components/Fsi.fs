@@ -425,15 +425,16 @@ module Fsi =
             |> Promise.suppress
             |> ignore)
 
-    let private handleCloseTerminal (terminal : Terminal) =
-        ()
 
     let private clearOldTerminalState () =
         fsiOutput |> Option.iter (fun t -> t.dispose())
+
+    let private handleCloseTerminal (terminal : Terminal) =
         fsiOutput <- None
         fsiOutputPID <- None
         lastCd <- None
         lastCurrentFile <- None
+        ()
 
     // when a new terminal is created, if it's FSI and if we don't already have a terminal then setup the state for tracking FSI
     let private handleOpenTerminal (terminal: Terminal): unit =
