@@ -502,15 +502,16 @@ module Fsi =
         Watcher.activate(!!context.subscriptions)
         SdkScriptsNotify.activate context
 
-        window.registerTerminalProfileProvider("ionide-fsharp.fsi", provider) |> context.subscriptions.Add
-        window.onDidCloseTerminal.Invoke(handleCloseTerminal >> box) |> context.subscriptions.Add
-        window.onDidOpenTerminal.Invoke(handleOpenTerminal >> box) |> context.subscriptions.Add
-        commands.registerCommand("fsi.Start", start |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendLine", sendLine |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendSelection", sendSelection |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendLastSelection", sendLastSelection |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendFile", sendFile |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendText", sendText |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsi.SendProjectReferences", sendReferences |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsi.OpenWatcher", Watcher.openPanel |> objfy2) |> context.subscriptions.Add
+        window.registerTerminalProfileProvider("ionide-fsharp.fsi", provider) |> context.Subscribe
+
+        window.onDidCloseTerminal.Invoke(handleCloseTerminal) |> context.Subscribe
+        window.onDidOpenTerminal.Invoke(handleOpenTerminal) |> context.subscriptions.Add
+        commands.registerCommand("fsi.Start", start |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsi.SendLine", sendLine |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsi.SendSelection", sendSelection |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsi.SendLastSelection", sendLastSelection |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsi.SendFile", sendFile |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsi.SendText", sendText |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsi.SendProjectReferences", sendReferences |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsi.GenerateProjectReferences", generateProjectReferences |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsi.OpenWatcher", Watcher.openPanel |> objfy2) |> context.Subscribe

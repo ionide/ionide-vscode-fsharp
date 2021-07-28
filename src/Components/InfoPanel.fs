@@ -317,11 +317,11 @@ module InfoPanel =
         context.subscriptions.Add(Notifications.onDocumentParsed.Invoke(documentParsedHandler >> box >> Some) |> box |> unbox)
         context.subscriptions.Add(Notifications.tooltipRequested.Invoke(tooltipRequested >> box >> Some) |> box |> unbox)
 
-        commands.registerCommand("fsharp.openInfoPanel", openPanel |> objfy2) |> box |> unbox |> context.subscriptions.Add
-        commands.registerCommand("fsharp.updateInfoPanel", updatePanel |> objfy2) |> box |> unbox |> context.subscriptions.Add
-        commands.registerCommand("fsharp.openInfoPanel.lock", lockPanel |> objfy2) |> box |> unbox |> context.subscriptions.Add
-        commands.registerCommand("fsharp.openInfoPanel.unlock", unlockPanel |> objfy2) |> box |> unbox |> context.subscriptions.Add
-        commands.registerCommand("fsharp.showDocumentation", showDocumentation |> objfy2) |> box |> unbox |> context.subscriptions.Add
+        commands.registerCommand("fsharp.openInfoPanel", openPanel |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsharp.updateInfoPanel", updatePanel |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsharp.openInfoPanel.lock", lockPanel |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsharp.openInfoPanel.unlock", unlockPanel |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsharp.showDocumentation", showDocumentation |> objfy2) |> context.Subscribe
 
         if startLocked then Panel.locked <- true
         if show && window.visibleTextEditors |> Seq.exists isFsharpTextEditor

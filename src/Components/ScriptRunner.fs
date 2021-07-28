@@ -37,4 +37,4 @@ module ScriptRunner =
 
 
     let activate (context : ExtensionContext) =
-        commands.registerCommand("fsharp.scriptrunner.run", runFile |> objfy2) |> box |> unbox |> context.subscriptions.Add
+        commands.registerCommand("fsharp.scriptrunner.run", runFile |> objfy2) |> context.Subscribe

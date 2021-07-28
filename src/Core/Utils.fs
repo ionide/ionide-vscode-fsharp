@@ -6,6 +6,13 @@ open Fable.Import.VSCode.Vscode
 open Fable.Core
 
 [<AutoOpen>]
+
+module ContextExtensions =
+    type ExtensionContext with
+        member inline x.Subscribe< ^t when ^t : (member dispose: unit -> obj option) >(item: ^t) =
+            x.subscriptions.Add(unbox (box item))
+
+[<AutoOpen>]
 module PromiseBuilder =
     type Foo = JS.PromiseConstructor
     type Promise.PromiseBuilder with

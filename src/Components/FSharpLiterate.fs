@@ -260,6 +260,6 @@ module FSharpLiterate =
 
 
     let activate (context : ExtensionContext) =
-        workspace.onDidSaveTextDocument.Invoke(unbox fileSaved) |> box |> unbox |> context.subscriptions.Add
-        window.onDidChangeActiveTextEditor.Invoke(unbox updatePanel) |> box |> unbox |> context.subscriptions.Add
-        commands.registerCommand("fsharp.openFSharpLiterate", openPanel |> objfy2) |> box |> unbox |> context.subscriptions.Add
+        workspace.onDidSaveTextDocument.Invoke(unbox fileSaved) |> context.Subscribe
+        window.onDidChangeActiveTextEditor.Invoke(unbox updatePanel) |> context.Subscribe
+        commands.registerCommand("fsharp.openFSharpLiterate", openPanel |> objfy2) |> context.Subscribe
