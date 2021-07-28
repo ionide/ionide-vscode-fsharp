@@ -4,7 +4,8 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 open Ionide.VSCode.Helpers
 open System.Collections.Generic
@@ -282,41 +283,36 @@ module SolutionExplorer =
     let private getRoot () =
         defaultArg (getSolution ()) (Workspace [])
 
-    let private createProvider (event : Event<Model option>) (rootChanged : EventEmitter<Model>) : TreeDataProvider<Model> =
+    let private createProvider (event : Event<U2<Model,unit> option> option) (rootChanged : EventEmitter<Model>) : TreeDataProvider<Model> =
         let plugPath = VSCodeExtension.ionidePluginPath ()
-
-        { new TreeDataProvider<Model>
-          with
-            member __.getParent =
-                Some (fun node ->
-                    if JS.isDefined node then
-                        let parentRef = getParentRef node
-                        !parentRef
-                    else
-                        None)
-
-            member this.onDidChangeTreeData =
-                event
-
-            member this.getChildren(node) =
-                match node with
+        let mutable event = event
+        { new TreeDataProvider<Model> with
+            override this.getChildren(element: Model option): ProviderResult<ResizeArray<Model>> =
+                match element with
                 | Some node ->
                     let r = getSubmodel node |> ResizeArray
-                    r
+                    Some (U2.Case1 r)
                 | None ->
                     let root = getRoot()
                     rootChanged.fire root
                     let r = root |> getSubmodel |> ResizeArray
-                    r
+                    Some (U2.Case1 r)
 
-            member this.getTreeItem(node) =
-                let collaps =
-                    match node with
+            override this.getParent(element: Model): ProviderResult<Model> =
+                let parentRef = getParentRef element
+                match !parentRef with
+                | None -> None
+                | Some parentRef ->
+                    U2.Case1 parentRef |> Some
+
+            override this.getTreeItem(element: Model): U2<TreeItem,Thenable<TreeItem>> =
+                let collaps: TreeItemCollapsibleState =
+                    match element with
                     | File _ | PackageReference _ | ProjectReference _ ->
-                        vscode.TreeItemCollapsibleState.None
+                        TreeItemCollapsibleState.None
                     | ProjectFailedToLoad _ | ProjectLoading _ | ProjectNotLoaded _ | ProjectNotRestored _ | ProjectLanguageNotSupported _
                     | Workspace _ | Solution _ ->
-                        vscode.TreeItemCollapsibleState.Expanded
+                        TreeItemCollapsibleState.Expanded
                     | WorkspaceFolder (_, _, items) ->
                         let isProj model =
                             match model with
@@ -328,29 +324,29 @@ module SolutionExplorer =
                             | _ -> false
                         // expand workspace folder if contains a project
                         if items |> List.exists isProj then
-                            vscode.TreeItemCollapsibleState.Expanded
+                            TreeItemCollapsibleState.Expanded
                         else
-                            vscode.TreeItemCollapsibleState.Collapsed
+                            TreeItemCollapsibleState.Collapsed
                     | Folder _ | Project _ | ProjectReferencesList _ | PackageReferenceList _ ->
-                        vscode.TreeItemCollapsibleState.Collapsed
+                        TreeItemCollapsibleState.Collapsed
 
-                let ti = TreeItem(getLabel node, collaps)
+                let ti = vscode.TreeItem.Create(U2.Case1 (getLabel element), collaps)
 
                 let command =
-                    match node with
+                    match element with
                     | File (_, p, _, _, _) ->
                         let c = createEmpty<Command>
                         c.command <- "vscode.open"
                         c.title <- "open"
                         let options = createEmpty<obj>
                         options?preserveFocus <- true
-                        c.arguments <- Some (ResizeArray [| unbox (Uri.file p); options |])
+                        c.arguments <- Some (ResizeArray [| Some (box (vscode.Uri.file p)); Some options |])
                         Some c
                     | _ -> None
                 ti.command <- command
 
                 let context =
-                    match node with
+                    match element with
                     | File _  -> "file"
                     | ProjectReferencesList _ -> "projectRefList"
                     | PackageReferenceList _ -> "referencesList"
@@ -370,10 +366,10 @@ module SolutionExplorer =
 
                 ti.contextValue <- Some (sprintf "ionide.projectExplorer.%s" context)
 
-                let p = createEmpty<TreeIconPath>
+                let p = createEmpty<TreeItemIconPath>
 
                 let icon, resourceUri =
-                    match node with
+                    match element with
                     | File (_, path, _, _, _)
                     | Project (_, path, _, _, _, _, _, _)
                     | ProjectNotLoaded (_, path, _)
@@ -382,15 +378,15 @@ module SolutionExplorer =
                     | ProjectNotRestored (_, path, _, _)
                     | ProjectLanguageNotSupported (_, path, _)
                     | Solution (_, path, _, _)  ->
-                        ThemeIcon.File |> U4.Case4 |> Some, Uri.file path |> Some
+                        vscode.ThemeIcon.File |> U4.Case4 |> Some, vscode.Uri.file path |> Some
                     | Folder (_, _, path, _,_) ->
-                        ThemeIcon.Folder |> U4.Case4 |> Some, Uri.file path |> Some
+                        vscode.ThemeIcon.Folder |> U4.Case4 |> Some, vscode.Uri.file path |> Some
                     | WorkspaceFolder _  ->
-                        ThemeIcon.Folder |> U4.Case4 |> Some, None
+                        vscode.ThemeIcon.Folder |> U4.Case4 |> Some, None
                     | PackageReference (_, path, _, _) | ProjectReference (_, path, _, _) ->
-                        p.light <- (plugPath + "/images/circuit-board-light.svg") |> U3.Case1
-                        p.dark <- (plugPath + "/images/circuit-board-dark.svg") |> U3.Case1
-                        p |> U4.Case3 |> Some, Uri.file path |> Some
+                        p.light <- (plugPath + "/images/circuit-board-light.svg") |> U2.Case1
+                        p.dark <- (plugPath + "/images/circuit-board-dark.svg") |> U2.Case1
+                        p |> U4.Case3 |> Some, vscode.Uri.file path |> Some
                     | Workspace _
                     | PackageReferenceList _
                     | ProjectReferencesList _ ->
@@ -398,16 +394,29 @@ module SolutionExplorer =
                 ti.iconPath <- icon
                 ti.resourceUri <- resourceUri
                 ti.id <-
-                    match node with
+                    let label (ti: TreeItem) =
+                        match ti.label with
+                        | Some (U2.Case1 l) -> l
+                        | Some (U2.Case2 l) -> l.label
+                        | None -> ""
+                    match element with
                     | PackageReferenceList (_, _, pp) | ProjectReferencesList (_, _,pp) | PackageReference (_, _, _, pp) | ProjectReference (_, _, _, pp)  ->
-                        Some ((defaultArg ti.label "") + "||" + pp)
+                        Some (label ti + "||" + pp)
                     | Folder _ ->
                         None
                     | File (_, _, _, _, pp) ->
-                        (resourceUri |> Option.map(fun u -> (defaultArg ti.label "") + "||" + u.toString() + "||" + pp))
+                        (resourceUri |> Option.map(fun u -> (label ti + "||" + u.toString() + "||" + pp)))
                     | _ ->
-                        (resourceUri |> Option.map(fun u -> (defaultArg ti.label "") + "||" + u.toString()))
-                ti
+                        (resourceUri |> Option.map(fun u -> (label ti + "||" + u.toString())))
+                U2.Case1 ti
+            override this.onDidChangeTreeData
+                with get (): Event<U2<Model,unit> option> option =
+                    event
+                and set (v: Event<U2<Model,unit> option> option): unit =
+                    event <- v
+            override this.resolveTreeItem(item: TreeItem, element: Model, token: CancellationToken): ProviderResult<TreeItem> =
+                Some (U2.Case1 item)
+
         }
 
     module private ShowInActivity =
@@ -458,11 +467,13 @@ module SolutionExplorer =
                     tree.reveal(model, options) |> ignore
                 | _ -> ()
 
-        let private revealTextEditor (tree : TreeView<Model>) (state : State option ref) (textEditor : TextEditor) (showTreeIfHidden: bool) =
-            if JS.isDefined textEditor then
+        let private revealTextEditor (tree : TreeView<Model>) (state : State option ref) (textEditor : TextEditor option) (showTreeIfHidden: bool) =
+            match textEditor with
+            | Some textEditor ->
                 revealUri tree state textEditor.document.uri showTreeIfHidden
+            | None -> ()
 
-        let private onDidChangeActiveTextEditor (tree : TreeView<Model>) (state : State option ref) (textEditor : TextEditor) =
+        let private onDidChangeActiveTextEditor (tree : TreeView<Model>) (state : State option ref) (textEditor : TextEditor option) =
             if RevealConfiguration.getAutoReveal () then
                 revealTextEditor tree state textEditor false
 
@@ -509,17 +520,25 @@ module SolutionExplorer =
 
             let onDidChangeActiveTextEditor' = onDidChangeActiveTextEditor treeView state
             window.onDidChangeActiveTextEditor.Invoke(unbox onDidChangeActiveTextEditor')
-                |> context.subscriptions.Add
+            |> box
+            |> unbox
+            |> context.subscriptions.Add
 
             let onModelChanged' = onModelChanged treeView state
             rootChanged.Invoke(unbox onModelChanged')
-                |> context.subscriptions.Add
+            |> box
+            |> unbox
+            |> context.subscriptions.Add
 
             let onDidChangeTreeVisibility' = onDidChangeTreeVisibility treeView state
             treeView.onDidChangeVisibility.Invoke(unbox onDidChangeTreeVisibility')
-                |> context.subscriptions.Add
+            |> box
+            |> unbox
+            |> context.subscriptions.Add
 
             commands.registerCommand("fsharp.revealInSolutionExplorer", (fun _ -> revealTextEditor treeView state window.activeTextEditor true) |> objfy2)
+            |> box
+            |> unbox
             |> context.subscriptions.Add
 
 
@@ -534,14 +553,16 @@ module SolutionExplorer =
                 |> List.map (fun t ->
                     let res = createEmpty<QuickPickItem>
                     res.label <- t.Name
-                    res.description <- t.ShortName
+                    res.description <- Some t.ShortName
                     res
                 ) |> ResizeArray
 
-            let cwd = vscode.workspace.rootPath;
-            if JS.isDefined cwd then
+            let cwd = workspace.rootPath
+            match cwd with
+            | Some cwd ->
                 let! template = window.showQuickPick ( n |> U2.Case1)
-                if JS.isDefined template then
+                match template with
+                | Some template ->
                     let opts = createEmpty<InputBoxOptions>
                     opts.prompt <- Some "Project directory, relative to workspace root (-o parameter)"
                     let! dir = window.showInputBox (opts)
@@ -549,75 +570,107 @@ module SolutionExplorer =
                     let opts = createEmpty<InputBoxOptions>
                     opts.prompt <- Some "Project name (-n parameter)"
                     let! name =  window.showInputBox(opts)
-                    if JS.isDefined dir && JS.isDefined name then
+                    match dir, name with
+                    | Some dir, Some name ->
                         let output = if String.IsNullOrWhiteSpace dir then None else Some dir
                         let projName = if String.IsNullOrWhiteSpace name then None else Some name
+                        match template.description with
+                        | None -> return ()
+                        | Some description ->
+                            let! _ = LanguageService.dotnetNewRun description projName output
+                            let model = getSolution()
+                            //If it's the solution workspace we want to add project to the solution
+                            match model with
+                            | Some (Workspace [Solution (_,_, slnName, _)]) ->
+                                let pname =
+                                    if projName.IsSome then projName.Value + ".fsproj" else
+                                    if output.IsSome then output.Value + ".fsproj" else
+                                    (path.dirname workspace.rootPath.Value) + ".fsproj"
 
-                        let! _ = LanguageService.dotnetNewRun template.description projName output
-                        let model = getSolution()
-                        //If it's the solution workspace we want to add project to the solution
-                        match model with
-                        | Some (Workspace [Solution (_,_, slnName, _)]) ->
-                            let pname =
-                                if projName.IsSome then projName.Value + ".fsproj" else
-                                if output.IsSome then output.Value + ".fsproj" else
-                                (path.dirname workspace.rootPath) + ".fsproj"
-
-                            let proj =
-                                path.join(workspace.rootPath, dir, name, pname)
-                            Project.execWithDotnet MSBuild.outputChannel (sprintf "sln %s add %s" slnName proj) |> ignore
-                        | _ ->
-                            //If it's the first project in the workspace we need to init the workspace
-                            if Project.getInWorkspace().IsEmpty then
-                                do! Project.initWorkspace()
+                                let proj =
+                                    path.join(workspace.rootPath.Value, dir, name, pname)
+                                Project.execWithDotnet MSBuild.outputChannel (sprintf "sln %s add %s" slnName proj) |> ignore
+                            | _ ->
+                                //If it's the first project in the workspace we need to init the workspace
+                                if Project.getInWorkspace().IsEmpty then
+                                    do! Project.initWorkspace()
 
                         ()
-            else
-                window.showErrorMessage "No open folder." |> ignore
+                    | _ -> ()
+                | None -> ()
+            | None ->
+                window.showErrorMessage("No open folder.", null) |> ignore
         }
 
     let activate (context : ExtensionContext) =
-        let emiter = EventEmitter<Model option>()
-        let rootChanged = EventEmitter<Model>()
+        let emiter = vscode.EventEmitter.Create<option<U2<Model,unit>>>()
+        let rootChanged = vscode.EventEmitter.Create<Model>()
 
-        let provider = createProvider emiter.event rootChanged
+        let provider = createProvider (Some (emiter.event)) rootChanged
 
         let treeViewId = ShowInActivity.initializeAndGetId ()
 
         Project.workspaceChanged.Invoke(fun _ ->
-            emiter.fire (undefined) |> unbox)
+            emiter.fire None
+            None
+        )
+        |> box
+        |> unbox
         |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.NewProject", newProject |> objfy2)
+        |> box
+        |> unbox
         |> context.subscriptions.Add
 
 
         commands.registerCommand("fsharp.explorer.refresh", objfy2 (fun _ ->
-            emiter.fire (undefined) |> unbox
-        )) |> context.subscriptions.Add
+            emiter.fire None
+            None
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.clearCache", objfy2 (fun _ ->
             Project.clearCache ()
-            |> unbox
-        )) |> context.subscriptions.Add
+            None
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.moveUp", objfy2 (fun m ->
             match unbox m with
             | File (_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileUpPath proj virtPath
             | _ -> undefined
-        )) |> context.subscriptions.Add
+            |> ignore
+            None
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.moveDown", objfy2 (fun m ->
             match unbox m with
             | File (_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileDownPath proj virtPath
             | _ -> undefined
-        )) |> context.subscriptions.Add
+            |> ignore
+            None
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.removeFile", objfy2 (fun m ->
             match unbox m with
             | File (_, _, name, Some virtPath, proj) -> FsProjEdit.removeFilePath proj virtPath
             | _ -> undefined
-        )) |> context.subscriptions.Add
+            |> ignore
+            None
+        ))
+        |> box
+        |> unbox|> context.subscriptions.Add
 
 
         commands.registerCommand("fsharp.explorer.addAbove", objfy2 (fun m ->
@@ -628,16 +681,21 @@ module SolutionExplorer =
                 opts.prompt <- Some "New file name, relative to selected file"
                 opts.value <- Some "new.fs"
                 window.showInputBox(opts)
+                |> Promise.ofThenable
                 |> Promise.bind (fun file ->
-                    if JS.isDefined file then
+                    match file with
+                    | Some file ->
                         let file' = handleUntitled file
                         FsProjEdit.addFileAbove proj virtPath file'
-                    else
+                    | None ->
                         Promise.empty
                 )
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.addBelow", objfy2 (fun m ->
             match unbox m with
@@ -647,16 +705,21 @@ module SolutionExplorer =
                 opts.prompt <- Some "New file name, relative to selected file"
                 opts.value <- Some "new.fs"
                 window.showInputBox(opts)
+                |> Promise.ofThenable
                 |> Promise.map (fun file ->
-                    if JS.isDefined file then
+                    match file with
+                    | Some file ->
                         let file' = handleUntitled file
                         FsProjEdit.addFileBelow proj virtPath file'
-                    else
+                    | None ->
                         Promise.empty
                 )
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.addFile", objfy2 (fun m ->
             match unbox m with
@@ -666,33 +729,44 @@ module SolutionExplorer =
                 opts.prompt <- Some "New file name, relative to project file"
                 opts.value <- Some "new.fs"
                 window.showInputBox(opts)
+                |> Promise.ofThenable
                 |> Promise.map (fun file ->
-                    if JS.isDefined file then
+                    match file with
+                    | Some file ->
                         let file' = handleUntitled file
                         FsProjEdit.addFile proj file'
-                    else
+                    | None ->
                         Promise.empty
                 )
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.addProjecRef", objfy2 (fun m ->
             match unbox m with
-            | ProjectReferencesList (_, _, p) -> FsProjEdit.addProjectReferencePath p
+            | ProjectReferencesList (_, _, p) -> FsProjEdit.addProjectReferencePath (Some p)
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.removeProjecRef", objfy2 (fun m ->
             match unbox m with
             | ProjectReference (_, path, _, p) -> FsProjEdit.removeProjectReferencePath path p
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
-        let treeOptions = createEmpty<CreateTreeViewOptions<Model>>
+        let treeOptions = createEmpty<TreeViewOptions<Model>>
         treeOptions.treeDataProvider <- provider
         let treeView = window.createTreeView(treeViewId, treeOptions)
-        context.subscriptions.Add treeView
+        context.subscriptions.Add (unbox (box treeView))
 
         NodeReveal.activate context rootChanged.event treeView
 
@@ -794,9 +868,15 @@ module SolutionExplorer =
                   ""
                   "<b>Error:</b>" ] @ errorMsg
                 |> String.concat "<br />"
-
+            let mutable e = None
             { new TextDocumentContentProvider with
-                member this.provideTextDocumentContent (uri: Uri) =
+                override this.onDidChange
+                    with get (): Event<Uri> option =
+                        e
+                    and set (v: Event<Uri> option): unit =
+                        e <- v
+
+                member this.provideTextDocumentContent (uri: Uri, token: CancellationToken): ProviderResult<string> =
                     let message =
                         match uri.path with
                         | "projects/status" ->
@@ -817,10 +897,12 @@ module SolutionExplorer =
                                 viewLanguageNotSupported path
                         | _ ->
                             sprintf "Requested uri: %s" (uri.toString())
-                    U2.Case1 message
+                    U2.Case1 message |> Some
             }
 
-        vscode.workspace.registerTextDocumentContentProvider(DocumentSelector.Case1 "fsharp-workspace", wsProvider)
+        workspace.registerTextDocumentContentProvider("fsharp-workspace", wsProvider)
+        |> box
+        |> unbox
         |> context.subscriptions.Add
 
         let getStatusText (path : string) =
@@ -828,7 +910,7 @@ module SolutionExplorer =
                 // let! res = vscode.window.showInputBox()
                 let url = sprintf "fsharp-workspace:projects/status?path=%s" path
                 let uri = vscode.Uri.parse(url)
-                let! doc = vscode.workspace.openTextDocument(uri)
+                let! doc = workspace.openTextDocument(uri)
                 return doc.getText()
             }
 
@@ -882,21 +964,27 @@ module SolutionExplorer =
 
                     launchRequestCfg |> Debugger.setProgramPath proj
 
-                    do! launchConfig.update("configurations", configurations, false)
+                    do! launchConfig.update("configurations", Some (box configurations), configurationTarget = U2.Case2 false)
                 }
             | _ ->
                 Promise.empty
 
-        commands.registerCommand("fsharp.explorer.showProjectLoadFailedInfo", (unbox >> projectStatusCommand >> box))
+        commands.registerCommand("fsharp.explorer.showProjectLoadFailedInfo", (objfy2 projectStatusCommand))
+        |> box
+        |> unbox
         |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.showProjectStatus", (unbox >> projectStatusCommand >> box))
+        commands.registerCommand("fsharp.explorer.showProjectStatus", (objfy2 projectStatusCommand))
+        |> box
+        |> unbox
         |> context.subscriptions.Add
 
         // commands.registerCommand("fsharp.explorer.setLaunchSettings", (unbox >> setLaunchSettingsCommand >> box))
         // |> context.subscriptions.Add
 
-        commands.registerCommand("fsharp.explorer.project.debug", (unbox >> runDebug >> box))
+        commands.registerCommand("fsharp.explorer.project.debug", (objfy2 runDebug))
+        |> box
+        |> unbox
         |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.openProjectFile", objfy2 (fun m ->
@@ -911,11 +999,14 @@ module SolutionExplorer =
 
             match pathOpt with
             | Some path ->
-                commands.executeCommand("vscode.open", Uri.file(path))
+                commands.executeCommand("vscode.open", ResizeArray [Some (box (vscode.Uri.file(path))) ])
                 |> unbox
             | None -> undefined
 
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.msbuild.build", objfy2 (fun m ->
             match unbox m with
@@ -923,7 +1014,10 @@ module SolutionExplorer =
                 MSBuild.buildProjectPath "Build" pr
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.msbuild.rebuild", objfy2 (fun m ->
             match unbox m with
@@ -931,7 +1025,10 @@ module SolutionExplorer =
                 MSBuild.buildProjectPath "Rebuild" pr
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.msbuild.clean", objfy2 (fun m ->
             match unbox m with
@@ -939,7 +1036,10 @@ module SolutionExplorer =
                 MSBuild.buildProjectPath "Clean" pr
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.msbuild.restore", objfy2 (fun m ->
             match unbox m with
@@ -950,7 +1050,10 @@ module SolutionExplorer =
                 MSBuild.restoreProjectAsync path
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.solution.build", objfy2 (fun m ->
             match unbox m with
@@ -958,7 +1061,10 @@ module SolutionExplorer =
                 MSBuild.buildSolution "Build" path
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.solution.rebuild", objfy2 (fun m ->
             match unbox m with
@@ -966,7 +1072,10 @@ module SolutionExplorer =
                 MSBuild.buildSolution "Rebuild" path
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.solution.clean", objfy2 (fun m ->
             match unbox m with
@@ -974,7 +1083,10 @@ module SolutionExplorer =
                 MSBuild.buildSolution "Clean" path
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.solution.restore", objfy2 (fun m ->
             match unbox m with
@@ -982,7 +1094,10 @@ module SolutionExplorer =
                 MSBuild.buildSolution "Restore" path
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.project.run", objfy2 (fun m ->
             match unbox m with
@@ -990,7 +1105,10 @@ module SolutionExplorer =
                 Debugger.buildAndRun pr
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.project.setDefault", objfy2 (fun m ->
             match unbox m with
@@ -998,7 +1116,10 @@ module SolutionExplorer =
                 Debugger.setDefaultProject pr
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.project.generateFSI", objfy2 (fun m ->
             match unbox m with
@@ -1006,7 +1127,10 @@ module SolutionExplorer =
                 Fsi.generateProjectReferencesForProject pr
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.project.sendFSI", objfy2 (fun m ->
             match unbox m with
@@ -1014,25 +1138,31 @@ module SolutionExplorer =
                 Fsi.sendReferencesForProject pr
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.explorer.solution.addProject", objfy2 (fun m ->
             match unbox m with
             | Solution (_, _,name, _) ->
                 promise {
                     let projects = Project.getAll ()
-                    // let addedProject = Project.getLoaded () |> List.map (fun p -> p.Project)
-                    // let toAdd = projects |> List.where (fun n -> addedProject |> List.contains n |> not) |> ResizeArray
                     if projects.Length = 0 then
-                        window.showInformationMessage "No projects in workspace that can be added to the solution" |> ignore
+                        window.showInformationMessage("No projects in workspace that can be added to the solution", null) |> ignore
                     else
                         let projs = projects |> ResizeArray
                         let! proj = window.showQuickPick (unbox projs)
-                        if JS.isDefined proj then
+                        match proj with
+                        | Some proj ->
                             Project.execWithDotnet MSBuild.outputChannel (sprintf "sln %s add %s" name proj) |> ignore
+                        | None -> ()
                 }
                 |> unbox
             | _ -> undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         ()

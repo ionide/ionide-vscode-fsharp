@@ -4,7 +4,8 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 open Ionide.VSCode.Helpers
 
@@ -18,10 +19,10 @@ module Notifications =
           /// BEWARE: Live object, might have changed since the parsing
           document : TextDocument }
 
-    let onDocumentParsedEmitter = EventEmitter<DocumentParsedEvent>()
+    let onDocumentParsedEmitter = vscode.EventEmitter.Create<DocumentParsedEvent>()
     let onDocumentParsed = onDocumentParsedEmitter.event
 
-    let private tooltipRequestedEmitter = EventEmitter<Position>()
+    let private tooltipRequestedEmitter = vscode.EventEmitter.Create<Position>()
     let tooltipRequested = tooltipRequestedEmitter.event
 
     let mutable notifyWorkspaceHandler : Option<Choice<ProjectResult,ProjectLoadingResult,(string * ErrorData),string> -> unit> = None
@@ -388,7 +389,9 @@ module LanguageService =
                 let res = res.content |> ofJson<obj>
                 match res?Kind |> unbox with
                 | "error" ->
-                    res?Data |> parseError |> Error
+                    res?Data
+                    |> parseError
+                    |> Core.Result.Error
                 | _ ->
                     res |> unbox<ProjectResult> |> Ok
             )
@@ -597,7 +600,7 @@ Consider:
                 "debug" ==> opts
                 ] |> unbox<ServerOptions>
 
-        let fileDeletedWatcher = workspace.createFileSystemWatcher("**/*.{fs,fsx}", true, true, false)
+        let fileDeletedWatcher = workspace.createFileSystemWatcher(U2.Case1 "**/*.{fs,fsx}", true, true, false)
 
         let clientOpts =
             let opts = createEmpty<Client.LanguageClientOptions>
@@ -637,7 +640,7 @@ Consider:
             * including `dotnet` in your PATH, or
             * installing .NET Core into one of the default locations.
             """
-            let! result = vscode.window.showErrorMessage(msg)
+            let! result = window.showErrorMessage(msg, null)
             return failwith "no `dotnet` binary found"
         }
 
@@ -650,7 +653,8 @@ Consider:
         let fsacDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
         let spawnNetCore dotnet =
             let fsautocompletePath =
-                if String.IsNullOrEmpty fsacNetcorePath then VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.dll"
+                if String.IsNullOrEmpty fsacNetcorePath
+                then VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.dll"
                 else fsacNetcorePath
             printfn "FSAC (NETCORE): '%s'" fsautocompletePath
             let args =
@@ -728,7 +732,8 @@ Consider:
         promise {
             let! startOpts = getOptions ()
             let cl = createClient startOpts
-            c.subscriptions.Add (cl.start ())
+            let started = cl.start()
+            c.subscriptions.Add (started |> box |> unbox)
             let! _ = readyClient cl
             return ()
 

@@ -2,7 +2,8 @@ namespace Ionide.VSCode.FSharp
 
 open Fable.Core.JsInterop
 open Fable.Import
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open System.Text.RegularExpressions
 
 module LanguageConfiguration =
@@ -48,7 +49,8 @@ module LanguageConfiguration =
         | None ->
             ()
 
-        reference <- Some <| vscode.languages.setLanguageConfiguration("fsharp", config)
+        let disp = languages.setLanguageConfiguration("fsharp", config)
+        reference <- Some disp
 
         // Notify the user if needed
         if triggerNotification then
@@ -58,9 +60,9 @@ module LanguageConfiguration =
                 else
                     "Smart indent has been deactivated for F#"
 
-            vscode.window.showInformationMessage(msg) |> ignore
+            window.showInformationMessage(msg, null) |> ignore
 
-        context.subscriptions.Add(reference)
+        context.subscriptions.Add(disp |> box |> unbox)
 
     let onDidChangeConfiguration (ev : ConfigurationChangeEvent) (context : ExtensionContext) =
         let triggerNotification = ev.affectsConfiguration("FSharp.smartIndent")

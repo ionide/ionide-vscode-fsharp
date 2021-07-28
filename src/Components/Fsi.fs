@@ -3,7 +3,8 @@ namespace Ionide.VSCode.FSharp
 open System
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 
 open DTO
@@ -24,24 +25,24 @@ module Fsi =
 
 
         let disablePromptGlobally () =
-            Configuration.setGlobal suggestKey false
+            Configuration.setGlobal suggestKey (Some (box false))
 
         let disablePromptForProject () =
-            Configuration.set suggestKey false
+            Configuration.set suggestKey (Some (box false))
 
         let setUseSdk () =
-            Configuration.setGlobal useKey true
+            Configuration.setGlobal useKey (Some (box true))
 
 
         let checkForPatternsAndPromptUser () = promise {
             if shouldNotifyAboutSdkScripts () then
-                let! choice = window.showInformationMessage("You are running .Net Core version of FsAutoComplete, we recommend also using .Net Core version of F# REPL (`dotnet fsi`). Should we change your settings (`FSharp.useSdkScripts`). This requires .Net Core 3.X?", [|"Update settings"; "Ignore"; "Don't show again"|])
+                let! choice = window.showInformationMessage("You are running .Net Core version of FsAutoComplete, we recommend also using .Net Core version of F# REPL (`dotnet fsi`). Should we change your settings (`FSharp.useSdkScripts`). This requires .Net Core 3.X?", ResizeArray [|"Update settings"; "Ignore"; "Don't show again"|])
                 match choice with
-                | "Update settings" ->
+                | Some "Update settings" ->
                     do! setUseSdk ()
-                | "Ignore" ->
+                | Some "Ignore" ->
                     do! disablePromptForProject ()
-                | "Don't show again" ->
+                | Some "Don't show again" ->
                     do! disablePromptGlobally ()
                 | _ -> ()
         }
@@ -90,9 +91,9 @@ module Fsi =
                     "FSharp.addFsiWatcher"
                     |> Configuration.get false
                 if not addWatcher then
-                    let! res = window.showInformationMessage("FSI Watcher is an experimental feature, and it needs to be enabled with `FSharp.addFsiWatcher` setting", "Enable", "Ignore")
-                    if res = "Enable" then
-                        do! Configuration.setGlobal "FSharp.addFsiWatcher" true
+                    let! res = window.showInformationMessage("FSI Watcher is an experimental feature, and it needs to be enabled with `FSharp.addFsiWatcher` setting", ResizeArray ["Enable"; "Ignore"])
+                    if res = Some "Enable" then
+                        do! Configuration.setGlobal "FSharp.addFsiWatcher" (Some (box true))
                 else
                     match panel with
                     | Some p ->
@@ -204,14 +205,15 @@ module Fsi =
     let isSdk () =
         Configuration.get false "FSharp.useSdkScripts"
 
-    let sendCd (textEditor : TextEditor) =
+    let sendCd (textEditor : TextEditor option) =
         let file, dir =
-            if JS.isDefined textEditor then
+            match textEditor with
+            | Some textEditor ->
                 let file = textEditor.document.fileName
                 let dir = node.path.dirname file
                 file, dir
-            else
-                let dir = workspace.rootPath
+            | None ->
+                let dir = workspace.rootPath.Value
                 node.path.join(dir, "tmp.fsx"), dir
 
         match lastCd with
@@ -278,15 +280,15 @@ module Fsi =
     let fsiNetCoreName = "F# Interactive (.Net Core)"
     let fsiNetFrameworkName = "F# Interactive"
 
-    type ProviderResult<'t> = U2<'t, JS.Promise<'t option>> option
-    type TerminalOptions =
-        abstract name: string option with get, set
-        abstract shellArgs: U2<ResizeArray<string>, string> option with get, set
-        abstract shellPath: string option with get, set
-    type TerminalProfile =
-        abstract options: TerminalOptions with get, set
-    type TerminalProfileProvider =
-        abstract provideTerminalProfile: token: CancellationToken -> ProviderResult<TerminalProfile>
+    // type ProviderResult<'t> = U2<'t, JS.Promise<'t option>> option
+    // type TerminalOptions =
+    //     abstract name: string option with get, set
+    //     abstract shellArgs: U2<ResizeArray<string>, string> option with get, set
+    //     abstract shellPath: string option with get, set
+    // type TerminalProfile =
+    //     abstract options: TerminalOptions with get, set
+    // type TerminalProfileProvider =
+    //     abstract provideTerminalProfile: token: CancellationToken -> ProviderResult<TerminalProfile>
 
     let provider: TerminalProfileProvider =
         { new TerminalProfileProvider with
@@ -305,14 +307,18 @@ module Fsi =
                         options.shellArgs <- Some fsiArguments
                         options.shellPath <- Some fsiBinary
                         let profile : TerminalProfile = createEmpty<_>
-                        profile.options <- options
+                        profile.options <- U2.Case1 options
                         return Some profile
                     }
+                    |> Promise.toThenable
                 Some (U2.Case2 work)
             }
 
     let private setupTerminalState (terminal: Terminal) =
-        terminal.processId |> Promise.onSuccess (fun pId -> fsiOutputPID <- Some pId) |> ignore
+        terminal.processId
+        |> Promise.ofThenable
+        |> Promise.onSuccess (fun pid -> fsiOutputPID <- Option.map int pid)
+        |> ignore
         lastCd <- None
         lastCurrentFile <- None
         fsiOutput <- Some terminal
@@ -324,7 +330,7 @@ module Fsi =
                 match provider.provideTerminalProfile(createEmpty<_>) with
                 | None -> promise.Return None
                 | Some (U2.Case1 options) -> promise.Return (Some options)
-                | Some (U2.Case2 work) -> work
+                | Some (U2.Case2 work) -> work |> Promise.ofThenable
             let profile =
                 match profile with
                 | Some opts -> opts
@@ -337,7 +343,8 @@ module Fsi =
             return terminal
         }
         |> Promise.onFail (fun _ ->
-            window.showErrorMessage "Failed to spawn FSI, please ensure it's in PATH" |> ignore)
+            window.showErrorMessage("Failed to spawn FSI, please ensure it's in PATH", null) |> ignore
+        )
 
     let private chunkStringBySize (size : int) (str : string) =
         let mutable i1 = 0
@@ -357,28 +364,29 @@ module Fsi =
             lastSelectionSent <- Some msg
         )
         |> Promise.onFail (fun _ ->
-            window.showErrorMessage "Failed to send text to FSI" |> ignore)
+            window.showErrorMessage("Failed to send text to FSI", null) |> ignore
+        )
 
     let private sendLine () =
-        let editor = window.activeTextEditor
+        let editor = window.activeTextEditor.Value
         let _ = editor.document.fileName
         let pos = editor.selection.start
         let line = editor.document.lineAt pos
-        sendCd editor
+        sendCd (Some editor)
         send line.text
-        |> Promise.onSuccess (fun _ -> commands.executeCommand "cursorDown" |> ignore)
+        |> Promise.onSuccess (fun _ -> commands.executeCommand("cursorDown", null) |> ignore)
         |> Promise.suppress // prevent unhandled promise exception
         |> ignore
 
     let private sendSelection () =
-        let editor = window.activeTextEditor
+        let editor = window.activeTextEditor.Value
         let _ = editor.document.fileName
 
-        sendCd editor
+        sendCd (Some editor)
         if editor.selection.isEmpty then
             sendLine ()
         else
-            let range = Range(editor.selection.anchor.line, editor.selection.anchor.character, editor.selection.active.line, editor.selection.active.character)
+            let range = vscode.Range.Create(editor.selection.anchor.line, editor.selection.anchor.character, editor.selection.active.line, editor.selection.active.character)
             let text = editor.document.getText range
             send text
             |> Promise.suppress // prevent unhandled promise exception
@@ -388,7 +396,7 @@ module Fsi =
         match lastSelectionSent with
         | Some x ->
             if "FSharp.saveOnSendLastSelection" |> Configuration.get false then
-                window.activeTextEditor.document.save ()
+                window.activeTextEditor.Value.document.save () |> Promise.ofThenable
             else
                 Promise.lift true
             |> Promise.bind(fun _ ->
@@ -398,9 +406,9 @@ module Fsi =
         | None -> ()
 
     let private sendFile () =
-        let editor = window.activeTextEditor
+        let editor = window.activeTextEditor.Value
         let text = editor.document.getText ()
-        sendCd editor
+        sendCd (Some editor)
         send text
         |> Promise.suppress // prevent unhandled promise exception
         |> ignore
@@ -414,7 +422,7 @@ module Fsi =
     let private referenceAssemblies = Promise.executeForAll referenceAssembly
 
     let private sendReferences () =
-        window.activeTextEditor.document.fileName
+        window.activeTextEditor.Value.document.fileName
         |> Project.tryFindLoadedProjectByFile
         |> Option.iter (fun p ->
             sendCd window.activeTextEditor
@@ -447,7 +455,7 @@ module Fsi =
 
     let private generateProjectReferences () =
         let ctn =
-            window.activeTextEditor.document.fileName
+            window.activeTextEditor.Value.document.fileName
             |> Project.tryFindLoadedProjectByFile
             |> Option.map (fun p ->
                 [|
@@ -457,11 +465,11 @@ module Fsi =
         promise {
             match ctn with
             | Some c ->
-                let path = node.path.join(workspace.rootPath, "references.fsx")
-                let! td = Uri.parse ("untitled:" + path) |> workspace.openTextDocument
+                let path = node.path.join(workspace.rootPath.Value, "references.fsx")
+                let! td = vscode.Uri.parse ("untitled:" + path) |> workspace.openTextDocument
                 let! te = window.showTextDocument(td, ViewColumn.Three)
                 let! _ = te.edit (fun e ->
-                    let p = Position(0.,0.)
+                    let p = vscode.Position.Create(0.,0.)
                     let ctn = c |> String.concat "\n"
                     e.insert(p,ctn))
 
@@ -481,11 +489,11 @@ module Fsi =
                 yield! project.Files |> Seq.map (sprintf "#load @\"%s\"")
             |]
         promise {
-            let path = node.path.join(workspace.rootPath, "references.fsx")
-            let! td = Uri.parse ("untitled:" + path) |> workspace.openTextDocument
+            let path = node.path.join(workspace.rootPath.Value, "references.fsx")
+            let! td = vscode.Uri.parse ("untitled:" + path) |> workspace.openTextDocument
             let! te = window.showTextDocument(td, ViewColumn.Three)
             let! _ = te.edit (fun e ->
-                let p = Position(0.,0.)
+                let p = vscode.Position.Create(0.,0.)
                 let ctn = ctn |> String.concat "\n"
                 e.insert(p,ctn))
             return () }
@@ -493,10 +501,10 @@ module Fsi =
     let activate (context : ExtensionContext) =
         Watcher.activate(!!context.subscriptions)
         SdkScriptsNotify.activate context
-        let w = Fable.Core.JsInterop.import "window" "vscode"
-        w?registerTerminalProfileProvider("ionide-fsharp.fsi", provider) |> context.subscriptions.Add
+
+        window.registerTerminalProfileProvider("ionide-fsharp.fsi", provider) |> context.subscriptions.Add
         window.onDidCloseTerminal.Invoke(handleCloseTerminal >> box) |> context.subscriptions.Add
-        (w?onDidOpenTerminal : Event<Terminal>).Invoke(handleOpenTerminal >> box) |> context.subscriptions.Add
+        window.onDidOpenTerminal.Invoke(handleOpenTerminal >> box) |> context.subscriptions.Add
         commands.registerCommand("fsi.Start", start |> objfy2) |> context.subscriptions.Add
         commands.registerCommand("fsi.SendLine", sendLine |> objfy2) |> context.subscriptions.Add
         commands.registerCommand("fsi.SendSelection", sendSelection |> objfy2) |> context.subscriptions.Add

@@ -4,7 +4,8 @@ namespace Ionide.VSCode.FSharp
 module Logging =
     open Fable.Core
     open global.Node
-    open Fable.Import.vscode
+    open Fable.Import.VSCode
+    open Fable.Import.VSCode.Vscode
     open Ionide.VSCode.FSharp.Node.Util
     open System
 

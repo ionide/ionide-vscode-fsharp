@@ -3,7 +3,8 @@ namespace Ionide.VSCode.FSharp
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 
 open DTO
@@ -18,7 +19,7 @@ module MSBuild =
 
     let invokeMSBuild project target =
         let autoshow =
-            let cfg = vscode.workspace.getConfiguration()
+            let cfg = workspace.getConfiguration()
             cfg.get ("FSharp.msbuildAutoshow", false)
 
         let safeproject = sprintf "\"%s\"" project
@@ -32,36 +33,38 @@ module MSBuild =
 
                 let cmd = sprintf "msbuild %s" command
                 logger.Info("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
-                if autoshow then outputChannel.show()
+                if autoshow then outputChannel.show(?preserveFocus = None)
                 return! Process.spawnWithNotification msbuildPath "" cmd outputChannel
                         |> Process.toPromise
             }
 
         let progressOpts = createEmpty<ProgressOptions>
-        progressOpts.location <- ProgressLocation.Window
-        window.withProgress(progressOpts, (fun p ->
-            let pm = createEmpty<ProgressMessage>
-            pm.message <- "Running MsBuild " + target
+        progressOpts.location <- U2.Case1 ProgressLocation.Window
+        window.withProgress(progressOpts, (fun p ctok ->
+            let pm = createEmpty<Window.IExportsWithProgressProgress>
+            pm.message <- Some ("Running MsBuild " + target)
             p.report pm
-            executeWithHost () ))
+            executeWithHost() |> Promise.toThenable
+        ))
+        |> Promise.ofThenable
 
     /// discovers the project that the active document belongs to and builds that
     let buildCurrentProject target =
         logger.Debug("discovering project")
-        match window.activeTextEditor.document with
+        match window.activeTextEditor.Value.document with
         | Document.FSharp
         | Document.CSharp
         | Document.VB ->
-            let currentProject = Project.getLoaded () |> Seq.where (fun p -> p.Files |> Seq.exists (String.endWith window.activeTextEditor.document.fileName)) |> Seq.tryHead
+            let currentProject = Project.getLoaded () |> Seq.where (fun p -> p.Files |> Seq.exists (String.endWith window.activeTextEditor.Value.document.fileName)) |> Seq.tryHead
             match currentProject with
             | Some p ->
                 logger.Debug("found project %s", p.Project)
                 invokeMSBuild p.Project target
             | None ->
-                logger.Debug("could not find a project that contained the file %s", window.activeTextEditor.document.fileName)
+                logger.Debug("could not find a project that contained the file %s", window.activeTextEditor.Value.document.fileName)
                 Promise.empty
         | _ ->
-            logger.Debug("I don't know how to handle a project of type %s", window.activeTextEditor.document.languageId)
+            logger.Debug("I don't know how to handle a project of type %s", window.activeTextEditor.Value.document.languageId)
             Promise.empty
 
     /// prompts the user to choose a project
@@ -76,9 +79,7 @@ module MSBuild =
                 opts.placeHolder <- Some placeHolder
                 let! chosen = window.showQuickPick(projects |> U2.Case1, opts)
                 logger.Debug("user chose project %s", chosen)
-                return if JS.isDefined chosen
-                       then Some chosen
-                       else None
+                return chosen
             }
 
     /// prompts the user to choose a project (if not specified) and builds that project
@@ -105,18 +106,20 @@ module MSBuild =
 
     let private restoreMailBox =
         let progressOpts = createEmpty<ProgressOptions>
-        progressOpts.location <- ProgressLocation.Window
+        progressOpts.location <- U2.Case1 ProgressLocation.Window
 
         MailboxProcessor.Start(fun inbox->
             let rec messageLoop() = async {
-                let! (path,continuation) = inbox.Receive()
+                let! (path, continuation) = inbox.Receive()
                 do!
-                    window.withProgress(progressOpts, (fun p ->
-                        let pm = createEmpty<ProgressMessage>
-                        pm.message <- sprintf "Restoring: %s" path
+                    window.withProgress(progressOpts, (fun p ctok ->
+                        let pm = createEmpty<Window.IExportsWithProgressProgress>
+                        pm.message <- Some (sprintf "Restoring: %s" path)
                         p.report pm
                         invokeMSBuild path "Restore"
-                        |> Promise.bind continuation))
+                        |> Promise.bind continuation
+                        |> Promise.toThenable))
+                    |> Promise.ofThenable
                     |> Async.AwaitPromise
                 return! messageLoop()
             }
@@ -156,10 +159,10 @@ module MSBuild =
             buildSolution target e.Path
             |> ignore
         | Some _ ->
-            window.showWarningMessage "Solution not loaded - plugin in directory mode"
+            window.showWarningMessage("Solution not loaded - plugin in directory mode", null)
             |> ignore
         | None ->
-            window.showWarningMessage "Solution not loaded"
+            window.showWarningMessage("Solution not loaded", null)
             |> ignore
 
 
@@ -172,16 +175,18 @@ module MSBuild =
 
         let initWorkspace _n = Project.initWorkspace ()
 
-        let solutionWatcher = vscode.workspace.createFileSystemWatcher("**/*.sln")
+        let solutionWatcher = workspace.createFileSystemWatcher(U2.Case1 "**/*.sln")
         solutionWatcher.onDidCreate.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox) |> ignore
         solutionWatcher.onDidChange.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox) |> ignore
 
         //Restore any project that returns NotRestored status
         Project.projectNotRestoredLoaded.Invoke(fun n -> restoreProjectAsync n |> unbox)
+        |> box
+        |> unbox
         |> context.subscriptions.Add
 
-        let registerCommand com (action : unit -> _) = vscode.commands.registerCommand(com, action |> objfy2) |> context.subscriptions.Add
-        let registerCommand2 com (action : obj -> obj -> _) = vscode.commands.registerCommand(com, action |> objfy3) |> context.subscriptions.Add
+        let registerCommand com (action : unit -> _) = commands.registerCommand(com, action |> objfy2) |> box |> unbox |> context.subscriptions.Add
+        let registerCommand2 com (action : obj -> obj -> _) = commands.registerCommand(com, action |> objfy3) |> box |> unbox |> context.subscriptions.Add
 
         /// typed msbuild cmd. Optional project and msbuild host
         let typedMsbuildCmd f projOpt =

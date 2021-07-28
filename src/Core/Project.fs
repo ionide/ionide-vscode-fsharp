@@ -4,7 +4,8 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 open Ionide.VSCode.Helpers
 
@@ -34,19 +35,19 @@ module Project =
 
     let setAnyProjectContext = Context.cachedSetter<bool> "fsharp.project.any"
 
-    let private workspaceChangedEmitter = EventEmitter<WorkspacePeekFound>()
+    let private workspaceChangedEmitter = vscode.EventEmitter.Create<WorkspacePeekFound>()
     let workspaceChanged = workspaceChangedEmitter.event
 
-    let private projectNotRestoredLoadedEmitter = EventEmitter<string>()
+    let private projectNotRestoredLoadedEmitter = vscode.EventEmitter.Create<string>()
     let projectNotRestoredLoaded = projectNotRestoredLoadedEmitter.event
 
-    let private projectLoadedEmitter = EventEmitter<Project>()
+    let private projectLoadedEmitter = vscode.EventEmitter.Create<Project>()
     let projectLoaded = projectLoadedEmitter.event
 
-    let private workspaceLoadedEmitter = EventEmitter<unit>()
+    let private workspaceLoadedEmitter = vscode.EventEmitter.Create<unit>()
     let workspaceLoaded = workspaceLoadedEmitter.event
 
-    let private statusUpdatedEmitter = EventEmitter<unit>()
+    let private statusUpdatedEmitter = vscode.EventEmitter.Create<unit>()
     let statusUpdated = statusUpdatedEmitter.event
 
     let excluded = "FSharp.excludeProjectDirectories" |> Configuration.get [| ".git"; "paket-files"; ".fable"; "packages"; "node_modules" |]
@@ -119,7 +120,7 @@ module Project =
         lst
 
     let isIgnored (path: string) =
-        let relativePath = node.path.relative (workspace.rootPath, path)
+        let relativePath = node.path.relative (workspace.rootPath.Value, path)
 
         let isSubDir p =
             let relativeToDir = node.path.relative(p, relativePath)
@@ -148,8 +149,8 @@ module Project =
             )
 
         match workspace.rootPath with
-        | null -> []
-        | rootPath -> findProjs rootPath
+        | None -> []
+        | Some rootPath -> findProjs rootPath
 
     let getAll () =
         let rec findProjs dir =
@@ -168,8 +169,8 @@ module Project =
             )
 
         match workspace.rootPath with
-        | null -> []
-        | rootPath -> rootPath |> findProjs
+        | None -> []
+        | Some rootPath -> rootPath |> findProjs
 
     let private clearLoadedProjects () =
         loadedProjects <- emptyProjectsMap
@@ -282,13 +283,13 @@ module Project =
             )
 
         match workspace.rootPath with
-        | null -> []
-        | rootPath -> findProjs rootPath
+        | None -> []
+        | Some rootPath -> findProjs rootPath
 
     let clearCache () =
         let cached = getCaches ()
         cached |> Seq.iter (U2.Case1 >> node.fs.unlinkSync)
-        window.showInformationMessage("Project Cache cleared")
+        window.showInformationMessage("Project Cache cleared", null) |> ignore
 
     let countProjectsInSln (sln : WorkspacePeekFoundSolution) =
         sln.Items |> Array.map foldFsproj |> Array.sumBy Array.length
@@ -307,7 +308,7 @@ module Project =
             extensionWorkspaceState <- Some context.workspaceState
 
         let private parse (value: string) =
-          let fullPath = path.resolve(workspace.rootPath, value)
+          let fullPath = path.resolve(workspace.rootPath.Value, value)
           if value.ToLowerInvariant().EndsWith(".sln") then
               ConfiguredWorkspace.Solution fullPath
           else
@@ -341,7 +342,7 @@ module Project =
                     None
 
         let private getStringFromWorkspaceConfig () =
-            workspace.getConfiguration().get<string option>(key)
+            workspace.getConfiguration().get<string>(key)
 
         let private getStringFromExtensionState () =
             extensionWorkspaceState.Value.get<string>(key)
@@ -366,16 +367,16 @@ module Project =
             let configuredPath = getWorkspacePath value
             if isConfiguredInWorkspace () then
                 let relativePath =
-                    let raw = path.relative(workspace.rootPath, configuredPath)
+                    let raw = path.relative(workspace.rootPath.Value, configuredPath)
                     if not (path.isAbsolute raw) && not (raw.StartsWith "..") then
                         "./" + raw
                     else
                         raw
 
                 let config = workspace.getConfiguration()
-                config.update(key, relativePath, false)
+                config.update(key, Some (box relativePath), configurationTarget = U2.Case2 false)
             else
-                extensionWorkspaceState.Value.update(key, configuredPath)
+                extensionWorkspaceState.Value.update(key, Some (box configuredPath))
 
         let setFromPeek (value: WorkspacePeekFound) =
             match value with
@@ -421,13 +422,13 @@ module Project =
             | WorkspacePeekFound.Directory dir ->
                 let item = createEmpty<QuickPickItem>
                 item.label <- sprintf "%s%s" check dir.Directory
-                item.description <- sprintf "Directory with %i projects" dir.Fsprojs.Length
+                item.description <- Some (sprintf "Directory with %i projects" dir.Fsprojs.Length)
                 item
             | WorkspacePeekFound.Solution sln ->
-                let relative = path.relative (workspace.rootPath, sln.Path)
+                let relative = path.relative (workspace.rootPath.Value, sln.Path)
                 let item = createEmpty<QuickPickItem>
                 item.label <- sprintf "%s%s" check relative
-                item.description <- sprintf "Solution with %i projects" (countProjectsInSln sln)
+                item.description <- Some (sprintf "Solution with %i projects" (countProjectsInSln sln))
                 item
 
         match ws |> List.map (fun x -> (text x), x) with
@@ -439,14 +440,15 @@ module Project =
                 opts.placeHolder <- Some "Workspace or Solution"
                 let chooseFrom = projects |> List.map fst |> ResizeArray
                 let! chosen = window.showQuickPick(chooseFrom |> U2.Case1, opts)
-                if JS.isDefined chosen then
+                match chosen with
+                | Some chosen ->
                     let selected = projects |> List.tryFind (fun (qp, _) -> qp = chosen) |> Option.map snd
                     match selected with
                     | Some selected ->
                         do! CurrentWorkspaceConfiguration.setFromPeek selected
                         return Some selected
                     | None -> return None
-                else
+                | None ->
                     return ws |> List.tryFind isDefault
             }
 
@@ -501,16 +503,16 @@ module Project =
         promise {
             let fsprojs = findAll ()
             let wdir =
-                { WorkspacePeekFoundDirectory.Directory = vscode.workspace.rootPath
+                { WorkspacePeekFoundDirectory.Directory = workspace.rootPath.Value
                   Fsprojs = fsprojs |> Array.ofList }
             return WorkspacePeekFound.Directory wdir
         }
 
     let private workspacePeek () =
         promise {
-            if isNull vscode.workspace.rootPath then return []
+            if None = workspace.rootPath then return []
             else
-                let! ws = LanguageService.workspacePeek (vscode.workspace.rootPath) deepLevel (excluded |> List.ofArray)
+                let! ws = LanguageService.workspacePeek workspace.rootPath.Value deepLevel (excluded |> List.ofArray)
                 return
                     ws.Found
                     |> Array.sortBy (fun x ->
@@ -569,8 +571,7 @@ module Project =
                     Some (true, d.Project, ProjectLoadingState.LanguageNotSupported(d.Project))
                 | _ ->
                     if not disableShowNotification then
-                        "Project loading failed"
-                        |> vscode.window.showErrorMessage
+                        window.showErrorMessage("Project loading failed", null)
                         |> ignore
                     None
             | Choice4Of4 msg ->
@@ -636,9 +637,9 @@ module Project =
         let private showItem (text : string) tooltip =
             path <- tooltip
             item.Value.text <- sprintf "$(flame) %s" text
-            item.Value.tooltip <- tooltip
-            item.Value.command <- "showProjStatusFromIndicator"
-            item.Value.color <- ThemeColor "fsharp.statusBarWarnings" |> U2.Case2
+            item.Value.tooltip <- Some tooltip
+            item.Value.command <- Some (U2.Case1 "showProjStatusFromIndicator")
+            item.Value.color <- vscode.ThemeColor.Create "fsharp.statusBarWarnings" |> U2.Case2 |> Some
             item.Value.show()
 
 
@@ -658,31 +659,40 @@ module Project =
             clearTimer()
             timer <- Some (setTimeout (fun () -> update ()) 1000.)
 
-
-
-
     let activate (context : ExtensionContext) =
         CurrentWorkspaceConfiguration.setContext context
         commands.registerCommand("fsharp.clearCache", clearCache |> objfy2)
+        |> box
+        |> unbox
         |> context.subscriptions.Add
 
         Notifications.notifyWorkspaceHandler <- Some handleProjectParsedNotification
         workspaceNotificationAvaiable <- true
         ProjectStatus.item <- Some (window.createStatusBarItem (StatusBarAlignment.Right, 9000. ))
-        statusUpdated.Invoke(!!ProjectStatus.statusUpdateHandler) |> context.subscriptions.Add
+        statusUpdated.Invoke(!!ProjectStatus.statusUpdateHandler)
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.changeWorkspace", (fun _ ->
             workspacePeek ()
             |> Promise.bind (fun x -> pickFSACWorkspace x (CurrentWorkspaceConfiguration.get()))
             |> Promise.bind (function Some w -> initWorkspaceHelper w  | None -> Promise.empty )
             |> box
+            |> Some
             ))
+        |> box
+        |> unbox
         |> context.subscriptions.Add
 
         commands.registerCommand("showProjStatusFromIndicator", (fun _ ->
             let name = path.basename (ProjectStatus.path)
-            ShowStatus.CreateOrShow(ProjectStatus.path,name)
+            ShowStatus.CreateOrShow(ProjectStatus.path, name)
             |> box
-        )) |> context.subscriptions.Add
+            |> Some
+        ))
+        |> box
+        |> unbox
+        |> context.subscriptions.Add
 
         initWorkspace ()

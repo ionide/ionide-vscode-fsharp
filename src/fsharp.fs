@@ -4,7 +4,8 @@ module Ionide.VSCode.FSharp
 open System
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
 open global.Node.ChildProcess
@@ -24,22 +25,23 @@ let activate (context : ExtensionContext) : JS.Promise<Api> =
     LanguageService.start context
     |> Promise.onSuccess (fun _ ->
         let progressOpts = createEmpty<ProgressOptions>
-        progressOpts.location <- ProgressLocation.Window
-        window.withProgress(progressOpts, (fun p ->
-            let pm = createEmpty<ProgressMessage>
-            pm.message <- "Loading projects"
+        progressOpts.location <- U2.Case1 ProgressLocation.Window
+        window.withProgress(progressOpts, (fun p ctok ->
+            let pm = createEmpty<Window.IExportsWithProgressProgress>
+            pm.message <- Some "Loading projects"
             p.report pm
 
             Project.activate context
             |> Promise.onSuccess(fun _ -> QuickInfoProject.activate context )
             |> Promise.onSuccess (fun _ ->
                 if showExplorer then
-                    commands.executeCommand(VSCodeExtension.workbenchViewId ())
+                    commands.executeCommand(VSCodeExtension.workbenchViewId (), null)
                     |> ignore)
             |> Promise.onSuccess (fun _ ->
                 LanguageService.loadAnalyzers ()
                 |> ignore
             )
+            |> Promise.toThenable
         ))
         |> ignore
     )
@@ -80,7 +82,7 @@ let activate (context : ExtensionContext) : JS.Promise<Api> =
             | None -> return ""
         }
 
-        let event = EventEmitter<DTO.Project>()
+        let event = vscode.EventEmitter.Create<DTO.Project>()
         Project.projectLoaded.Invoke(fun n ->
             !!(setTimeout (fun _ -> event.fire n) 500.)
         ) |> ignore

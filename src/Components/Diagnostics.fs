@@ -3,7 +3,8 @@ namespace Ionide.VSCode.FSharp
 open System
 open Fable.Core
 open Fable.Import
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 
 open Ionide.VSCode.Helpers
@@ -132,18 +133,17 @@ Error: %s
 
     let writeToFile (text : string) =
         promise {
-            let path = node.path.join(workspace.rootPath, "Diagnostic info")
-            let newFile = Uri.parse ("untitled:" + path)
+            let path = node.path.join(workspace.rootPath.Value, "Diagnostic info")
+            let newFile = vscode.Uri.parse ("untitled:" + path)
             let! document = newFile |> workspace.openTextDocument
 
-            let edit = vscode.WorkspaceEdit()
-            edit.insert(newFile, vscode.Position(0., 0.), text)
-            let! success = vscode.workspace.applyEdit(edit)
+            let edit = vscode.WorkspaceEdit.Create()
+            edit.insert(newFile, vscode.Position.Create(0., 0.), text)
+            let! success = workspace.applyEdit(edit)
             if success then
-                vscode.window.showTextDocument(document)
-                |> ignore
+                window.showTextDocument(document, ?options = None) |> ignore
             else
-                vscode.window.showErrorMessage("Error when printing diagnostic report.")
+                window.showErrorMessage("Error when printing diagnostic report.", null)
                 |> ignore
         }
 
@@ -175,32 +175,35 @@ Error: %s
             writeStream.write(Logging.getIonideLogs ()) |> ignore
             writeStream.close()
         )
-        |> Promise.bind(fun path ->
-            vscode.window.showInformationMessage(
-                "FSAC logs exported to: " + path,
-                "Open file"
-            )
-            |> Promise.bind (fun action ->
-                match action with
-                | "Open file" ->
-                    path
-                    |> workspace.openTextDocument
-                    |> Promise.bind (fun document ->
-                        vscode.window.showTextDocument(document) |> ignore
-                        JS.undefined
-                    )
-                | _ -> JS.undefined
-            )
+        |> Promise.bind(fun path -> promise {
+            let! action =
+                window.showInformationMessage(
+                    "FSAC logs exported to: " + path,
+                    ResizeArray ["Open file"]
+                )
+            match action with
+            | Some "Open file" ->
+                return! promise {
+                    let! document = workspace.openTextDocument path
+                    window.showTextDocument(document, ?options = None) |> ignore
+                    return JS.undefined
+                }
+            | _ -> return JS.undefined
+        }
         )
         |> Promise.onFail(fun error ->
             Browser.Dom.console.error(error)
-            vscode.window.showErrorMessage("Couldn't retrieved the FSAC logs file") |> ignore
+            window.showErrorMessage("Couldn't retrieved the FSAC logs file", null) |> ignore
         )
 
 
     let activate (context : ExtensionContext) =
         commands.registerCommand("fsharp.diagnostics.getInfos", getDiagnosticsInfos |> objfy2)
+        |> box
+        |> unbox
         |> context.subscriptions.Add
 
         commands.registerCommand("fsharp.diagnostics.getIonideLogs", getIonideLogs |> objfy2)
+        |> box
+        |> unbox
         |> context.subscriptions.Add

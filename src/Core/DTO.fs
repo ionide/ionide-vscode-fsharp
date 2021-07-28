@@ -325,7 +325,7 @@ module DTO =
     type FsdnResponse =
         { Functions: string [] }
 
-    type HighlightingRange = { range: Fable.Import.vscode.Range; tokenType: string}
+    type HighlightingRange = { range: Fable.Import.VSCode.Vscode.Range; tokenType: string}
 
     type HighlightingResponse = {
         highlights: HighlightingRange []

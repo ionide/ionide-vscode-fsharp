@@ -3,7 +3,8 @@ module Ionide.VSCode.FSharp.LineLens
 open System
 open System.Collections.Generic
 open Fable.Core
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open Fable.Core.JsInterop
 open DTO
 
@@ -115,7 +116,7 @@ module LineLensDecorations =
     let create range text =
         // What we add after the range
         let attachment = createEmpty<ThemableDecorationAttachmentRenderOptions>
-        attachment.color <- Some (U2.Case2 (ThemeColor "fsharp.linelens"))
+        attachment.color <- Some (U2.Case2 (vscode.ThemeColor.Create "fsharp.linelens"))
         attachment.contentText <- Some text
 
         // Theme for the range
@@ -179,7 +180,7 @@ module DecorationUpdate =
             else
                 interestingNested |> Array.append [|syms.Declaration.BodyRange|])
 
-    let private lineRange (doc : TextDocument) (range : DTO.Range) : CodeRange.CodeRange =
+    let private lineRange (doc : TextDocument) (range : DTO.Range) =
         let lineNumber = float range.StartLine - 1.
         let textLine = doc.lineAt lineNumber
         textLine.range
