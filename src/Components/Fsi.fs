@@ -322,8 +322,9 @@ module Fsi =
     let private start () =
         fsiOutput |> Option.iter (fun n -> n.dispose())
         promise {
+            let ctok = vscode.CancellationTokenSource.Create().token
             let! profile =
-                match provider.provideTerminalProfile(createEmpty<_>) with
+                match provider.provideTerminalProfile(ctok) with
                 | None -> promise.Return None
                 | Some (U2.Case1 options) -> promise.Return (Some options)
                 | Some (U2.Case2 work) -> Promise.ofThenable work
