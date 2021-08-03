@@ -519,7 +519,7 @@ module Fsi =
         window.registerTerminalProfileProvider("ionide-fsharp.fsi", provider) |> context.Subscribe
 
         window.onDidCloseTerminal.Invoke(handleCloseTerminal) |> context.Subscribe
-        window.onDidOpenTerminal.Invoke(handleOpenTerminal) |> context.subscriptions.Add
+        window.onDidOpenTerminal.Invoke(handleOpenTerminal) |> context.Subscribe
         commands.registerCommand("fsi.Start", start |> objfy2) |> context.Subscribe
         commands.registerCommand("fsi.SendLine", sendLine |> objfy2) |> context.Subscribe
         commands.registerCommand("fsi.SendSelection", sendSelection |> objfy2) |> context.Subscribe
