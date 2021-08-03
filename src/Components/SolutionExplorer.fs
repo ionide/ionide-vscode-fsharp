@@ -957,7 +957,7 @@ module SolutionExplorer =
 
             match pathOpt with
             | Some path ->
-                commands.executeCommand("vscode.open", ResizeArray [Some (box (vscode.Uri.file(path))) ])
+                commands.executeCommand("vscode.open", Some (box (vscode.Uri.file(path))) )
                 |> unbox
             | None -> undefined
 

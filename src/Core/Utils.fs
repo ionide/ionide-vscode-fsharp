@@ -279,7 +279,7 @@ module Context =
     open Fable.Import
 
     let set<'a> (name : string) (value : 'a) =
-        commands.executeCommand("setContext", ResizeArray[Some (box name); Some(box value)]) |> ignore
+        commands.executeCommand("setContext", Some (box name), Some(box value)) |> ignore
 
     let cachedSetter<'a when 'a : equality> (name : string) =
         let mutable current : 'a option = None

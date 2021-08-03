@@ -20,7 +20,7 @@ module Help =
 
             let uri = vscode.Uri.parse (sprintf "https://docs.microsoft.com/en-us/dotnet/api/%s" api)
 
-            return! commands.executeCommand("vscode.open", ResizeArray [Some (box uri)])
+            return! commands.executeCommand("vscode.open", Some (box uri))
         } |> ignore
 
 

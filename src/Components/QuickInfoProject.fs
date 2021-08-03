@@ -45,7 +45,7 @@ module QuickInfoProject =
         | None -> ()
 
     let handlerCommand() =
-        commands.executeCommand("vscode.open", ResizeArray [box (vscode.Uri.file projectPath) |> Some])
+        commands.executeCommand("vscode.open", Some(box (vscode.Uri.file projectPath)))
 
 
     let activate (context : ExtensionContext) =

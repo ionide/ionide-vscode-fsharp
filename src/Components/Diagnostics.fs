@@ -179,7 +179,7 @@ Error: %s
             let! action =
                 window.showInformationMessage(
                     "FSAC logs exported to: " + path,
-                    ResizeArray ["Open file"]
+                    "Open file"
                 )
             match action with
             | Some "Open file" ->

@@ -58,7 +58,7 @@ module Gitignore =
         | FileNotFound -> ()
         | MissingPatterns [] -> ()
         | MissingPatterns patternsToAdd ->
-            let! choice = window.showInformationMessage("You are missing entries in your .gitignore for Ionide-specific data files. Would you like to add them?", ResizeArray [|"Add entries"; "Ignore"; "Don't show again"|])
+            let! choice = window.showInformationMessage("You are missing entries in your .gitignore for Ionide-specific data files. Would you like to add them?", "Add entries", "Ignore", "Don't show again")
             match choice with
             | Some "Add entries" ->
                 writePatternsToGitignore patternsToAdd

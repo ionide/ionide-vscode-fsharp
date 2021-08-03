@@ -327,7 +327,7 @@ module FakeTargetsOutline =
                         "at" ==> "center"
                     ]
 
-                commands.executeCommand("revealLine", ResizeArray [Some (box args)])
+                commands.executeCommand("revealLine", Some (box args))
                 |> unbox
             | None -> JS.undefined
         ))
