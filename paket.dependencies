@@ -17,10 +17,10 @@ git https://github.com/fsharp/FsAutoComplete.git 0.47.0 build:"build.sh",  OS: o
 
 git https://github.com/ionide/ionide-fsgrammar.git master
 
-github ionide/ionide-vscode-helpers:updated-definitions src/Fable.Import.VSCode.fs
-github ionide/ionide-vscode-helpers:updated-definitions src/Helpers.fs
-github ionide/ionide-vscode-helpers:updated-definitions src/Fable.Import.Showdown.fs
-github ionide/ionide-vscode-helpers:updated-definitions src/Fable.Import.VSCode.LanguageServer.fs
+github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
+github ionide/ionide-vscode-helpers src/Helpers.fs
+github ionide/ionide-vscode-helpers src/Fable.Import.Showdown.fs
+github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.LanguageServer.fs
 
 group build
   source https://api.nuget.org/v3/index.json
