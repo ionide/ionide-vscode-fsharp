@@ -3,7 +3,8 @@ namespace Ionide.VSCode.FSharp
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 open Ionide.VSCode.Helpers
 open DTO
@@ -48,8 +49,8 @@ module LaunchJsonVersion2 =
 
     let assertVersion2 (cfg : WorkspaceConfiguration) =
         promise {
-            do! cfg.update("version", "0.2.0", false)
-            do! cfg.update("configurations", ResizeArray<obj>(), false)
+            do! cfg.update("version", Some (box "0.2.0"), U2.Case2 false)
+            do! cfg.update("configurations", Some (box (ResizeArray<obj>())), U2.Case2 false)
         }
 
 module Debugger =
@@ -60,7 +61,7 @@ module Debugger =
             let launcher = Project.getLauncherWithShell project
             match launcher with
             | None ->
-                window.showWarningMessage "Can't start project"
+                window.showWarningMessage("Can't start project", null)
                 |> ignore
             | Some l ->
                 let! terminal = l ""
@@ -68,7 +69,7 @@ module Debugger =
         }
 
     let setProgramPath project (cfg : LaunchJsonVersion2.RequestLaunch) =
-        let relativeOutPath = node.path.relative(workspace.rootPath, project.Output).Replace("\\", "/")
+        let relativeOutPath = node.path.relative(workspace.rootPath.Value, project.Output).Replace("\\", "/")
         let programPath = sprintf "${workspaceRoot}/%s" relativeOutPath
 
         // WORKAROUND the project.Output is the obj assembly, instead of bin assembly
@@ -87,7 +88,7 @@ module Debugger =
             let cfg = LaunchJsonVersion2.createRequestLaunch ()
             match debuggerRuntime project with
             | None ->
-                window.showWarningMessage "Can't start debugger"
+                window.showWarningMessage("Can't start debugger", null)
                 |> ignore
             | Some rntm ->
                 cfg |> setProgramPath project
@@ -95,8 +96,10 @@ module Debugger =
                 cfg?preLaunchTask <- None
                 cfg?args <- args
 
-                let folder = workspace.workspaceFolders.[0]
-                let! _ = debug.startDebugging(folder, unbox cfg)
+                let debugConfiguration = cfg |> box |> unbox
+
+                let folder = workspace.workspaceFolders.Value.[0]
+                let! _ = debug.startDebugging(Some folder, U2.Case2 debugConfiguration)
                 return ()
         }
 
@@ -107,21 +110,21 @@ module Debugger =
             let cfg = LaunchJsonVersion2.createRequestLaunch ()
             match debuggerRuntime project with
             | None ->
-                window.showWarningMessage "Can't start debugger"
+                window.showWarningMessage("Can't start debugger", null)
                 |> ignore
             | Some rntm ->
                 cfg |> setProgramPath project
                 cfg?``type`` <- rntm
                 cfg?preLaunchTask <- None
+                let debugConfiguration = cfg |> box |> unbox
 
-                let folder = workspace.workspaceFolders.[0]
+                let folder = workspace.workspaceFolders.Value.[0]
                 let! msbuildExit = MSBuild.buildProjectPath "Build" project
                 match msbuildExit.Code with
                     | Some code when code <> 0 ->
                         return! Promise.reject (sprintf "msbuild 'Build' failed with exit code %i" code)
                     | _ ->
-                        // let! res = vscode.commands.executeCommand("vscode.startDebug", cfg)
-                        let! res =  debug.startDebugging(folder, unbox cfg)
+                        let! res =  debug.startDebugging(Some folder, U2.Case2 debugConfiguration)
                         return ()
         }
 
@@ -130,7 +133,7 @@ module Debugger =
 
     let setDefaultProject(project : Project) =
         startup <- Some project
-        context |> Option.iter (fun c -> c.workspaceState.update("defaultProject", project) |> ignore )
+        context |> Option.iter (fun c -> c.workspaceState.update("defaultProject", Some (box project)) |> ignore )
 
     let chooseDefaultProject () =
         promise {
@@ -181,9 +184,9 @@ module Debugger =
 
 
     let activate (c : ExtensionContext) =
-        commands.registerCommand("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2 ) |> c.subscriptions.Add
-        commands.registerCommand("fsharp.debugDefaultProject", (buildAndDebugDefault) |> objfy2 ) |> c.subscriptions.Add
-        commands.registerCommand("fsharp.chooseDefaultProject", (chooseDefaultProject) |> objfy2 ) |> c.subscriptions.Add
+        commands.registerCommand("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2 ) |> c.Subscribe
+        commands.registerCommand("fsharp.debugDefaultProject", (buildAndDebugDefault) |> objfy2 ) |> c.Subscribe
+        commands.registerCommand("fsharp.chooseDefaultProject", (chooseDefaultProject) |> objfy2 ) |> c.Subscribe
 
         context <- Some c
         startup <- c.workspaceState.get<Project> "defaultProject"

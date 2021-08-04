@@ -4,7 +4,8 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 open Ionide.VSCode.Helpers
 open DTO
@@ -257,16 +258,16 @@ module InfoPanel =
                 p.onDidChangeViewState.Invoke(!!onChange) |> ignore
                 p.onDidDispose.Invoke(!!onClose) |> ignore
                 Panel.panel <- Some p
-                let textEditor = window.activeTextEditor
-                let selection = window.activeTextEditor.selections
+                let textEditor = window.activeTextEditor.Value
+                let selection = textEditor.selections
                 do if not Panel.locked then Panel.update textEditor selection
         }
 
     let private updatePanel () =
         match Panel.panel with
         | Some _ ->
-            let textEditor = window.activeTextEditor
-            let selection = window.activeTextEditor.selections
+            let textEditor = window.activeTextEditor.Value
+            let selection = textEditor.selections
             Panel.update textEditor selection
         | None ->
             openPanel () |> ignore
@@ -284,16 +285,16 @@ module InfoPanel =
 
 
     let private documentParsedHandler (event : Notifications.DocumentParsedEvent) =
-        if event.document = window.activeTextEditor.document && not Panel.locked then
+        if event.document = window.activeTextEditor.Value.document && not Panel.locked then
             clearTimer()
-            Panel.update window.activeTextEditor window.activeTextEditor.selections
+            Panel.update window.activeTextEditor.Value window.activeTextEditor.Value.selections
         ()
 
     let tooltipRequested (pos: Position) =
         let updateMode = "FSharp.infoPanelUpdate" |> Configuration.get "onCursorMove"
         if updateMode = "onHover" || updateMode = "both" then
             clearTimer()
-            timer <- Some (setTimeout (fun () ->Panel.update' window.activeTextEditor pos) 500.)
+            timer <- Some (setTimeout (fun () ->Panel.update' window.activeTextEditor.Value pos) 500.)
 
 
     let lockPanel () =
@@ -312,15 +313,15 @@ module InfoPanel =
         let startLocked = "FSharp.infoPanelStartLocked" |> Configuration.get false
         let show = "FSharp.infoPanelShowOnStartup" |> Configuration.get false
 
-        context.subscriptions.Add(window.onDidChangeTextEditorSelection.Invoke(unbox selectionChanged))
-        context.subscriptions.Add(Notifications.onDocumentParsed.Invoke(unbox documentParsedHandler))
-        context.subscriptions.Add(Notifications.tooltipRequested.Invoke(!! tooltipRequested))
+        context.Subscribe(window.onDidChangeTextEditorSelection.Invoke(selectionChanged >> box >> Some))
+        context.Subscribe(Notifications.onDocumentParsed.Invoke(documentParsedHandler >> box >> Some))
+        context.Subscribe(Notifications.tooltipRequested.Invoke(tooltipRequested >> box >> Some))
 
-        commands.registerCommand("fsharp.openInfoPanel", openPanel |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.updateInfoPanel", updatePanel |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.openInfoPanel.lock", lockPanel |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.openInfoPanel.unlock", unlockPanel |> objfy2) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.showDocumentation", showDocumentation |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.openInfoPanel", openPanel |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsharp.updateInfoPanel", updatePanel |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsharp.openInfoPanel.lock", lockPanel |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsharp.openInfoPanel.unlock", unlockPanel |> objfy2) |> context.Subscribe
+        commands.registerCommand("fsharp.showDocumentation", showDocumentation |> objfy2) |> context.Subscribe
 
         if startLocked then Panel.locked <- true
         if show && window.visibleTextEditors |> Seq.exists isFsharpTextEditor

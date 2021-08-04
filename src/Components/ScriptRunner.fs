@@ -1,13 +1,15 @@
 namespace Ionide.VSCode.FSharp
 
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 module node = Node.Api
+open Fable.Core
 
 module ScriptRunner =
 
     let private runFile () =
-        let scriptFile = window.activeTextEditor.document.fileName
+        let scriptFile = window.activeTextEditor.Value.document.fileName
         let scriptDir = node.path.dirname(scriptFile)
 
         promise {
@@ -26,7 +28,7 @@ module ScriptRunner =
                     ("sh",
                      [||],
                      sprintf "cd \"%s\" && clear && \"%s\" %s \"%s\" && echo \"Press enter to close script...\" && read && exit" scriptDir fsiBinary flatArgs scriptFile)
-
+            let shellArgs = shellArgs |> ResizeArray |> U2.Case1
             let title = node.path.basename scriptFile
             let terminal = window.createTerminal(title, shellCmd, shellArgs)
             terminal.sendText(textToSend)
@@ -35,4 +37,4 @@ module ScriptRunner =
 
 
     let activate (context : ExtensionContext) =
-        commands.registerCommand("fsharp.scriptrunner.run", runFile |> objfy2) |> context.subscriptions.Add
+        commands.registerCommand("fsharp.scriptrunner.run", runFile |> objfy2) |> context.Subscribe

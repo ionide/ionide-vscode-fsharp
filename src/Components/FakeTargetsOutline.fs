@@ -4,7 +4,8 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 open Ionide.VSCode.Helpers
 open System.Collections.Generic
@@ -16,7 +17,7 @@ module node = Node.Api
 module FakeTargetsOutline =
 
     let private configurationKey = "FAKE.targetsOutline"
-    let private isEnabledFor uri = configurationKey |> Configuration.getInContext uri true
+    let private isEnabledFor (uri: Uri) = configurationKey |> Configuration.getInContext uri true
 
     type NodeEntry =
         { Key : string
@@ -47,20 +48,15 @@ module FakeTargetsOutline =
             | TargetModel -> true
             | _ -> false
 
-    let refresh = EventEmitter<Uri> ()
-    let private reallyRefresh = EventEmitter<Model option> ()
+    let refresh = vscode.EventEmitter.Create<Uri> ()
+    let private reallyRefresh = vscode.EventEmitter.Create<U2<Model,unit> option> ()
     let mutable private currentDocument : string option = None
 
     let private getIconPath light dark =
-        let plugPath =
-            try
-                (VSCode.getPluginPath "Ionide.ionide-fsharp")
-            with
-            | _ ->  (VSCode.getPluginPath "Ionide.Ionide-fsharp")
-
-        let p = createEmpty<TreeIconPath>
-        p.dark <- node.path.join(plugPath, "images", dark) |> U3.Case1
-        p.light <- node.path.join(plugPath, "images", light) |> U3.Case1
+        let plugPath = VSCodeExtension.ionidePluginPath()
+        let p = createEmpty<TreeItemIconPath>
+        p.dark <- node.path.join(plugPath, "images", dark) |> U2.Case1
+        p.light <- node.path.join(plugPath, "images", light) |> U2.Case1
         p
 
     let rec add' (state : NodeEntry) (symbol : Symbol) index =
@@ -171,21 +167,16 @@ module FakeTargetsOutline =
         [ yield! items; yield! realItems] |> ResizeArray
 
     let createProvider () : TreeDataProvider<Model> =
+        let mutable e = Some reallyRefresh.event
         { new TreeDataProvider<Model> with
-            member __.getParent =
-                None
-
-            member this.onDidChangeTreeData =
-                reallyRefresh.event
-
-            member this.getChildren(node) =
-                match node with
+            override this.getChildren(element: Model option): ProviderResult<ResizeArray<Model>> =
+                match element with
                 | Some node ->
-                    node.getChildren()
+                    node.getChildren() |> U2.Case1 |> Some
                 | None ->
                     let doc = window.activeTextEditor
-                    if JS.isDefined doc
-                    then
+                    match doc with
+                    | Some doc ->
                         match currentDocument with
                         | None ->
                             currentDocument <- Some doc.document.fileName
@@ -202,33 +193,45 @@ module FakeTargetsOutline =
                                 else
                                     return generateErrorRoot "null response from fsac"
                             } |> unbox
-                        | _ -> generateErrorRoot "No active F# document"
-                    else generateErrorRoot "No active document"
-
-            member this.getTreeItem(node) =
-                let children = node.getChildren()
+                        | _ ->
+                            generateErrorRoot "No active F# document"
+                            |> U2.Case1
+                            |> Some
+                    | None ->
+                        generateErrorRoot "No active document"
+                        |> U2.Case1
+                        |> Some
+            override this.getParent(element: Model): ProviderResult<Model> = None
+            override this.getTreeItem(element: Model): U2<TreeItem,Thenable<TreeItem>> =
+                let children = element.getChildren()
                 let state =
                     if JS.isDefined children && children.Count > 0 then
                         Some TreeItemCollapsibleState.Collapsed
                     else None
 
                 let ti = createEmpty<TreeItem>
-                ti.label <- Some node.Label //getLabel node |> Some
+                ti.label <- Some (U2.Case1 element.Label)
                 ti.collapsibleState <- state
-                ti.iconPath <- getIcon node |> Option.map U4.Case3
+                ti.iconPath <- getIcon element |> Option.map U4.Case3
                 ti.contextValue <-
-                    Some (match node.Type with
+                    Some (match element.Type with
                           | ModelType.TargetModel -> "fake.targetsOutline.target"
                           | ModelType.DependencyModel _ -> "fake.targetsOutline.dependency"
                           | ModelType.ErrorOrWarning -> "fake.targetsOutline.error")
-                ti.tooltip <- Some node.Description
+                ti.tooltip <- Some (U2.Case1 element.Description)
 
                 let c = createEmpty<Command>
                 c.command <- "FAKE.targetsOutline.goTo"
                 c.title <- "open"
-                c.arguments <- Some (ResizeArray [| unbox node|])
+                c.arguments <- Some (ResizeArray [| unbox element |])
                 ti.command <- Some c
-                ti
+                U2.Case1 ti
+
+            override this.onDidChangeTreeData
+                with get (): Event<U2<Model,unit> option> option = e
+                and set (v: Event<U2<Model,unit> option> option): unit = e <- v
+            override this.resolveTreeItem(item: TreeItem, element: Model, token: CancellationToken): ProviderResult<TreeItem> =
+                failwith "Not Implemented"
         }
 
     module private ShowInActivity =
@@ -253,27 +256,34 @@ module FakeTargetsOutline =
         | Document.FSharp when doc.uri.scheme = "file" -> true
         | _ -> false
 
-    let private setShowTargetsOutlineForEditor (textEditor : TextEditor) =
+    let private setShowTargetsOutlineForEditor (textEditor : TextEditor option) =
         let newValue =
-            if textEditor <> undefined then
+            match textEditor with
+            | Some textEditor ->
                 if isFsharpFile textEditor.document || ShowInActivity.showInFsharpActivity() then
                     isEnabledFor textEditor.document.uri
                 else
                     false
-            else
+            | None ->
                 false
         setShowCodeOutline newValue
 
     let onDidChangeConfiguration (evt : ConfigurationChangeEvent) =
         let textEditor = window.activeTextEditor
-        if textEditor <> undefined && evt.affectsConfiguration(configurationKey, textEditor.document.uri) then
-            setShowTargetsOutlineForEditor window.activeTextEditor
-            refresh.fire textEditor.document.uri
+        match textEditor with
+        | Some textEditor ->
+            if evt.affectsConfiguration(configurationKey, ConfigurationScope.Case1 textEditor.document.uri) then
+                setShowTargetsOutlineForEditor window.activeTextEditor
+                refresh.fire textEditor.document.uri
+        | None -> ()
 
-    let private onDidChangeActiveTextEditor (textEditor : TextEditor) =
+    let private onDidChangeActiveTextEditor (textEditor : TextEditor option) =
         setShowTargetsOutlineForEditor textEditor
-        if textEditor = undefined || (not (isFsharpFile textEditor.document)) then
-            reallyRefresh.fire(None)
+        match textEditor with
+        | Some textEditor ->
+            if not (isFsharpFile textEditor.document) then
+                reallyRefresh.fire(None)
+        | None -> ()
 
 
     type RequestLaunch =
@@ -295,16 +305,16 @@ module FakeTargetsOutline =
         let treeViewId = ShowInActivity.initializeAndGetId ()
 
         window.onDidChangeActiveTextEditor.Invoke(unbox onDidChangeActiveTextEditor)
-            |> context.subscriptions.Add
+        |> context.Subscribe
 
         refresh.event.Invoke(fun uri ->
             if isEnabledFor uri then
                 reallyRefresh.fire(None)
             createEmpty)
-            |> context.subscriptions.Add
+        |> context.Subscribe
 
         workspace.onDidChangeConfiguration.Invoke(unbox onDidChangeConfiguration)
-            |> context.subscriptions.Add
+        |> context.Subscribe
 
         commands.registerCommand("FAKE.targetsOutline.goTo", objfy2 (fun n ->
             let m = unbox<Model> n
@@ -317,10 +327,11 @@ module FakeTargetsOutline =
                         "at" ==> "center"
                     ]
 
-                vscode.commands.executeCommand("revealLine", args)
+                commands.executeCommand("revealLine", Some (box args))
                 |> unbox
             | None -> JS.undefined
-        )) |> context.subscriptions.Add
+        ))
+        |> context.Subscribe
 
         let runFake doDebug onlySingleTarget targetName =
             promise {
@@ -352,19 +363,29 @@ module FakeTargetsOutline =
                         let! dotnet = LanguageService.dotnet()
                         match dotnet with
                         | None ->
-                            let! _ = window.showErrorMessage("Cannot start fake as no dotnet runtime was found. Consider configuring one in ionide settings.")
+                            let! _ = window.showErrorMessage("Cannot start fake as no dotnet runtime was found. Consider configuring one in ionide settings.", null)
                             ()
                         | Some dotnet ->
-                            let taskDef = createEmpty<TaskDefinition>
-                            taskDef.``type`` <- Some "fakerun"
+                            let taskDef =
+                                let data = Dictionary()
+                                { new TaskDefinition with
+                                                override this.Item
+                                                    with get (name: string): obj option =
+                                                        data.TryGet name
+                                                    and set (name: string) (v: obj option): unit =
+                                                        match v with
+                                                        | None -> data.Remove (name) |> ignore
+                                                        | Some v -> data.[name] <- v
+                                                override this.``type``: string = "fakerun"
+                                                }
                             let opts = createEmpty<ProcessExecutionOptions>
                             opts.cwd <- Some cfg.cwd
-                            let procExp = ProcessExecution(dotnet, [| yield fakeRuntime; yield! args |], opts)
-                            let task = Task(taskDef, ConfigurationTarget.Global, "fake run", "fake", procExp)
+                            let procExp = vscode.ProcessExecution.Create(dotnet, ResizeArray [| yield fakeRuntime; yield! args |], opts)
+                            let task = vscode.Task.Create(taskDef, U2.Case2 TaskScope.Global, "fake run", "fake", U3.Case1 procExp)
                             let exec = tasks.executeTask(task)
                             ()
                 | None ->
-                    let! _ = window.showErrorMessage("Cannot start fake as no script file is selected.")
+                    let! _ = window.showErrorMessage("Cannot start fake as no script file is selected.", null)
                     ()
             }
 
@@ -376,27 +397,32 @@ module FakeTargetsOutline =
 
         commands.registerCommand("fake.targetsOutline.reloadTargets", objfy2 (fun _ ->
             refresh.fire undefined |> unbox
-        )) |> context.subscriptions.Add
+        ))
+        |> context.Subscribe
         commands.registerCommand("fake.targetsOutline.runTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             runTarget false item.Label
-        )) |> context.subscriptions.Add
+        ))
+        |> context.Subscribe
         commands.registerCommand("fake.targetsOutline.debugTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             debugTarget false item.Label
-        )) |> context.subscriptions.Add
+        ))
+        |> context.Subscribe
         commands.registerCommand("fake.targetsOutline.runSingleTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             runTarget true item.Label
-        )) |> context.subscriptions.Add
+        ))
+        |> context.Subscribe
         commands.registerCommand("fake.targetsOutline.debugSingleTarget", objfy2 (fun n ->
             let item = unbox<Model> n
             debugTarget true item.Label
-        )) |> context.subscriptions.Add
+        ))
+        |> context.Subscribe
 
         let provider = createProvider ()
-        let treeOptions = createEmpty<CreateTreeViewOptions<Model>>
+        let treeOptions = createEmpty<TreeViewOptions<Model>>
         treeOptions.treeDataProvider <- provider
         treeOptions.showCollapseAll <- Some true
         let treeView = window.createTreeView(treeViewId, treeOptions)
-        context.subscriptions.Add treeView
+        context.Subscribe treeView

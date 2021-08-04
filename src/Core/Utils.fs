@@ -1,7 +1,23 @@
 namespace Ionide.VSCode.FSharp
 
 open System
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
+open Fable.Core
+
+[<AutoOpen>]
+
+module ContextExtensions =
+    type ExtensionContext with
+        member inline x.Subscribe< ^t when ^t : (member dispose: unit -> obj option) >(item: ^t) =
+            x.subscriptions.Add(unbox (box item))
+
+[<AutoOpen>]
+module PromiseBuilder =
+    type Foo = JS.PromiseConstructor
+    type Promise.PromiseBuilder with
+        member x.Source(p: Thenable<'t>): JS.Promise<'t> = box p |> unbox
+        member x.Source(p: JS.Promise<'t>): JS.Promise<'t> = p
 
 [<AutoOpen>]
 module Json =
@@ -15,44 +31,47 @@ module Json =
 
 [<RequireQualifiedAccess>]
 module CodeRange =
-
-    type CodeRange = Fable.Import.vscode.Range
-
     /// Converts Range DTO to VS Code Range.
-    let fromDTO (range : DTO.Range) : CodeRange =
-        CodeRange (float range.StartLine - 1.,
+    let fromDTO (range : DTO.Range) =
+        vscode.Range.Create
+                  (float range.StartLine - 1.,
                    float range.StartColumn - 1.,
                    float range.EndLine - 1.,
                    float range.EndColumn - 1.)
 
-    let fromHighlightingDTO (range : DTO.Range) : CodeRange =
-        CodeRange (float range.StartLine - 1.,
+    let fromHighlightingDTO (range : DTO.Range) =
+        vscode.Range.Create
+                  (float range.StartLine - 1.,
                    float range.StartColumn,
                    float range.EndLine - 1.,
                    float range.EndColumn)
 
-    let fromSimplifiedNameRange (range : DTO.Range) : CodeRange =
-        CodeRange (float range.StartLine - 1.,
+    let fromSimplifiedNameRange (range : DTO.Range) =
+        vscode.Range.Create
+                  (float range.StartLine - 1.,
                    float range.StartColumn - 2.,
                    float range.EndLine - 1.,
                    float range.EndColumn - 2.)
 
     /// Converts Declaration DTO of a specific `length` to VS Code Range.
-    let fromDeclaration (decl : DTO.Declaration) (length : float) : CodeRange =
-        CodeRange (float decl.Line - 1.,
+    let fromDeclaration (decl : DTO.Declaration) (length : float) =
+        vscode.Range.Create
+                  (float decl.Line - 1.,
                    float decl.Column - 1.,
                    float decl.Line - 1.,
                    float decl.Column + length - 1.)
 
     /// Converts SymbolUse DTO to VS Code Range.
-    let fromSymbolUse (su : DTO.SymbolUse) : CodeRange =
-        CodeRange (float su.StartLine - 1.,
+    let fromSymbolUse (su : DTO.SymbolUse) =
+        vscode.Range.Create
+                  (float su.StartLine - 1.,
                    float su.StartColumn - 1.,
                    float su.EndLine - 1.,
                    float su.EndColumn - 1.)
 
-    let fromError (error : DTO.Error) : CodeRange =
-        CodeRange (float error.StartLine - 1.,
+    let fromError (error : DTO.Error) =
+        vscode.Range.Create
+                  (float error.StartLine - 1.,
                    float error.StartColumn - 1.,
                    float error.EndLine - 1.,
                    float error.EndColumn - 1.)
@@ -105,21 +124,21 @@ module Configuration =
 
     let tryGet key =
         let configuredValue = workspace.getConfiguration().get(key)
-        if configuredValue = "" then None else Some configuredValue
+        if configuredValue = Some "" then None else configuredValue
 
     let get defaultValue key =
         workspace.getConfiguration().get(key, defaultValue)
 
     let getInContext context defaultValue key =
-        workspace.getConfiguration(?resource = Some context).get(key, defaultValue)
+        workspace.getConfiguration(scope = U5.Case1 context).get(key, defaultValue)
 
     /// write the value to the given key in the workspace configuration
     let set key value =
-        workspace.getConfiguration().update(key, value, false)
+        workspace.getConfiguration().update(key, value, configurationTarget = U2.Case1 ConfigurationTarget.Workspace)
 
     /// write the value to the given key in the global configuration
     let setGlobal key value =
-        workspace.getConfiguration().update(key, value, true)
+        workspace.getConfiguration().update(key, value, configurationTarget = U2.Case1 ConfigurationTarget.Global)
 
 [<AutoOpen>]
 module Utils =
@@ -224,6 +243,9 @@ module Promise =
     // source: https://github.com/ionide/ionide-vscode-helpers/blob/5e4c28c79ed565497cd481fac2f22ee2d8d28406/src/Helpers.fs#L98
     let empty<'T> = Promise.lift (unbox<'T> null)
 
+    let ofThenable (t: Thenable<'t>): JS.Promise<'t> = unbox (box t)
+    let toThenable (p: JS.Promise<'t>): Thenable<'t> = unbox (box p)
+
     let onSuccess = Promise.tap
 
     // source: https://github.com/ionide/ionide-vscode-helpers/blob/5e4c28c79ed565497cd481fac2f22ee2d8d28406/src/Helpers.fs#L92
@@ -249,7 +271,7 @@ module Promise =
 
 module Event =
 
-    let invoke (listener : 'T -> _) (event : Fable.Import.vscode.Event<'T>) =
+    let invoke (listener : 'T -> _) (event : Fable.Import.VSCode.Vscode.Event<'T>) =
         event.Invoke(listener >> unbox)
 
 module Context =
@@ -257,7 +279,7 @@ module Context =
     open Fable.Import
 
     let set<'a> (name : string) (value : 'a) =
-        vscode.commands.executeCommand("setContext", name, value) |> ignore
+        commands.executeCommand("setContext", Some (box name), Some(box value)) |> ignore
 
     let cachedSetter<'a when 'a : equality> (name : string) =
         let mutable current : 'a option = None
@@ -290,14 +312,14 @@ type ShowStatus private (panel : WebviewPanel, body : string) as this =
     do
         panel.onDidDispose.Invoke((fun () ->
             this.Dispose()
-            null
+            None
         ), this, _disposables)
         |> ignore
 
         panel.onDidChangeViewState.Invoke((fun _ev ->
             if panel.visible then
                 this.Update()
-            null
+            None
         ), this, _disposables)
         |> ignore
 
@@ -307,20 +329,20 @@ type ShowStatus private (panel : WebviewPanel, body : string) as this =
 
     static member CreateOrShow(projectPath : string, projectName : string) =
         let title = sprintf "Project %s status" projectName
-        let panel = vscode.window.createWebviewPanel(ShowStatus.ViewType, title, U2.Case1 vscode.ViewColumn.One)
+        let panel = window.createWebviewPanel(ShowStatus.ViewType, title, U2.Case1 ViewColumn.One)
 
         promise {
             let uri = vscode.Uri.parse(sprintf "fsharp-workspace:projects/status?path=%s" (JS.encodeURIComponent(projectPath)))
-            let! doc = vscode.workspace.openTextDocument uri
+            let! (doc: TextDocument) = workspace.openTextDocument uri
             return doc.getText()
         }
         |> Promise.onSuccess (fun bodyStr ->
             printfn "%s" bodyStr
-            instance <- new ShowStatus(panel, bodyStr)
+            instance <- ShowStatus(panel, bodyStr)
         )
         |> Promise.onFail (fun err ->
             JS.console.error("ShowStatus.CreateOrShow failed:\n", err)
-            vscode.window.showErrorMessage("We couldn't generate the status report")
+            window.showErrorMessage("We couldn't generate the status report", null)
             |> ignore
         )
         |> ignore
@@ -355,10 +377,14 @@ module VSCodeExtension =
 
         let oldExtensionName = capitalize extensionName
 
-        try
-            (VSCode.getPluginPath (sprintf "Ionide.%s" extensionName))
-        with
-        | _ -> (VSCode.getPluginPath (sprintf "Ionide.%s" oldExtensionName))
+        let path =
+            try
+                (VSCode.getPluginPath (sprintf "Ionide.%s" extensionName))
+            with
+            | _ -> (VSCode.getPluginPath (sprintf "Ionide.%s" oldExtensionName))
+        match path with
+        | Some p -> p
+        | None -> failwith "couldn't resolve plugin path"
 
     let workbenchViewId () =
         sprintf "workbench.view.extension.%s" extensionName
@@ -366,7 +392,7 @@ module VSCodeExtension =
 
 [<AutoOpen>]
 module Objectify =
-    let inline objfy2 (f: 'a -> 'b): obj -> obj = unbox f
-    let inline objfy3 (f: 'a -> 'b -> 'c): obj -> obj -> obj = unbox f
-    let inline objfy4 (f: 'a -> 'b -> 'c -> 'd): obj -> obj -> obj -> obj = unbox f
-    let inline objfy5 (f: 'a -> 'b -> 'c -> 'd -> 'e): obj -> obj -> obj -> obj -> obj = unbox f
+    let inline objfy2 (f: 'a -> 'b): ResizeArray<obj option> -> obj option = unbox f
+    let inline objfy3 (f: 'a -> 'b -> 'c): ResizeArray<obj option> -> obj option = unbox f
+    let inline objfy4 (f: 'a -> 'b -> 'c -> 'd): ResizeArray<obj option> -> obj option = unbox f
+    let inline objfy5 (f: 'a -> 'b -> 'c -> 'd -> 'e): ResizeArray<obj option> -> obj option = unbox f

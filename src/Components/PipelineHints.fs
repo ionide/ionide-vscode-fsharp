@@ -3,7 +3,8 @@ module Ionide.VSCode.FSharp.PipelineHints
 open System
 open System.Collections.Generic
 open Fable.Core
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 open Fable.Core.JsInterop
 open DTO
@@ -94,7 +95,7 @@ module PipelineHintsDecorations =
     let create range text =
         // What we add after the range
         let attachment = createEmpty<ThemableDecorationAttachmentRenderOptions>
-        attachment.color <- Some (U2.Case2 (ThemeColor "fsharp.pipelineHints"))
+        attachment.color <- Some (U2.Case2 (vscode.ThemeColor.Create "fsharp.pipelineHints"))
         attachment.contentText <- Some text
 
         // Theme for the range
@@ -118,7 +119,7 @@ type State =
 
 module DecorationUpdate =
 
-    let interestingSymbolPositions (doc : TextDocument) (lines : PipelineHint[]) : (CodeRange.CodeRange * string [] * CodeRange.CodeRange option) []  =
+    let interestingSymbolPositions (doc : TextDocument) (lines : PipelineHint[]) : (Vscode.Range * string [] * Vscode.Range option) []  =
         lines
         |> Array.map (fun n ->
             let textLine = doc.lineAt (float n.Line)
@@ -126,13 +127,13 @@ module DecorationUpdate =
             textLine.range, n.Types, previousTextLine
         )
 
-    let private getSignature (index : int) (range : CodeRange.CodeRange, tts: string []) =
+    let private getSignature (index : int) (range : Vscode.Range, tts: string []) =
         let tt = tts.[index]
         let id = tt.IndexOf("is")
         let res = tt.Substring(id + 3)
         range, "  " + res
 
-    let private getSignatures (range : CodeRange.CodeRange, tts: string [], previousNonPipeLine : CodeRange.CodeRange option) =
+    let private getSignatures (range : Vscode.Range, tts: string [], previousNonPipeLine : Vscode.Range option) =
         match previousNonPipeLine with
         | Some previousLine ->
             [|

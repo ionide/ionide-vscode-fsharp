@@ -1,6 +1,7 @@
 namespace Ionide.VSCode.FSharp
 
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 open Fable.Core.JsInterop
 
@@ -241,7 +242,7 @@ module FSharpLiterate =
     let private updatePanel () =
         match Panel.panel with
         | Some _ ->
-            let textEditor = window.activeTextEditor
+            let textEditor = window.activeTextEditor.Value
             match textEditor.document with
             | Document.FSharpScript | Document.Markdown -> Panel.update textEditor
             | _ -> ()
@@ -255,10 +256,10 @@ module FSharpLiterate =
         updatePanel ()
 
     let fileSaved (event : TextDocument ) =
-        if event.fileName = window.activeTextEditor.document.fileName then updatePanel ()
+        if event.fileName = window.activeTextEditor.Value.document.fileName then updatePanel ()
 
 
     let activate (context : ExtensionContext) =
-        workspace.onDidSaveTextDocument.Invoke(unbox fileSaved) |> context.subscriptions.Add
-        window.onDidChangeActiveTextEditor.Invoke(unbox updatePanel) |> context.subscriptions.Add
-        commands.registerCommand("fsharp.openFSharpLiterate", openPanel |> objfy2) |> context.subscriptions.Add
+        workspace.onDidSaveTextDocument.Invoke(unbox fileSaved) |> context.Subscribe
+        window.onDidChangeActiveTextEditor.Invoke(unbox updatePanel) |> context.Subscribe
+        commands.registerCommand("fsharp.openFSharpLiterate", openPanel |> objfy2) |> context.Subscribe

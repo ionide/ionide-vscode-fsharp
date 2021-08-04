@@ -4,7 +4,8 @@ open System
 open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import
-open Fable.Import.vscode
+open Fable.Import.VSCode
+open Fable.Import.VSCode.Vscode
 open global.Node
 
 open DTO
@@ -43,23 +44,25 @@ module FsProjEdit =
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some "Choose a project"
 
-                let! projectPath = window.showQuickPick (projects |> U2.Case1, opts)
+                let! (projectPath: string option) = window.showQuickPick (projects |> U2.Case1, opts)
 
                 return!
-                    if JS.isDefined projectPath then
-                        let editor = vscode.window.activeTextEditor
+                    match projectPath with
+                    | Some projectPath ->
+                        match window.activeTextEditor with
+                        | Some editor ->
 
-                        let relativePathToFile =
-                            let dir = path.dirname projectPath
-                            path.relative (dir, editor.document.fileName)
+                            let relativePathToFile =
+                                let dir = path.dirname projectPath
+                                path.relative (dir, editor.document.fileName)
 
-                        addFile projectPath relativePathToFile
-                    else
+                            addFile projectPath relativePathToFile
+                        | None -> Promise.empty
+                    | None ->
                         Promise.empty
             else
-                return!
-                    window.showWarningMessage ("Can't find any project, run `dotnet new console -lang F#`", [||])
-                    |> Promise.map ignore
+                let! _ = window.showWarningMessage ("Can't find any project, run `dotnet new console -lang F#`", null)
+                return ()
         }
 
 
@@ -74,9 +77,10 @@ module FsProjEdit =
                 let! n = window.showQuickPick (projects |> U2.Case1, opts)
 
                 return!
-                    if JS.isDefined n && JS.isDefined path then
+                    match n, path with
+                    | Some n, Some path ->
                         LanguageService.dotnetAddProject path n
-                    else
+                    | _ ->
                         Promise.empty
         }
 
@@ -85,4 +89,4 @@ module FsProjEdit =
 
     let activate (context: ExtensionContext) =
         commands.registerTextEditorCommand ("fsharp.AddFileToProject", addCurrentFileToProject |> unbox)
-        |> context.subscriptions.Add
+        |> context.Subscribe
