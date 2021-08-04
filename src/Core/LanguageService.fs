@@ -8,6 +8,7 @@ open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 open global.Node
 open Ionide.VSCode.Helpers
+open Semver
 
 open DTO
 open LanguageServer
@@ -71,6 +72,23 @@ module LanguageService =
     let mutable client : LanguageClient option = None
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
+
+    /// runs `dotnet --version` in the current rootPath to determine the resolved sdk version from the global.json file.
+    let runtimeVersion() = promise {
+        let! dotnet = Environment.dotnet
+        match dotnet with
+        | None -> return Core.Error "No dotnet binary found"
+        | Some dotnet ->
+            let! (error, stdout, stderr) = Process.exec dotnet "" "--version"
+            match error with
+            | Some e -> return Core.Error $"error while invoking: {e.message}"
+            | None ->
+                let stdoutTrimmed = stdout.TrimEnd()
+                let semver = semver.parse(Some (U2.Case1 stdoutTrimmed))
+                match semver with
+                | None -> return Core.Error $"unable to parse version string '{stdoutTrimmed}'"
+                | Some semver -> return Core.Ok semver
+    }
 
 
     let compilerLocation () =
@@ -593,7 +611,7 @@ Consider:
             return Environment.configFsiSdkFilePath ()
         }
 
-    let private createClient opts =
+    let private createClient (opts: Executable) =
         let options =
             createObj [
                 "run" ==> opts
@@ -630,7 +648,7 @@ Consider:
         client <- Some cl
         cl
 
-    let getOptions () = promise {
+    let getOptions (): JS.Promise<Executable> = promise {
 
         let dotnetNotFound () = promise {
             let msg = """
@@ -650,13 +668,73 @@ Consider:
         let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
         let fsacSilencedLogs = "FSharp.fsac.silencedLogs" |> Configuration.get [||]
         let verbose = "FSharp.verboseLogging" |> Configuration.get false
-        let fsacDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
-        let spawnNetCore dotnet =
+
+
+
+        let discoverDotnetArgs () = promise {
+            let! (rollForwardArgs, necessaryEnvVariables) = promise {
+                let! sdkVersionAtRootPath = runtimeVersion()
+                match sdkVersionAtRootPath with
+                | Error e ->
+                    printfn $"FSAC (NETCORE): {e}"
+                    return [], []
+                | Ok v ->
+                    if v.major >= 6.0
+                    then
+                        // when we run on a sdk higher than 5.x (aka what FSAC is currently built/targeted for),
+                        // we have to tell the runtime to allow it to actually run on that runtime (instead of presenting 6.x as 5.x)
+                        // in order for msbuild resolution to work
+                        let args = ["--roll-forward"; "LatestMajor"]
+                        let envs =
+                            if v.prerelease <> null || v.prerelease.Count > 0
+                            then ["DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1]
+                            else []
+                        return args, envs
+                    else return [], []
+            }
+            let userDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
+            let hasUserRollForward = userDotnetArgs |> Array.tryFindIndex (fun a -> a = "--roll-forward") |> Option.map (fun _ -> true) |> Option.defaultValue false
+            let hasUserFxVersion = userDotnetArgs |> Array.tryFindIndex (fun a -> a = "--fx-version") |> Option.map (fun _ -> true) |> Option.defaultValue false
+            let shouldApplyImplicitRollForward = not (hasUserFxVersion || hasUserRollForward)
+
+            let args =
+                [
+                    if shouldApplyImplicitRollForward then yield! rollForwardArgs
+                    yield! userDotnetArgs
+                ]
+            let envVariables =
+                [
+                    if shouldApplyImplicitRollForward then yield! necessaryEnvVariables
+                ]
+
+            return args, envVariables
+        }
+
+        let spawnNetCore dotnet: JS.Promise<Executable> = promise {
             let fsautocompletePath =
                 if String.IsNullOrEmpty fsacNetcorePath
                 then VSCodeExtension.ionidePluginPath () + "/bin/fsautocomplete.dll"
                 else fsacNetcorePath
-            printfn "FSAC (NETCORE): '%s'" fsautocompletePath
+
+            let! (fsacDotnetArgs, fsacEnvVars) = discoverDotnetArgs()
+
+            printfn $"FSAC (NETCORE): '%s{fsautocompletePath}'"
+
+            let exeOpts = createEmpty<ExecutableOptions>
+            let exeEnv =
+                match fsacEnvVars with
+                | [] -> None
+                | fsacEnvVars ->
+                    // only need to set the process env if FSAC needs rollfoward env vars.
+                    let keys = Node.Util.Object.keys process.env
+                    let baseEnv = keys |> Seq.toList |> List.map (fun k -> k, process.env?(k))
+                    let combinedEnv =
+                        baseEnv @ fsacEnvVars
+                        |> ResizeArray
+                    let envObj = createObj combinedEnv
+                    Some envObj
+            exeOpts.env <- exeEnv
+
             let args =
                 [   yield! fsacDotnetArgs
                     yield fsautocompletePath
@@ -673,11 +751,12 @@ Consider:
                         yield! fsacSilencedLogs
                 ] |> ResizeArray
 
-            createObj [
-                "command" ==> dotnet
-                "args" ==> args
-                "transport" ==> 0
-            ]
+            let executable = createEmpty<Executable>
+            executable.command <- dotnet
+            executable.args <- Some args
+            executable.options <- Some exeOpts
+            return executable
+        }
 
         let! dotnet = Environment.dotnet
 
@@ -686,7 +765,7 @@ Consider:
 
         // dotnet SDK handling
         | Some dotnet ->
-            return spawnNetCore dotnet
+            return! spawnNetCore dotnet
         | None ->
             return! dotnetNotFound ()
 
