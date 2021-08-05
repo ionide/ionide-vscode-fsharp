@@ -1,3 +1,11 @@
+### 5.7.0 - 04.08.2021
+
+* Update FSAC to version 0.47.1 to get fixes for
+  * error handling around Fantomas formatting
+* automatically run FSAC under the .net 6 runtime if the project supports .net 6
+  * either a global.json that declares .Net 6 SDKs, or
+  * no global.json and a latest installed version of .Net 6
+
 ### 5.6.0 - 26.07.2021
 
 * Update FSAC to version 0.47.0 to get fixes for
