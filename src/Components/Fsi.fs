@@ -320,7 +320,6 @@ module Fsi =
         )
 
     let private start () =
-        fsiOutput |> Option.iter (fun n -> n.dispose())
         promise {
             let ctok = vscode.CancellationTokenSource.Create().token
             let! profile =
@@ -340,8 +339,6 @@ module Fsi =
                 | U2.Case1 opts -> window.createTerminal opts
                 | U2.Case2 opts -> window.createTerminal opts
 
-            setupTerminalState terminal
-            sendCd window.activeTextEditor
             terminal.show(true)
             return terminal
         }
