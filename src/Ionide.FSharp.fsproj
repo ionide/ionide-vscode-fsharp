@@ -21,7 +21,7 @@
       <Link>paket-files/Fable.Import.VSCode.LanguageServer.fs</Link>
     </Compile>
     <None Include="paket.references" />
-    <Compile Include="Imports/Node.Util.fs" />
+    <Compile Include="Imports/*.fs" />
     <Compile Include="Core/DTO.fs" />
     <Compile Include="Core/Utils.fs" />
     <Compile Include="Core/Environment.fs" />
