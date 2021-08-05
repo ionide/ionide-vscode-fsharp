@@ -1,3 +1,7 @@
+### 5.7.1 - 05.08.2021
+
+* Fix terminal initialization failure introduced in 5.7.0
+
 ### 5.7.0 - 04.08.2021
 
 * Update FSAC to version 0.47.1 to get fixes for
