@@ -233,22 +233,6 @@ module Fsi =
             let dir = workspace.rootPath.Value
             tempFsxFile dir, dir
 
-    type SendContext = { cwd: string; message: string }
-    type CDResult = NoChange of FsiTerminal | Change of FsiTerminal
-
-    let sendCd (fsiTerminal: FsiTerminal) (file, dir) =
-        let cdChanged, fsiTerminal' =
-            if fsiTerminal.CWD = dir then false, fsiTerminal
-            else
-                fsiTerminal.Terminal.sendText($"# silentCd @\"%s{dir}\";;\n", false)
-                true, { fsiTerminal with CWD = dir }
-        let fileChanged, fsiTerminal'' =
-            if fsiTerminal'.File = file then false, fsiTerminal'
-            else
-                fsiTerminal'.Terminal.sendText($"# %d{1} @\"%s{file}\"\n;;\n", false)
-                true, { fsiTerminal' with File = file }
-        if cdChanged || fileChanged then Change fsiTerminal'' else NoChange fsiTerminal''
-
     let fsiBinaryAndParameters () =
         let addWatcher =
             "FSharp.addFsiWatcher"
@@ -375,26 +359,36 @@ module Fsi =
             yield str.[i1..i2-1]
             i1 <- i2]
 
-    let private send (msg: string) =
-        let terminal = tryFindExistingTerminalForWindow ()
-        let msgWithNewline = msg + (if msg.Contains "//" then "\n" else "") + ";;\n"
-        match terminal with
-        | None -> start () |> Promise.map (fun _ -> tryFindExistingTerminalForWindow().Value)
-        | Some fo -> Promise.lift fo
-        |> Promise.onSuccess (fun fsiTerm ->
-            let file, dir = currentFsiContext ()
-            let fsiTerm =
-                // don't care about updating map right here because we're about to force an
-                // update anyway with the selection send
+    let spinUntilFound () =
+        promise {
+            let mutable t = Unchecked.defaultof<FsiTerminal>
+            while isNull (box t) do
+                match tryFindExistingTerminalForWindow() with
+                // we need to do a tiny sleep here to allow other promises to run (eg our event handler)
+                | None -> do! Promise.sleep 10
+                | Some f -> t <- f
+            return t
+        }
 
-                match sendCd fsiTerm (file, dir) with
-                | NoChange fsiTerm -> fsiTerm
-                | Change fsiTerm -> fsiTerm
-            fsiTerm.Terminal.show true
-            fsiTerm.Terminal.sendText(msgWithNewline, false)
+    let private send (msg: string) =
+        promise {
+            let terminal = tryFindExistingTerminalForWindow ()
+            let msgWithNewline = msg + (if msg.Contains "//" then "\n" else "") + ";;\n"
+            let! fsiTerm =
+                match terminal with
+                | None ->
+                    promise {
+                        let! _ = start ()
+                        // let the open terminal handler set things up here
+                        return! spinUntilFound()
+                    }
+                | Some fo -> Promise.lift fo
+
             let fsiTerm = { fsiTerm with LastSelection = Some msgWithNewline }
             updateTerminal fsiTerm
-        )
+            fsiTerm.Terminal.show true
+            fsiTerm.Terminal.sendText(msgWithNewline, false)
+            }
         |> Promise.onFail (fun _ ->
             window.showErrorMessage("Failed to send text to FSI", null) |> ignore
         )
@@ -518,10 +512,6 @@ module Fsi =
             }
             updateTerminal fsiTerminal
             setPIDForTerminal (terminal.processId, file) |> ignore
-            match sendCd fsiTerminal (currentFsiContext()) with
-            | Change t ->
-                updateTerminal t
-            | NoChange _ -> ()
         None
 
     let private generateProjectReferences () =
