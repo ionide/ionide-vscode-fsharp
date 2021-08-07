@@ -52,6 +52,29 @@ module Fsi =
             then checkForPatternsAndPromptUser () |> ignore
             else ()
 
+    type FsiTerminal = {
+        Terminal: Terminal
+        CWD: string
+        File: string
+        PID: int option
+        LastSelection: string option
+    }
+    let mutable terminals: Map<string, FsiTerminal> = Map.empty
+    let private terminalsLock = obj()
+
+    let updateTerminal (t: FsiTerminal) =
+        lock terminalsLock (fun _ ->
+            terminals <- Map.add t.File t terminals
+        )
+
+    let removeTerminal (t: FsiTerminal) =
+        lock terminalsLock (fun _ ->
+            terminals <- Map.remove t.File terminals
+        )
+
+    let findByPid (pid: int) =
+        terminals |> Map.tryPick (fun k t -> if t.PID = Some pid then Some t else None)
+
     module Watcher =
         let mutable panel : WebviewPanel option = None
 
@@ -195,40 +218,36 @@ module Fsi =
                 handler ()
             ))
 
-    let mutable fsiOutput : Terminal option = None
-    let mutable fsiOutputPID : int option = None
-    let mutable lastSelectionSent : string option = None
-
-    let mutable lastCd : string option = None
-    let mutable lastCurrentFile : string option = None
-
     let isSdk () =
         Configuration.get false "FSharp.useSdkScripts"
 
-    let sendCd (textEditor : TextEditor option) =
-        let file, dir =
-            match textEditor with
-            | Some textEditor ->
-                let file = textEditor.document.fileName
-                let dir = node.path.dirname file
-                file, dir
-            | None ->
-                let dir = workspace.rootPath.Value
-                node.path.join(dir, "tmp.fsx"), dir
+    let tempFsxFile (dir: string) = node.path.join(dir, "tmp.fsx")
 
-        match lastCd with
-        | Some(cd) when cd = dir -> ()
-        | _ ->
-            let msg = sprintf "# silentCd @\"%s\";;\n" dir
-            fsiOutput |> Option.iter (fun n -> n.sendText(msg, false))
-            lastCd <- Some dir
+    let currentFsiContext () =
+        match window.activeTextEditor with
+        | Some textEditor ->
+            let file = textEditor.document.fileName
+            let dir = node.path.dirname file
+            file, dir
+        | None ->
+            let dir = workspace.rootPath.Value
+            tempFsxFile dir, dir
 
-        match lastCurrentFile with
-        | Some (currentFile) when currentFile = file -> ()
-        | _ ->
-            let msg = sprintf "# %d @\"%s\"\n;;\n" 1 file
-            fsiOutput |> Option.iter (fun n -> n.sendText(msg, false))
-            lastCurrentFile <- Some file
+    type SendContext = { cwd: string; message: string }
+    type CDResult = NoChange of FsiTerminal | Change of FsiTerminal
+
+    let sendCd (fsiTerminal: FsiTerminal) (file, dir) =
+        let cdChanged, fsiTerminal' =
+            if fsiTerminal.CWD = dir then false, fsiTerminal
+            else
+                fsiTerminal.Terminal.sendText($"# silentCd @\"%s{dir}\";;\n", false)
+                true, { fsiTerminal with CWD = dir }
+        let fileChanged, fsiTerminal'' =
+            if fsiTerminal'.File = file then false, fsiTerminal'
+            else
+                fsiTerminal'.Terminal.sendText($"# %d{1} @\"%s{file}\"\n;;\n", false)
+                true, { fsiTerminal' with File = file }
+        if cdChanged || fileChanged then Change fsiTerminal'' else NoChange fsiTerminal''
 
     let fsiBinaryAndParameters () =
         let addWatcher =
@@ -287,15 +306,19 @@ module Fsi =
                     promise {
                         let! (fsiBinary, fsiArguments) = fsiBinaryAndParameters ()
                         let fsiArguments = U2.Case1 (ResizeArray fsiArguments)
+                        let file, cwd = currentFsiContext()
                         let name =
                             if isSdk ()
                             then fsiNetCoreName
                             else fsiNetFrameworkName
 
+                        let fullName = $"{name}: {file}"
+
                         let options: TerminalOptions = createEmpty<_>
-                        options.name <- Some name
+                        options.name <- Some fullName
                         options.shellArgs <- Some fsiArguments
                         options.shellPath <- Some fsiBinary
+                        options.cwd <- Some (U2.Case1 cwd)
                         let profile : TerminalProfile = createEmpty<_>
                         profile.options <- U2.Case1 options
                         return Some profile
@@ -304,23 +327,23 @@ module Fsi =
                 Some (U2.Case2 work)
             }
 
-    let private setupTerminalState (terminal: Terminal) =
-        terminal.processId
-        |> Promise.ofThenable
-        |> Promise.onSuccess (fun pid -> fsiOutputPID <- Option.map int pid)
-        |> ignore
-        lastCd <- None
-        lastCurrentFile <- None
-        fsiOutput <- Some terminal
-
-    let tryFindExistingTerminal () =
-        window.terminals
-        |> Seq.tryFind (fun t ->
-            t.name = fsiNetFrameworkName || t.name = fsiNetCoreName
-        )
+    let tryFindExistingTerminalForWindow () =
+        let file, dir = currentFsiContext ()
+        let terminal =
+            terminals
+            |> Map.tryFind file
+            |> Option.orElseWith (fun _ -> Map.tryFind (tempFsxFile dir) terminals)
+        terminal
 
     let private start () =
         promise {
+            let currentTerminal = tryFindExistingTerminalForWindow ()
+            currentTerminal
+            |> Option.iter (fun t ->
+                t.Terminal.dispose()
+                removeTerminal t
+            )
+
             let ctok = vscode.CancellationTokenSource.Create().token
             let! profile =
                 match provider.provideTerminalProfile(ctok) with
@@ -333,12 +356,11 @@ module Fsi =
                 | None ->
                     window.showErrorMessage("Unable to spawn FSI", null) |> ignore
                     failwith "unable to spawn FSI"
-
-            let terminal =
+            let opts =
                 match profile.options with
-                | U2.Case1 opts -> window.createTerminal opts
-                | U2.Case2 opts -> window.createTerminal opts
-
+                | U2.Case1 opts -> opts
+                | U2.Case2 _ -> failwith "we never provide these opts"
+            let terminal = window.createTerminal opts
             terminal.show(true)
             return terminal
         }
@@ -353,15 +375,25 @@ module Fsi =
             yield str.[i1..i2-1]
             i1 <- i2]
 
-    let private send (msg : string) =
+    let private send (msg: string) =
+        let terminal = tryFindExistingTerminalForWindow ()
         let msgWithNewline = msg + (if msg.Contains "//" then "\n" else "") + ";;\n"
-        match fsiOutput with
-        | None -> start ()
+        match terminal with
+        | None -> start () |> Promise.map (fun _ -> tryFindExistingTerminalForWindow().Value)
         | Some fo -> Promise.lift fo
-        |> Promise.onSuccess (fun fp ->
-            fp.show true
-            fp.sendText(msgWithNewline, false)
-            lastSelectionSent <- Some msg
+        |> Promise.onSuccess (fun fsiTerm ->
+            let file, dir = currentFsiContext ()
+            let fsiTerm =
+                // don't care about updating map right here because we're about to force an
+                // update anyway with the selection send
+
+                match sendCd fsiTerm (file, dir) with
+                | NoChange fsiTerm -> fsiTerm
+                | Change fsiTerm -> fsiTerm
+            fsiTerm.Terminal.show true
+            fsiTerm.Terminal.sendText(msgWithNewline, false)
+            let fsiTerm = { fsiTerm with LastSelection = Some msgWithNewline }
+            updateTerminal fsiTerm
         )
         |> Promise.onFail (fun _ ->
             window.showErrorMessage("Failed to send text to FSI", null) |> ignore
@@ -372,7 +404,6 @@ module Fsi =
         let _ = editor.document.fileName
         let pos = editor.selection.start
         let line = editor.document.lineAt pos
-        sendCd (Some editor)
         send line.text
         |> Promise.onSuccess (fun _ -> commands.executeCommand("cursorDown", null) |> ignore)
         |> Promise.suppress // prevent unhandled promise exception
@@ -380,9 +411,6 @@ module Fsi =
 
     let private sendSelection () =
         let editor = window.activeTextEditor.Value
-        let _ = editor.document.fileName
-
-        sendCd (Some editor)
         if editor.selection.isEmpty then
             sendLine ()
         else
@@ -393,22 +421,24 @@ module Fsi =
             |> ignore
 
     let private sendLastSelection () =
-        match lastSelectionSent with
-        | Some x ->
-            if "FSharp.saveOnSendLastSelection" |> Configuration.get false then
-                window.activeTextEditor.Value.document.save () |> Promise.ofThenable
-            else
-                Promise.lift true
-            |> Promise.bind(fun _ ->
-                send x)
+        match tryFindExistingTerminalForWindow () with
+        | Some ({ LastSelection = Some message }) ->
+            let saveIfNecessary =
+                if "FSharp.saveOnSendLastSelection" |> Configuration.get false then
+                    window.activeTextEditor.Value.document.save () |> Promise.ofThenable
+                else
+                    Promise.lift true
+            saveIfNecessary
+            |> Promise.bind(fun _ -> send message)
             |> Promise.suppress // prevent unhandled promise exception
             |> ignore
+        | Some _
         | None -> ()
 
     let private sendFile () =
         let editor = window.activeTextEditor.Value
         let text = editor.document.getText ()
-        sendCd (Some editor)
+
         send text
         |> Promise.suppress // prevent unhandled promise exception
         |> ignore
@@ -418,52 +448,81 @@ module Fsi =
         |> Promise.suppress // prevent unhandled promise exception
         |> ignore
 
-    let private referenceAssembly (path : ResolvedReferencePath) = path |> sprintf "#r @\"%s\"" |> send
-    let private referenceAssemblies = Promise.executeForAll referenceAssembly
+    let private referenceAssembly (path : ResolvedReferencePath) = $"#r @\"%s{path}\"\n"
+
+    let sendReferencesForProject project =
+        project.References
+        |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not )
+        |> Seq.toList
+        |> List.map referenceAssembly
+        |> String.concat ""
+        |> send
+        |> Promise.suppress
+        |> ignore
 
     let private sendReferences () =
-        window.activeTextEditor.Value.document.fileName
-        |> Project.tryFindLoadedProjectByFile
-        |> Option.iter (fun p ->
-            sendCd window.activeTextEditor
-            p.References
-            |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not )
-            |> Seq.toList
-            |> referenceAssemblies
-            |> Promise.suppress
-            |> ignore)
+        match window.activeTextEditor with
+        | None -> ()
+        | Some editor ->
+            editor.document.fileName
+            |> Project.tryFindLoadedProjectByFile
+            |> Option.iter sendReferencesForProject
 
-
-    let private clearOldTerminalState () =
-        fsiOutput |> Option.iter (fun t -> t.dispose())
 
     let private handleCloseTerminal (terminal : Terminal) =
-        fsiOutputPID
-        |> Option.iter (fun currentTerminalPID ->
-            terminal.processId
-            |> Promise.ofThenable
-            |> Promise.onSuccess (fun closedTerminalPID ->
-                if Option.map int closedTerminalPID = Some currentTerminalPID then
-                    fsiOutput <- None
-                    fsiOutputPID <- None
-                    lastCd <- None
-                    lastCurrentFile <- None)
-            |> Promise.suppress // prevent unhandled promise exception
-            |> ignore)
-        |> ignore
-        None
+        promise {
+            match! terminal.processId with
+            | Some pid ->
+                match findByPid (int pid) with
+                | Some terminal ->
+                    removeTerminal terminal
+                | None -> ()
+            | None -> ()
+        }
+        |> box
+        |> Some
+
+    let setPIDForTerminal (pid: Thenable<option<float>>, terminalPath: string) = promise {
+        match! pid with
+        | Some pid ->
+            let pid = int pid
+            let terminal = terminals |> Map.tryFind terminalPath
+            match terminal with
+            | Some terminal ->
+                let terminal' = { terminal with PID = Some pid }
+                updateTerminal terminal'
+            | None -> ()
+        | None -> ()
+    }
 
     // when a new terminal is created, if it's FSI and if we don't already have a terminal then setup the state for tracking FSI
     let private handleOpenTerminal (terminal: Terminal) =
-        if terminal.name = fsiNetCoreName || terminal.name = fsiNetFrameworkName
+        if terminal.name.StartsWith fsiNetCoreName || terminal.name.StartsWith fsiNetFrameworkName
         then
-            clearOldTerminalState ()
-            setupTerminalState terminal
-            // initially have to set up the terminal to be in the correct start directory
-            sendCd window.activeTextEditor
+            // clean out any existing terminals for this scope
+            match tryFindExistingTerminalForWindow () with
+            | Some t ->
+                // because this is the only method that adds to the terminals list, we should close an existing terminal for this context
+                t.Terminal.dispose()
+                removeTerminal t
+            | None -> ()
 
+            // new terminal created, must do book-keeping to discover filename and cwd from creation options
+            let file = terminal.name.Split(':').[1].Trim()
+            let fsiTerminal = {
+                Terminal = terminal
+                File = file
+                CWD = unbox ((unbox terminal.creationOptions) : TerminalOptions).cwd
+                PID = None
+                LastSelection = None
+            }
+            updateTerminal fsiTerminal
+            setPIDForTerminal (terminal.processId, file) |> ignore
+            match sendCd fsiTerminal (currentFsiContext()) with
+            | Change t ->
+                updateTerminal t
+            | NoChange _ -> ()
         None
-
 
     let private generateProjectReferences () =
         let ctn =
@@ -484,15 +543,10 @@ module Fsi =
                     let p = vscode.Position.Create(0.,0.)
                     let ctn = c |> String.concat "\n"
                     e.insert(p,ctn))
-
-
                 return ()
             | None ->
                 return ()
         }
-
-    let sendReferencesForProject project =
-        project.References  |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not ) |> Seq.toList |> referenceAssemblies |> Promise.suppress |> ignore
 
     let generateProjectReferencesForProject project =
         let ctn =
