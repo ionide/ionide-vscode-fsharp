@@ -30,6 +30,9 @@ module Notifications =
                                                    -> unit> =
         None
 
+    let testDetectedEmitter = vscode.EventEmitter.Create<TestForFile>()
+    let testDetected = testDetectedEmitter.event
+
 module LanguageService =
     module Types =
         type PlainNotification = { content: string }
@@ -809,8 +812,12 @@ Consider:
                               Notifications.document = te.document }
 
                         Notifications.onDocumentParsedEmitter.fire ev))
-            ))
+            )
 
+            cl.onNotification("fsharp/testDetected", (fun (a: TestForFile ) ->
+                Notifications.testDetectedEmitter.fire a
+            ))
+        )
 
     let start (c: ExtensionContext) =
         promise {
