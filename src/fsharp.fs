@@ -87,6 +87,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
         tryActivate "gitignore" Gitignore.activate context
         tryActivate "fsharpliterate" FSharpLiterate.activate context
         tryActivate "pipelinehints" PipelineHints.activate context
+        tryActivate "testExplorer" TestExploer.activate context
 
         let buildProject project =
             promise {
