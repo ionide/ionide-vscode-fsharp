@@ -4,6 +4,7 @@ open Fable.Import
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 open Ionide.VSCode.Helpers
+open Fable.Core
 
 module Fsdn =
 

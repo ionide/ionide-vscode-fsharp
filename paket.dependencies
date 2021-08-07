@@ -13,7 +13,7 @@ nuget Thoth.Json
 
 git https://github.com/ionide/ionide-fsgrammar.git master
 
-github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
+github ionide/ionide-vscode-helpers:cbebba1858cacad5eb13236d404a73d1093f75b5 src/Fable.Import.VSCode.fs
 github ionide/ionide-vscode-helpers src/Helpers.fs
 github ionide/ionide-vscode-helpers src/Fable.Import.Showdown.fs
 github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.LanguageServer.fs

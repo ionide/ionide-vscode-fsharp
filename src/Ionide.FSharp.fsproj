@@ -48,6 +48,7 @@
     <Compile Include="Components/FakeTargetsOutline.fs" />
     <Compile Include="Components/FSharpLiterate.fs" />
     <Compile Include="Components/PipelineHints.fs" />
+    <Compile Include="Components/TestExplorer.fs" />
     <Compile Include="fsharp.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
