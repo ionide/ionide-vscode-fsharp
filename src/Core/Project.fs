@@ -480,8 +480,14 @@ module Project =
         }
 
     let getLauncher outputChannel (project : Project) =
-        let execDotnet = fun args ->
-            let cmd = "run -p " + (String.quote project.Project) + if String.IsNullOrEmpty args then "" else " -- " + args
+        let execDotnet = fun (args: ResizeArray<string>) ->
+            let cmd =
+                [ yield "run";
+                  yield "-p";
+                  yield project.Project;
+                  if args.Count = 0 then () else yield "--";
+                  yield! args ]
+                |> ResizeArray
             execWithDotnet outputChannel cmd
         match project.OutputType, isNetCoreApp project with
         | "exe", true -> Some execDotnet
@@ -490,8 +496,14 @@ module Project =
         | _ -> None
 
     let getLauncherWithShell  (project : Project) =
-        let execDotnet = fun args ->
-            let cmd = "run -p " + (String.quote project.Project) + if String.IsNullOrEmpty args then "" else " -- " + args
+        let execDotnet = fun (args: ResizeArray<string>) ->
+            let cmd =
+                [ yield "run";
+                  yield "-p";
+                  yield project.Project;
+                  if args.Count = 0 then () else yield "--";
+                  yield! args ]
+                |> ResizeArray
             execWithDotnetWithShell cmd
         match project.OutputType, isNetCoreApp project with
         | "exe", true -> Some execDotnet

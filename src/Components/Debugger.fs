@@ -64,7 +64,7 @@ module Debugger =
                 window.showWarningMessage("Can't start project", null)
                 |> ignore
             | Some l ->
-                let! terminal = l ""
+                let! terminal = l (ResizeArray())
                 terminal.show()
         }
 

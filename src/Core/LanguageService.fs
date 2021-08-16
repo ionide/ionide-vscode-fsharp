@@ -79,7 +79,7 @@ module LanguageService =
         match dotnet with
         | None -> return Core.Error "No dotnet binary found"
         | Some dotnet ->
-            let! (error, stdout, stderr) = Process.exec dotnet "" "--version"
+            let! (error, stdout, stderr) = Process.exec dotnet "" (ResizeArray(["--version"]))
             match error with
             | Some e -> return Core.Error $"error while invoking: {e.message}"
             | None ->
