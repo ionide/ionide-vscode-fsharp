@@ -25,7 +25,7 @@ module Environment =
         Configuration.tryGet "FSharp.fsiSdkFilePath"
 
     // because the buffers from console output contain newlines, we need to trim them out if we want to have usable path inputs
-    let spawnAndGetTrimmedOutput command args =
+    let spawnAndGetTrimmedOutput command (args: ResizeArray<string>) =
         Process.exec command args
         |> Promise.map (fun (err, stdoutBuf, stderrBuf) -> err, stdoutBuf |> string |> String.trim, stderrBuf |> string |> String.trim )
 
