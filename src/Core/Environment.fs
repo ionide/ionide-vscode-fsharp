@@ -25,17 +25,17 @@ module Environment =
         Configuration.tryGet "FSharp.fsiSdkFilePath"
 
     // because the buffers from console output contain newlines, we need to trim them out if we want to have usable path inputs
-    let spawnAndGetTrimmedOutput windowsCommand linuxCommand args =
-        Process.exec windowsCommand linuxCommand args
+    let spawnAndGetTrimmedOutput command args =
+        Process.exec command args
         |> Promise.map (fun (err, stdoutBuf, stderrBuf) -> err, stdoutBuf |> string |> String.trim, stderrBuf |> string |> String.trim )
 
     let tryGetTool toolName =
         if isWin then
-            spawnAndGetTrimmedOutput "cmd /C where" "" (ResizeArray([toolName]))
+            spawnAndGetTrimmedOutput "cmd /C where"(ResizeArray([toolName]))
             |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None )
             |> Promise.map (Option.bind (fun paths -> paths.Split('\n') |> Array.map (String.trim) |> Array.tryHead))
         else
-            spawnAndGetTrimmedOutput "which" "" (ResizeArray([toolName]))
+            spawnAndGetTrimmedOutput "which" (ResizeArray([toolName]))
             |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None )
 
     let dotnet =
