@@ -483,7 +483,7 @@ module Project =
         let execDotnet = fun (args: ResizeArray<string>) ->
             let cmd =
                 [ yield "run";
-                  yield "-p";
+                  yield "--project";
                   yield project.Project;
                   if args.Count = 0 then () else yield "--";
                   yield! args ]
@@ -499,7 +499,7 @@ module Project =
         let execDotnet = fun (args: ResizeArray<string>) ->
             let cmd =
                 [ yield "run";
-                  yield "-p";
+                  yield "--project";
                   yield project.Project;
                   if args.Count = 0 then () else yield "--";
                   yield! args ]
