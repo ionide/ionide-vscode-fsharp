@@ -52,10 +52,10 @@ GIT
      (fc4cac6d9bc1787f54ce48bbc77bcbb1de8160ff)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Showdown.fs (257c0efaf39c1f17eeccad5dd909feb7b3b4b43f)
-    src/Fable.Import.VSCode.fs (257c0efaf39c1f17eeccad5dd909feb7b3b4b43f)
-    src/Fable.Import.VSCode.LanguageServer.fs (257c0efaf39c1f17eeccad5dd909feb7b3b4b43f)
-    src/Helpers.fs (3588a39c4d5a1011b2a58e9b8fd77dd1a52c7deb)
+    src/Fable.Import.Showdown.fs (5afa130a6985c2de3b87e72ce69db2189fe64f25)
+    src/Fable.Import.VSCode.fs (5afa130a6985c2de3b87e72ce69db2189fe64f25)
+    src/Fable.Import.VSCode.LanguageServer.fs (5afa130a6985c2de3b87e72ce69db2189fe64f25)
+    src/Helpers.fs (5afa130a6985c2de3b87e72ce69db2189fe64f25)
 GROUP build
 STORAGE: NONE
 RESTRICTION: == netstandard2.0
