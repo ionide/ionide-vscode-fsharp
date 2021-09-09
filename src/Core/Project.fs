@@ -456,13 +456,13 @@ module Project =
         promise {
             let! dotnet = LanguageService.dotnet ()
             match dotnet with
-            | Some dotnet -> return Process.spawnWithNotification dotnet "" cmd outputChannel
+            | Some dotnet -> return Process.spawnWithNotification dotnet cmd outputChannel
             | None -> return! Promise.reject "dotnet binary not found"
         }
 
     let exec exe outputChannel cmd =
         promise {
-            return Process.spawnWithNotification exe "mono" cmd outputChannel
+            return Process.spawnWithNotification exe cmd outputChannel
         }
 
     let private execWithDotnetWithShell cmd =
@@ -470,32 +470,32 @@ module Project =
             let! dotnet = LanguageService.dotnet ()
             match dotnet with
             | Some dotnet ->
-                return Process.spawnWithShell dotnet "" cmd
+                return Process.spawnWithShell dotnet cmd
             | None -> return! Promise.reject "dotnet binary not found"
         }
 
     let private execWithShell exe cmd =
         promise {
-            return Process.spawnWithShell exe "mono" cmd
+            return Process.spawnWithShell exe cmd
         }
 
     let getLauncher outputChannel (project : Project) =
         let execDotnet = fun args ->
-            let cmd = "run -p " + (String.quote project.Project) + if String.IsNullOrEmpty args then "" else " -- " + args
+            let cmd = ResizeArray (["run"; "-p"; project.Project; if not (List.isEmpty args) then " -- "; ] @ args)
             execWithDotnet outputChannel cmd
         match project.OutputType, isNetCoreApp project with
         | "exe", true -> Some execDotnet
-        | "exe", _  -> Some (fun args -> exec project.Output outputChannel args)
+        | "exe", _  -> Some (fun args -> exec project.Output outputChannel (ResizeArray args))
         | _ , true -> Some execDotnet
         | _ -> None
 
     let getLauncherWithShell  (project : Project) =
         let execDotnet = fun args ->
-            let cmd = "run -p " + (String.quote project.Project) + if String.IsNullOrEmpty args then "" else " -- " + args
+            let cmd = ResizeArray (["run"; "-p"; project.Project; if not (List.isEmpty args) then " -- "; ] @ args)
             execWithDotnetWithShell cmd
         match project.OutputType, isNetCoreApp project with
         | "exe", true -> Some execDotnet
-        | "exe", _ -> Some (fun args -> execWithShell project.Output args)
+        | "exe", _ -> Some (fun args -> execWithShell project.Output (ResizeArray args))
         | _, true -> Some execDotnet
         | _ -> None
 

@@ -14,7 +14,7 @@ type Api =
     { ProjectLoadedEvent : Event<DTO.Project>
       BuildProject : DTO.Project -> JS.Promise<string>
       BuildProjectFast : DTO.Project -> JS.Promise<string>
-      GetProjectLauncher : OutputChannel -> DTO.Project -> (string -> JS.Promise<ChildProcess>) option
+      GetProjectLauncher : OutputChannel -> DTO.Project -> (string list -> JS.Promise<ChildProcess>) option
       DebugProject : DTO.Project -> string [] -> JS.Promise<unit> }
 
 let activate (context : ExtensionContext) : JS.Promise<Api> =

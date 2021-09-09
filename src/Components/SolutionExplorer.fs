@@ -581,7 +581,8 @@ module SolutionExplorer =
 
                                 let proj =
                                     path.join(workspace.rootPath.Value, dir, name, pname)
-                                Project.execWithDotnet MSBuild.outputChannel (sprintf "sln %s add %s" slnName proj) |> ignore
+                                let args = ["sln"; slnName; "add"; proj]
+                                Project.execWithDotnet MSBuild.outputChannel (ResizeArray args) |> ignore
                             | _ ->
                                 //If it's the first project in the workspace we need to init the workspace
                                 if Project.getInWorkspace().IsEmpty then
@@ -1087,7 +1088,8 @@ module SolutionExplorer =
                         let! proj = window.showQuickPick (unbox projs)
                         match proj with
                         | Some proj ->
-                            Project.execWithDotnet MSBuild.outputChannel (sprintf "sln %s add %s" name proj) |> ignore
+                            let args = ["sln"; name; "add"; proj]
+                            Project.execWithDotnet MSBuild.outputChannel (ResizeArray args) |> ignore
                         | None -> ()
                 }
                 |> unbox

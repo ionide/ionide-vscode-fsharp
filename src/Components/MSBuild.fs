@@ -22,8 +22,7 @@ module MSBuild =
             let cfg = workspace.getConfiguration()
             cfg.get ("FSharp.msbuildAutoshow", false)
 
-        let safeproject = sprintf "\"%s\"" project
-        let command = sprintf "%s /t:%s" safeproject target
+        let command = [project; $"/t:%s{target}"]
         let executeWithHost () =
             promise {
                 let! msbuildPath =
@@ -31,10 +30,10 @@ module MSBuild =
                     |> Promise.bind (function Some msbuild -> Promise.lift msbuild
                                             | None -> Promise.reject "dotnet SDK not found. Please install it from the [Dotnet SDK Download Page](https://www.microsoft.com/net/download)")
 
-                let cmd = sprintf "msbuild %s" command
-                logger.Info("invoking msbuild from %s on %s for target %s", msbuildPath, safeproject, target)
+                let cmd = ResizeArray ("msbuild" :: command)
+                logger.Info("invoking msbuild from %s on %s for target %s", msbuildPath, project, target)
                 if autoshow then outputChannel.show(?preserveFocus = None)
-                return! Process.spawnWithNotification msbuildPath "" cmd outputChannel
+                return! Process.spawnWithNotification msbuildPath cmd outputChannel
                         |> Process.toPromise
             }
 
