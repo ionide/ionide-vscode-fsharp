@@ -1,3 +1,11 @@
+### 5.7.2 - 09.09.2021
+
+* Update Fable dependencies
+* Update FSAC to version 0.47.2 to get fixes for
+  * dotnet new template parsing
+  * Don't provide completions or tooltips for string literals of all kinds
+    * this enables better integrations with html/sql/css extensions powered by then [Highlight HTML/SQL templates in F#](https://marketplace.visualstudio.com/items?itemName=alfonsogarciacaro.vscode-template-fsharp-highlight) extension.
+
 ### 5.7.1 - 05.08.2021
 
 * Fix terminal initialization failure introduced in 5.7.0
