@@ -31,7 +31,7 @@ module Environment =
 
     let tryGetTool toolName =
         if isWin then
-            spawnAndGetTrimmedOutput "cmd /C where" (ResizeArray [toolName])
+            spawnAndGetTrimmedOutput "cmd" (ResizeArray ["/C"; "where"; toolName])
             |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None )
             |> Promise.map (Option.bind (fun paths -> paths.Split('\n') |> Array.map (String.trim) |> Array.tryHead))
         else
