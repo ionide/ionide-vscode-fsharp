@@ -1,3 +1,7 @@
+### 5.7.3 - 10.09.2021
+
+* [Fix bug in windows CLI calls](https://github.com/ionide/ionide-vscode-fsharp/pull/1579) (thanks @alfonsogarciacaro)
+
 ### 5.7.2 - 09.09.2021
 
 * Update Fable dependencies
