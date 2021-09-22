@@ -45,6 +45,12 @@ module Environment =
             |> Some
             |> Promise.lift)
         |> Option.defaultWith (fun () -> tryGetTool "dotnet" )
+        |> Promise.map (Option.map (fun path ->
+            // paths with spaces must be wrapped to ensure a 'single' command
+            if path.Contains " "
+            then "\"" + path + "\""
+            else path
+        ))
 
 
     let ensureDirectory (path : string) =

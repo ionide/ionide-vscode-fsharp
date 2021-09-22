@@ -676,7 +676,7 @@ Consider:
                 let! sdkVersionAtRootPath = runtimeVersion()
                 match sdkVersionAtRootPath with
                 | Error e ->
-                    printfn $"FSAC (NETCORE): {e}"
+                    printfn $"Error discovering .Net SDK version: {e}"
                     return [], []
                 | Ok v ->
                     if v.major >= 6.0
