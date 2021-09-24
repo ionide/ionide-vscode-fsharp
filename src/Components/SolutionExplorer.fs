@@ -371,25 +371,25 @@ module SolutionExplorer =
                 let icon, resourceUri =
                     match element with
                     | File (_, path, _, _, _)
-                    | Project (_, path, _, _, _, _, _, _)
                     | ProjectNotLoaded (_, path, _)
                     | ProjectLoading (_, path, _)
                     | ProjectFailedToLoad (_, path, _, _)
                     | ProjectNotRestored (_, path, _, _)
-                    | ProjectLanguageNotSupported (_, path, _)
-                    | Solution (_, path, _, _)  ->
+                    | ProjectLanguageNotSupported (_, path, _) ->
                         vscode.ThemeIcon.File |> U4.Case4 |> Some, vscode.Uri.file path |> Some
+                    | Project (_, path, _, _, _, _, _, _)
+                    | Solution (_, path, _, _)
                     | Folder (_, _, path, _,_) ->
                         vscode.ThemeIcon.Folder |> U4.Case4 |> Some, vscode.Uri.file path |> Some
+                    | PackageReferenceList _
+                    | ProjectReferencesList _
                     | WorkspaceFolder _  ->
                         vscode.ThemeIcon.Folder |> U4.Case4 |> Some, None
                     | PackageReference (_, path, _, _) | ProjectReference (_, path, _, _) ->
                         p.light <- (plugPath + "/images/circuit-board-light.svg") |> U2.Case1
                         p.dark <- (plugPath + "/images/circuit-board-dark.svg") |> U2.Case1
                         p |> U4.Case3 |> Some, vscode.Uri.file path |> Some
-                    | Workspace _
-                    | PackageReferenceList _
-                    | ProjectReferencesList _ ->
+                    | Workspace _ ->
                         None, None
                 ti.iconPath <- icon
                 ti.resourceUri <- resourceUri
