@@ -119,7 +119,7 @@
 			},
 			{
 				"command": "fsharp.scriptrunner.run",
-				"title": "F#: Run script",
+				"title": "FSharp: Run script",
 				"icon": {
 					"light": "./images/run-light.svg",
 					"dark": "./images/run-dark.svg"
@@ -127,7 +127,7 @@
 			},
 			{
 				"command": "fsharp.NewProject",
-				"title": "F#: New Project",
+				"title": "FSharp: New Project",
 				"icon": {
 					"light": "./images/add-light.svg",
 					"dark": "./images/add-dark.svg"
@@ -135,27 +135,27 @@
 			},
 			{
 				"command": "fsharp.AddFileToProject",
-				"title": "F#: Add Current File To Project"
+				"title": "FSharp: Add Current File To Project"
 			},
 			{
 				"command": "fsharp.getHelp",
-				"title": "F#: Get Help"
+				"title": "FSharp: Get Help"
 			},
 			{
 				"command": "fsharp.generateDoc",
-				"title": "F#: Generate Documentation"
+				"title": "FSharp: Generate Documentation"
 			},
 			{
 				"command": "fsharp.clearCache",
-				"title": "F#: Clear Project Cache"
+				"title": "FSharp: Clear Project Cache"
 			},
 			{
 				"command": "fsharp.changeWorkspace",
-				"title": "F#: Change Workspace or Solution"
+				"title": "FSharp: Change Workspace or Solution"
 			},
 			{
 				"command": "fsharp.fsdn",
-				"title": "F#: Search by signatures on FSDN"
+				"title": "FSharp: Search by signatures on FSDN"
 			},
 			{
 				"command": "MSBuild.buildCurrent",
@@ -276,12 +276,12 @@
 			{
 				"command": "fsharp.diagnostics.getInfos",
 				"title": "Get info for diagnostics",
-				"category": "F#"
+				"category": "FSharp"
 			},
 			{
 				"command": "fsharp.diagnostics.getIonideLogs",
 				"title": "Get Ionide logs",
-				"category": "F#"
+				"category": "FSharp"
 			},
 			{
 				"command": "fsharp.explorer.msbuild.build",
@@ -345,17 +345,17 @@
 			},
 			{
 				"command": "fsharp.runDefaultProject",
-				"title": "F#: Run Default Project",
+				"title": "FSharp: Run Default Project",
 				"icon": "./images/run.png"
 			},
 			{
 				"command": "fsharp.debugDefaultProject",
-				"title": "F#: Debug Default Project",
+				"title": "FSharp: Debug Default Project",
 				"icon": "./images/debug.png"
 			},
 			{
 				"command": "fsharp.chooseDefaultProject",
-				"title": "F#: Choose Default Project"
+				"title": "FSharp: Choose Default Project"
 			},
 			{
 				"command": "fsharp.explorer.solution.addProject",
@@ -365,12 +365,12 @@
 				"command": "fsharp.htmlConverter.convert",
 				"title": "Convert html to Elmish",
 				"description": "Converts your selection to Elmish by assuming that your selection is HTML code",
-				"category": "F#"
+				"category": "FSharp"
 			},
 			{
 				"command": "fsharp.revealInSolutionExplorer",
 				"title": "Reveal in solution explorer",
-				"category": "F#",
+				"category": "FSharp",
 				"icon": {
 					"light": "./images/auto-reveal-light.svg",
 					"dark": "./images/auto-reveal-dark.svg"
@@ -380,13 +380,13 @@
 				"command": "fsharp.openInfoPanel",
 				"title": "Open Info Panel",
 				"description": "Opens Info Panel displaying documentation",
-				"category": "F#"
+				"category": "FSharp"
 			},
 			{
 				"command": "fsharp.updateInfoPanel",
 				"title": "Update Info Panel",
 				"description": "Updates Info Panel with documentation of current symbol",
-				"category": "F#"
+				"category": "FSharp"
 			},
 			{
 				"command": "fsharp.showDocumentation",
@@ -395,7 +395,7 @@
 			{
 				"command": "fsharp.openInfoPanel.lock",
 				"title": "Lock Info Panel",
-				"category": "F#",
+				"category": "FSharp",
 				"icon": {
 					"light": "./images/lock-solid-light.svg",
 					"dark": "./images/lock-solid.svg"
@@ -404,7 +404,7 @@
 			{
 				"command": "fsharp.openInfoPanel.unlock",
 				"title": "Unlock Info Panel",
-				"category": "F#",
+				"category": "FSharp",
 				"icon": {
 					"light": "./images/lock-open-solid-light.svg",
 					"dark": "./images/lock-open-solid.svg"
@@ -452,8 +452,8 @@
 			},
 			{
 				"command": "fsharp.openFSharpLiterate",
-				"category": "F#",
-				"title": "Show F# Literate preview"
+				"category": "FSharp",
+				"title": "Show FSharp Literate preview"
 			}
 		],
 		"viewsContainers": {
