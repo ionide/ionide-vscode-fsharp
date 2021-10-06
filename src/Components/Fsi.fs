@@ -213,7 +213,7 @@ module Fsi =
                 let dir = node.path.dirname file
                 file, dir
             | None ->
-                let dir = workspace.rootPath.Value
+                let dir = workspace.workspaceFolders.Value.[0].uri.path
                 node.path.join(dir, "tmp.fsx"), dir
 
         match lastCd with
@@ -477,7 +477,7 @@ module Fsi =
         promise {
             match ctn with
             | Some c ->
-                let path = node.path.join(workspace.rootPath.Value, "references.fsx")
+                let path = node.path.join(workspace.workspaceFolders.Value.[0].uri.path, "references.fsx")
                 let! td = vscode.Uri.parse ("untitled:" + path) |> workspace.openTextDocument
                 let! te = window.showTextDocument(td, ViewColumn.Three)
                 let! _ = te.edit (fun e ->
@@ -501,7 +501,7 @@ module Fsi =
                 yield! project.Files |> Seq.map (sprintf "#load @\"%s\"")
             |]
         promise {
-            let path = node.path.join(workspace.rootPath.Value, "references.fsx")
+            let path = node.path.join(workspace.workspaceFolders.Value.[0].uri.path, "references.fsx")
             let! td = vscode.Uri.parse ("untitled:" + path) |> workspace.openTextDocument
             let! te = window.showTextDocument(td, ViewColumn.Three)
             let! _ = te.edit (fun e ->

@@ -133,7 +133,7 @@ Error: %s
 
     let writeToFile (text : string) =
         promise {
-            let path = node.path.join(workspace.rootPath.Value, "Diagnostic info")
+            let path = node.path.join(workspace.workspaceFolders.Value.[0].uri.path, "Diagnostic info")
             let newFile = vscode.Uri.parse ("untitled:" + path)
             let! document = newFile |> workspace.openTextDocument
 

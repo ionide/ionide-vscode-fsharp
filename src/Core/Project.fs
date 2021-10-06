@@ -120,7 +120,7 @@ module Project =
         lst
 
     let isIgnored (path: string) =
-        let relativePath = node.path.relative (workspace.rootPath.Value, path)
+        let relativePath = node.path.relative (workspace.workspaceFolders.Value.[0].uri.path, path)
 
         let isSubDir p =
             let relativeToDir = node.path.relative(p, relativePath)
@@ -148,9 +148,9 @@ module Project =
                 | _ -> []
             )
 
-        match workspace.rootPath with
+        match workspace.workspaceFolders |> Option.map (fun x -> x.[0]) with
         | None -> []
-        | Some rootPath -> findProjs rootPath
+        | Some cwd -> findProjs cwd.uri.path
 
     let getAll () =
         let rec findProjs dir =
@@ -168,9 +168,9 @@ module Project =
                 | _ -> []
             )
 
-        match workspace.rootPath with
+        match workspace.workspaceFolders |> Option.map (fun x -> x.[0]) with
         | None -> []
-        | Some rootPath -> rootPath |> findProjs
+        | Some cwd -> findProjs cwd.uri.path
 
     let private clearLoadedProjects () =
         loadedProjects <- emptyProjectsMap
@@ -282,9 +282,9 @@ module Project =
                 | _ -> []
             )
 
-        match workspace.rootPath with
+        match workspace.workspaceFolders |> Option.map (fun x -> x.[0]) with
         | None -> []
-        | Some rootPath -> findProjs rootPath
+        | Some cwd -> findProjs cwd.uri.path
 
     let clearCache () =
         let cached = getCaches ()
@@ -308,7 +308,7 @@ module Project =
             extensionWorkspaceState <- Some context.workspaceState
 
         let private parse (value: string) =
-          let fullPath = path.resolve(workspace.rootPath.Value, value)
+          let fullPath = path.resolve(workspace.workspaceFolders.Value.[0].uri.path, value)
           if value.ToLowerInvariant().EndsWith(".sln") then
               ConfiguredWorkspace.Solution fullPath
           else
@@ -367,7 +367,7 @@ module Project =
             let configuredPath = getWorkspacePath value
             if isConfiguredInWorkspace () then
                 let relativePath =
-                    let raw = path.relative(workspace.rootPath.Value, configuredPath)
+                    let raw = path.relative(workspace.workspaceFolders.Value.[0].uri.path, configuredPath)
                     if not (path.isAbsolute raw) && not (raw.StartsWith "..") then
                         "./" + raw
                     else
@@ -425,7 +425,7 @@ module Project =
                 item.description <- Some (sprintf "Directory with %i projects" dir.Fsprojs.Length)
                 item
             | WorkspacePeekFound.Solution sln ->
-                let relative = path.relative (workspace.rootPath.Value, sln.Path)
+                let relative = path.relative (workspace.workspaceFolders.Value.[0].uri.path, sln.Path)
                 let item = createEmpty<QuickPickItem>
                 item.label <- sprintf "%s%s" check relative
                 item.description <- Some (sprintf "Solution with %i projects" (countProjectsInSln sln))
@@ -503,24 +503,25 @@ module Project =
         promise {
             let fsprojs = findAll ()
             let wdir =
-                { WorkspacePeekFoundDirectory.Directory = workspace.rootPath.Value
+                { WorkspacePeekFoundDirectory.Directory = workspace.workspaceFolders.Value.[0].uri.path
                   Fsprojs = fsprojs |> Array.ofList }
             return WorkspacePeekFound.Directory wdir
         }
 
     let private workspacePeek () =
         promise {
-            if None = workspace.rootPath then return []
-            else
-                let! ws = LanguageService.workspacePeek workspace.rootPath.Value deepLevel (excluded |> List.ofArray)
+            match workspace.workspaceFolders |> Option.map (fun x -> x.[0]) with
+            | None -> return []
+            | Some cwd ->
+                let! ws = LanguageService.workspacePeek cwd.uri.path deepLevel (excluded |> List.ofArray)
                 return
                     ws.Found
                     |> Array.sortBy (fun x ->
                         match x with
                         | WorkspacePeekFound.Solution sln -> countProjectsInSln sln
                         | WorkspacePeekFound.Directory _ -> -1)
-                   |> Array.rev
-                   |> List.ofArray
+                    |> Array.rev
+                    |> List.ofArray
         }
 
     let private getWorkspace () =

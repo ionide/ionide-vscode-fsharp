@@ -549,7 +549,7 @@ module SolutionExplorer =
                     res
                 ) |> ResizeArray
 
-            let cwd = workspace.rootPath
+            let cwd = workspace.workspaceFolders |> Option.map (fun x -> x.[0])
             match cwd with
             | Some cwd ->
                 let! template = window.showQuickPick ( n |> U2.Case1)
@@ -577,10 +577,10 @@ module SolutionExplorer =
                                 let pname =
                                     if projName.IsSome then projName.Value + ".fsproj" else
                                     if output.IsSome then output.Value + ".fsproj" else
-                                    (path.dirname workspace.rootPath.Value) + ".fsproj"
+                                    cwd.name + ".fsproj"
 
                                 let proj =
-                                    path.join(workspace.rootPath.Value, dir, name, pname)
+                                    path.join(cwd.uri.path, dir, name, pname)
                                 let args = ["sln"; slnName; "add"; proj]
                                 Project.execWithDotnet MSBuild.outputChannel (ResizeArray args) |> ignore
                             | _ ->
