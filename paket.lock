@@ -11,7 +11,7 @@ NUGET
       Fable.Browser.WebStorage (>= 1.0)
       Fable.Core (>= 3.0)
       FSharp.Core (>= 4.7)
-    Fable.Browser.Event (1.4.5)
+    Fable.Browser.Event (1.4.6)
       Fable.Browser.Gamepad (>= 1.0.3)
       Fable.Core (>= 3.0)
       FSharp.Core (>= 4.7.2)
@@ -33,29 +33,29 @@ NUGET
     Fable.Promise (2.1)
       Fable.Core (>= 3.1.5)
       FSharp.Core (>= 4.7)
-    FSharp.Core (5.0.2)
+    FSharp.Core (6.0)
     Thoth.Json (4.1)
       Fable.Core (>= 3.1.4)
       FSharp.Core (>= 4.7)
 GIT
   remote: https://github.com/fsharp/FsAutoComplete.git
-     (478142949062ef25170b8b64f0df4e5a42cad326)
+     (0d241ad7aceb84f076ba85d275fb1979d464e7a8)
       build: build.cmd
       os: win
-     (478142949062ef25170b8b64f0df4e5a42cad326)
+     (0d241ad7aceb84f076ba85d275fb1979d464e7a8)
       build: build.sh
       os: linux
-     (478142949062ef25170b8b64f0df4e5a42cad326)
+     (0d241ad7aceb84f076ba85d275fb1979d464e7a8)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
      (fc4cac6d9bc1787f54ce48bbc77bcbb1de8160ff)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Showdown.fs (5afa130a6985c2de3b87e72ce69db2189fe64f25)
-    src/Fable.Import.VSCode.fs (5afa130a6985c2de3b87e72ce69db2189fe64f25)
-    src/Fable.Import.VSCode.LanguageServer.fs (5afa130a6985c2de3b87e72ce69db2189fe64f25)
-    src/Helpers.fs (5afa130a6985c2de3b87e72ce69db2189fe64f25)
+    src/Fable.Import.Showdown.fs (16eceef34bcee50f441f6727eed94c8bb9a136f5)
+    src/Fable.Import.VSCode.fs (16eceef34bcee50f441f6727eed94c8bb9a136f5)
+    src/Fable.Import.VSCode.LanguageServer.fs (16eceef34bcee50f441f6727eed94c8bb9a136f5)
+    src/Helpers.fs (16eceef34bcee50f441f6727eed94c8bb9a136f5)
 GROUP build
 STORAGE: NONE
 RESTRICTION: == netstandard2.0
@@ -188,7 +188,7 @@ NUGET
     FSharp.Control.Reactive (5.0.2)
       FSharp.Core (>= 4.7.2)
       System.Reactive (>= 5.0)
-    FSharp.Core (5.0.2)
+    FSharp.Core (6.0)
     Microsoft.Build (16.11)
     Microsoft.Build.Framework (16.11)
       System.Security.Permissions (>= 4.7)
@@ -216,7 +216,7 @@ NUGET
     Microsoft.NET.StringTools (1.0)
       System.Memory (>= 4.5.4)
       System.Runtime.CompilerServices.Unsafe (>= 5.0)
-    Microsoft.NETCore.Platforms (5.0.2)
+    Microsoft.NETCore.Platforms (5.0.4)
     Microsoft.NETCore.Targets (5.0)
     Microsoft.Win32.Registry (5.0)
       System.Buffers (>= 4.5.1)
