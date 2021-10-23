@@ -1,3 +1,10 @@
+### 5.8.0 - 23.10.2021
+
+* [Fix icons for solutions, projects, and references](https://github.com/ionide/ionide-vscode-fsharp/pull/1593) (thanks @sharno!)
+* Update FSAC to version 0.48.0 to get fixes for
+  * xmldoc handling in tooltips
+  * using user-specified fantomas instead of a bundled version
+
 ### 5.7.3 - 10.09.2021
 
 * [Fix bug in windows CLI calls](https://github.com/ionide/ionide-vscode-fsharp/pull/1579) (thanks @alfonsogarciacaro)
