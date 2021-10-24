@@ -1,3 +1,8 @@
+### 5.8.1 - 24.10.2021
+
+* Update FSAC to version 0.48.1 to get fixes for
+  * Fantomas.Client integration
+
 ### 5.8.0 - 23.10.2021
 
 * [Fix icons for solutions, projects, and references](https://github.com/ionide/ionide-vscode-fsharp/pull/1593) (thanks @sharno!)
