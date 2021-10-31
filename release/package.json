@@ -1124,12 +1124,6 @@
 				"when": "editorFocus && editorLangId == 'fsharp'"
 			}
 		],
-		"configurationDefaults": {
-			"[fsharp]": {
-				"editor.useTabStops": false
-			}
-
-		},
 		"semanticTokenScopes": [
 			{
 				"language": "fsharp",
