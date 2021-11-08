@@ -255,7 +255,7 @@ Target.create "Watch" (fun _ ->
 
 Target.create "InstallVSCE" ( fun _ ->
     Process.killAllByName  "npm"
-    run npmTool "install -g vsce" ""
+    run npmTool "install -g vsce@2.1.0" ""
 )
 
 Target.create "CopyDocs" (fun _ ->
