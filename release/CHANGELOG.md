@@ -1,3 +1,8 @@
+### 5.9.0 - 8.11.2021
+
+* Update FSAC to version 0.49.0 to get support for .Net 6 and F# 6
+* [Change the smart-indent support to allow users to delete indents one level at a time](https://github.com/ionide/ionide-vscode-fsharp/pull/1609) (thanks @Tasiro!)
+
 ### 5.8.1 - 24.10.2021
 
 * Update FSAC to version 0.48.1 to get fixes for
