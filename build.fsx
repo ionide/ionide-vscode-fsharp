@@ -215,7 +215,7 @@ let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
     Staging.stageAll ""
     ensureGitUser user email
     Commit.exec "." (sprintf "Bump version to %s" release.NugetVersion)
-    Branches.pushBranch "" remote "master"
+    Branches.pushBranch "" remote "main"
     Branches.tag "" release.NugetVersion
     Branches.pushTag "" remote release.NugetVersion
 
