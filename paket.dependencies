@@ -11,9 +11,9 @@ nuget Fable.HtmlConverter ~> 2.1.0
 
 nuget Thoth.Json ~> 4.1.0
 
-git https://github.com/fsharp/FsAutoComplete.git 0.48.1 build:"build.cmd", OS: win
-git https://github.com/fsharp/FsAutoComplete.git 0.48.1 build:"build.sh",  OS: linux
-git https://github.com/fsharp/FsAutoComplete.git 0.48.1 build:"build.sh",  OS: osx
+git https://github.com/fsharp/FsAutoComplete.git 0.49.0 build:"build.cmd", OS: win
+git https://github.com/fsharp/FsAutoComplete.git 0.49.0 build:"build.sh",  OS: linux
+git https://github.com/fsharp/FsAutoComplete.git 0.49.0 build:"build.sh",  OS: osx
 
 git https://github.com/ionide/ionide-fsgrammar.git master
 
