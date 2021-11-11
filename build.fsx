@@ -30,7 +30,7 @@ let gitHome = "https://github.com/" + gitOwner
 // The name of the project on GitHub
 let gitName = "ionide-vscode-fsharp"
 
-let fsacDir = "paket-files/github.com/fsharp/FsAutoComplete"
+let fsacDir = !! "paket-files/github.com/**/FsAutoComplete" |> Seq.head
 
 // Read additional information from the release notes document
 let releaseNotesData =

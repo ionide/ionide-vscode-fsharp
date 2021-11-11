@@ -38,18 +38,18 @@ NUGET
       Fable.Core (>= 3.1.4)
       FSharp.Core (>= 4.7)
 GIT
-  remote: https://github.com/fsharp/FsAutoComplete.git
-     (7fdc3fe88ffc551bd9a68349bd90dc118b64c4ab)
+  remote: https://github.com/beauvankirk/FsAutoComplete.git
+     (f3b52b39004c8f09915e06fdc3b0c98001982147)
       build: build.cmd
       os: win
-     (7fdc3fe88ffc551bd9a68349bd90dc118b64c4ab)
+     (f3b52b39004c8f09915e06fdc3b0c98001982147)
       build: build.sh
       os: linux
-     (7fdc3fe88ffc551bd9a68349bd90dc118b64c4ab)
+     (f3b52b39004c8f09915e06fdc3b0c98001982147)
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (fc4cac6d9bc1787f54ce48bbc77bcbb1de8160ff)
+     (447ecc314c6f105d34a02083e95b63a2e04c8804)
 GITHUB
   remote: ionide/ionide-vscode-helpers
     src/Fable.Import.Showdown.fs (16eceef34bcee50f441f6727eed94c8bb9a136f5)
