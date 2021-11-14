@@ -1,3 +1,8 @@
+### 5.9.1 - 14.11.2021
+
+* Update FCAC to version 0.49.1 to get fixes for
+  * code lenses displays
+
 ### 5.9.0 - 8.11.2021
 
 * Update FSAC to version 0.49.0 to get support for .Net 6 and F# 6
