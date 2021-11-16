@@ -1,4 +1,4 @@
-﻿namespace Ionide.VSCode.FSharp
+namespace Ionide.VSCode.FSharp
 
 open System
 open Fable.Core
@@ -73,7 +73,7 @@ module LanguageService =
 
     let private handleUntitled (fn : string) = if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then fn else (fn + ".fsx")
 
-    /// runs `dotnet --version` in the current rootPath to determine the resolved sdk version from the global.json file.
+    /// runs `dotnet --version` in the first workspaceFolder to determine the resolved sdk version from the global.json file.
     let runtimeVersion() = promise {
         let! dotnet = Environment.dotnet
         match dotnet with
@@ -673,8 +673,8 @@ Consider:
 
         let discoverDotnetArgs () = promise {
             let! (rollForwardArgs, necessaryEnvVariables) = promise {
-                let! sdkVersionAtRootPath = runtimeVersion()
-                match sdkVersionAtRootPath with
+                let! sdkVersionAtWorkspaceFolder = runtimeVersion()
+                match sdkVersionAtWorkspaceFolder with
                 | Error e ->
                     printfn $"FSAC (NETCORE): {e}"
                     return [], []

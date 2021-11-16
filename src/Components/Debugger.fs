@@ -69,7 +69,7 @@ module Debugger =
         }
 
     let setProgramPath project (cfg : LaunchJsonVersion2.RequestLaunch) =
-        let relativeOutPath = node.path.relative(workspace.rootPath.Value, project.Output).Replace("\\", "/")
+        let relativeOutPath = node.path.relative(workspace.workspaceFolders.Value.[0].uri.path, project.Output).Replace("\\", "/")
         let programPath = sprintf "${workspaceRoot}/%s" relativeOutPath
 
         // WORKAROUND the project.Output is the obj assembly, instead of bin assembly
