@@ -17,7 +17,7 @@ module InfoPanel =
             if JS.isDefined textEditor && JS.isDefined textEditor.document then
                 let doc = textEditor.document
                 match doc with
-                | Document.FSharp -> true
+                | Document.FSharp | Document.FSharpScript -> true
                 | _ -> false
             else
                 false
