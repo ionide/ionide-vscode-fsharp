@@ -1,3 +1,10 @@
+### 5.10.0 - 20.11.2021
+* Update FCAC to version 0.49.4 to get fixes for:
+  * Fix regression in cross-project support after FCS 40 update in `proj-info`
+  * Better handling of file typechecking after FCS 40 update
+  * Fix background service
+  * Fix File System
+
 ### 5.9.1 - 14.11.2021
 
 * Update FCAC to version 0.49.1 to get fixes for
