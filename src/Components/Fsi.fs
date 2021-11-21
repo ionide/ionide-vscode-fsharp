@@ -9,6 +9,7 @@ open global.Node
 
 open DTO
 open Ionide.VSCode.Helpers
+open System.Text.RegularExpressions
 module node = Node.Api
 
 module Fsi =
@@ -367,16 +368,46 @@ module Fsi =
             window.showErrorMessage("Failed to send text to FSI", null) |> ignore
         )
 
+    let (|IsPipe|_|) v =
+        if Regex(@"(^(\s+)?)\|>").IsMatch(v) then
+            Some v
+        else
+            None
+
+    let (|IsComment|_|) v =
+        if Regex(@"(^(\s+)?)\/\/").IsMatch(v) then
+            Some v
+        else
+            None
+
+    let rec private getStartPipe (numberLine: float) (result: string list) =
+        let editor = window.activeTextEditor.Value
+        let isEmpty = (editor.document.lineAt numberLine).isEmptyOrWhitespace
+
+        match (editor.document.lineAt numberLine).text with
+        | IsPipe v -> getStartPipe (numberLine - 1.0) ($"it {v}" :: result)
+        | IsComment v -> getStartPipe (numberLine - 1.0) (v :: result)
+        | _ when isEmpty -> getStartPipe (numberLine - 1.0) result
+        | v -> v :: result
+
     let private sendLine () =
         let editor = window.activeTextEditor.Value
         let _ = editor.document.fileName
         let pos = editor.selection.start
         let line = editor.document.lineAt pos
+
+        let lines =
+            match line.text with
+            | IsPipe _ -> getStartPipe (pos.line) []
+            | v -> [v]
+
         sendCd (Some editor)
-        send line.text
-        |> Promise.onSuccess (fun _ -> commands.executeCommand("cursorDown", null) |> ignore)
-        |> Promise.suppress // prevent unhandled promise exception
-        |> ignore
+        lines
+        |> List.iter (fun l ->
+            send l
+            |> Promise.onSuccess (fun _ -> commands.executeCommand("cursorDown", null) |> ignore)
+            |> Promise.suppress // prevent unhandled promise exception
+            |> ignore)
 
     let private sendSelection () =
         let editor = window.activeTextEditor.Value
