@@ -146,6 +146,9 @@ module Utils =
 
     let isNotNull o = o |> unbox <> null
 
+    [<Emit("$0 === undefined")>]
+    let isUndefined (x: 'a) : bool = jsNative
+
     type System.Collections.Generic.Dictionary<'key, 'value> with
         [<Emit("$0.has($1) ? $0.get($1) : null")>]
         member this.TryGet(key: 'key): 'value option = jsNative

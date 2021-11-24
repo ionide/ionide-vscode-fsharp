@@ -130,58 +130,61 @@ module Fsi =
 
 
             node.fs.readFile(varsUri, (fun _ buf ->
-                let cnt = buf.ToString()
-                varsContent <-
-                    cnt
-                    |> String.split [| '\n' |]
-                    |> Seq.map (fun row ->
-                        let x = row.Split([|"###IONIDESEP###"|], StringSplitOptions.None)
-                        sprintf "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td></tr>" x.[0] x.[1] x.[2]
-                    )
-                    |> String.concat "\n"
-                    |> sprintf """</br><h3>Declared values</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Value</th><th style="width: 20%%">Type</th></tr>%s</table>"""
-
-
-                setContent (varsContent + "\n\n" + funcsContent + "\n\n" + typesContent)
-            ))
-
-            node.fs.readFile(funcUri, (fun _ buf ->
-                let cnt = buf.ToString()
-                funcsContent <-
-                    cnt
-                    |> String.split [| '\n' |]
-                    |> Seq.map (fun row ->
-                        let x = row.Split([|"###IONIDESEP###"|], StringSplitOptions.None)
-                        sprintf "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td></tr>" x.[0] x.[1] x.[2]
-                    )
-                    |> String.concat "\n"
-                    |> sprintf """</br><h3>Declared functions</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Parameters</th><th style="width: 20%%">Returned type</th></tr>%s</table>"""
-
-
-                setContent (varsContent + "\n\n" + funcsContent + "\n\n" + typesContent)
-            ))
-
-            node.fs.readFile(typesUri, (fun _ buf ->
-                let cnt = buf.ToString()
-                typesContent <-
-                    if String.IsNullOrWhiteSpace cnt then
-                        ""
-                    else
+                if not (Utils.isUndefined buf) then
+                    let cnt = buf.ToString()
+                    varsContent <-
                         cnt
                         |> String.split [| '\n' |]
                         |> Seq.map (fun row ->
                             let x = row.Split([|"###IONIDESEP###"|], StringSplitOptions.None)
-                            let signature =
-                                if x.[1].Contains "#|#" then
-                                   "| " + x.[1].Replace("#|#", "</br>| ")
-                                else x.[1]
-                            sprintf "<tr><td>%s</td><td><code>%s</code></td></tr>" x.[0] signature
+                            sprintf "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td></tr>" x.[0] x.[1] x.[2]
                         )
                         |> String.concat "\n"
-                        |> sprintf """</br><h3>Declared types</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 85%%">Signature</th></tr>%s</table>"""
+                        |> sprintf """</br><h3>Declared values</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Value</th><th style="width: 20%%">Type</th></tr>%s</table>"""
 
 
-                setContent (varsContent + "\n\n" + funcsContent + "\n\n" + typesContent)
+                    setContent (varsContent + "\n\n" + funcsContent + "\n\n" + typesContent)
+            ))
+
+            node.fs.readFile(funcUri, (fun _ buf ->
+                if not (Utils.isUndefined buf) then
+                    let cnt = buf.ToString()
+                    funcsContent <-
+                        cnt
+                        |> String.split [| '\n' |]
+                        |> Seq.map (fun row ->
+                            let x = row.Split([|"###IONIDESEP###"|], StringSplitOptions.None)
+                            sprintf "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td></tr>" x.[0] x.[1] x.[2]
+                        )
+                        |> String.concat "\n"
+                        |> sprintf """</br><h3>Declared functions</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Parameters</th><th style="width: 20%%">Returned type</th></tr>%s</table>"""
+
+
+                    setContent (varsContent + "\n\n" + funcsContent + "\n\n" + typesContent)
+            ))
+
+            node.fs.readFile(typesUri, (fun _ buf ->
+                if not (Utils.isUndefined buf) then
+                    let cnt = buf.ToString()
+                    typesContent <-
+                        if String.IsNullOrWhiteSpace cnt then
+                            ""
+                        else
+                            cnt
+                            |> String.split [| '\n' |]
+                            |> Seq.map (fun row ->
+                                let x = row.Split([|"###IONIDESEP###"|], StringSplitOptions.None)
+                                let signature =
+                                    if x.[1].Contains "#|#" then
+                                    "| " + x.[1].Replace("#|#", "</br>| ")
+                                    else x.[1]
+                                sprintf "<tr><td>%s</td><td><code>%s</code></td></tr>" x.[0] signature
+                            )
+                            |> String.concat "\n"
+                            |> sprintf """</br><h3>Declared types</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 85%%">Signature</th></tr>%s</table>"""
+
+
+                    setContent (varsContent + "\n\n" + funcsContent + "\n\n" + typesContent)
             ))
 
         let activate dispsables =
