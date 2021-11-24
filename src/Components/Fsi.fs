@@ -367,6 +367,16 @@ module Fsi =
             window.showErrorMessage("Failed to send text to FSI", null) |> ignore
         )
 
+    let private moveCursorDownOneLine() =
+        let args =
+            createObj [
+                "to" ==> "down"
+                "by" ==> "line"
+                "value" ==> 1
+            ]
+        commands.executeCommand("cursorMove", Some(box args))
+        |> ignore
+
     let private sendLine () =
         let editor = window.activeTextEditor.Value
         let _ = editor.document.fileName
@@ -374,7 +384,7 @@ module Fsi =
         let line = editor.document.lineAt pos
         sendCd (Some editor)
         send line.text
-        |> Promise.onSuccess (fun _ -> commands.executeCommand("cursorDown", null) |> ignore)
+        |> Promise.onSuccess (fun _ -> moveCursorDownOneLine())
         |> Promise.suppress // prevent unhandled promise exception
         |> ignore
 
