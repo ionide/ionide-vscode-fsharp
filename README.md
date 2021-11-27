@@ -47,38 +47,44 @@ You can support Ionide development on [Open Collective](https://opencollective.c
 - Solution / project explorer
 - And more...
 
-## How to contribute
+## How to Contribute
 
-*Imposter syndrome disclaimer*: I want your help. No really, I do.
+Ths project is hosted on [GitHub](https://github.com/ionide/ionide-vscode-fsharp) where you can [report issues](https://github.com/ionide/ionide-vscode-fsharp/issues), participate in [discussions](https://github.com/ionide/ionide-vscode-fsharp/discussions), fork
+the project and submit pull requests.
+
+### Building and Running
+
+See these instructions for [setting up your local dev environment](https://github.com/ionide/ionide-vscode-fsharp/blob/master/CONTRIBUTING.md#getting-started).
+
+### Guidelines
+
+The [Contribution Guide](https://github.com/ionide/ionide-vscode-fsharp/blob/master/CONTRIBUTING.md) outlines the process and guidelines for getting a patch merged. By making expectations and process explicit, I hope it will make it easier for you to contribute!
+
+### Releasing
+
+* Update `RELEASE_NOTES.md` with the new version number, date (DD.MM.YYYY format please), and brief release notes.
+* Push the change to the main branch
+* A maintainer can run the `release` workflow from Github's actions page at that point
+
+### Imposter Syndrome Disclaimer
+
+I want your help. *No really, I do*.
 
 There might be a little voice inside that tells you you're not ready; that you need to do one more tutorial, or learn another framework, or write a few more blog posts before you can help me with this project.
 
 I assure you, that's not the case.
 
-This project has some clear Contribution Guidelines and expectations that you can [read here](https://github.com/ionide/ionide-vscode-fsharp/blob/master/CONTRIBUTING.md).
-
-The contribution guidelines outline the process that you'll need to follow to get a patch merged. By making expectations and process explicit, I hope it will make it easier for you to contribute.
-
 And you don't just have to write code. You can help out by writing documentation, tests, or even by giving feedback about this work. (And yes, that includes giving feedback about the contribution guidelines.)
 
 Thank you for contributing!
 
-
-## Contributing and copyright
-
-The project is hosted on [GitHub](https://github.com/ionide/ionide-vscode-fsharp) where you can [report issues](https://github.com/ionide/ionide-vscode-fsharp/issues), participate in [discussions](https://github.com/ionide/ionide-vscode-fsharp/discussions), fork
-the project and submit pull requests.
-
-The library is available under [MIT license](https://github.com/ionide/ionide-vscode-fsharp/blob/master/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.
+## Code of Conduct
 
 Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project you agree to abide by its terms.
 
+## Copyright
 
-## Releasing
-
-* Update `RELEASE_NOTES.md` with the new version number, date (DD.MM.YYYY format please), and brief release notes.
-* Push the change to the main branch
-* A maintainer can run the `release` workflow from Github's actions page at that point
+The library is available under [MIT license](https://github.com/ionide/ionide-vscode-fsharp/blob/master/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.
 
 ## Our Sponsors
 
