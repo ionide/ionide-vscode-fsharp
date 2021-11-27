@@ -143,10 +143,10 @@ Remove the settings from steps 3 and 4 to go back to FSAC bundled in Ionide exte
 
 ### FSAC Dependencies
 
-[dotnet]: https://www.microsoft.com/net/download/core
-[nodejs]: https://nodejs.org/en/download/
-[yarn]: https://yarnpkg.com/en/docs/install
-[vscode]: https://code.visualstudio.com/Download
+[dotnet](https://www.microsoft.com/net/download/core)
+[nodejs](https://nodejs.org/en/download/)
+[yarn](https://yarnpkg.com/en/docs/install)
+[vscode](https://code.visualstudio.com/Download)
 
 ## Pull requests
 
