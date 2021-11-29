@@ -16,9 +16,9 @@ You can support Ionide development on [Open Collective](https://opencollective.c
 
 Ionide-VSCode is a VSCode plugin that turns VSCode into a fully-fledged IDE for F# development.
 
-The LSP that powers language features is located here: https://github.com/fsharp/FsAutoComplete
+The LSP that powers language features is [FSAutoComplete](https://github.com/fsharp/FsAutoComplete).
 
-The library that powers project and script loading is located here: https://github.com/ionide/proj-info
+The library that powers project and script loading is [proj-info](https://github.com/ionide/proj-info)
 
 # Requirements
 
