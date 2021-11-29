@@ -10,9 +10,10 @@ module node = Node.Api
 module FSharpLiterate =
     module private Panel =
 
-        let mutable panel : WebviewPanel option = None
+        let mutable panel: WebviewPanel option = None
 
-        let style = """
+        let style =
+            """
             /* strings --- and stlyes for other string related formats */
             span.s { color:#E0E268; }
             /* printf formatters */
@@ -120,7 +121,8 @@ module FSharpLiterate =
             }
         """
 
-        let script = """
+        let script =
+            """
             var currentTip = null;
             var currentTipElement = null;
 
@@ -170,9 +172,11 @@ module FSharpLiterate =
 
         let setContent str =
             // <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline';">
-            panel |> Option.iter (fun p ->
+            panel
+            |> Option.iter (fun p ->
                 let str =
-                    sprintf """
+                    sprintf
+                        """
                     <html>
                     <head>
 
@@ -198,42 +202,44 @@ module FSharpLiterate =
                     </script>
                     </body>
                     </html>
-                    """ style str script
+                    """
+                        style
+                        str
+                        script
 
-                p.webview.html <- str
-            )
+                p.webview.html <- str)
 
-        let clear () = panel |> Option.iter (fun p -> p.webview.html <- "")
+        let clear () =
+            panel
+            |> Option.iter (fun p -> p.webview.html <- "")
 
-        let update (textEditor : TextEditor)  =
+        let update (textEditor: TextEditor) =
             promise {
                 let doc = textEditor.document
                 let! res = LanguageService.fsharpLiterate doc.fileName
                 return setContent res.Data
-            } |> ignore
+            }
+            |> ignore
 
 
         let openPanel () =
             promise {
                 match panel with
-                | Some p ->
-                    p.reveal (!! -2, true)
+                | Some p -> p.reveal (!! -2, true)
                 | None ->
                     let opts =
-                        createObj [
-                            "enableCommandUris" ==> true
-                            "enableFindWidget" ==> true
-                            "retainContextWhenHidden" ==> true
-                        ]
-                    let viewOpts =
-                        createObj [
-                            "preserveFocus" ==> true
-                            "viewColumn" ==> -2
-                        ]
-                    let p = window.createWebviewPanel("fsharpLiterate", "F# Literate", !!viewOpts , opts)
+                        createObj [ "enableCommandUris" ==> true
+                                    "enableFindWidget" ==> true
+                                    "retainContextWhenHidden" ==> true ]
 
-                    let onClose () =
-                        panel <- None
+                    let viewOpts =
+                        createObj [ "preserveFocus" ==> true
+                                    "viewColumn" ==> -2 ]
+
+                    let p =
+                        window.createWebviewPanel ("fsharpLiterate", "F# Literate", !!viewOpts, opts)
+
+                    let onClose () = panel <- None
 
                     p.onDidDispose.Invoke(!!onClose) |> ignore
                     panel <- Some p
@@ -243,23 +249,31 @@ module FSharpLiterate =
         match Panel.panel with
         | Some _ ->
             let textEditor = window.activeTextEditor.Value
+
             match textEditor.document with
-            | Document.FSharpScript | Document.Markdown -> Panel.update textEditor
+            | Document.FSharpScript
+            | Document.Markdown -> Panel.update textEditor
             | _ -> ()
-        | None ->
-            ()
+        | None -> ()
 
     let private openPanel () =
         match Panel.panel with
         | Some _ -> ()
         | None -> Panel.openPanel () |> ignore
+
         updatePanel ()
 
-    let fileSaved (event : TextDocument ) =
-        if event.fileName = window.activeTextEditor.Value.document.fileName then updatePanel ()
+    let fileSaved (event: TextDocument) =
+        if event.fileName = window.activeTextEditor.Value.document.fileName then
+            updatePanel ()
 
 
-    let activate (context : ExtensionContext) =
-        workspace.onDidSaveTextDocument.Invoke(unbox fileSaved) |> context.Subscribe
-        window.onDidChangeActiveTextEditor.Invoke(unbox updatePanel) |> context.Subscribe
-        commands.registerCommand("fsharp.openFSharpLiterate", openPanel |> objfy2) |> context.Subscribe
+    let activate (context: ExtensionContext) =
+        workspace.onDidSaveTextDocument.Invoke(unbox fileSaved)
+        |> context.Subscribe
+
+        window.onDidChangeActiveTextEditor.Invoke(unbox updatePanel)
+        |> context.Subscribe
+
+        commands.registerCommand ("fsharp.openFSharpLiterate", openPanel |> objfy2)
+        |> context.Subscribe

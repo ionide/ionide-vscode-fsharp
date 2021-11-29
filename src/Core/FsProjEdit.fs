@@ -58,8 +58,7 @@ module FsProjEdit =
 
                             addFile projectPath relativePathToFile
                         | None -> Promise.empty
-                    | None ->
-                        Promise.empty
+                    | None -> Promise.empty
             else
                 let! _ = window.showWarningMessage ("Can't find any project, run `dotnet new console -lang F#`", null)
                 return ()
@@ -78,10 +77,8 @@ module FsProjEdit =
 
                 return!
                     match n, path with
-                    | Some n, Some path ->
-                        LanguageService.dotnetAddProject path n
-                    | _ ->
-                        Promise.empty
+                    | Some n, Some path -> LanguageService.dotnetAddProject path n
+                    | _ -> Promise.empty
         }
 
     let removeProjectReferencePath ref proj =
