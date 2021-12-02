@@ -49,7 +49,7 @@ GIT
       build: build.sh
       os: osx
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (447ecc314c6f105d34a02083e95b63a2e04c8804)
+     (bba27391e61090035449b5c1e5c4b9d396bc4c9b)
 GITHUB
   remote: ionide/ionide-vscode-helpers
     src/Fable.Import.Showdown.fs (16eceef34bcee50f441f6727eed94c8bb9a136f5)
