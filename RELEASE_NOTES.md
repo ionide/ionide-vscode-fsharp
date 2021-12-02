@@ -1,5 +1,13 @@
+### 5.10.2 - 2.12.2021
+
+* Update FSAC to version 0.49.5 to get fixes for
+  * Fantomas.Client updates
+  * Background services caches
+* Enable the Info Panel feature for F# scripts
+* Update the embedded grammar file
+
 ### 5.10.1 - 20.11.2021
-* Update FCAC to version 0.49.4 to get fixes for:
+* Update FSAC to version 0.49.4 to get fixes for:
   * Fix regression in cross-project support after FCS 40 update in `proj-info`
   * Better handling of file typechecking after FCS 40 update
   * Fix background service
@@ -7,7 +15,7 @@
 
 ### 5.9.1 - 14.11.2021
 
-* Update FCAC to version 0.49.1 to get fixes for
+* Update FSAC to version 0.49.1 to get fixes for
   * code lenses displays
 
 ### 5.9.0 - 8.11.2021
