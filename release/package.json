@@ -1139,6 +1139,17 @@
 			"type": "object",
 			"title": "F#",
 			"properties": {
+				"FSharp.trace.server": {
+					"type": "string",
+					"default": "off",
+					"description": "Trace server messages at the LSP protocol level for diagnostics.",
+					"enum": [
+						"off",
+						"messages",
+						"verbose"
+					],
+					"scope": "window"
+				},
 				"FSharp.fsac.dotnetArgs": {
 					"type" : "array",
 					"default": [],
