@@ -13,7 +13,7 @@ jobs:
         # ubuntu build not supported in paket.dependencies for repo builds,
         # need to add linux commands first
         os: [windows-latest, macos-latest]
-        dotnet: [5.0.301]
+        dotnet: [6.0.101]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -29,4 +29,4 @@ jobs:
       run: dotnet tool restore
     - run: yarn global add vsce
     - name: Run Test
-      run: dotnet fake build -t Build
+      run: dotnet run --project build -- -t Build

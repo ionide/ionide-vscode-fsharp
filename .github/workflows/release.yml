@@ -26,16 +26,16 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: ${{ matrix.dotnet }}
+        dotnet-version: '6.0.101'
     - uses: actions/setup-node@v2-beta
       with:
         node-version: '14'
     - name: Restore tools
       run: dotnet tool restore
     - name: install VSCE globally
-      run: dotnet fake build -t InstallVSCE
+      run: dotnet run --project build -- -t InstallVSCE
     - name: Run Test
-      run: dotnet fake build -t BuildPackage
+      run: dotnet run --project build -- -t BuildPackage
     - name: upload artifact package
       uses: actions/upload-artifact@v2
       with:
@@ -48,9 +48,9 @@ jobs:
         github-pw: ${{ secrets.USER_TOKEN }}
         vsce-token: ${{ secrets.VSCE_TOKEN }}
         user-email: ${{ github.event.inputs.email }}
-      run: dotnet fake build -t Release
+      run: dotnet run --project build -- -t Release
     - name: Build OpenVsix package
-      run: dotnet fake build -t BuildPackageOpenVsix
+      run: dotnet run --project build -- -t BuildPackageOpenVsix
     - name: Publish to Open VSX Registry
       uses: HaaLeo/publish-vscode-extension@v0
       id: publishToOpenVSX
