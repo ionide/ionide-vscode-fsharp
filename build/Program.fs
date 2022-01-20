@@ -1,11 +1,4 @@
-// --------------------------------------------------------------------------------------
-// FAKE build script
-// --------------------------------------------------------------------------------------
-
-#r "paket: groupref build //"
-#load ".fake/build.fsx/intellisense.fsx"
-
-open System
+﻿open System
 open System.IO
 open Fake.Core
 open Fake.JavaScript
@@ -29,8 +22,6 @@ let gitHome = "https://github.com/" + gitOwner
 
 // The name of the project on GitHub
 let gitName = "ionide-vscode-fsharp"
-
-let fsacDir = "paket-files/github.com/fsharp/FsAutoComplete"
 
 // Read additional information from the release notes document
 let releaseNotesData =
@@ -295,156 +286,167 @@ let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
 // --------------------------------------------------------------------------------------
 // Target definitions
 // --------------------------------------------------------------------------------------
-Target.initEnvironment ()
+let initTargets () =
+    Target.create "Clean" (fun _ ->
+        Shell.cleanDir "./temp"
+        Shell.cleanDir "./out" // used for fable output -> then bundled with webpack into release folder
+        Shell.copyFiles "release" [ "README.md"; "LICENSE.md" ]
+        Shell.copyFile "release/CHANGELOG.md" "RELEASE_NOTES.md")
 
-Target.create "Clean" (fun _ ->
-    Shell.cleanDir "./temp"
-    Shell.cleanDir "./out" // used for fable output -> then bundled with webpack into release folder
-    Shell.copyFiles "release" [ "README.md"; "LICENSE.md" ]
-    Shell.copyFile "release/CHANGELOG.md" "RELEASE_NOTES.md")
+    Target.create "YarnInstall"
+    <| fun _ -> Yarn.install id
 
-Target.create "YarnInstall"
-<| fun _ -> Yarn.install id
+    Target.create "DotNetRestore"
+    <| fun _ -> DotNet.restore id "src"
 
-Target.create "DotNetRestore"
-<| fun _ -> DotNet.restore id "src"
+    Target.create "Watch" (fun _ ->
+        Fable.run
+            { Fable.DefaultArgs with
+                Command = Fable.Watch
+                Debug = true
+                Webpack = Fable.WithWebpack None })
 
-Target.create "Watch" (fun _ ->
-    Fable.run
-        { Fable.DefaultArgs with
-            Command = Fable.Watch
-            Debug = true
-            Webpack = Fable.WithWebpack None })
+    Target.create "InstallVSCE" (fun _ ->
+        Process.killAllByName "npm"
+        run npmTool "install -g vsce@1.103.1" "")
 
-Target.create "InstallVSCE" (fun _ ->
-    Process.killAllByName "npm"
-    run npmTool "install -g vsce@1.103.1" "")
+    Target.create "CopyDocs" (fun _ ->
+        Shell.copyFiles "release" [ "README.md"; "LICENSE.md" ]
+        Shell.copyFile "release/CHANGELOG.md" "RELEASE_NOTES.md")
 
-Target.create "CopyDocs" (fun _ ->
-    Shell.copyFiles "release" [ "README.md"; "LICENSE.md" ]
-    Shell.copyFile "release/CHANGELOG.md" "RELEASE_NOTES.md")
+    Target.create "RunScript" (fun _ ->
+        Fable.run
+            { Fable.DefaultArgs with
+                Command = Fable.Build
+                Debug = false
+                Webpack = Fable.WithWebpack None })
 
-Target.create "RunScript" (fun _ ->
-    Fable.run
-        { Fable.DefaultArgs with
-            Command = Fable.Build
-            Debug = false
-            Webpack = Fable.WithWebpack None })
-
-Target.create "RunDevScript" (fun _ ->
-    Fable.run
-        { Fable.DefaultArgs with
-            Command = Fable.Build
-            Debug = true
-            Webpack = Fable.WithWebpack None })
-
-
-Target.create "CopyFSACNetcore" (fun _ ->
-    let fsacBinNetcore = sprintf "%s/bin/release_netcore" fsacDir
-    let releaseBinNetcore = "release/bin"
-
-    copyFSACNetcore releaseBinNetcore fsacBinNetcore)
-
-Target.create "CopyGrammar" (fun _ ->
-    let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammars"
-    let fsgrammarRelease = "release/syntaxes"
-
-    copyGrammar fsgrammarDir fsgrammarRelease)
-
-Target.create "CopySchemas" (fun _ ->
-    let fsschemaDir = "schemas"
-    let fsschemaRelease = "release/schemas"
-
-    copySchemas fsschemaDir fsschemaRelease)
-
-Target.create "CopyLib" (fun _ ->
-    let libDir = "lib"
-    let releaseDir = "release/bin"
-
-    copyLib libDir releaseDir)
-
-Target.create "BuildPackage" (fun _ -> buildPackage "release")
-
-Target.create "BuildPackageOpenVsix" (fun _ ->
-    let packageJsonPath = "release" </> "package.json"
-    let packageJsonContent = System.IO.File.ReadAllText(packageJsonPath)
-
-    let updatedPackageJsonContent =
-        packageJsonContent.Replace("ms-dotnettools.csharp", "muhammad-sammy.csharp")
-
-    System.IO.File.WriteAllText(packageJsonPath, updatedPackageJsonContent))
-
-Target.create "SetVersion" (fun _ -> setVersion release "release")
-
-Target.create "PublishToGallery" (fun _ -> publishToGallery "release")
-
-Target.create "ReleaseGitHub" (fun _ -> releaseGithub release)
-
-Target.create "Format" (fun _ ->
-    let fantomasExtensions = [ ".fs"; ".fsi"; ".fsx" ] |> Set.ofList
-
-    let changedFiles =
-        Fake.Tools.Git.FileStatus.getChangedFilesInWorkingCopy "" "HEAD"
-        |> Seq.choose (fun (stat, path) ->
-            match Set.contains (Path.GetExtension path) fantomasExtensions with
-            | true -> Some path
-            | false -> None)
-        |> List.ofSeq
-
-    match changedFiles with
-    | [] -> ()
-    | changedFiles ->
-        let args = String.concat " " changedFiles
-
-        DotNet.exec id "fantomas" args
-        |> fun r ->
-            if r.OK then
-                ()
-            else
-                r.Errors |> List.iter (Trace.tracefn "%s")
-                failwith "Error running fantomas")
-
-// --------------------------------------------------------------------------------------
-// Run build by default. Invoke 'build <Target>' to override
-// --------------------------------------------------------------------------------------
-
-Target.create "Default" ignore
-Target.create "Build" ignore
-Target.create "BuildDev" ignore
-Target.create "Release" ignore
-
-"YarnInstall" ==> "RunScript"
-"DotNetRestore" ==> "RunScript"
-
-"Clean" ==> "Format" ==> "RunScript" ==> "Default"
-
-"Clean"
-==> "RunScript"
-==> "CopyDocs"
-==> "CopyFSACNetcore"
-==> "CopyGrammar"
-==> "CopySchemas"
-==> "CopyLib"
-==> "Build"
+    Target.create "RunDevScript" (fun _ ->
+        Fable.run
+            { Fable.DefaultArgs with
+                Command = Fable.Build
+                Debug = true
+                Webpack = Fable.WithWebpack None })
 
 
-"YarnInstall" ==> "Build"
-"DotNetRestore" ==> "Build"
+    Target.create "CopyFSACNetcore" (fun _ ->
+        let fsacBinNetcore = "packages/fsac/fsautocomplete/tools/net5.0/any"
+        let releaseBinNetcore = "release/bin"
 
-"Format"
-==> "Build"
-==> "SetVersion"
-==> "BuildPackage"
-==> "ReleaseGitHub"
-==> "PublishToGallery"
-==> "Release"
+        copyFSACNetcore releaseBinNetcore fsacBinNetcore)
 
-"YarnInstall" ==> "Watch"
-"DotNetRestore" ==> "Watch"
+    Target.create "CopyGrammar" (fun _ ->
+        let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammars"
+        let fsgrammarRelease = "release/syntaxes"
 
-"YarnInstall" ==> "RunDevScript"
-"DotNetRestore" ==> "RunDevScript"
+        copyGrammar fsgrammarDir fsgrammarRelease)
 
-"RunDevScript" ==> "BuildDev"
+    Target.create "CopySchemas" (fun _ ->
+        let fsschemaDir = "schemas"
+        let fsschemaRelease = "release/schemas"
 
-Target.runOrDefault "Default"
+        copySchemas fsschemaDir fsschemaRelease)
+
+    Target.create "CopyLib" (fun _ ->
+        let libDir = "lib"
+        let releaseDir = "release/bin"
+
+        copyLib libDir releaseDir)
+
+    Target.create "BuildPackage" (fun _ -> buildPackage "release")
+
+    Target.create "BuildPackageOpenVsix" (fun _ ->
+        let packageJsonPath = "release" </> "package.json"
+        let packageJsonContent = System.IO.File.ReadAllText(packageJsonPath)
+
+        let updatedPackageJsonContent =
+            packageJsonContent.Replace("ms-dotnettools.csharp", "muhammad-sammy.csharp")
+
+        System.IO.File.WriteAllText(packageJsonPath, updatedPackageJsonContent))
+
+    Target.create "SetVersion" (fun _ -> setVersion release "release")
+
+    Target.create "PublishToGallery" (fun _ -> publishToGallery "release")
+
+    Target.create "ReleaseGitHub" (fun _ -> releaseGithub release)
+
+    Target.create "Format" (fun _ ->
+        let fantomasExtensions = [ ".fs"; ".fsi"; ".fsx" ] |> Set.ofList
+
+        let changedFiles =
+            Fake.Tools.Git.FileStatus.getChangedFilesInWorkingCopy "" "HEAD"
+            |> Seq.choose (fun (stat, path) ->
+                match Set.contains (Path.GetExtension path) fantomasExtensions with
+                | true when stat <> FileStatus.Deleted -> Some path
+                | _ -> None)
+            |> List.ofSeq
+
+        match changedFiles with
+        | [] -> ()
+        | changedFiles ->
+            let args = String.concat " " changedFiles
+
+            DotNet.exec id "fantomas" args
+            |> fun r ->
+                if r.OK then
+                    ()
+                else
+                    r.Errors |> List.iter (Trace.tracefn "%s")
+                    failwith "Error running fantomas")
+
+    Target.create "Default" ignore
+    Target.create "Build" ignore
+    Target.create "BuildDev" ignore
+    Target.create "Release" ignore
+
+let buildTargetTree () =
+    let (==>!) x y = x ==> y |> ignore
+
+    "YarnInstall" ==>! "RunScript"
+    "DotNetRestore" ==>! "RunScript"
+
+    "Clean" ==> "Format" ==> "RunScript" ==>! "Default"
+
+    "Clean"
+    ==> "RunScript"
+    ==> "CopyDocs"
+    ==> "CopyFSACNetcore"
+    ==> "CopyGrammar"
+    ==> "CopySchemas"
+    ==> "CopyLib"
+    ==>! "Build"
+
+
+    "YarnInstall" ==>! "Build"
+    "DotNetRestore" ==>! "Build"
+
+    "Format"
+    ==> "Build"
+    ==> "SetVersion"
+    ==> "BuildPackage"
+    ==> "ReleaseGitHub"
+    ==> "PublishToGallery"
+    ==>! "Release"
+
+    "YarnInstall" ==>! "Watch"
+    "DotNetRestore" ==>! "Watch"
+
+    "YarnInstall" ==>! "RunDevScript"
+    "DotNetRestore" ==>! "RunDevScript"
+
+    "RunDevScript" ==>! "BuildDev"
+
+
+[<EntryPoint>]
+let main argv =
+    argv
+    |> Array.toList
+    |> Context.FakeExecutionContext.Create false "build.fsx"
+    |> Context.RuntimeContext.Fake
+    |> Context.setExecutionContext
+
+    initTargets ()
+    buildTargetTree ()
+
+    Target.runOrDefaultWithArguments "Default"
+    0

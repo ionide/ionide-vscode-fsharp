@@ -11,10 +11,6 @@ nuget Fable.HtmlConverter ~> 2.1.0
 
 nuget Thoth.Json ~> 4.1.0
 
-git https://github.com/fsharp/FsAutoComplete.git 0.49.5 build:"build.cmd", OS: win
-git https://github.com/fsharp/FsAutoComplete.git 0.49.5 build:"build.sh",  OS: linux
-git https://github.com/fsharp/FsAutoComplete.git 0.49.5 build:"build.sh",  OS: osx
-
 git https://github.com/ionide/ionide-fsgrammar.git master
 
 github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.fs
@@ -22,10 +18,16 @@ github ionide/ionide-vscode-helpers src/Helpers.fs
 github ionide/ionide-vscode-helpers src/Fable.Import.Showdown.fs
 github ionide/ionide-vscode-helpers src/Fable.Import.VSCode.LanguageServer.fs
 
+group fsac
+  source https://api.nuget.org/v3/index.json
+  storage: packages
+  framework: netstandard2.0
+  nuget fsautocomplete
+
 group build
   source https://api.nuget.org/v3/index.json
   storage: none
-  framework: netstandard2.0
+  framework: net6.0
 
   nuget Fake.Core.Target
   nuget Fake.Core.Process

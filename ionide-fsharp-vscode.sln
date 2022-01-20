@@ -5,22 +5,14 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Ionide.FSharp", "src\Ionide.FSharp.fsproj", "{D1081029-2369-4DAA-9F33-2353C5C9ED02}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{67EDE4A4-AC6E-407A-987D-A4B6334C29F2}"
-	ProjectSection(SolutionItems) = preProject
-		.gitignore = .gitignore
-		build.cmd = build.cmd
-		build.fsx = build.fsx
-		build.sh = build.sh
-		paket.dependencies = paket.dependencies
-		paket.lock = paket.lock
-		README.md = README.md
-		RELEASE_NOTES.md = RELEASE_NOTES.md
-	EndProjectSection
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "build", "build\build.fsproj", "{8BA090C7-F894-44FB-8C30-B3AAA77811F2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "release", "release", "{BFA5D453-C8E9-42A8-9B45-59DD7544AF8C}"
 	ProjectSection(SolutionItems) = preProject
 		release\language-configuration.json = release\language-configuration.json
 		release\package.json = release\package.json
+		README.md = README.md
+		RELEASE_NOTES.md = RELEASE_NOTES.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "syntaxes", "syntaxes", "{454F17D1-97A2-4DE6-9748-A65AF3B0CC33}"
@@ -61,6 +53,14 @@ Global
 		{4A0A2952-E9D2-4EB2-BCE3-AF89EF15CBC4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4A0A2952-E9D2-4EB2-BCE3-AF89EF15CBC4}.Release|x86.ActiveCfg = Release|Any CPU
 		{4A0A2952-E9D2-4EB2-BCE3-AF89EF15CBC4}.Release|x86.Build.0 = Release|Any CPU
+		{8BA090C7-F894-44FB-8C30-B3AAA77811F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BA090C7-F894-44FB-8C30-B3AAA77811F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BA090C7-F894-44FB-8C30-B3AAA77811F2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8BA090C7-F894-44FB-8C30-B3AAA77811F2}.Debug|x86.Build.0 = Debug|Any CPU
+		{8BA090C7-F894-44FB-8C30-B3AAA77811F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BA090C7-F894-44FB-8C30-B3AAA77811F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BA090C7-F894-44FB-8C30-B3AAA77811F2}.Release|x86.ActiveCfg = Release|Any CPU
+		{8BA090C7-F894-44FB-8C30-B3AAA77811F2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
