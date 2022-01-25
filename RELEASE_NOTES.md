@@ -1,3 +1,16 @@
+### 5.11.0 - 24.01.2022
+
+* Update FSAC to version 0.50.0 to get fixes
+  * Changed
+    * Update Fantomas.Client to prefer stable versions (Thanks @nojaf)
+    * Moved to use the Ionide.LanguageServerProtocol shared nuget package
+
+  * Fixed
+    * Sourcelink's go-to-definition works better on windows for deterministic paths
+    * Fix missing commas in Info Panel generic type signatures (Thanks @jcmrva!)
+    * Fix off-by-1 error in the negation-to-subtraction codefix (Thanks @jasiozet!)
+* Add config setting for server trace so that we have better autocomplete for that when requesting logs.
+
 ### 5.10.2 - 2.12.2021
 
 * Update FSAC to version 0.49.5 to get fixes for
