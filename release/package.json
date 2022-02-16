@@ -279,11 +279,6 @@
 				"category": "F#"
 			},
 			{
-				"command": "fsharp.diagnostics.getIonideLogs",
-				"title": "Get Ionide logs",
-				"category": "F#"
-			},
-			{
 				"command": "fsharp.explorer.msbuild.build",
 				"title": "Build"
 			},

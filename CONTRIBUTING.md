@@ -14,14 +14,14 @@ For issue reporting, use [Github Issues](https://github.com/ionide/ionide-vscode
 
 Personal support request should be discussed on [F# Software Foundation Slack](https://fsharp.org/guides/slack/).
 
-## Getting Started 
+## Getting Started
 
 First things first! In order to build & develop Ionide locally, you'll need to install the following.
 
 ### Prerequisites
 
 - [Visual Studio Code][vscode] 🙄
-- [.NET Core 3.1][dotnet]
+- [.NET 6][dotnet]
 - [Node.js][nodejs]
 - [Yarn][yarn]
 
@@ -42,7 +42,7 @@ First things first! In order to build & develop Ionide locally, you'll need to i
     ```bash
     cd ionide-vscode-fsharp
     ```
-3. Then **build the project** by running the build script: 
+3. Then **build the project** by running the build script:
     (on Mac/Linux)
     ```bash
     ./build.sh
@@ -59,7 +59,7 @@ Otherwise, check out the [Troubleshooting Build Failures](#troubleshooting-build
 
 ### Running a Full Build
 
-This should *always* be done __at least once after any clone/pull__.  
+This should *always* be done __at least once after any clone/pull__.
 
 ```bash
 ./build.sh -t Build
@@ -88,7 +88,7 @@ This will re-install any necesssary packages and files.
 
 ### Launching Ionide
 
-When you're ready to test out some code changes, you can use vscode's [Run View](https://code.visualstudio.com/Docs/editor/debugging#_run-view) to build and launch Ionide in a new  [Extension Development Host instance](https://code.visualstudio.com/api/get-started/your-first-extension), which is a separate "dev mode" instance of VS code used for developing extensions. 
+When you're ready to test out some code changes, you can use vscode's [Run View](https://code.visualstudio.com/Docs/editor/debugging#_run-view) to build and launch Ionide in a new  [Extension Development Host instance](https://code.visualstudio.com/api/get-started/your-first-extension), which is a separate "dev mode" instance of VS code used for developing extensions.
 
 First, open the Ionide project folder in vscode.
   ```bash
@@ -107,7 +107,7 @@ This builds the extension and launches it immediately in a new vscode extension 
 
 #### Watch Mode (Recommended)
 
-There are **two steps** involved in running Ionide in Watch Mode. 
+There are **two steps** involved in running Ionide in Watch Mode.
 
 TL;DR: watch this video clip:
 
@@ -115,7 +115,7 @@ https://user-images.githubusercontent.com/2154029/143313128-94b7b5ce-64d3-4008-9
 
 1. **Start the `Watch` task**.
     - Open the command palette (`cmd`+`p` or `ctl`+`p`)
-    - Enter `tasks watch`.  
+    - Enter `tasks watch`.
     - **Wait a few seconds**. It might take 15-30 seconds for the initial build to complete
 2. **Run the `Launch Only` launch configuration**.
     - Open the Run and Debug menu (`cmd`+`shift`+`d` or `ctrl`+`shift`+`d`)
@@ -124,7 +124,7 @@ https://user-images.githubusercontent.com/2154029/143313128-94b7b5ce-64d3-4008-9
 
 Note: Step 1 starts a new "Watch" task that rebuilds Ionide in the background while you're making source code changes. You should wait for this to finish before opening the Extension Host.
 
-If you're curious what's going on, you can view the log output for this task by running `Tasks: Show Running Tasks` from the command palete. 
+If you're curious what's going on, you can view the log output for this task by running `Tasks: Show Running Tasks` from the command palete.
 
 ### Working with FSAC
 

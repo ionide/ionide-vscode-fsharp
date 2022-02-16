@@ -6,6 +6,7 @@ open Fable.Import
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 open global.Node
+open JsInterop
 
 open Ionide.VSCode.Helpers
 
@@ -34,12 +35,12 @@ module Diagnostics =
 Failed to execute command:
 - path: %s
 - args: %s
-Error: %s
+Error: %A
                 """
                     .Trim(),
                 path,
                 args |> String.concat " ",
-                error
+                error.ToString()
             ))
 
     module Templates =
@@ -59,7 +60,7 @@ Error: %s
             """
                 .Trim()
 
-        let machineInfos os arch vscode =
+        let machineInfos os arch vscode uiKind extension =
             let txt =
                 sprintf
                     """
@@ -68,10 +69,15 @@ Error: %s
 * Operating system: **%s**
 * Arch: **%s**
 * VSCode: **%s**
+* UI Kind: **%s**
+* Ionide: **%s**
+
                     """
                     os
                     arch
                     vscode
+                    uiKind
+                    extension
 
             txt.Trim()
 
@@ -86,39 +92,6 @@ Error: %s
 
             txt.Trim()
 
-        let msbuildInfo msbuildVersion =
-            let txt =
-                sprintf
-                    """
-* MSBuild version:
-```shell
-%s
-```
-                    """
-                    msbuildVersion
-
-            txt.Trim()
-
-        let fsacLog =
-            """
-<!-- You can also linked the FSAC log file into your issue -->
-<!-- Use `Ctrl+P > "F#: Get FSAC logs"` commands to get file location -->
-            """
-                .Trim()
-
-    let getMSBuildVersion () =
-        promise {
-            let! msbuild =
-                LanguageService.dotnet ()
-                |> Promise.bind (fun msb ->
-                    match msb with
-                    | Some msb -> Promise.lift msb
-                    | None -> Promise.reject "MsBuild not found")
-
-            let! version = execCommand msbuild [ "msbuild /version" ]
-            return version.Trim()
-        }
-
 
     let getRuntimeInfos () =
         let netcoreInfos =
@@ -132,14 +105,9 @@ Error: %s
                 | None -> return "No dotnet installation found"
             }
 
-        let msBuildInfos =
-            promise {
-                let! msbuildVersion = getMSBuildVersion ()
-                return Templates.msbuildInfo msbuildVersion
-            }
 
-        Promise.all [ netcoreInfos
-                      msBuildInfos ]
+
+        Promise.all [ netcoreInfos]
         |> Promise.map (String.concat "\n")
 
     let writeToFile (text: string) =
@@ -163,65 +131,31 @@ Error: %s
     let getDiagnosticsInfos () =
         let os = node.os.``type`` () |> string
         let arch = node.os.arch () |> string
+        let extension =
+            extensions.getExtension("ionide.ionide-fsharp")
+            |> Option.bind (fun e -> e.packageJSON |> Option.map (fun e-> e?version))
+            |> Option.defaultValue "unknown"
+
+        let uiKind =
+            match env.uiKind with
+            | UIKind.Desktop -> "Desktop"
+            | UIKind.Web -> "Web"
+            | _ -> "Unknown"
 
         promise {
             let! runtimeInfos = getRuntimeInfos ()
 
             Templates.header
             + "\n\n"
-            + Templates.machineInfos os arch vscode.version
+            + Templates.machineInfos os arch vscode.version uiKind extension
             + "\n"
             + runtimeInfos
             + "\n"
-            + Templates.fsacLog
             |> writeToFile
             |> ignore
         }
 
-    let getIonideLogs () =
-        let writeStream =
-            node.path.join (Api.os.tmpdir (), "ionide", "FSAC_logs")
-            |> Environment.ensureDirectory
-            |> fun dir -> Api.path.join (dir, DateTime.Now.ToString("yyyyMMdd-HHmmss.log"))
-            |> Api.fs.createWriteStream
-
-        Promise.create (fun resolve reject ->
-            writeStream.on ("error", reject) |> ignore
-
-            writeStream.on ("close", (fun _ -> resolve writeStream.path))
-            |> ignore
-
-            writeStream.write (Logging.getIonideLogs ())
-            |> ignore
-
-            writeStream.close ())
-        |> Promise.bind (fun path ->
-            promise {
-                let! action = window.showInformationMessage ("FSAC logs exported to: " + path, "Open file")
-
-                match action with
-                | Some "Open file" ->
-                    return!
-                        promise {
-                            let! document = workspace.openTextDocument path
-
-                            window.showTextDocument (document, ?options = None)
-                            |> ignore
-
-                            return JS.undefined
-                        }
-                | _ -> return JS.undefined
-            })
-        |> Promise.onFail (fun error ->
-            Browser.Dom.console.error (error)
-
-            window.showErrorMessage ("Couldn't retrieved the FSAC logs file", null)
-            |> ignore)
-
 
     let activate (context: ExtensionContext) =
         commands.registerCommand ("fsharp.diagnostics.getInfos", getDiagnosticsInfos |> objfy2)
-        |> context.Subscribe
-
-        commands.registerCommand ("fsharp.diagnostics.getIonideLogs", getIonideLogs |> objfy2)
         |> context.Subscribe
