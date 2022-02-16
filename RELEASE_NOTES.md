@@ -1,4 +1,4 @@
-### 5.11.0 - 24.01.2022
+### 5.11.0 - 16.02.2022
 
 * Update FSAC to version 0.50.0 to get fixes
   * Changed
@@ -10,6 +10,7 @@
     * Fix missing commas in Info Panel generic type signatures (Thanks @jcmrva!)
     * Fix off-by-1 error in the negation-to-subtraction codefix (Thanks @jasiozet!)
 * Add config setting for server trace so that we have better autocomplete for that when requesting logs.
+* Clean up and fix Ionide diagnostics
 
 ### 5.10.2 - 2.12.2021
 
