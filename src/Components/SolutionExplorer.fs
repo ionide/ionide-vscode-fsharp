@@ -108,7 +108,7 @@ module SolutionExplorer =
 
     let inline setParentRef (model: Model) (parent: Model) =
         let parentRef = getParentRef model
-        parentRef := Some parent
+        parentRef.Value <- Some parent
 
     let setParentRefs (models: #seq<Model>) (parent: Model) =
         for model in models do
@@ -352,7 +352,7 @@ module SolutionExplorer =
             override this.getParent(element: Model) : ProviderResult<Model> =
                 let parentRef = getParentRef element
 
-                match !parentRef with
+                match parentRef.Value with
                 | None -> None
                 | Some parentRef -> U2.Case1 parentRef |> Some
 
@@ -542,7 +542,7 @@ module SolutionExplorer =
 
         let private findModelFromUri (state: State option ref) (uri: Uri) =
             if uri.scheme = "file" && JS.isDefined uri.fsPath then
-                !state
+                state.Value
                 |> Option.bind (fun s -> s.ModelPerFile |> Map.tryFind uri.fsPath)
             else
                 None
@@ -606,7 +606,7 @@ module SolutionExplorer =
                     { RootModel = newValue
                       ModelPerFile = modelPerFile }
 
-            state := newState
+            state.Value <- newState
 
             if RevealConfiguration.getAutoReveal () then
                 revealTextEditor tree state window.activeTextEditor false

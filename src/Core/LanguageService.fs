@@ -439,7 +439,7 @@ module LanguageService =
                     |> List.toArray }
 
             cl.sendRequest ("fsharp/workspaceLoad", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let loadAnalyzers () =
         match client with
@@ -448,7 +448,7 @@ module LanguageService =
             let req: Types.FileParams = { Project = { Uri = "" } }
 
             cl.sendRequest ("fsharp/loadAnalyzers", req)
-            |> Promise.map (ignore)
+            |> Promise.map ignore
 
     let getHighlighting (f) : JS.Promise<HighlightingResponse> =
         match client with
