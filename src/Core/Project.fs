@@ -530,7 +530,7 @@ module Project =
                 let cmd =
                     ResizeArray(
                         [ "run"
-                          "-p"
+                          "--project"
                           project.Project
                           if not (List.isEmpty args) then " -- " ]
                         @ args
@@ -550,7 +550,7 @@ module Project =
                 let cmd =
                     ResizeArray(
                         [ "run"
-                          "-p"
+                          "--project"
                           project.Project
                           if not (List.isEmpty args) then " -- " ]
                         @ args
