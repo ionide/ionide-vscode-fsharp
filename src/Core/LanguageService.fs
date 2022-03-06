@@ -155,7 +155,7 @@ module LanguageService =
         | None -> Promise.empty
         | Some cl ->
             let req =
-                { DocumentationForSymbolReuqest.Assembly = assembly
+                { DocumentationForSymbolRequest.Assembly = assembly
                   XmlSig = xmlSig }
 
             cl.sendRequest ("fsharp/documentationSymbol", req)
@@ -519,7 +519,7 @@ Consider:
 """
 
                         logger.Error(msg)
-                        Promise.reject (msg))
+                        Promise.reject (exn msg))
 
 
     let private fsacConfig () =

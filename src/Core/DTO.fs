@@ -47,7 +47,7 @@ module DTO =
         { Files: string []
           DisableInMemoryProjectReferences: bool }
 
-    type DocumentationForSymbolReuqest = { XmlSig: string; Assembly: string }
+    type DocumentationForSymbolRequest = { XmlSig: string; Assembly: string }
 
     type OverloadSignature = { Signature: string; Comment: string }
 

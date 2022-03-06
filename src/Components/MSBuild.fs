@@ -34,8 +34,8 @@ module MSBuild =
                     |> Promise.bind (function
                         | Some msbuild -> Promise.lift msbuild
                         | None ->
-                            Promise.reject
-                                "dotnet SDK not found. Please install it from the [Dotnet SDK Download Page](https://www.microsoft.com/net/download)")
+                            Promise.reject (exn "dotnet SDK not found. Please install it from the [Dotnet SDK Download Page](https://www.microsoft.com/net/download)")
+                    )
 
                 let cmd = ResizeArray("msbuild" :: command)
                 logger.Info("invoking msbuild from %s on %s for target %s", msbuildPath, project, target)

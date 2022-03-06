@@ -133,7 +133,7 @@ module Debugger =
 
                 match msbuildExit.Code with
                 | Some code when code <> 0 ->
-                    return! Promise.reject (sprintf "msbuild 'Build' failed with exit code %i" code)
+                    return! Promise.reject (exn $"msbuild 'Build' failed with exit code %i{code}")
                 | _ ->
                     let! res = debug.startDebugging (Some folder, U2.Case2 debugConfiguration)
                     return ()

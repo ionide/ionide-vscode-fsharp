@@ -506,7 +506,7 @@ module Project =
 
             match dotnet with
             | Some dotnet -> return Process.spawnWithNotification dotnet cmd outputChannel
-            | None -> return! Promise.reject "dotnet binary not found"
+            | None -> return! Promise.reject (exn "dotnet binary not found")
         }
 
     let exec exe outputChannel cmd =
@@ -518,7 +518,7 @@ module Project =
 
             match dotnet with
             | Some dotnet -> return Process.spawnWithShell dotnet cmd
-            | None -> return! Promise.reject "dotnet binary not found"
+            | None -> return! Promise.reject (exn "dotnet binary not found")
         }
 
     let private execWithShell exe cmd =

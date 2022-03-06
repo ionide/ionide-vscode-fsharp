@@ -2,14 +2,14 @@ source https://api.nuget.org/v3/index.json
 storage: none
 framework: netstandard2.0
 
-nuget Fable.Core ~> 3.1.5
-nuget Fable.Promise ~> 2.1.0
-nuget Fable.Node ~> 1.0.2
-nuget Fable.Browser.Dom ~> 2.0.1
+nuget Fable.Core
+nuget Fable.Promise
+nuget Fable.Node
+nuget Fable.Browser.Dom
 
-nuget Fable.HtmlConverter ~> 2.1.0
+nuget Fable.HtmlConverter
 
-nuget Thoth.Json ~> 4.1.0
+nuget Thoth.Json
 
 git https://github.com/ionide/ionide-fsgrammar.git master
 
