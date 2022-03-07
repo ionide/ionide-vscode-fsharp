@@ -38,8 +38,7 @@ module LanguageService =
         /// Position in a text document expressed as zero-based line and zero-based character offset.
         /// A position is between two characters like an ‘insert’ cursor in a editor.
         type Position =
-            {
-              /// Line position in a document (zero-based).
+            { /// Line position in a document (zero-based).
               Line: int
 
               /// Character offset on a line in a document (zero-based). Assuming that the line is
@@ -155,7 +154,7 @@ module LanguageService =
         | None -> Promise.empty
         | Some cl ->
             let req =
-                { DocumentationForSymbolReuqest.Assembly = assembly
+                { DocumentationForSymbolRequest.Assembly = assembly
                   XmlSig = xmlSig }
 
             cl.sendRequest ("fsharp/documentationSymbol", req)
@@ -439,7 +438,7 @@ module LanguageService =
                     |> List.toArray }
 
             cl.sendRequest ("fsharp/workspaceLoad", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let loadAnalyzers () =
         match client with
@@ -448,7 +447,7 @@ module LanguageService =
             let req: Types.FileParams = { Project = { Uri = "" } }
 
             cl.sendRequest ("fsharp/loadAnalyzers", req)
-            |> Promise.map (ignore)
+            |> Promise.map ignore
 
     let getHighlighting (f) : JS.Promise<HighlightingResponse> =
         match client with
@@ -519,7 +518,7 @@ Consider:
 """
 
                         logger.Error(msg)
-                        Promise.reject (msg))
+                        Promise.reject (exn msg))
 
 
     let private fsacConfig () =
@@ -613,7 +612,7 @@ Consider:
             * installing .NET Core into one of the default locations.
             """
 
-                    let! result = window.showErrorMessage (msg, null)
+                    let! result = window.showErrorMessage (msg)
                     return failwith "no `dotnet` binary found"
                 }
 

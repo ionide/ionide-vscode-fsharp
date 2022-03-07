@@ -1,3 +1,8 @@
+### 5.11.1 - 6.03.2022
+
+* Update Ionide.FsGrammar to get fixes for multiline comment tokenization
+* Better error reporting in the initial extension startup pipeline
+
 ### 5.11.0 - 16.02.2022
 
 * Update FSAC to version 0.50.0 to get fixes

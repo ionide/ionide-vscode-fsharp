@@ -472,8 +472,7 @@ module FakeTargetsOutline =
                                     member this.Item
                                         with get (name: string): obj option = data.TryGet name
 
-                                    member this.Item
-                                        with set (name: string) (v: obj option): unit =
+                                        and set (name: string) (v: obj option): unit =
                                             match v with
                                             | None -> data.Remove(name) |> ignore
                                             | Some v -> data.[name] <- v
@@ -503,7 +502,7 @@ module FakeTargetsOutline =
                             let exec = tasks.executeTask (task)
                             ()
                 | None ->
-                    let! _ = window.showErrorMessage ("Cannot start fake as no script file is selected.", null)
+                    let! _ = window.showErrorMessage ("Cannot start fake as no script file is selected.")
                     ()
             }
 

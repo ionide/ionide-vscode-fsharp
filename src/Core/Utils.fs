@@ -383,7 +383,7 @@ type ShowStatus private (panel: WebviewPanel, body: string) as this =
         |> Promise.onFail (fun err ->
             JS.console.error ("ShowStatus.CreateOrShow failed:\n", err)
 
-            window.showErrorMessage ("We couldn't generate the status report", null)
+            window.showErrorMessage ("We couldn't generate the status report")
             |> ignore)
         |> ignore
 

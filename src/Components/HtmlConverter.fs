@@ -13,7 +13,7 @@ module HtmlConverter =
         let selectedText = editor.document.getText (editor.selection)
 
         if selectedText.Length = 0 then
-            window.showWarningMessage ("No selection found, please select some HTML text and try again.", null)
+            window.showWarningMessage ("No selection found, please select some HTML text and try again.")
             |> Promise.ofThenable
             // Map the callback returned to false
             |> Promise.map (fun _ -> false)

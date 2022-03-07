@@ -63,7 +63,7 @@ module Debugger =
 
             match launcher with
             | None ->
-                window.showWarningMessage ("Can't start project", null)
+                window.showWarningMessage ("Can't start project")
                 |> ignore
             | Some l ->
                 let! terminal = l []
@@ -95,7 +95,7 @@ module Debugger =
 
             match debuggerRuntime project with
             | None ->
-                window.showWarningMessage ("Can't start debugger", null)
+                window.showWarningMessage ("Can't start debugger")
                 |> ignore
             | Some rntm ->
                 cfg |> setProgramPath project
@@ -119,7 +119,7 @@ module Debugger =
 
             match debuggerRuntime project with
             | None ->
-                window.showWarningMessage ("Can't start debugger", null)
+                window.showWarningMessage ("Can't start debugger")
                 |> ignore
             | Some rntm ->
                 cfg |> setProgramPath project
@@ -133,7 +133,7 @@ module Debugger =
 
                 match msbuildExit.Code with
                 | Some code when code <> 0 ->
-                    return! Promise.reject (sprintf "msbuild 'Build' failed with exit code %i" code)
+                    return! Promise.reject (exn $"msbuild 'Build' failed with exit code %i{code}")
                 | _ ->
                     let! res = debug.startDebugging (Some folder, U2.Case2 debugConfiguration)
                     return ()

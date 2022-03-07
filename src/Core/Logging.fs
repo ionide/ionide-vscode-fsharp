@@ -155,21 +155,25 @@ module Logging =
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Debug(template, [<ParamArray>] args: obj []) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel DEBUG source template args
+
         /// Logs a message that should/could be seen by the user in the output channel.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Info(template, [<ParamArray>] args: obj []) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel INFO source template args
+
         /// Logs a message that should/could be seen by the user in the output channel when a problem happens.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Error(template, [<ParamArray>] args: obj []) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel ERROR source template args
+
         /// Logs a message that should/could be seen by the user in the output channel when a problem happens.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.Warn(template, [<ParamArray>] args: obj []) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel WARN source template args
+
         /// Logs a message that should/could be seen by the user in the output channel if the promise fail.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
