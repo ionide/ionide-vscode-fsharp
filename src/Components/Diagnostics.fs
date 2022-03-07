@@ -107,7 +107,7 @@ Error: %A
 
 
 
-        Promise.all [ netcoreInfos]
+        Promise.all [ netcoreInfos ]
         |> Promise.map (String.concat "\n")
 
     let writeToFile (text: string) =
@@ -124,16 +124,17 @@ Error: %A
                 window.showTextDocument (document, ?options = None)
                 |> ignore
             else
-                window.showErrorMessage ("Error when printing diagnostic report.", null)
+                window.showErrorMessage ("Error when printing diagnostic report.")
                 |> ignore
         }
 
     let getDiagnosticsInfos () =
         let os = node.os.``type`` () |> string
         let arch = node.os.arch () |> string
+
         let extension =
-            extensions.getExtension("ionide.ionide-fsharp")
-            |> Option.bind (fun e -> e.packageJSON |> Option.map (fun e-> e?version))
+            extensions.getExtension ("ionide.ionide-fsharp")
+            |> Option.bind (fun e -> e.packageJSON |> Option.map (fun e -> e?version))
             |> Option.defaultValue "unknown"
 
         let uiKind =

@@ -51,9 +51,11 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
                 |> Promise.catch (fun e -> printfn $"Error loading projects: %A{e}")
                 |> Promise.onSuccess (fun _ -> tryActivate "quickinfoproject" QuickInfoProject.activate context)
                 |> Promise.bind (fun _ ->
-                    if showExplorer
-                    then commands.executeCommand (VSCodeExtension.workbenchViewId (), [||]) |> Promise.ofThenable
-                    else Promise.lift None)
+                    if showExplorer then
+                        commands.executeCommand (VSCodeExtension.workbenchViewId ())
+                        |> Promise.ofThenable
+                    else
+                        Promise.lift None)
                 |> Promise.bind (fun _ -> tryActivate "analyzers" LanguageService.loadAnalyzers ())
                 |> Promise.catch (fun e ->
                     printfn $"Error loading all projects: %A{e}"

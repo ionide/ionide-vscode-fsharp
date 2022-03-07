@@ -63,7 +63,7 @@ module Debugger =
 
             match launcher with
             | None ->
-                window.showWarningMessage ("Can't start project", null)
+                window.showWarningMessage ("Can't start project")
                 |> ignore
             | Some l ->
                 let! terminal = l []
@@ -95,7 +95,7 @@ module Debugger =
 
             match debuggerRuntime project with
             | None ->
-                window.showWarningMessage ("Can't start debugger", null)
+                window.showWarningMessage ("Can't start debugger")
                 |> ignore
             | Some rntm ->
                 cfg |> setProgramPath project
@@ -119,7 +119,7 @@ module Debugger =
 
             match debuggerRuntime project with
             | None ->
-                window.showWarningMessage ("Can't start debugger", null)
+                window.showWarningMessage ("Can't start debugger")
                 |> ignore
             | Some rntm ->
                 cfg |> setProgramPath project

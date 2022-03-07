@@ -34,8 +34,10 @@ module MSBuild =
                     |> Promise.bind (function
                         | Some msbuild -> Promise.lift msbuild
                         | None ->
-                            Promise.reject (exn "dotnet SDK not found. Please install it from the [Dotnet SDK Download Page](https://www.microsoft.com/net/download)")
-                    )
+                            Promise.reject (
+                                exn
+                                    "dotnet SDK not found. Please install it from the [Dotnet SDK Download Page](https://www.microsoft.com/net/download)"
+                            ))
 
                 let cmd = ResizeArray("msbuild" :: command)
                 logger.Info("invoking msbuild from %s on %s for target %s", msbuildPath, project, target)
@@ -202,10 +204,10 @@ module MSBuild =
         match Project.getLoadedSolution () with
         | Some (Solution e) -> buildSolution target e.Path |> ignore
         | Some _ ->
-            window.showWarningMessage ("Solution not loaded - plugin in directory mode", null)
+            window.showWarningMessage ("Solution not loaded - plugin in directory mode")
             |> ignore
         | None ->
-            window.showWarningMessage ("Solution not loaded", null)
+            window.showWarningMessage ("Solution not loaded")
             |> ignore
 
 

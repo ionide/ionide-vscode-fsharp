@@ -38,8 +38,7 @@ module LanguageService =
         /// Position in a text document expressed as zero-based line and zero-based character offset.
         /// A position is between two characters like an ‘insert’ cursor in a editor.
         type Position =
-            {
-              /// Line position in a document (zero-based).
+            { /// Line position in a document (zero-based).
               Line: int
 
               /// Character offset on a line in a document (zero-based). Assuming that the line is
@@ -613,7 +612,7 @@ Consider:
             * installing .NET Core into one of the default locations.
             """
 
-                    let! result = window.showErrorMessage (msg, null)
+                    let! result = window.showErrorMessage (msg)
                     return failwith "no `dotnet` binary found"
                 }
 

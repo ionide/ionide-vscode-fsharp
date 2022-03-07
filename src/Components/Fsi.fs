@@ -390,7 +390,7 @@ module Fsi =
                 match profile with
                 | Some opts -> opts
                 | None ->
-                    window.showErrorMessage ("Unable to spawn FSI", null)
+                    window.showErrorMessage ("Unable to spawn FSI")
                     |> ignore
 
                     failwith "unable to spawn FSI"
@@ -404,7 +404,7 @@ module Fsi =
             return terminal
         }
         |> Promise.onFail (fun _ ->
-            window.showErrorMessage ("Failed to spawn FSI, please ensure it's in PATH", null)
+            window.showErrorMessage ("Failed to spawn FSI, please ensure it's in PATH")
             |> ignore)
 
     let private chunkStringBySize (size: int) (str: string) =
@@ -429,7 +429,7 @@ module Fsi =
             fp.sendText (msgWithNewline, false)
             lastSelectionSent <- Some msg)
         |> Promise.onFail (fun _ ->
-            window.showErrorMessage ("Failed to send text to FSI", null)
+            window.showErrorMessage ("Failed to send text to FSI")
             |> ignore)
 
     let private moveCursorDownOneLine () =

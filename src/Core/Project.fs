@@ -291,22 +291,25 @@ module Project =
         let rec findProjs dir =
             let files = node.fs.readdirSync (U2.Case1 dir)
 
-            files
-            |> Seq.toList
-            |> List.collect (fun s' ->
-                try
-                    let s = dir + node.path.sep + s'
+            if isNull files then
+                []
+            else
+                files
+                |> Seq.toList
+                |> List.collect (fun s' ->
+                    try
+                        let s = dir + node.path.sep + s'
 
-                    if excluded |> Array.contains s' then
-                        []
-                    elif node.fs.statSync(U2.Case1 s).isDirectory () then
-                        findProjs (s)
-                    else if s.EndsWith "fsac.cache" then
-                        [ s ]
-                    else
-                        []
-                with
-                | _ -> [])
+                        if excluded |> Array.contains s' then
+                            []
+                        elif node.fs.statSync(U2.Case1 s).isDirectory () then
+                            findProjs (s)
+                        else if s.EndsWith "fsac.cache" then
+                            [ s ]
+                        else
+                            []
+                    with
+                    | _ -> [])
 
         match workspace.rootPath with
         | None -> []
@@ -318,7 +321,7 @@ module Project =
         cached
         |> Seq.iter (U2.Case1 >> node.fs.unlinkSync)
 
-        window.showInformationMessage ("Project Cache cleared", null)
+        window.showInformationMessage ("Project Cache cleared")
         |> ignore
 
     let countProjectsInSln (sln: WorkspacePeekFoundSolution) =
@@ -648,7 +651,7 @@ module Project =
                     Some(true, d.Project, ProjectLoadingState.LanguageNotSupported(d.Project))
                 | _ ->
                     if not disableShowNotification then
-                        window.showErrorMessage ("Project loading failed", null)
+                        window.showErrorMessage ("Project loading failed")
                         |> ignore
 
                     None

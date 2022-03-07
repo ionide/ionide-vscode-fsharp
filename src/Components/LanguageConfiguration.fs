@@ -62,8 +62,7 @@ module LanguageConfiguration =
                 else
                     "Smart indent has been deactivated for F#"
 
-            window.showInformationMessage (msg, null)
-            |> ignore
+            window.showInformationMessage (msg) |> ignore
 
         context.Subscribe disp
 

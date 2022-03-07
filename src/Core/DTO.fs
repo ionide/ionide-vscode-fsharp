@@ -432,6 +432,7 @@ module DTO =
         type Dependency =
             { Name: string
               Declaration: Declaration }
+
         /// a FAKE target, its description and its relations to other targets (dependencies), including the declaration lines of the target and the dependencies.
         type Target =
             { Name: string

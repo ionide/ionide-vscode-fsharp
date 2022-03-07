@@ -730,7 +730,7 @@ module SolutionExplorer =
                     | _ -> ()
                 | None -> ()
             | None ->
-                window.showErrorMessage ("No open folder.", null)
+                window.showErrorMessage ("No open folder.")
                 |> ignore
         }
 
