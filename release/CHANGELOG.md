@@ -1,3 +1,7 @@
+### 5.11.2 - 12.03.2022
+
+* Update FSAC to 0.50.2 to pick up completion fixes and diagnostics fixes
+
 ### 5.11.1 - 6.04.2022
 
 * Update Ionide.FsGrammar to get fixes for multiline comment tokenization
