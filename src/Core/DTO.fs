@@ -363,17 +363,17 @@ module DTO =
           PrecedingNonPipeExprLine: int option }
 
     type TestAdapterEntry = {
-        Name: string
-        Range: Range
-        Childs: TestAdapterEntry []
-        Id : int
-        List: bool
-        Type: string
+        name: string
+        range: Fable.Import.VSCode.Vscode.Range
+        childs: TestAdapterEntry []
+        id : int
+        list: bool
+        ``type``: string
     }
 
     type TestForFile = {
-        File: string
-        Tests: TestAdapterEntry []
+        file: string
+        tests: TestAdapterEntry []
     }
 
     type Result<'T> =

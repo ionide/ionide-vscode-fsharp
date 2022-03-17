@@ -431,7 +431,6 @@ module SolutionExplorer =
 
                 ti.contextValue <- Some(sprintf "ionide.projectExplorer.%s" context)
 
-                let p = createEmpty<TreeItemIconPath>
 
                 let icon, resourceUri =
                     match element with
@@ -451,15 +450,15 @@ module SolutionExplorer =
                     | WorkspaceFolder _ -> vscode.ThemeIcon.Folder |> U4.Case4 |> Some, None
                     | PackageReference (_, path, _, _)
                     | ProjectReference (_, path, _, _) ->
-                        p.light <-
+                        {| light =
                             (plugPath + "/images/circuit-board-light.svg")
                             |> U2.Case1
-
-                        p.dark <-
+                           dark =
                             (plugPath + "/images/circuit-board-dark.svg")
-                            |> U2.Case1
-
-                        p |> U4.Case3 |> Some, vscode.Uri.file path |> Some
+                            |> U2.Case1 |}
+                        |> U4.Case3
+                        |> Some,
+                        vscode.Uri.file path |> Some
                     | Workspace _ -> None, None
 
                 ti.iconPath <- icon
@@ -553,9 +552,11 @@ module SolutionExplorer =
 
                 match model with
                 | Some model ->
-                    let options = createEmpty<TreeViewRevealOptions>
-                    options.select <- Some true
-                    options.expand <- Some !^ false
+                    let options =
+                        {| select = Some true
+                           expand = Some(U2.Case1 false)
+                           focus = None |}
+
                     tree.reveal (model, options) |> ignore
                 | _ -> ()
 

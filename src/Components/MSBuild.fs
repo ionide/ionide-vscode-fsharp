@@ -56,8 +56,10 @@ module MSBuild =
         window.withProgress (
             progressOpts,
             (fun p ctok ->
-                let pm = createEmpty<Window.IExportsWithProgressProgress>
-                pm.message <- Some("Running MsBuild " + target)
+                let pm =
+                    {| message = Some("Running MsBuild " + target)
+                       increment = None |}
+
                 p.report pm
                 executeWithHost () |> Promise.toThenable)
         )
@@ -153,8 +155,10 @@ module MSBuild =
                         window.withProgress (
                             progressOpts,
                             (fun p ctok ->
-                                let pm = createEmpty<Window.IExportsWithProgressProgress>
-                                pm.message <- Some(sprintf "Restoring: %s" path)
+                                let pm =
+                                    {| message = Some("Restoring " + path)
+                                       increment = None |}
+
                                 p.report pm
 
                                 invokeMSBuild path "Restore"

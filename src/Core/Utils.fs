@@ -107,7 +107,6 @@ module String =
         | s when s |> isQuoted |> not && s |> containsWhitespace -> quote s
         | s -> s
 
-
 [<RequireQualifiedAccess>]
 module Option =
 
@@ -151,7 +150,7 @@ module Configuration =
 
     let getInContext context defaultValue key =
         workspace
-            .getConfiguration(scope = U5.Case1 context)
+            .getConfiguration(scope = U4.Case1 context)
             .get (key, defaultValue)
 
     /// write the value to the given key in the workspace configuration
@@ -178,6 +177,12 @@ module Utils =
     type System.Collections.Generic.Dictionary<'key, 'value> with
         [<Emit("$0.has($1) ? $0.get($1) : null")>]
         member this.TryGet(key: 'key) : 'value option = jsNative
+
+module Message =
+    let choice title =
+        let m = Fable.Core.JsInterop.createEmpty<MessageItem>
+        m.title <- title
+        m
 
 [<AutoOpen>]
 module JS =
@@ -256,6 +261,15 @@ module Patterns =
         | null -> None
         | _ when str.Contains pat -> Some str
         | _ -> None
+
+    let inline private title item =
+        (^t: (member get_title: unit -> string) (item))
+
+    let inline (|HasTitle|_|) expected t =
+        if title t = expected then
+            Some()
+        else
+            None
 
 [<RequireQualifiedAccess>]
 module Array =
@@ -383,7 +397,7 @@ type ShowStatus private (panel: WebviewPanel, body: string) as this =
         |> Promise.onFail (fun err ->
             JS.console.error ("ShowStatus.CreateOrShow failed:\n", err)
 
-            window.showErrorMessage ("We couldn't generate the status report")
+            window.showErrorMessage ("We couldn't generate the status report", [||])
             |> ignore)
         |> ignore
 

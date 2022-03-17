@@ -221,10 +221,10 @@ module Expecto =
         )
 
 let rec mapTest (tc: TestController) (uri: Uri) (t: TestAdapterEntry): TestItem =
-    let ti = tc.createTestItem(uri.ToString() + " -- " + string t.Id, t.Name, uri)
-    ti.range <- Some (CodeRange.fromDTO t.Range)
-    t.Childs |> Array.iter (fun n -> mapTest tc uri n |> ti.children.add)
-    ti?Type <- t.Type
+    let ti = tc.createTestItem(uri.ToString() + " -- " + string t.id, t.name, uri)
+    ti.range <- Some t.range
+    t.childs |> Array.iter (fun n -> mapTest tc uri n |> ti.children.add)
+    ti?``type`` <- t.``type``
     ti
 
 let rec flatTestList (tc: TestItemCollection): TestItem array =
@@ -332,8 +332,8 @@ let activate (context: ExtensionContext) =
     Notifications.testDetected.Invoke (fun res ->
         logger.Debug("Tests", res)
         let res =
-            res.Tests
-            |> Array.map (mapTest testController (vscode.Uri.parse(res.File, true)))
+            res.tests
+            |> Array.map (mapTest testController (vscode.Uri.parse(res.file, true)))
 
         res
         |> Array.iter( testController.items.add)
