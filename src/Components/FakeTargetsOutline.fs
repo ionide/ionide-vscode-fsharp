@@ -59,17 +59,14 @@ module FakeTargetsOutline =
 
     let private getIconPath light dark =
         let plugPath = VSCodeExtension.ionidePluginPath ()
-        let p = createEmpty<TreeItemIconPath>
 
-        p.dark <-
+        {| dark =
             node.path.join (plugPath, "images", dark)
             |> U2.Case1
 
-        p.light <-
+           light =
             node.path.join (plugPath, "images", light)
-            |> U2.Case1
-
-        p
+            |> U2.Case1 |}
 
     let rec add' (state: NodeEntry) (symbol: Symbol) index =
         let sep = "."

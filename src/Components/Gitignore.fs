@@ -7,6 +7,7 @@ module Gitignore =
     open Fable.Import.VSCode
     open Fable.Import.VSCode.Vscode
     open Ionide.VSCode.FSharp
+    open Fable.Core.JsInterop
 
     let GITIGNORE_KEY = "FSharp.suggestGitignore"
 
@@ -66,18 +67,19 @@ module Gitignore =
             | FileNotFound -> ()
             | MissingPatterns [] -> ()
             | MissingPatterns patternsToAdd ->
+
                 let! choice =
                     window.showInformationMessage (
                         "You are missing entries in your .gitignore for Ionide-specific data files. Would you like to add them?",
-                        "Add entries",
-                        "Ignore",
-                        "Don't show again"
+                        [| Message.choice "Add entries"
+                           Message.choice "Ignore"
+                           Message.choice "Don't show again" |]
                     )
 
                 match choice with
-                | Some "Add entries" -> writePatternsToGitignore patternsToAdd
-                | Some "Ignore" -> do! disablePromptForProject ()
-                | Some "Don't show again" -> do! disablePromptGlobally ()
+                | Some (HasTitle "Add entries") -> writePatternsToGitignore patternsToAdd
+                | Some (HasTitle "Ignore") -> do! disablePromptForProject ()
+                | Some (HasTitle "Don't show again") -> do! disablePromptGlobally ()
                 | _ -> ()
         }
 
