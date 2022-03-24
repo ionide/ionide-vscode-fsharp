@@ -4,6 +4,8 @@ open System
 open Fable.Core
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
+open Ionide.VSCode.FSharp.Import
+open Ionide.VSCode.FSharp.Import.XmlDoc
 open global.Node
 open Fable.Core.JsInterop
 open DTO
@@ -25,27 +27,6 @@ type TestItemCollection with
 type TestController with
     member x.TestItems() : TestItem array = x.items.TestItems()
 
-type FailedTest =
-    { Actual: string option
-      ErrorMessage: string
-      Expected: string option
-      FullName: string
-      Runner: string
-      Timer: string }
-
-type IgnoredTest = { FullName: string; Runner: string }
-
-type PassedTest =
-    { FullName: string
-      Runner: string
-      Timer: string }
-
-type TestRunResult =
-    { Project: Project
-      Failed: FailedTest array
-      Ignored: IgnoredTest array
-      Passed: PassedTest array }
-
 type TestItemAndProject =
     { TestItem: TestItem
       Project: Project }
@@ -55,6 +36,25 @@ type TestWithFullName = { FullName: string; Test: TestItem }
 type ProjectWithTests =
     { Project: Project
       Tests: TestWithFullName array }
+
+[<RequireQualifiedAccess; StringEnum(CaseRules.None)>]
+type TestResultOutcome =
+    | NotExecuted
+    | Failed
+    | Passed
+
+type TestResult =
+    { Test: TestItem
+      FullTestName: string
+      Outcome: TestResultOutcome
+      ErrorMessage: string option
+      Expected: string option
+      Actual: string option
+      Timing: float }
+
+type ProjectWithTestResults =
+    { Project: Project
+      Tests: TestResult array }
 
 module Expecto =
 
@@ -199,7 +199,6 @@ module Expecto =
     let promiseSleep (ms: float) =
         Promise.create (fun resolve _ -> setTimeout (fun () -> resolve ()) ms |> ignore)
 
-
     let runExpectoProject project args =
         match Project.getLauncher outputChannel project with
         | None -> Promise.lift ""
@@ -222,7 +221,7 @@ module Expecto =
                         })
             }
 
-    let runProject (project: ProjectWithTests) : JS.Promise<TestRunResult> =
+    let runProject (project: ProjectWithTests) : JS.Promise<ProjectWithTestResults> =
         outputChannel.clear ()
         lastOutput.Clear()
         failwith "todo"
@@ -295,31 +294,108 @@ module Expecto =
 //        )
 
 module NUnit =
-    let runProject (projectWithTests: ProjectWithTests) : JS.Promise<TestRunResult> =
+    let runProject (projectWithTests: ProjectWithTests) : JS.Promise<ProjectWithTestResults> =
         logger.Debug("Nunit project", projectWithTests)
 
         promise {
-            let! _, stdout, _ =
+            let! _, _, exitCode =
                 Process.exec
                     "dotnet"
                     (ResizeArray(
                         [| "test"
-                           projectWithTests.Project.Project |]
+                           projectWithTests.Project.Project
+                           // Project should already be built, perhaps we can point to the dll instead?
+                           "--no-restore"
+                           "--logger:\"trx;LogFileName=Ionide.trx\""
+                           "--noLogo" |]
                     ))
 
-            logger.Debug("Test run stdout", stdout)
+            logger.Debug("Test run exitCode", exitCode)
+
+            let trxPath =
+                path.resolve (path.dirname projectWithTests.Project.Project, "TestResults", "Ionide.trx")
+
+            logger.Debug("Trx file at", trxPath)
+            // probably possible to read via promise api
+            let trxContent = fs.readFileSync (trxPath, "utf8")
+            let xmlDoc = mkDoc trxContent
+
+            let xpathSelector =
+                XPath.XPathSelector(xmlDoc, "http://microsoft.com/schemas/VisualStudio/TeamTest/2010")
+
+            let findTestByFullName (fullName: string) : TestItem =
+                projectWithTests.Tests
+                |> Array.find (fun t -> t.FullName = fullName)
+                |> fun t -> t.Test
+
+            let tests =
+                xpathSelector.Select<_ array> "/t:TestRun/t:TestDefinitions/t:UnitTest"
+                |> Array.mapi (fun idx _unitTest ->
+                    let executionId =
+                        xpathSelector.SelectString $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx + 1}]/t:Execution/@id"
+
+                    let testMethodClassName =
+                        xpathSelector.SelectString
+                            $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx + 1}]/t:TestMethod/@className"
+
+                    let testMethodName =
+                        xpathSelector.SelectString
+                            $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx + 1}]/t:TestMethod/@name"
+
+                    let fullTestName = $"{testMethodClassName}.{testMethodName}"
+
+                    let outcome =
+                        xpathSelector.SelectString
+                            $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@outcome"
+
+                    let errorInfoMessage =
+                        xpathSelector.TrySelectString
+                            $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:Message"
+
+                    let timing =
+                        let duration =
+                            xpathSelector.SelectString
+                                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@duration"
+
+                        TimeSpan.Parse(duration).TotalMilliseconds
+
+                    let expected, actual =
+                        match errorInfoMessage with
+                        | None -> None, None
+                        | Some message ->
+                            let lines =
+                                message.Split([| "\r\n"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
+                                |> Array.map (fun n -> n.TrimStart())
+
+                            let tryFind (startsWith: string) =
+                                Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
+                                |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
+
+                            tryFind "Expected:", tryFind "But was:"
+
+                    { Test = findTestByFullName fullTestName
+                      FullTestName = fullTestName
+                      Outcome = !!outcome
+                      ErrorMessage = errorInfoMessage
+                      Expected = expected
+                      Actual = actual
+                      Timing = timing })
 
             return
                 { Project = projectWithTests.Project
-                  Failed = Array.empty
-                  Ignored = Array.empty
-                  Passed = Array.empty }
+                  Tests = tests }
         }
-
 
 let rec mapTest (tc: TestController) (uri: Uri) (t: TestAdapterEntry) : TestItem =
     let ti = tc.createTestItem (uri.ToString() + " -- " + string t.id, t.name, uri)
-    ti.range <- Some t.range
+
+    ti.range <-
+        Some(
+            vscode.Range.Create(
+                vscode.Position.Create(t.range.start.line, t.range.start.character),
+                vscode.Position.Create(t.range.``end``.line, t.range.``end``.character)
+            )
+        )
 
     t.childs
     |> Array.iter (fun n -> mapTest tc uri n |> ti.children.add)
@@ -383,9 +459,12 @@ let buildProjects (projects: ProjectWithTests array) : JS.Promise<ProjectWithTes
 
         successfulBuilds, failedBuilds)
 
-let runTests (testRun: TestRun) (projects: ProjectWithTests array) : JS.Promise<TestRunResult array> =
+let runTests (testRun: TestRun) (projects: ProjectWithTests array) : JS.Promise<ProjectWithTestResults array> =
     // Indicate in the UI that all the tests are running.
-    Array.iter (fun project -> Array.iter (fun t -> testRun.started t.Test) project.Tests) projects
+    Array.iter
+        (fun (project: ProjectWithTests) ->
+            Array.iter (fun (t: TestWithFullName) -> testRun.started t.Test) project.Tests)
+        projects
 
     projects
     |> Array.map (fun project ->
@@ -405,8 +484,6 @@ let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToke
     let tr = tc.createTestRun req
     logger.Debug("Test run", tc.items.size < 1.)
 
-    //let allTests = flatTestList tc.items
-
     if tc.items.size < 1. then
         !! tr.``end`` ()
     else
@@ -414,7 +491,7 @@ let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToke
         logger.Debug("Found projects", projectsWithTests)
 
         projectsWithTests
-        |> Array.iter (fun { Tests = tests } -> Array.iter (fun test -> tr.enqueued test.Test) tests)
+        |> Array.iter (fun { Tests = tests } -> Array.iter (fun (test: TestWithFullName) -> tr.enqueued test.Test) tests)
 
         logger.Debug("Test run list in projects", projectsWithTests)
 
@@ -426,27 +503,25 @@ let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToke
                 project.Tests
                 |> Array.iter (fun t -> tr.errored (t.Test, !^ vscode.TestMessage.Create(!^ "Project build failed"))))
 
-            let! outputs = runTests tr successfulProjects
-            logger.Debug("Outputs", outputs)
+            let! completedTestProjects = runTests tr successfulProjects
+            logger.Debug("Outputs", completedTestProjects)
 
-            //                outputs.Passed
-//                |> Array.choose (fun t -> findByFullName t.FullName)
-//                |> Array.iter tr.passed
-//
-//                outputs.Ignored
-//                |> Array.choose (fun t -> findByFullName t.FullName)
-//                |> Array.iter tr.skipped
-//
-//                outputs.Failed
-//                |> Array.choose (fun t ->
-//                    findByFullName t.FullName
-//                    |> Option.map (fun ti -> ti, t))
-//                |> Array.iter (fun (ti, t) ->
-//                    let msg = vscode.TestMessage.Create(!^t.ErrorMessage)
-//                    msg.location <- Some(vscode.Location.Create(ti.uri.Value, !^ti.range.Value))
-//                    msg.expectedOutput <- t.Expected
-//                    msg.actualOutput <- t.Actual
-//                    tr.failed (ti, !^msg))
+            completedTestProjects
+            |> Array.iter (fun (project: ProjectWithTestResults) ->
+                project.Tests
+                |> Array.iter (fun (test: TestResult) ->
+                    match test.Outcome with
+                    | TestResultOutcome.NotExecuted -> tr.skipped test.Test
+                    | TestResultOutcome.Passed -> tr.passed (test.Test, test.Timing)
+                    | TestResultOutcome.Failed ->
+                        test.ErrorMessage
+                        |> Option.iter (fun em ->
+                            let ti = test.Test
+                            let msg = vscode.TestMessage.Create(!^em)
+                            msg.location <- Some(vscode.Location.Create(ti.uri.Value, !^ti.range.Value))
+                            msg.expectedOutput <- test.Expected
+                            msg.actualOutput <- test.Actual
+                            tr.failed (ti, !^msg, test.Timing))))
 
             tr.``end`` ()
         }
