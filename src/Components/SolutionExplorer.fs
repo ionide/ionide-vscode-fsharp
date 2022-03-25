@@ -62,7 +62,7 @@ module SolutionExplorer =
             | [ key ], children when children |> List.exists (fun c -> c.Key = key) -> state
             | [ key ], _ ->
                 let x =
-                    { Key = key
+                    { Key = Uri.UnescapeDataString key
                       FilePath = filepath
                       VirtualPath = virtualPath
                       Children = [] }
@@ -74,7 +74,7 @@ module SolutionExplorer =
                 let dirPath = pathCombine state.FilePath dirName
 
                 let x =
-                    { Key = dirName
+                    { Key = Uri.UnescapeDataString dirName
                       FilePath = dirPath
                       VirtualPath = virtualPath
                       Children = [] }
