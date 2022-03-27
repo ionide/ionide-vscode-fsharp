@@ -207,12 +207,19 @@ module Debugger =
         abstract member workingDirectory: string option
         abstract member launchBrowser: bool option
         abstract member launchUrl: bool option
-        abstract member environmentVariables: Map<string, string> option
+        abstract member environmentVariables: System.Collections.Generic.Dictionary<string, string> option
         abstract member applicationUrl: string option
 
     [<Interface>]
+    type ProfileMap =
+        [<Emit("$0[$1]")>]
+        abstract member Item: string -> LaunchSettingsConfiguration
+        [<Emit("Object.keys($0)")>]
+        abstract member Keys: string []
+
+    [<Interface>]
     type LaunchSettingsFile =
-        abstract member profiles: Map<string, LaunchSettingsConfiguration> option
+        abstract member profiles: ProfileMap option
 
     let readSettingsForProject (project: Project) =
         // todo: the subfolder is 'My Project' for VB, if we ever handle that
@@ -228,8 +235,8 @@ module Debugger =
 
             if JS.isDefined settings
                && Option.isSome settings.profiles
-               && not settings.profiles.Value.IsEmpty then
-                logger.Info $"found {settings.profiles.Value.Count} profiles."
+               && not (settings.profiles.Value.Keys.Length = 0) then
+                logger.Info $"found {settings.profiles.Value.Keys.Length} profiles."
                 Some settings.profiles.Value
             else
                 logger.Info $"No profiles found in %s{file}"
@@ -279,8 +286,8 @@ module Debugger =
 
     let launchSettingProvider =
         { new DebugConfigurationProvider with
-            member x.provideDebugConfigurations(folder: option<WorkspaceFolder>, token: option<CancellationToken>) =
-                logger.Info $"Evaluating launch settings configurations for workspace '{folder}'"
+            override x.provideDebugConfigurations(folder: option<WorkspaceFolder>, token: option<CancellationToken>) =
+                logger.Info $"Evaluating launch settings configurations for workspace '%A{folder}'"
                 let configs =
                     Project.getInWorkspace ()
                     |> Seq.choose (function
@@ -296,10 +303,14 @@ module Debugger =
                         | None -> None)
                     |> Seq.collect (fun (project, launchSettings) ->
                         seq {
-                            for (KeyValue (name, settings)) in launchSettings do
-                                match makeDebugConfigFor (name, settings, project) with
-                                | Some cfg -> yield cfg
-                                | None -> ()
+                            for name in launchSettings.Keys do
+                                logger.Info $"Making config for {name}"
+                                let settings: LaunchSettingsConfiguration = launchSettings[name]
+                                if JS.isDefined settings then
+                                    match makeDebugConfigFor (name, settings, project) with
+                                    | Some cfg -> yield cfg
+                                    | None -> ()
+                                else ()
                         })
 
                 if Seq.isEmpty configs then
@@ -307,7 +318,7 @@ module Debugger =
                 else
                     ProviderResult.Some(U2.Case1(ResizeArray configs))
 
-            member x.resolveDebugConfiguration
+            override x.resolveDebugConfiguration
                 (
                     folder: option<WorkspaceFolder>,
                     debugConfiguration: DebugConfiguration,
@@ -316,7 +327,7 @@ module Debugger =
                 logger.Info $"Evaluating launch settings configurations for workspace2 '{folder}'"
                 ProviderResult.Some(U2.Case1 debugConfiguration)
 
-            member x.resolveDebugConfigurationWithSubstitutedVariables
+            override x.resolveDebugConfigurationWithSubstitutedVariables
                 (
                     folder: option<WorkspaceFolder>,
                     debugConfiguration: DebugConfiguration,
@@ -338,7 +349,7 @@ module Debugger =
 
         logger.Info "registering debug provider"
         debug.registerDebugConfigurationProvider (
-            "*",
+            "coreclr",
             launchSettingProvider,
             DebugConfigurationProviderTriggerKind.Dynamic
         )

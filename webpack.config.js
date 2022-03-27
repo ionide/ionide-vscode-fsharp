@@ -24,7 +24,7 @@ module.exports = function(env, argv) {
   return {
   target: 'node',
   mode: isProduction ? "production" : "development",
-  devtool: "source-map-eval",
+  devtool: "source-map",
   entry: './out/fsharp.js',
   output: {
     filename: 'fsharp.js',

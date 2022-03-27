@@ -42,6 +42,12 @@
 	},
 	"main": "./fsharp",
 	"contributes": {
+		"debuggers": [
+			{
+				"type": "coreclr",
+				"label": "Ionide LaunchSettings"
+			}
+		],
 		"languages": [
 			{
 				"id": "fsharp",
@@ -1562,7 +1568,7 @@
 		}
 	},
 	"activationEvents": [
-		"onDebugInitialConfigurations",
+		"onDebugDynamicConfigurations:coreclr",
 		"workspaceContains:**/*.fs",
 		"workspaceContains:**/*.fsx",
 		"workspaceContains:**/*.fsproj",
