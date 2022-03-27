@@ -200,6 +200,13 @@ module Debugger =
 
     /// minimal set of properties from the launchsettings json
     [<Interface>]
+    type JsMap<'t> =
+        [<Emit("$0[$1]")>]
+        abstract member Item: string -> 't
+        [<Emit("Object.keys($0)")>]
+        abstract member Keys: string []
+
+    [<Interface>]
     type LaunchSettingsConfiguration =
         abstract member commandName: string option
         abstract member commandLineArgs: string option
@@ -207,19 +214,12 @@ module Debugger =
         abstract member workingDirectory: string option
         abstract member launchBrowser: bool option
         abstract member launchUrl: bool option
-        abstract member environmentVariables: System.Collections.Generic.Dictionary<string, string> option
+        abstract member environmentVariables: JsMap<string>
         abstract member applicationUrl: string option
 
     [<Interface>]
-    type ProfileMap =
-        [<Emit("$0[$1]")>]
-        abstract member Item: string -> LaunchSettingsConfiguration
-        [<Emit("Object.keys($0)")>]
-        abstract member Keys: string []
-
-    [<Interface>]
     type LaunchSettingsFile =
-        abstract member profiles: ProfileMap option
+        abstract member profiles: JsMap<LaunchSettingsConfiguration> option
 
     let readSettingsForProject (project: Project) =
         // todo: the subfolder is 'My Project' for VB, if we ever handle that
@@ -272,6 +272,20 @@ module Debugger =
 
             c?cwd <- ls.workingDirectory
                      |> Option.defaultValue "${workspaceFolder}"
+
+            match ls.launchBrowser with
+            | Some true ->
+                c?serverReadyAction <- {|
+                    action = "openExternally"
+                    pattern = "\\bNow listening on:\\s+(https?://\\S+)" // TODO: make this pattern extendable?
+                |}
+            | _ -> ()
+
+            if JS.isDefined ls.environmentVariables then
+                let vars =
+                    ls.environmentVariables.Keys |> Array.map (fun k -> k, box ls.environmentVariables[k])
+                c?env <- createObj vars
+
 
             c?console <- "internalConsole"
             c?stopAtEntry <- false
