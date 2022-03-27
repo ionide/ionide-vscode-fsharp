@@ -1562,6 +1562,7 @@
 		}
 	},
 	"activationEvents": [
+		"onDebugInitialConfigurations",
 		"workspaceContains:**/*.fs",
 		"workspaceContains:**/*.fsx",
 		"workspaceContains:**/*.fsproj",

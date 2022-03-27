@@ -700,8 +700,7 @@ Consider:
                 promise {
                     let fsautocompletePath =
                         if String.IsNullOrEmpty fsacNetcorePath then
-                            VSCodeExtension.ionidePluginPath ()
-                            + "/bin/fsautocomplete.dll"
+                            path.join (VSCodeExtension.ionidePluginPath (), "bin", "fsautocomplete.dll")
                         else
                             fsacNetcorePath
 
