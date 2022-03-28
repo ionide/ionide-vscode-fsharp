@@ -1497,6 +1497,10 @@
 			{
 				"fileMatch": "wsconfig.json",
 				"url": "./schemas/wsconfig.json"
+			},
+			{
+				"fileMatch": "**/launchSettings.json",
+				"url": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/launchsettings.json"
 			}
 		],
 		"breakpoints": [
@@ -1565,7 +1569,14 @@
 				"id": "ionide-fsharp.fsi",
 				"title": "F# Interactive"
 			}]
-		}
+		},
+		"taskDefinitions": [
+			{
+				"type": "msbuild",
+				"required": [],
+				"properties": {}
+			}
+		]
 	},
 	"activationEvents": [
 		"onDebugDynamicConfigurations:coreclr",

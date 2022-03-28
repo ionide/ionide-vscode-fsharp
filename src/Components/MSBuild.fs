@@ -15,7 +15,7 @@ module node = Node.Api
 
 module MSBuild =
 
-    let outputChannel = window.createOutputChannel "msbuild"
+    let outputChannel = window.createOutputChannel "Ionide: MSBuild"
 
     let private logger =
         ConsoleAndOutputChannelLogger(Some "msbuild", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
@@ -210,6 +210,17 @@ module MSBuild =
             window.showWarningMessage ("Solution not loaded")
             |> ignore
 
+    type MSBuildTask = Task
+
+    let msbuildBuildTaskProvider =
+        { new TaskProvider<MSBuildTask> with
+            override x.provideTasks(token: CancellationToken) =
+                logger.Info("providing tasks");
+                ProviderResult.Some (U2.Case1 (ResizeArray()))
+            override x.resolveTask(t: MSBuildTask, token: CancellationToken) =
+                logger.Info ("resolving task %s", t.name);
+                ProviderResult.Some (U2.Case1 t)
+        }
 
     let activate (context: ExtensionContext) =
         let unlessIgnored (path: string) f =
@@ -250,6 +261,8 @@ module MSBuild =
 
             fun _ -> f p
 
+        tasks.registerTaskProvider("msbuild", msbuildBuildTaskProvider)
+        |> context.Subscribe
 
         registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")
         registerCommand "MSBuild.rebuildCurrent" (fun _ -> buildCurrentProject "Rebuild")

@@ -55,9 +55,10 @@ module LaunchJsonVersion2 =
         }
 
 module Debugger =
+    let outputChannel = window.createOutputChannel "Ionide: Debugger"
 
     let private logger =
-        ConsoleAndOutputChannelLogger(Some "Debug", Level.DEBUG, None, Some Level.DEBUG)
+        ConsoleAndOutputChannelLogger(Some "Debugger", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
 
     let buildAndRun (project: Project) =
         promise {
