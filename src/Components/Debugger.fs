@@ -203,6 +203,7 @@ module Debugger =
     type JsMap<'t> =
         [<Emit("$0[$1]")>]
         abstract member Item: string -> 't
+
         [<Emit("Object.keys($0)")>]
         abstract member Keys: string []
 
@@ -233,9 +234,11 @@ module Debugger =
             let fileContent = node.fs.readFileSync file
             let settings: LaunchSettingsFile = Node.Util.JSON.parse (string fileContent)
 
-            if JS.isDefined settings
-               && Option.isSome settings.profiles
-               && not (settings.profiles.Value.Keys.Length = 0) then
+            if
+                JS.isDefined settings
+                && Option.isSome settings.profiles
+                && not (settings.profiles.Value.Keys.Length = 0)
+            then
                 logger.Info $"found {settings.profiles.Value.Keys.Length} profiles."
                 Some settings.profiles.Value
             else
@@ -253,6 +256,8 @@ module Debugger =
         ) : DebugConfiguration option =
         if ls.commandName <> Some "Project"
            || ls.commandName = None then
+            None
+        else if project.OutputType <> "exe" then
             None
         else
             let projectName = node.path.basename (project.Project)
@@ -275,57 +280,82 @@ module Debugger =
 
             match ls.launchBrowser with
             | Some true ->
-                c?serverReadyAction <- {|
-                    action = "openExternally"
-                    pattern = "\\bNow listening on:\\s+(https?://\\S+)" // TODO: make this pattern extendable?
-                |}
+                c?serverReadyAction <- {| action = "openExternally"
+                                          pattern = "\\bNow listening on:\\s+(https?://\\S+)" |} // TODO: make this pattern extendable?
             | _ -> ()
 
             if JS.isDefined ls.environmentVariables then
                 let vars =
-                    ls.environmentVariables.Keys |> Array.map (fun k -> k, box ls.environmentVariables[k])
+                    ls.environmentVariables.Keys
+                    |> Array.map (fun k -> k, box ls.environmentVariables[k])
+
                 c?env <- createObj vars
 
 
             c?console <- "internalConsole"
             c?stopAtEntry <- false
-            let presentation = {|
-                hidden = false
-                group = "ionide"
+            let presentation = {| hidden = false; group = "ionide" |}
 
-            |}
             c?presentation <- presentation
 
+            Some c
+
+    let configsForProject (project, launchSettings: JsMap<LaunchSettingsConfiguration>) =
+        seq {
+            for name in launchSettings.Keys do
+                logger.Info $"Making config for {name}"
+                let settings: LaunchSettingsConfiguration = launchSettings[name]
+
+                if JS.isDefined settings then
+                    match makeDebugConfigFor (name, settings, project) with
+                    | Some cfg -> yield cfg
+                    | None -> ()
+                else
+                    ()
+        }
+
+    let defaultConfigForProject (p: Project) : DebugConfiguration option =
+        if p.OutputType <> "exe" then
+            None
+        else
+            let c = createEmpty<DebugConfiguration>
+            c.name <- $"{path.basename p.Project}"
+            c.``type`` <- "coreclr"
+            c.request <- "launch"
+            c?program <- p.Output
+
+            c?cwd <- "${workspaceFolder}"
+
+            c?console <- "internalConsole"
+            c?stopAtEntry <- false
+            let presentation = {| hidden = false; group = "ionide" |}
+
+            c?presentation <- presentation
             Some c
 
     let launchSettingProvider =
         { new DebugConfigurationProvider with
             override x.provideDebugConfigurations(folder: option<WorkspaceFolder>, token: option<CancellationToken>) =
                 logger.Info $"Evaluating launch settings configurations for workspace '%A{folder}'"
+
                 let configs =
                     Project.getInWorkspace ()
                     |> Seq.choose (function
-                        | Project.ProjectLoadingState.Loaded x ->
-                            Some x
+                        | Project.ProjectLoadingState.Loaded x -> Some x
                         | x ->
                             logger.Info $"Discarding project '{x}' because it is not loaded"
-                            None
-                        )
-                    |> Seq.choose (fun (p: Project) ->
+                            None)
+                    |> Seq.collect (fun (p: Project) ->
                         match readSettingsForProject p with
-                        | Some launchSettings -> Some(p, launchSettings)
-                        | None -> None)
-                    |> Seq.collect (fun (project, launchSettings) ->
-                        seq {
-                            for name in launchSettings.Keys do
-                                logger.Info $"Making config for {name}"
-                                let settings: LaunchSettingsConfiguration = launchSettings[name]
-                                if JS.isDefined settings then
-                                    match makeDebugConfigFor (name, settings, project) with
-                                    | Some cfg -> yield cfg
-                                    | None -> ()
-                                else ()
-                        })
+                        | Some launchSettings ->
+                            let projectConfigs = configsForProject (p, launchSettings)
+
+                            if Seq.isEmpty projectConfigs then
+                                (Option.toList (defaultConfigForProject p)
+                                 |> List.toSeq)
+                            else
+                                projectConfigs
+                        | None -> Seq.empty)
 
                 if Seq.isEmpty configs then
                     ProviderResult.None
@@ -348,8 +378,7 @@ module Debugger =
                     token: option<CancellationToken>
                 ) =
                 logger.Info $"Evaluating launch settings configurations for workspace3 '{folder}'"
-                ProviderResult.Some(U2.Case1 debugConfiguration)
-        }
+                ProviderResult.Some(U2.Case1 debugConfiguration) }
 
     let activate (c: ExtensionContext) =
         commands.registerCommand ("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2)
@@ -362,6 +391,7 @@ module Debugger =
         |> c.Subscribe
 
         logger.Info "registering debug provider"
+
         debug.registerDebugConfigurationProvider (
             "coreclr",
             launchSettingProvider,
