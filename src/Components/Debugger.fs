@@ -338,29 +338,26 @@ module Debugger =
             override x.provideDebugConfigurations(folder: option<WorkspaceFolder>, token: option<CancellationToken>) =
                 logger.Info $"Evaluating launch settings configurations for workspace '%A{folder}'"
 
-                let configs =
-                    Project.getInWorkspace ()
-                    |> Seq.choose (function
-                        | Project.ProjectLoadingState.Loaded x -> Some x
-                        | x ->
-                            logger.Info $"Discarding project '{x}' because it is not loaded"
-                            None)
-                    |> Seq.collect (fun (p: Project) ->
+                Project.getInWorkspace ()
+                |> Seq.choose (function
+                    | Project.ProjectLoadingState.Loaded x -> Some x
+                    | x ->
+                        logger.Info $"Discarding project '{x}' because it is not loaded"
+                        None)
+                |> Seq.collect (fun (p: Project) ->
+                    seq {
+                        // emit configurations for any launchsettings for this project
                         match readSettingsForProject p with
-                        | Some launchSettings ->
-                            let projectConfigs = configsForProject (p, launchSettings)
-
-                            if Seq.isEmpty projectConfigs then
-                                (Option.toList (defaultConfigForProject p)
-                                 |> List.toSeq)
-                            else
-                                projectConfigs
-                        | None -> Seq.empty)
-
-                if Seq.isEmpty configs then
-                    ProviderResult.None
-                else
-                    ProviderResult.Some(U2.Case1(ResizeArray configs))
+                        | Some launchSettings -> yield! configsForProject (p, launchSettings)
+                        | None -> ()
+                        // emit a default configuration for this project if it is an executable
+                        match defaultConfigForProject p with
+                        | Some p -> yield p
+                        | None -> ()
+                    })
+                |> ResizeArray
+                |> U2.Case1
+                |> ProviderResult.Some
 
             override x.resolveDebugConfiguration
                 (
