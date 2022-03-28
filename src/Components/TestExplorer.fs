@@ -27,6 +27,9 @@ type TestItemCollection with
 type TestController with
     member x.TestItems() : TestItem array = x.items.TestItems()
 
+type TestItem with
+    member this.Type: string = this?``type``
+
 type TestItemAndProject =
     { TestItem: TestItem
       Project: Project }
@@ -35,7 +38,9 @@ type TestWithFullName = { FullName: string; Test: TestItem }
 
 type ProjectWithTests =
     { Project: Project
-      Tests: TestWithFullName array }
+      Tests: TestWithFullName array
+      /// The Tests are listed due to a include filter, so when running the tests the --filter should be added
+      HasIncludeFilter: bool }
 
 [<RequireQualifiedAccess; StringEnum(CaseRules.None)>]
 type TestResultOutcome =
@@ -298,6 +303,28 @@ module NUnit =
         logger.Debug("Nunit project", projectWithTests)
 
         promise {
+            // https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test#filter-option-details
+            let filter =
+                if not projectWithTests.HasIncludeFilter then
+                    Array.empty
+                else
+                    let filterValue =
+                        projectWithTests.Tests
+                        |> Array.map (fun t ->
+                            if t.FullName.Contains(" ") && t.Test.Type = "NUnit" then
+                                // workaround for https://github.com/nunit/nunit3-vs-adapter/issues/876
+                                // Potentially we are going to run multiple tests that match this filter
+                                let testPart = t.FullName.Split(' ').[0]
+                                $"(FullyQualifiedName~{testPart})"
+                            else
+                                $"(FullyQualifiedName={t.FullName})")
+                        |> String.concat "|"
+
+                    [| "--filter"; filterValue |]
+
+            if filter.Length > 0 then
+                logger.Debug("Filter", filter)
+
             let! _, _, exitCode =
                 Process.exec
                     "dotnet"
@@ -307,7 +334,8 @@ module NUnit =
                            // Project should already be built, perhaps we can point to the dll instead?
                            "--no-restore"
                            "--logger:\"trx;LogFileName=Ionide.trx\""
-                           "--noLogo" |]
+                           "--noLogo"
+                           yield! filter |]
                     ))
 
             logger.Debug("Test run exitCode", exitCode)
@@ -323,26 +351,16 @@ module NUnit =
             let xpathSelector =
                 XPath.XPathSelector(xmlDoc, "http://microsoft.com/schemas/VisualStudio/TeamTest/2010")
 
-            let findTestByFullName (fullName: string) : TestItem =
-                projectWithTests.Tests
-                |> Array.find (fun t -> t.FullName = fullName)
-                |> fun t -> t.Test
-
             let tests =
-                xpathSelector.Select<_ array> "/t:TestRun/t:TestDefinitions/t:UnitTest"
-                |> Array.mapi (fun idx _unitTest ->
+                projectWithTests.Tests
+                |> Array.map (fun t ->
+                    let parts = t.FullName.Split('.')
+                    let className = String.concat "." (Array.take (parts.Length - 1) parts)
+                    let testName = parts.[parts.Length - 1]
+
                     let executionId =
-                        xpathSelector.SelectString $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx + 1}]/t:Execution/@id"
-
-                    let testMethodClassName =
                         xpathSelector.SelectString
-                            $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx + 1}]/t:TestMethod/@className"
-
-                    let testMethodName =
-                        xpathSelector.SelectString
-                            $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx + 1}]/t:TestMethod/@name"
-
-                    let fullTestName = $"{testMethodClassName}.{testMethodName}"
+                            $"/t:TestRun/t:TestDefinitions/t:UnitTest/t:TestMethod[@name='{testName}' and @className='{className}']/../t:Execution/@id"
 
                     let outcome =
                         xpathSelector.SelectString
@@ -373,8 +391,8 @@ module NUnit =
 
                             tryFind "Expected:", tryFind "But was:"
 
-                    { Test = findTestByFullName fullTestName
-                      FullTestName = fullTestName
+                    { Test = t.Test
+                      FullTestName = t.FullName
                       Outcome = !!outcome
                       ErrorMessage = errorInfoMessage
                       Expected = expected
@@ -404,9 +422,17 @@ let rec mapTest (tc: TestController) (uri: Uri) (t: TestAdapterEntry) : TestItem
     ti
 
 /// Get a flat list with all tests for each project
-let getProjectsForTests (tc: TestController) : ProjectWithTests array =
-    let rootTestsWithProject =
-        tc.TestItems()
+let getProjectsForTests (tc: TestController) (req: TestRunRequest) : ProjectWithTests array =
+    logger.Debug("req included", req.include)
+    logger.Debug("req excluded", req.exclude)
+
+    let testsWithProject =
+        let items =
+            match req.include with
+            | None -> tc.TestItems()
+            | Some includedTests -> includedTests.ToArray()
+
+        items
         |> Array.choose (fun (t: TestItem) ->
             t.uri
             |> Option.bind (fun uri -> Project.tryFindLoadedProjectByFile uri.fsPath)
@@ -429,11 +455,12 @@ let getProjectsForTests (tc: TestController) : ProjectWithTests array =
         // The goal is to collect here the actual runnable tests, they might be nested under a tree structure.
         visit testItem.TestItem
 
-    rootTestsWithProject
+    testsWithProject
     |> Array.groupBy (fun entry -> entry.Project.Project)
     |> Array.map (fun (_projectName, tests) ->
         { Project = tests.[0].Project
-          Tests = Array.collect collectTests tests })
+          Tests = Array.collect collectTests tests
+          HasIncludeFilter = Option.isSome req.include })
 
 /// Build test projects and return the succeeded and failed projects
 let buildProjects (projects: ProjectWithTests array) : JS.Promise<ProjectWithTests array * ProjectWithTests array> =
@@ -470,7 +497,7 @@ let runTests (testRun: TestRun) (projects: ProjectWithTests array) : JS.Promise<
     |> Array.map (fun project ->
         let testKind =
             Array.head project.Tests
-            |> fun test -> test.Test?``type``
+            |> fun test -> test.Test.Type
 
         match testKind with
         | "NUnit" -> NUnit.runProject project
@@ -487,7 +514,7 @@ let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToke
     if tc.items.size < 1. then
         !! tr.``end`` ()
     else
-        let projectsWithTests = getProjectsForTests tc
+        let projectsWithTests = getProjectsForTests tc req
         logger.Debug("Found projects", projectsWithTests)
 
         projectsWithTests

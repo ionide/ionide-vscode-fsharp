@@ -33,6 +33,9 @@ module XPath =
 
         member this.SelectString(xpath: string) : string = this.Select<string>($"string({xpath})")
 
+        member this.SelectStrings(xpath: string) : string array =
+            this.Select<string array>($"string({xpath})")
+
         member this.TrySelectString(xpath: string) : string option =
             let s = this.SelectString(xpath)
 
