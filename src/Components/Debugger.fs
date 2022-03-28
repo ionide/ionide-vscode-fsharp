@@ -291,6 +291,9 @@ module Debugger =
 
                 c?env <- createObj vars
 
+                if not (JS.isDefined ls.environmentVariables["ASPNETCORE_URLS"]) && Option.isSome ls.applicationUrl then
+                    c?env?ASPNETCORE_URLS <- ls.applicationUrl.Value
+
 
             c?console <- "internalConsole"
             c?stopAtEntry <- false
