@@ -18,7 +18,6 @@ type Api =
       DebugProject: DTO.Project -> string [] -> JS.Promise<unit> }
 
 let activate (context: ExtensionContext) : JS.Promise<Api> =
-
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
 
     let showExplorer =

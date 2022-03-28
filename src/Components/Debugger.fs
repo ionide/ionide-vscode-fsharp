@@ -56,6 +56,9 @@ module LaunchJsonVersion2 =
 
 module Debugger =
 
+    let private logger =
+        ConsoleAndOutputChannelLogger(Some "Debug", Level.DEBUG, None, Some Level.DEBUG)
+
     let buildAndRun (project: Project) =
         promise {
             let! _ = MSBuild.buildProjectPath "Build" project
@@ -195,6 +198,187 @@ module Debugger =
             |> Promise.map (Option.map (buildAndDebug) >> ignore)
         | Some p -> buildAndDebug p
 
+    /// minimal set of properties from the launchsettings json
+    [<Interface>]
+    type JsMap<'t> =
+        [<Emit("$0[$1]")>]
+        abstract member Item: string -> 't
+
+        [<Emit("Object.keys($0)")>]
+        abstract member Keys: string []
+
+    [<Interface>]
+    type LaunchSettingsConfiguration =
+        abstract member commandName: string option
+        abstract member commandLineArgs: string option
+        abstract member executablePath: string option
+        abstract member workingDirectory: string option
+        abstract member launchBrowser: bool option
+        abstract member launchUrl: bool option
+        abstract member environmentVariables: JsMap<string>
+        abstract member applicationUrl: string option
+
+    [<Interface>]
+    type LaunchSettingsFile =
+        abstract member profiles: JsMap<LaunchSettingsConfiguration> option
+
+    let readSettingsForProject (project: Project) =
+        // todo: the subfolder is 'My Project' for VB, if we ever handle that
+        let file =
+            node.path.join (node.path.dirname (project.Project), "Properties", "launchSettings.json")
+
+        let fileExists = node.fs.existsSync (U2.Case1 file)
+
+        if fileExists then
+            logger.Info $"Reading launch settings from %s{file}"
+            let fileContent = node.fs.readFileSync file
+            let settings: LaunchSettingsFile = Node.Util.JSON.parse (string fileContent)
+
+            if
+                JS.isDefined settings
+                && Option.isSome settings.profiles
+                && not (settings.profiles.Value.Keys.Length = 0)
+            then
+                logger.Info $"found {settings.profiles.Value.Keys.Length} profiles."
+                Some settings.profiles.Value
+            else
+                logger.Info $"No profiles found in %s{file}"
+                None
+        else
+            logger.Info $"No launch settings exist for project %s{project.Project}"
+            None
+
+    let makeDebugConfigFor
+        (
+            name: string,
+            ls: LaunchSettingsConfiguration,
+            project: Project
+        ) : DebugConfiguration option =
+        if ls.commandName <> Some "Project"
+           || ls.commandName = None then
+            None
+        else if project.OutputType <> "exe" then
+            None
+        else
+            let projectName = node.path.basename (project.Project)
+            let projectExecutable = project.Output
+
+            let cliArgs =
+                ls.commandLineArgs
+                |> Option.defaultValue ""
+                |> String.split [| ' ' |] // this is bad splitting - ideally we would get an args array from the json file...
+
+            let c = createEmpty<DebugConfiguration>
+            c.name <- $"{projectName}: {name}"
+            c.``type`` <- "coreclr"
+            c.request <- "launch"
+            c?program <- projectExecutable
+            c?args <- cliArgs
+
+            c?cwd <- ls.workingDirectory
+                     |> Option.defaultValue "${workspaceFolder}"
+
+            match ls.launchBrowser with
+            | Some true ->
+                c?serverReadyAction <- {| action = "openExternally"
+                                          pattern = "\\bNow listening on:\\s+(https?://\\S+)" |} // TODO: make this pattern extendable?
+            | _ -> ()
+
+            if JS.isDefined ls.environmentVariables then
+                let vars =
+                    ls.environmentVariables.Keys
+                    |> Array.map (fun k -> k, box (Environment.expand (ls.environmentVariables[k])))
+
+                c?env <- createObj vars
+
+                if not (JS.isDefined ls.environmentVariables["ASPNETCORE_URLS"]) && Option.isSome ls.applicationUrl then
+                    c?env?ASPNETCORE_URLS <- ls.applicationUrl.Value
+
+
+            c?console <- "internalConsole"
+            c?stopAtEntry <- false
+            let presentation = {| hidden = false; group = "ionide" |}
+
+            c?presentation <- presentation
+
+            Some c
+
+    let configsForProject (project, launchSettings: JsMap<LaunchSettingsConfiguration>) =
+        seq {
+            for name in launchSettings.Keys do
+                logger.Info $"Making config for {name}"
+                let settings: LaunchSettingsConfiguration = launchSettings[name]
+
+                if JS.isDefined settings then
+                    match makeDebugConfigFor (name, settings, project) with
+                    | Some cfg -> yield cfg
+                    | None -> ()
+                else
+                    ()
+        }
+
+    let defaultConfigForProject (p: Project) : DebugConfiguration option =
+        if p.OutputType <> "exe" then
+            None
+        else
+            let c = createEmpty<DebugConfiguration>
+            c.name <- $"{path.basename p.Project}"
+            c.``type`` <- "coreclr"
+            c.request <- "launch"
+            c?program <- p.Output
+
+            c?cwd <- "${workspaceFolder}"
+
+            c?console <- "internalConsole"
+            c?stopAtEntry <- false
+            let presentation = {| hidden = false; group = "ionide" |}
+
+            c?presentation <- presentation
+            Some c
+
+    let launchSettingProvider =
+        { new DebugConfigurationProvider with
+            override x.provideDebugConfigurations(folder: option<WorkspaceFolder>, token: option<CancellationToken>) =
+                logger.Info $"Evaluating launch settings configurations for workspace '%A{folder}'"
+
+                Project.getInWorkspace ()
+                |> Seq.choose (function
+                    | Project.ProjectLoadingState.Loaded x -> Some x
+                    | x ->
+                        logger.Info $"Discarding project '{x}' because it is not loaded"
+                        None)
+                |> Seq.collect (fun (p: Project) ->
+                    seq {
+                        // emit configurations for any launchsettings for this project
+                        match readSettingsForProject p with
+                        | Some launchSettings -> yield! configsForProject (p, launchSettings)
+                        | None -> ()
+                        // emit a default configuration for this project if it is an executable
+                        match defaultConfigForProject p with
+                        | Some p -> yield p
+                        | None -> ()
+                    })
+                |> ResizeArray
+                |> U2.Case1
+                |> ProviderResult.Some
+
+            override x.resolveDebugConfiguration
+                (
+                    folder: option<WorkspaceFolder>,
+                    debugConfiguration: DebugConfiguration,
+                    token: option<CancellationToken>
+                ) =
+                logger.Info $"Evaluating launch settings configurations for workspace2 '{folder}'"
+                ProviderResult.Some(U2.Case1 debugConfiguration)
+
+            override x.resolveDebugConfigurationWithSubstitutedVariables
+                (
+                    folder: option<WorkspaceFolder>,
+                    debugConfiguration: DebugConfiguration,
+                    token: option<CancellationToken>
+                ) =
+                logger.Info $"Evaluating launch settings configurations for workspace3 '{folder}'"
+                ProviderResult.Some(U2.Case1 debugConfiguration) }
 
     let activate (c: ExtensionContext) =
         commands.registerCommand ("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2)
@@ -204,6 +388,15 @@ module Debugger =
         |> c.Subscribe
 
         commands.registerCommand ("fsharp.chooseDefaultProject", (chooseDefaultProject) |> objfy2)
+        |> c.Subscribe
+
+        logger.Info "registering debug provider"
+
+        debug.registerDebugConfigurationProvider (
+            "coreclr",
+            launchSettingProvider,
+            DebugConfigurationProviderTriggerKind.Dynamic
+        )
         |> c.Subscribe
 
         context <- Some c

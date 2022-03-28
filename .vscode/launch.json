@@ -12,7 +12,11 @@
 			],
 			"stopOnEntry": false,
 			"request": "launch",
-			"sourceMaps": true
+			"sourceMaps": true,
+			"outFiles": [
+				"${workspaceFolder}/release/*.js",
+				"!**/node_modules/**"
+			],
 		},
 		{
 			"preLaunchTask": "Extension Build (dev)",
@@ -24,7 +28,14 @@
 			],
 			"stopOnEntry": false,
 			"request": "launch",
-			"sourceMaps": true
+			"sourceMaps": true,
+			"pauseForSourceMap": true,
+			"sourceMapRenames": true,
+			"trace": true,
+			"outFiles": [
+				"${workspaceFolder}/release/*.js",
+				"!**/node_modules/**"
+			],
 		},
 		{
 			"name": "Launch Only",
