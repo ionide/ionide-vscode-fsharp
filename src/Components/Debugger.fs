@@ -287,7 +287,7 @@ module Debugger =
             if JS.isDefined ls.environmentVariables then
                 let vars =
                     ls.environmentVariables.Keys
-                    |> Array.map (fun k -> k, box ls.environmentVariables[k])
+                    |> Array.map (fun k -> k, box (Environment.expand (ls.environmentVariables[k])))
 
                 c?env <- createObj vars
 
