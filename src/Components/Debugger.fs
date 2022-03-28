@@ -156,18 +156,10 @@ module Debugger =
 
     let chooseDefaultProject () =
         promise {
-            let projects =
-                Project.getInWorkspace ()
-                |> List.choose (fun n ->
-                    match n with
-                    | Project.ProjectLoadingState.Loaded x -> Some x
-                    | _ -> None)
-
-            if projects.Length = 0 then
-                return None
-            elif projects.Length = 1 then
-                return Some projects.Head
-            else
+            match Project.getLoaded () with
+            | [] -> return None
+            | project::[] -> return Some project
+            | projects ->
                 let picks =
                     projects
                     |> List.map (fun p ->
