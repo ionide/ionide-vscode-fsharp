@@ -250,7 +250,7 @@ module MSBuild =
 
             let t =
                 msbuildTasks
-                |> Seq.tryFind (fun t -> t.name = solutionFile && t.group = expectedGroup)
+                |> Seq.tryFind (fun t -> t.name = "solution" && t.group = expectedGroup)
 
             match t with
             | None -> logger.Debug("no task found for target %s for solution %s", target, solutionFile)
@@ -378,7 +378,7 @@ module MSBuild =
                                 vscode.Task.Create(
                                     msbuildTaskDef,
                                     U2.Case2 TaskScope.Workspace,
-                                    $"{solutionName}",
+                                    "solution",
                                     verb,
                                     U3.Case2 execution,
                                     U2.Case1 "$msCompile",
