@@ -128,33 +128,55 @@ module MSBuild =
     /// prompts the user to choose a project
     let pickProject placeHolder =
         logger.Debug "pick project"
-        let projects = Project.getAll () |> ResizeArray
+        let projects = Project.getLoaded () |> ResizeArray
 
         if projects.Count = 0 then
             None |> Promise.lift
         else
             promise {
+                let items = projects |> Seq.map (fun p -> path.basename p.Project) |> ResizeArray
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some placeHolder
-                let! chosen = window.showQuickPick (projects |> U2.Case1, opts)
+                let! chosen = window.showQuickPick (U2.Case1 items, opts)
                 logger.Debug("user chose project %s", chosen)
-                return chosen
+                match chosen with
+                | None -> return None
+                | Some chosen ->
+                    return projects |> Seq.tryFind (fun p -> path.basename p.Project = chosen)
             }
 
     /// prompts the user to choose a project (if not specified) and builds that project
-    let buildProject target projOpt =
+    let buildProject target =
         promise {
             logger.Debug "building project"
 
-            let! chosen =
-                match projOpt with
-                | None -> pickProject "Project to build"
-                | Some h -> Some h |> Promise.lift
+            let! chosen = pickProject "Select a project to build"
+            let! msbuildTasks = tasks.fetchTasks msbuildTasksFilter
 
             return!
                 match chosen with
-                | None -> { Code = Some 0; Signal = None } |> Promise.lift
-                | Some proj -> invokeMSBuild proj target
+                | None -> Promise.lift ()
+                | Some proj -> promise {
+                    let projectFile = path.basename proj.Project
+                    let expectedGroup =
+                        match target with
+                        | "Build" -> Some vscode.TaskGroup.Build
+                        | "Rebuild" -> Some vscode.TaskGroup.Rebuild
+                        | "Clean" -> Some vscode.TaskGroup.Clean
+                        | _ -> None
+
+                    if expectedGroup = None then return ()
+
+                    let t =
+                        msbuildTasks
+                        |> Seq.tryFind (fun t -> t.name = projectFile && t.group = expectedGroup)
+
+                    match t with
+                    | None -> logger.Debug("no task found for target %s for project %s", target, projectFile)
+                    | Some t ->
+                        let! ex = tasks.executeTask (t)
+                        return ()
+                }
         }
 
     let buildProjectPath target (project: Project) = invokeMSBuild project.Project target
@@ -196,16 +218,6 @@ module MSBuild =
                 }
 
             messageLoop ())
-
-    let private restoreProjectCmd (projOpt: string option) =
-        buildProject "Restore" projOpt
-        |> Promise.onSuccess (fun exit ->
-            let failed = exit.Code <> Some 0
-
-            match failed, projOpt with
-            | false, Some p -> Project.load true p |> unbox
-            | true, Some p -> logger.Error("Restore of %s failed with code %i, signal %s", p, exit.Code, exit.Signal)
-            | _ -> ())
 
     let restoreProjectAsync (path: string) =
         restoreMailBox.Post(
@@ -274,11 +286,41 @@ module MSBuild =
         env |> Map.iter (fun k v -> envs?k <- v)
         vscode.ShellExecution.Create(U2.Case1 dotnetPath, args, opts)
 
-
     let msbuildTaskDef: TaskDefinition =
         let t = createEmpty<TaskDefinition>
         t?``type`` <- "msbuild"
         t
+
+    let private restoreProjectCmd () =
+        promise {
+            logger.Debug "building project"
+
+            let! chosen = pickProject "Select a project to restore"
+            match chosen with
+            | None -> return ()
+            | Some project ->
+                let projectFile = path.basename project.Project
+                let projectDir = path.dirname  project.Project
+                let! dotnet = dotnetBinary ()
+                let execution = invokeDotnet dotnet "restore" [] projectDir Map.empty
+
+                let detailString = $"Restore the {projectFile} project using `dotnet restore`"
+
+                let restoreTask =
+                    vscode.Task.Create(
+                        msbuildTaskDef,
+                        U2.Case2 TaskScope.Workspace,
+                        $"{projectFile}",
+                        "Restore",
+                        U3.Case2 execution,
+                        U2.Case1 "$msCompile",
+                        group = Some vscode.TaskGroup.Build,
+                        detail = Some detailString
+                    )
+
+                let! ex = tasks.executeTask restoreTask
+                return ()
+        }
 
     let perProjectTasks =
         [ "build", [], vscode.TaskGroup.Build, "Build"
@@ -435,7 +477,14 @@ module MSBuild =
         registerCommand "MSBuild.rebuildCurrentSolution" (fun _ -> buildCurrentSolution "Rebuild")
         registerCommand "MSBuild.cleanCurrentSolution" (fun _ -> buildCurrentSolution "Clean")
 
-        registerCommand2 "MSBuild.buildSelected" (typedMsbuildCmd (buildProject "Build"))
-        registerCommand2 "MSBuild.rebuildSelected" (typedMsbuildCmd (buildProject "Rebuild"))
-        registerCommand2 "MSBuild.cleanSelected" (typedMsbuildCmd (buildProject "Clean"))
-        registerCommand2 "MSBuild.restoreSelected" (typedMsbuildCmd restoreProjectCmd)
+        commands.registerCommand("MSBuild.buildSelected", fun _ -> buildProject "Build" |> Promise.map box |> box |> Some)
+        |> context.Subscribe
+
+        commands.registerCommand("MSBuild.buildSelected", fun _ -> buildProject "Rebuild" |> Promise.map box |> box |> Some)
+        |> context.Subscribe
+
+        commands.registerCommand("MSBuild.buildSelected", fun _ -> buildProject "Clean" |> Promise.map box |> box |> Some)
+        |> context.Subscribe
+
+        commands.registerCommand("MSBuild.restoreSelected", fun _ -> restoreProjectCmd () |> Promise.map box |> box |> Some)
+        |> context.Subscribe
