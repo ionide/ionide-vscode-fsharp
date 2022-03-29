@@ -39,7 +39,7 @@ module MSBuild =
 
         let executeWithHost () =
             promise {
-                let! msbuildPath = dotnetBinary()
+                let! msbuildPath = dotnetBinary ()
                 let cmd = ResizeArray("msbuild" :: command)
                 logger.Info("invoking msbuild from %s on %s for target %s", msbuildPath, project, target)
 
@@ -216,54 +216,84 @@ module MSBuild =
     // type ShellExecutionStatic =
     //     abstract Create()
 
-    let invokeDotnet subcommand args cwd env : JS.Promise<ShellExecution> = promise {
-        let! dotnet = dotnetBinary()
-        let args = (subcommand :: args) |> Seq.map U2.Case1 |> ResizeArray
+    let invokeDotnet dotnetPath subcommand args cwd env : ShellExecution =
+        let args =
+            (subcommand :: args)
+            |> Seq.map U2.Case1
+            |> ResizeArray
+
         let opts = createEmpty<ShellExecutionOptions>
         opts.cwd <- Some cwd
         let envs = createEmpty<ProcessExecutionOptionsEnv>
-        env
-        |> Map.iter (fun k v -> envs?k <- v)
-        let e = vscode.ShellExecution.Create(U2.Case1 dotnet, args, opts)
-        return e
-    }
+        env |> Map.iter (fun k v -> envs?k <- v)
+        vscode.ShellExecution.Create(U2.Case1 dotnetPath, args, opts)
+
 
     let msbuildTaskDef: TaskDefinition =
         let t = createEmpty<TaskDefinition>
         t?``type`` <- "msbuild"
         t
 
-    let taskForProject (p: Project): JS.Promise<MSBuildTask> = promise {
-        let projectName = path.basename p.Project
-        let projectDir = path.dirname p.Project
-        let! execution = invokeDotnet "build" [] projectDir Map.empty
-        let t = vscode.Task.Create(msbuildTaskDef, U2.Case2 TaskScope.Workspace, $"{projectName}", "Build", U3.Case2 execution, U2.Case1 "$msCompile")
-        t.group <- Some vscode.TaskGroup.Build
-        t.detail <- Some $"Build the {projectName} project using `dotnet build`"
-        return t
-    }
+    let perProjectTasks =
+        [ "build", [], vscode.TaskGroup.Build, "Build"
+          "clean", [], vscode.TaskGroup.Clean, "Clean"
+          "msbuild", [ "/t:Rebuild" ], vscode.TaskGroup.Rebuild, "Rebuild" ]
 
-    let traverse (p: ResizeArray<JS.Promise<'t>>): JS.Promise<ResizeArray<'t> option> = promise {
-        let! outputs = Promise.all (Array.ofSeq p)
-        return Some (ResizeArray(outputs))
-    }
+    let buildTaskListForProject (p: Project) : JS.Promise<MSBuildTask seq> =
+        promise {
+            let projectName = path.basename p.Project
+            let projectDir = path.dirname p.Project
+            let! dotnet = dotnetBinary ()
+
+            return
+                seq {
+                    for (command, args, group, verb) in perProjectTasks do
+                        let execution = invokeDotnet dotnet command args projectDir Map.empty
+                        let cmdline = "dotnet" :: command :: args |> String.concat " "
+                        let detailString = $"{verb} the {projectName} project using {cmdline}"
+
+                        let t =
+                            vscode.Task.Create(
+                                msbuildTaskDef,
+                                U2.Case2 TaskScope.Workspace,
+                                $"{projectName}",
+                                verb,
+                                U3.Case2 execution,
+                                U2.Case1 "$msCompile",
+                                group = Some group,
+                                detail = Some detailString
+                            )
+
+                        yield t
+                }
+        }
+
+    let traverse (p: ResizeArray<JS.Promise<'t>>) : JS.Promise<ResizeArray<'t> option> =
+        promise {
+            let! outputs = Promise.all (Array.ofSeq p)
+            return Some(ResizeArray(outputs))
+        }
 
     let msbuildBuildTaskProvider =
         { new TaskProvider<MSBuildTask> with
             override x.provideTasks(token: CancellationToken) =
                 logger.Info "providing tasks"
+
                 let tasks =
                     Project.getLoaded ()
-                    |> Seq.map (fun p -> taskForProject p)
+                    |> Seq.map buildTaskListForProject
                     |> ResizeArray
                     |> traverse
+                    |> Promise.map (function
+                        | None -> None
+                        | Some tasks -> tasks |> Seq.concat |> ResizeArray |> Some)
                     |> Promise.toThenable
 
-                ProviderResult.Some (U2.Case2 tasks)
+                ProviderResult.Some(U2.Case2 tasks)
+
             override x.resolveTask(t: MSBuildTask, token: CancellationToken) =
-                logger.Info ("resolving task %s", t.name);
-                ProviderResult.Some (U2.Case1 t)
-        }
+                logger.Info("resolving task %s", t.name)
+                ProviderResult.Some(U2.Case1 t) }
 
     let activate (context: ExtensionContext) =
         let unlessIgnored (path: string) f =
@@ -304,7 +334,7 @@ module MSBuild =
 
             fun _ -> f p
 
-        tasks.registerTaskProvider("msbuild", msbuildBuildTaskProvider)
+        tasks.registerTaskProvider ("msbuild", msbuildBuildTaskProvider)
         |> context.Subscribe
 
         registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")

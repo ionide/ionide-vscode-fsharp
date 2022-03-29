@@ -280,13 +280,18 @@ module Debugger =
             if JS.isDefined ls.environmentVariables then
                 let vars =
                     ls.environmentVariables.Keys
-                    |> Array.map (fun k -> k, box (Environment.expand (ls.environmentVariables[k])))
+                    |> Array.choose (fun k ->
+                        let value = ls.environmentVariables[k]
+                        if JS.isDefined value then
+                            let replaced = Environment.expand value
+                            Some (k, box replaced)
+                        else None
+                    )
 
                 c?env <- createObj vars
 
                 if not (JS.isDefined ls.environmentVariables["ASPNETCORE_URLS"]) && Option.isSome ls.applicationUrl then
                     c?env?ASPNETCORE_URLS <- ls.applicationUrl.Value
-
 
             c?console <- "internalConsole"
             c?stopAtEntry <- false
