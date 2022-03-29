@@ -64,39 +64,66 @@ module MSBuild =
         )
         |> Promise.ofThenable
 
+    let msbuildTasksFilter: TaskFilter =
+        let f = createEmpty<TaskFilter>
+        f.``type`` <- Some "msbuild"
+        f
+
     /// discovers the project that the active document belongs to and builds that
-    let buildCurrentProject target =
-        logger.Debug("discovering project")
+    let buildCurrentProject (target: string) =
+        promise {
+            logger.Debug("discovering project for current file")
 
-        match window.activeTextEditor.Value.document with
-        | Document.FSharp
-        | Document.CSharp
-        | Document.VB ->
-            let currentProject =
-                Project.getLoaded ()
-                |> Seq.where (fun p ->
-                    p.Files
-                    |> Seq.exists (String.endWith window.activeTextEditor.Value.document.fileName))
-                |> Seq.tryHead
+            match window.activeTextEditor.Value.document with
+            | Document.FSharp
+            | Document.CSharp
+            | Document.VB ->
+                let currentProject =
+                    Project.getLoaded ()
+                    |> Seq.where (fun p ->
+                        p.Files
+                        |> Seq.exists (String.endWith window.activeTextEditor.Value.document.fileName))
+                    |> Seq.tryHead
 
-            match currentProject with
-            | Some p ->
-                logger.Debug("found project %s", p.Project)
-                invokeMSBuild p.Project target
-            | None ->
+                match currentProject with
+                | Some p ->
+                    logger.Debug("found project %s", p.Project)
+                    let projectFile = path.basename p.Project
+                    let! msbuildTasks = tasks.fetchTasks (msbuildTasksFilter)
+
+                    let expectedGroup =
+                        match target with
+                        | "Build" -> Some vscode.TaskGroup.Build
+                        | "Rebuild" -> Some vscode.TaskGroup.Rebuild
+                        | "Clean" -> Some vscode.TaskGroup.Clean
+                        | _ -> None
+
+                    if expectedGroup = None then return ()
+
+                    let t =
+                        msbuildTasks
+                        |> Seq.tryFind (fun t -> t.name = projectFile && t.group = expectedGroup)
+
+                    match t with
+                    | None -> logger.Debug("no task found for target %s for project %s", target, projectFile)
+                    | Some t ->
+                        let! ex = tasks.executeTask (t)
+                        return ()
+                | None ->
+                    logger.Debug(
+                        "could not find a project that contained the file %s",
+                        window.activeTextEditor.Value.document.fileName
+                    )
+
+                    return ()
+            | _ ->
                 logger.Debug(
-                    "could not find a project that contained the file %s",
-                    window.activeTextEditor.Value.document.fileName
+                    "I don't know how to handle a project of type %s",
+                    window.activeTextEditor.Value.document.languageId
                 )
 
-                Promise.empty
-        | _ ->
-            logger.Debug(
-                "I don't know how to handle a project of type %s",
-                window.activeTextEditor.Value.document.languageId
-            )
-
-            Promise.empty
+                return ()
+        }
 
     /// prompts the user to choose a project
     let pickProject placeHolder =
@@ -197,8 +224,27 @@ module MSBuild =
 
     let buildSolution target sln =
         promise {
-            let! _ = invokeMSBuild sln target
-            return ()
+            let solutionFile = path.basename sln
+            let! msbuildTasks = tasks.fetchTasks msbuildTasksFilter
+
+            let expectedGroup =
+                match target with
+                | "Build" -> Some vscode.TaskGroup.Build
+                | "Rebuild" -> Some vscode.TaskGroup.Rebuild
+                | "Clean" -> Some vscode.TaskGroup.Clean
+                | _ -> None
+
+            if expectedGroup = None then return ()
+
+            let t =
+                msbuildTasks
+                |> Seq.tryFind (fun t -> t.name = solutionFile && t.group = expectedGroup)
+
+            match t with
+            | None -> logger.Debug("no task found for target %s for solution %s", target, solutionFile)
+            | Some t ->
+                let! ex = tasks.executeTask (t)
+                return ()
         }
 
     let buildCurrentSolution target =
@@ -268,6 +314,41 @@ module MSBuild =
                 }
         }
 
+    let buildTaskListForSolution (s: WorkspacePeekFound) : JS.Promise<MSBuildTask seq> =
+        promise {
+            match s with
+            | WorkspacePeekFound.Directory _ -> return Seq.empty
+            | WorkspacePeekFound.Solution ({ Path = p }) ->
+                let! dotnet = dotnetBinary ()
+                let solutionDir = path.dirname p
+                let solutionName = path.basename p
+
+                return
+                    seq {
+                        for (command, args, group, verb) in perProjectTasks do
+                            let execution =
+                                invokeDotnet dotnet command (solutionName :: args) solutionDir Map.empty
+
+                            let cmdline = "dotnet" :: command :: args |> String.concat " "
+                            let detailString = $"{verb} the {solutionName} solution using {cmdline}"
+
+                            let t =
+                                vscode.Task.Create(
+                                    msbuildTaskDef,
+                                    U2.Case2 TaskScope.Workspace,
+                                    $"{solutionName}",
+                                    verb,
+                                    U3.Case2 execution,
+                                    U2.Case1 "$msCompile",
+                                    group = Some group,
+                                    detail = Some detailString
+                                )
+
+                            yield t
+                    }
+
+        }
+
     let traverse (p: ResizeArray<JS.Promise<'t>>) : JS.Promise<ResizeArray<'t> option> =
         promise {
             let! outputs = Promise.all (Array.ofSeq p)
@@ -279,9 +360,18 @@ module MSBuild =
             override x.provideTasks(token: CancellationToken) =
                 logger.Info "providing tasks"
 
-                let tasks =
+                let projectTasks =
                     Project.getLoaded ()
                     |> Seq.map buildTaskListForProject
+
+                let solutionTasks =
+                    Project.getLoadedSolution ()
+                    |> Option.map buildTaskListForSolution
+                    |> Option.toList
+
+                let tasks =
+                    projectTasks
+                    |> Seq.append solutionTasks
                     |> ResizeArray
                     |> traverse
                     |> Promise.map (function
