@@ -55,9 +55,10 @@ module LaunchJsonVersion2 =
         }
 
 module Debugger =
+    let outputChannel = window.createOutputChannel "Ionide: Debugger"
 
     let private logger =
-        ConsoleAndOutputChannelLogger(Some "Debug", Level.DEBUG, None, Some Level.DEBUG)
+        ConsoleAndOutputChannelLogger(Some "Debugger", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
 
     let buildAndRun (project: Project) =
         promise {
@@ -155,18 +156,10 @@ module Debugger =
 
     let chooseDefaultProject () =
         promise {
-            let projects =
-                Project.getInWorkspace ()
-                |> List.choose (fun n ->
-                    match n with
-                    | Project.ProjectLoadingState.Loaded x -> Some x
-                    | _ -> None)
-
-            if projects.Length = 0 then
-                return None
-            elif projects.Length = 1 then
-                return Some projects.Head
-            else
+            match Project.getLoaded () with
+            | [] -> return None
+            | project::[] -> return Some project
+            | projects ->
                 let picks =
                     projects
                     |> List.map (fun p ->
@@ -252,7 +245,8 @@ module Debugger =
         (
             name: string,
             ls: LaunchSettingsConfiguration,
-            project: Project
+            project: Project,
+            buildTaskOpt: Task option
         ) : DebugConfiguration option =
         if ls.commandName <> Some "Project"
            || ls.commandName = None then
@@ -274,9 +268,14 @@ module Debugger =
             c.request <- "launch"
             c?program <- projectExecutable
             c?args <- cliArgs
+            match buildTaskOpt with
+            | Some bt -> c?preLaunchTask <- $"Build: {bt.name}"
+            | None -> ()
 
             c?cwd <- ls.workingDirectory
                      |> Option.defaultValue "${workspaceFolder}"
+
+
 
             match ls.launchBrowser with
             | Some true ->
@@ -287,13 +286,18 @@ module Debugger =
             if JS.isDefined ls.environmentVariables then
                 let vars =
                     ls.environmentVariables.Keys
-                    |> Array.map (fun k -> k, box (Environment.expand (ls.environmentVariables[k])))
+                    |> Array.choose (fun k ->
+                        let value = ls.environmentVariables[k]
+                        if JS.isDefined value then
+                            let replaced = Environment.expand value
+                            Some (k, box replaced)
+                        else None
+                    )
 
                 c?env <- createObj vars
 
                 if not (JS.isDefined ls.environmentVariables["ASPNETCORE_URLS"]) && Option.isSome ls.applicationUrl then
                     c?env?ASPNETCORE_URLS <- ls.applicationUrl.Value
-
 
             c?console <- "internalConsole"
             c?stopAtEntry <- false
@@ -303,21 +307,21 @@ module Debugger =
 
             Some c
 
-    let configsForProject (project, launchSettings: JsMap<LaunchSettingsConfiguration>) =
+    let configsForProject (project, launchSettings: JsMap<LaunchSettingsConfiguration>, buildTaskOpt) =
         seq {
             for name in launchSettings.Keys do
                 logger.Info $"Making config for {name}"
                 let settings: LaunchSettingsConfiguration = launchSettings[name]
 
                 if JS.isDefined settings then
-                    match makeDebugConfigFor (name, settings, project) with
+                    match makeDebugConfigFor (name, settings, project, buildTaskOpt) with
                     | Some cfg -> yield cfg
                     | None -> ()
                 else
                     ()
         }
 
-    let defaultConfigForProject (p: Project) : DebugConfiguration option =
+    let defaultConfigForProject (p: Project, buildTaskOpt: Task option) : DebugConfiguration option =
         if p.OutputType <> "exe" then
             None
         else
@@ -331,35 +335,49 @@ module Debugger =
 
             c?console <- "internalConsole"
             c?stopAtEntry <- false
+            match buildTaskOpt with
+            | Some bt -> c?preLaunchTask <- $"Build: {bt.name}"
+            | None -> ()
+
             let presentation = {| hidden = false; group = "ionide" |}
 
             c?presentation <- presentation
             Some c
 
     let launchSettingProvider =
+        let msbuildTasksFilter: TaskFilter =
+            let f = createEmpty<TaskFilter>
+            f.``type`` <- Some "msbuild"
+            f
+
         { new DebugConfigurationProvider with
             override x.provideDebugConfigurations(folder: option<WorkspaceFolder>, token: option<CancellationToken>) =
-                logger.Info $"Evaluating launch settings configurations for workspace '%A{folder}'"
+                let generate () = promise {
+                    logger.Info $"Evaluating launch settings configurations for workspace '%A{folder}'"
+                    let projects = Project.getLoaded()
+                    let! msbuildTasks = tasks.fetchTasks(msbuildTasksFilter)
+                    let tasks =
+                        projects
+                        |> Seq.collect (fun (p: Project) ->
+                            seq {
+                                let projectFile = path.basename p.Project
+                                let buildTaskForProject = msbuildTasks |> Seq.tryFind (fun t -> t.group = Some vscode.TaskGroup.Build && t.name = projectFile)
+                                // emit configurations for any launchsettings for this project
+                                match readSettingsForProject p with
+                                | Some launchSettings -> yield! configsForProject (p, launchSettings, buildTaskForProject)
+                                | None -> ()
+                                // emit a default configuration for this project if it is an executable
+                                match defaultConfigForProject (p, buildTaskForProject) with
+                                | Some p -> yield p
+                                | None -> ()
+                            })
+                    return ResizeArray tasks
+                }
 
-                Project.getInWorkspace ()
-                |> Seq.choose (function
-                    | Project.ProjectLoadingState.Loaded x -> Some x
-                    | x ->
-                        logger.Info $"Discarding project '{x}' because it is not loaded"
-                        None)
-                |> Seq.collect (fun (p: Project) ->
-                    seq {
-                        // emit configurations for any launchsettings for this project
-                        match readSettingsForProject p with
-                        | Some launchSettings -> yield! configsForProject (p, launchSettings)
-                        | None -> ()
-                        // emit a default configuration for this project if it is an executable
-                        match defaultConfigForProject p with
-                        | Some p -> yield p
-                        | None -> ()
-                    })
-                |> ResizeArray
-                |> U2.Case1
+                generate()
+                |> Promise.map Some
+                |> Promise.toThenable
+                |> U2.Case2
                 |> ProviderResult.Some
 
             override x.resolveDebugConfiguration

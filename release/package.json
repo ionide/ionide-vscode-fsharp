@@ -237,16 +237,16 @@
 			},
 			{
 				"command": "fsharp.explorer.showProjectLoadFailedInfo",
-                "title": "Show info about failed project loading",
-                "icon": {
+				"title": "Show info about failed project loading",
+				"icon": {
 					"light": "./images/icon-status-light.svg",
 					"dark": "./images/icon-status-dark.svg"
 				}
 			},
 			{
 				"command": "fsharp.explorer.showProjectStatus",
-                "title": "Show project status",
-                "icon": {
+				"title": "Show project status",
+				"icon": {
 					"light": "./images/icon-status-light.svg",
 					"dark": "./images/icon-status-dark.svg"
 				}
@@ -803,8 +803,8 @@
 				},
 				{
 					"command": "fsharp.explorer.showProjectLoadFailedInfo",
-                    "when": "viewItem == ionide.projectExplorer.projectLoadFailed",
-                    "group": "inline@98"
+					"when": "viewItem == ionide.projectExplorer.projectLoadFailed",
+					"group": "inline@98"
 				},
 				{
 					"command": "fsharp.explorer.openProjectFile",
@@ -839,8 +839,8 @@
 				},
 				{
 					"command": "fsharp.explorer.showProjectStatus",
-                    "when": "viewItem == ionide.projectExplorer.projectNotRestored",
-                    "group": "inline@98"
+					"when": "viewItem == ionide.projectExplorer.projectNotRestored",
+					"group": "inline@98"
 				},
 				{
 					"command": "fsharp.explorer.addProjecRef",
@@ -1129,10 +1129,18 @@
 			{
 				"language": "fsharp",
 				"scopes": {
-					"mutable": ["variable.fsharp.mutable"],
-					"disposable": ["variable.fsharp.mutable"],
-					"operator": ["keyword.symbol.fsharp"],
-					"cexpr": ["keyword.control.fsharp"]
+					"mutable": [
+						"variable.fsharp.mutable"
+					],
+					"disposable": [
+						"variable.fsharp.mutable"
+					],
+					"operator": [
+						"keyword.symbol.fsharp"
+					],
+					"cexpr": [
+						"keyword.control.fsharp"
+					]
 				}
 			}
 		],
@@ -1152,7 +1160,7 @@
 					"scope": "window"
 				},
 				"FSharp.fsac.dotnetArgs": {
-					"type" : "array",
+					"type": "array",
 					"default": [],
 					"description": "additional CLI arguments to be provided to the dotnet runner for FSAC",
 					"items": {
@@ -1230,17 +1238,17 @@
 					"default": "failwith \"Not Implemented\"",
 					"description": "The expression to fill in the right-hand side of record fields when generating missing fields for a record construction expression"
 				},
-                "FSharp.interfaceStubGeneration": {
+				"FSharp.interfaceStubGeneration": {
 					"type": "boolean",
 					"default": true,
 					"description": "Enables a codefix that generates missing interface members when inside of an interface implementation expression"
-                },
-                "FSharp.interfaceStubGenerationObjectIdentifier": {
+				},
+				"FSharp.interfaceStubGenerationObjectIdentifier": {
 					"type": "string",
 					"default": "this",
 					"description": "The name of the 'self' identifier in an interface member. For example, `this` in the expression `this.Member(x: int) = ()`"
-                },
-                "FSharp.interfaceStubGenerationMethodBody": {
+				},
+				"FSharp.interfaceStubGenerationMethodBody": {
 					"type": "string",
 					"default": "failwith \"Not Implemented\"",
 					"description": "The expression to fill in the right-hand side of interface members when generating missing members for an interface implementation expression"
@@ -1249,13 +1257,13 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Enables a codefix that generates missing members for an abstract class when in an type inheriting from that abstract class."
-                },
-                "FSharp.abstractClassStubGenerationObjectIdentifier": {
+				},
+				"FSharp.abstractClassStubGenerationObjectIdentifier": {
 					"type": "string",
 					"default": "this",
 					"description": "The name of the 'self' identifier in an inherited member. For example, `this` in the expression `this.Member(x: int) = ()`"
-                },
-                "FSharp.abstractClassStubGenerationMethodBody": {
+				},
+				"FSharp.abstractClassStubGenerationMethodBody": {
 					"type": "string",
 					"default": "failwith \"Not Implemented\"",
 					"description": "The expression to fill in the right-hand side of inherited members when generating missing members for an abstract base class"
@@ -1395,14 +1403,14 @@
 					],
 					"default": "sameAsFileExplorer",
 					"scope": "window"
-                },
-                "FSharp.smartIndent": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enables smart indent feature"
+				},
+				"FSharp.smartIndent": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enables smart indent feature"
 				},
 				"FSharp.infoPanelUpdate": {
-                    "type": "string",
+					"type": "string",
 					"description": "Controls when the info panel is updated",
 					"enum": [
 						"onCursorMove",
@@ -1410,22 +1418,22 @@
 						"both",
 						"none"
 					],
-                    "default": "onCursorMove"
+					"default": "onCursorMove"
 				},
 				"FSharp.infoPanelReplaceHover": {
-                    "type": "boolean",
+					"type": "boolean",
 					"description": "Controls whether the info panel replaces tooltips",
-                    "default": false
+					"default": false
 				},
 				"FSharp.infoPanelStartLocked": {
-                    "type": "boolean",
+					"type": "boolean",
 					"description": "Controls whether the info panel should be locked at startup",
-                    "default": false
+					"default": false
 				},
 				"FSharp.infoPanelShowOnStartup": {
-                    "type": "boolean",
+					"type": "boolean",
 					"description": "Controls whether the info panel should be displayed at startup",
-                    "default": false
+					"default": false
 				},
 				"FSharp.verboseLogging": {
 					"type": "boolean",
@@ -1497,6 +1505,10 @@
 			{
 				"fileMatch": "wsconfig.json",
 				"url": "./schemas/wsconfig.json"
+			},
+			{
+				"fileMatch": "**/launchSettings.json",
+				"url": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/launchsettings.json"
 			}
 		],
 		"breakpoints": [
@@ -1560,22 +1572,32 @@
 			}
 		],
 		"terminal": {
-			"profiles": [{
-				"icon": "terminal",
-				"id": "ionide-fsharp.fsi",
-				"title": "F# Interactive"
-			}]
-		}
+			"profiles": [
+				{
+					"icon": "terminal",
+					"id": "ionide-fsharp.fsi",
+					"title": "F# Interactive"
+				}
+			]
+		},
+		"taskDefinitions": [
+			{
+				"type": "msbuild",
+				"required": [],
+				"properties": {}
+			}
+		]
 	},
 	"activationEvents": [
-		"onDebugDynamicConfigurations:coreclr",
-		"workspaceContains:**/*.fs",
-		"workspaceContains:**/*.fsx",
-		"workspaceContains:**/*.fsproj",
-		"workspaceContains:**/*.sln",
-		"onLanguage:fsharp",
+		"onCommand:fsharp.NewProject",
 		"onCommand:fsi.Start",
-		"onCommand:fsharp.NewProject"
+		"onCommand:workbench.action.tasks.runTask",
+		"onDebugDynamicConfigurations:coreclr",
+		"onLanguage:fsharp",
+		"workspaceContains:**/*.fs",
+		"workspaceContains:**/*.fsproj",
+		"workspaceContains:**/*.fsx",
+		"workspaceContains:**/*.sln"
 	],
 	"extensionDependencies": [
 		"ms-dotnettools.csharp"
