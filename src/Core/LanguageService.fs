@@ -52,9 +52,14 @@ module LanguageService =
         type DocumentUri = string
 
         type TextDocumentIdentifier = { Uri: DocumentUri }
+        type VersionedTextDocumentIdentifier = { Uri: DocumentUri; Version: float }
 
         type TextDocumentPositionParams =
             { TextDocument: TextDocumentIdentifier
+              Position: Position }
+
+        type VersionedTextDocumentPositionParams =
+            { TextDocument: VersionedTextDocumentIdentifier
               Position: Position }
 
         type FileParams = { Project: TextDocumentIdentifier }
@@ -184,16 +189,16 @@ module LanguageService =
             cl.sendRequest ("fsharp/signatureData", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<SignatureDataResult>)
 
-    let generateDocumentation fn line col =
+    let generateDocumentation (fileUri: Uri, version) (line, col) =
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = handleUntitled fn }
+            let req: Types.VersionedTextDocumentPositionParams =
+                { TextDocument = { Uri = fileUri.toString(); Version = version }
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/documentationGenerator", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<SignatureDataResult>)
+            |> Promise.map (fun _ -> ())
 
     let lineLenses fn =
         match client with
