@@ -17,7 +17,7 @@ module SignatureData =
             let line = editor.selection.active.line
             let col = editor.selection.active.character
 
-            LanguageService.generateDocumentation (document.fileName, document.version) (int line, int col)
+            LanguageService.generateDocumentation (document.uri, document.version) (int line, int col)
         | _ -> Promise.lift ()
 
 

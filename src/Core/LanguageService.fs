@@ -189,12 +189,12 @@ module LanguageService =
             cl.sendRequest ("fsharp/signatureData", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<SignatureDataResult>)
 
-    let generateDocumentation (fn, version) (line, col) =
+    let generateDocumentation (fileUri: Uri, version) (line, col) =
         match client with
         | None -> Promise.empty
         | Some cl ->
             let req: Types.VersionedTextDocumentPositionParams =
-                { TextDocument = { Uri = handleUntitled fn; Version = version }
+                { TextDocument = { Uri = fileUri.toString(); Version = version }
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/documentationGenerator", req)
