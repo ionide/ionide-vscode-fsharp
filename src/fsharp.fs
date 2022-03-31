@@ -42,8 +42,10 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
         window.withProgress (
             progressOpts,
             (fun p ctok ->
-                let pm = createEmpty<Window.IExportsWithProgressProgress>
-                pm.message <- Some "Loading projects"
+                let pm =
+                    {| message = Some "Loading projects"
+                       increment = None |}
+
                 p.report pm
 
                 Project.activate context
@@ -58,8 +60,11 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
                 |> Promise.bind (fun _ -> tryActivate "analyzers" LanguageService.loadAnalyzers ())
                 |> Promise.catch (fun e ->
                     printfn $"Error loading all projects: %A{e}"
-                    let pm = createEmpty<Window.IExportsWithProgressProgress>
-                    pm.message <- Some "Error loading projects"
+
+                    let pm =
+                        {| message = Some "Error loading projects"
+                           increment = None |}
+
                     p.report pm)
                 |> Promise.toThenable)
         )

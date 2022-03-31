@@ -82,6 +82,7 @@ module Fsdn =
 module QuickInfo =
 
     module private StatusDisplay =
+        open Fable.Core
 
         let mutable private item: StatusBarItem option = None
 
@@ -130,7 +131,7 @@ module QuickInfo =
                 let! signature = getOverloadSignature textEditor selections
 
                 match signature with
-                | Some signature -> showItem signature (Some signature)
+                | Some signature -> showItem signature (Some(U2.Case1 signature))
                 | _ -> hideItem ()
             }
             |> ignore

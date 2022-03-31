@@ -151,7 +151,7 @@ module Configuration =
 
     let getInContext context defaultValue key =
         workspace
-            .getConfiguration(scope = U5.Case1 context)
+            .getConfiguration(scope = ConfigurationScope.Case1 context)
             .get (key, defaultValue)
 
     /// write the value to the given key in the workspace configuration
@@ -429,12 +429,11 @@ module VSCodeExtension =
     let workbenchViewId () =
         sprintf "workbench.view.extension.%s" extensionName
 
-
 module Environment =
     /// expand any env variables in a string according to
     /// .NET's rules - that is any %-encoded name is an env var
     [<Emit("$0.replace(/%([^%]+)%/g, (_,n) => process.env[n])")>]
-    let expand (s: string): string = jsNative
+    let expand (s: string) : string = jsNative
 
 [<AutoOpen>]
 module Objectify =
