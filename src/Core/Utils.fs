@@ -144,6 +144,10 @@ module Configuration =
         else
             configuredValue
 
+    /// get a key of a given value, asusming that a default has been set by extension configuration settings
+    let getUnsafe key =
+        workspace.getConfiguration().get(key).Value
+
     let get defaultValue key =
         workspace
             .getConfiguration()

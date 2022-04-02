@@ -629,6 +629,21 @@
                     ],
                     "type": "string"
                 },
+                "FSharp.inlayHints.enabled": {
+                    "default": true,
+                    "description": "Controls if the inlay hints feature is enabled",
+                    "type": "boolean"
+                },
+                "FSharp.inlayHints.parameterNames": {
+                    "default": true,
+                    "description": "Controls if parameter-name inlay hints will be displayed for functions and methods",
+                    "type": "boolean"
+                },
+                "FSharp.inlayHints.typeAnnotations": {
+                    "default": true,
+                    "description": "Controls if type-annotation inlay hints will be displayed for bindings.",
+                    "type": "boolean"
+                },
                 "FSharp.interfaceStubGeneration": {
                     "default": true,
                     "description": "Enables a codefix that generates missing interface members when inside of an interface implementation expression",
@@ -1586,9 +1601,14 @@
         {
             "name": "Krzysztof Cieślak",
             "url": "https://twitter.com/k_cieslak"
+        },
+        {
+            "name": "Chet Husk",
+            "url": "https://twitter.com/chet_husk"
         }
     ],
-    "description": "F# Language Support",
+    "description": "F# Language Support, powered by FsAutoComplete",
+    "displayName": "Ionide F#",
     "engines": {
         "vscode": "^0.10.0"
     },
@@ -1597,7 +1617,7 @@
     ],
     "homepage": "http://ionide.io",
     "icon": "images/logo.png",
-    "license": "SEE LICENSE IN LICENSE.md",
+    "license": "MIT",
     "main": "./fsharp",
     "name": "Ionide-fsharp",
     "preview": false,
