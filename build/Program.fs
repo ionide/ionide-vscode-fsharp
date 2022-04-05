@@ -63,10 +63,6 @@ module Fable =
         | Watch
         | Clean
 
-    type Webpack =
-        | WithoutWebpack
-        | WithWebpack of args: string option
-
     type Args =
         { Command: Command
           Debug: bool
@@ -76,7 +72,7 @@ module Fable =
           Defines: string list
           SourceMaps: bool
           AdditionalFableArgs: string option
-          Webpack: Webpack }
+          Bundle: bool }
 
     let DefaultArgs =
         { Command = Build
@@ -87,7 +83,7 @@ module Fable =
           Defines = []
           AdditionalFableArgs = None
           SourceMaps = true
-          Webpack = WithoutWebpack }
+          Bundle = false }
 
     let private mkArgs args =
         let fableCmd =
@@ -122,24 +118,11 @@ module Fable =
 
         let fableAdditionalArgs = args.AdditionalFableArgs |> Option.defaultValue ""
 
-        let webpackCmd =
-            match args.Webpack with
-            | WithoutWebpack -> ""
-            | WithWebpack webpackArgs ->
-                sprintf
-                    "--%s webpack %s %s %s"
-                    (match args.Command with
-                     | Watch -> "runWatch"
-                     | _ -> "run")
-                    (if args.Debug then
-                         "--mode=development"
-                     else
-                         "--mode=production")
-                    (if args.Experimental then
-                         "--env.ionideExperimental"
-                     else
-                         "")
-                    (webpackArgs |> Option.defaultValue "")
+        let bundleCmd =
+            if not args.Bundle then
+                ""
+            else
+                "--run npm run esbuild"
 
         let sourceMaps = if args.SourceMaps then "-s" else ""
 
@@ -154,7 +137,7 @@ module Fable =
             fableExperimental
             fableDefines
             fableAdditionalArgs
-            webpackCmd
+            bundleCmd
 
     let run args =
         let cmd = mkArgs args
@@ -303,8 +286,7 @@ let initTargets () =
         Fable.run
             { Fable.DefaultArgs with
                 Command = Fable.Watch
-                Debug = true
-                Webpack = Fable.WithWebpack None })
+                Debug = true })
 
     Target.create "InstallVSCE" (fun _ ->
         Process.killAllByName "npm"
@@ -319,14 +301,13 @@ let initTargets () =
             { Fable.DefaultArgs with
                 Command = Fable.Build
                 Debug = false
-                Webpack = Fable.WithWebpack None })
+                Bundle = true })
 
     Target.create "RunDevScript" (fun _ ->
         Fable.run
             { Fable.DefaultArgs with
                 Command = Fable.Build
-                Debug = true
-                Webpack = Fable.WithWebpack None })
+                Debug = true })
 
 
     Target.create "CopyFSACNetcore" (fun _ ->
@@ -405,7 +386,8 @@ let buildTargetTree () =
     "YarnInstall" ==>! "RunScript"
     "DotNetRestore" ==>! "RunScript"
 
-    "Clean" ==> "Format" ==> "RunScript" ==>! "Default"
+    "Clean" ==> "Format" ==> "RunScript"
+    ==>! "Default"
 
     "Clean"
     ==> "RunScript"
