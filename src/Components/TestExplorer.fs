@@ -476,53 +476,76 @@ let getProjectsForTests (tc: TestController) (req: TestRunRequest) : ProjectWith
           HasIncludeFilter = Option.isSome req.include })
 
 /// Build test projects and return the succeeded and failed projects
-let buildProjects (projects: ProjectWithTests array) : JS.Promise<ProjectWithTests array * ProjectWithTests array> =
-    projects
-    |> Array.map (fun p ->
-        MSBuild.buildProjectPath "Build" p.Project
-        |> Promise.map (fun cpe -> p, cpe))
-    |> Promise.all
-    |> Promise.map (fun projects ->
-        let successfulBuilds =
+let buildProjects (projects: ProjectWithTests array) : Thenable<ProjectWithTests array * ProjectWithTests array> =
+    let progressOpts = createEmpty<ProgressOptions>
+    progressOpts.location <- U2.Case1 ProgressLocation.Notification
+
+    window.withProgress (
+        progressOpts,
+        (fun progress _ctok ->
             projects
-            |> Array.choose (fun (project, { Code = code }) ->
-                match code with
-                | Some 0 -> Some project
-                | _ -> None)
+            |> Array.map (fun p ->
+                progress.report
+                    {| message = Some $"Building {p.Project.Project}"
+                       increment = None |}
 
-        let failedBuilds =
-            projects
-            |> Array.choose (fun (project, { Code = code }) ->
-                match code with
-                | Some 0 -> None
-                | _ -> Some project)
+                MSBuild.buildProjectPath "Build" p.Project
+                |> Promise.map (fun cpe -> p, cpe))
+            |> Promise.all
+            |> Promise.map (fun projects ->
+                let successfulBuilds =
+                    projects
+                    |> Array.choose (fun (project, { Code = code }) ->
+                        match code with
+                        | Some 0 -> Some project
+                        | _ -> None)
 
-        successfulBuilds, failedBuilds)
+                let failedBuilds =
+                    projects
+                    |> Array.choose (fun (project, { Code = code }) ->
+                        match code with
+                        | Some 0 -> None
+                        | _ -> Some project)
 
-let runTests (testRun: TestRun) (projects: ProjectWithTests array) : JS.Promise<ProjectWithTestResults array> =
+                successfulBuilds, failedBuilds)
+            |> Promise.toThenable)
+    )
+
+let runTests (testRun: TestRun) (projects: ProjectWithTests array) : Thenable<ProjectWithTestResults array> =
     // Indicate in the UI that all the tests are running.
     Array.iter
         (fun (project: ProjectWithTests) ->
             Array.iter (fun (t: TestWithFullName) -> testRun.started t.Test) project.Tests)
         projects
 
-    projects
-    |> Array.map (fun project ->
-        let testKind =
-            Array.head project.Tests
-            |> fun test -> test.Test.Type
+    let progressOpts = createEmpty<ProgressOptions>
+    progressOpts.location <- U2.Case1 ProgressLocation.Notification
 
-        match testKind with
-        | "NUnit" -> NUnit.runProject project
-        | "XUnit" -> failwith "todo"
-        | "Expecto" -> Expecto.runProject project
-        | unknown -> Promise.reject (exn $"Unexpected test type \"{unknown}\""))
-    |> Promise.all
+    window.withProgress (
+        progressOpts,
+        (fun progress _ctok ->
+            projects
+            |> Array.map (fun project ->
+                progress.report
+                    {| message = Some $"Running tests for {project.Project.Project}"
+                       increment = None |}
+
+                let testKind =
+                    Array.head project.Tests
+                    |> fun test -> test.Test.Type
+
+                match testKind with
+                | "NUnit" -> NUnit.runProject project
+                | "XUnit" -> failwith "todo"
+                | "Expecto" -> Expecto.runProject project
+                | unknown -> Promise.reject (exn $"Unexpected test type \"{unknown}\""))
+            |> Promise.all
+            |> Promise.toThenable)
+    )
 
 let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToken) : U2<Thenable<unit>, unit> =
     logger.Debug("Test run request", req)
     let tr = tc.createTestRun req
-    logger.Debug("Test run", tc.items.size < 1.)
 
     if tc.items.size < 1. then
         !! tr.``end`` ()
@@ -544,7 +567,6 @@ let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToke
                 |> Array.iter (fun t -> tr.errored (t.Test, !^ vscode.TestMessage.Create(!^ "Project build failed"))))
 
             let! completedTestProjects = runTests tr successfulProjects
-            logger.Debug("Outputs", completedTestProjects)
 
             completedTestProjects
             |> Array.iter (fun (project: ProjectWithTestResults) ->
