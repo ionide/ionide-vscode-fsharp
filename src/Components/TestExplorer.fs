@@ -436,9 +436,6 @@ let rec mapTest (tc: TestController) (uri: Uri) (t: TestAdapterEntry) : TestItem
 
 /// Get a flat list with all tests for each project
 let getProjectsForTests (tc: TestController) (req: TestRunRequest) : ProjectWithTests array =
-    logger.Debug("req included", req.include)
-    logger.Debug("req excluded", req.exclude)
-
     let testsWithProject =
         let items =
             match req.include with
@@ -597,9 +594,9 @@ let activate (context: ExtensionContext) =
     |> unbox
     |> context.subscriptions.Add
 
-    testController.createRunProfile ("Debug F# Tests", TestRunProfileKind.Debug, runHandler testController, true)
-    |> unbox
-    |> context.subscriptions.Add
+    //    testController.createRunProfile ("Debug F# Tests", TestRunProfileKind.Debug, runHandler testController, true)
+//    |> unbox
+//    |> context.subscriptions.Add
 
     Notifications.testDetected.Invoke (fun res ->
         logger.Debug("Tests", res)
