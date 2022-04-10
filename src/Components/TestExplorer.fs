@@ -351,16 +351,29 @@ module NUnit =
             let xpathSelector =
                 XPath.XPathSelector(xmlDoc, "http://microsoft.com/schemas/VisualStudio/TeamTest/2010")
 
+            let testDefinitions =
+                xpathSelector.Select<obj array> "/t:TestRun/t:TestDefinitions/t:UnitTest"
+                |> Array.mapi (fun idx _ ->
+                    let idx = idx + 1
+
+                    let executionId =
+                        xpathSelector.SelectString $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx}]/t:Execution/@id"
+
+                    let className =
+                        xpathSelector.SelectString
+                            $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx}]/t:TestMethod/@className"
+
+                    let test =
+                        xpathSelector.SelectString $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx}]/t:TestMethod/@name"
+
+                    $"{className}.{test}", executionId)
+                |> Map.ofArray
+
             let tests =
                 projectWithTests.Tests
                 |> Array.map (fun t ->
-                    let parts = t.FullName.Split('.')
-                    let className = String.concat "." (Array.take (parts.Length - 1) parts)
-                    let testName = parts.[parts.Length - 1]
-
-                    let executionId =
-                        xpathSelector.SelectString
-                            $"/t:TestRun/t:TestDefinitions/t:UnitTest/t:TestMethod[@name='{testName}' and @className='{className}']/../t:Execution/@id"
+                    // If the test contains a single quote, xpath expressions cannot escape this and it leads to a world of pain.
+                    let executionId = Map.find t.FullName testDefinitions
 
                     let outcome =
                         xpathSelector.SelectString
