@@ -57,12 +57,26 @@ module MSBuild =
         window.withProgress (
             progressOpts,
             (fun p ctok ->
-                let pm =
-                    {| message = Some("Running MsBuild " + target)
-                       increment = None |}
+                promise {
+                    let pm =
+                        {| message = Some $"Running MSBuild '{target}' target on '{project}'";
+                           increment = None |}
 
-                p.report pm
-                executeWithHost () |> Promise.toThenable)
+                    p.report pm
+                    let! response = executeWithHost ()
+                    match response.Code with
+                    | Some 0 ->
+                        p.report ({| message = Some "MSBuild completed successfully"; increment = None |})
+                        return response
+                    | Some code ->
+                        p.report ({| message = Some $"MSBuild failed with code %d{code}"; increment = None |})
+                        return response
+                    | None ->
+                        p.report ({| message = Some "MSBuild failed with an unknown error"; increment = None |})
+                        return response
+                }
+                |> Promise.toThenable
+            )
         )
         |> Promise.ofThenable
 
