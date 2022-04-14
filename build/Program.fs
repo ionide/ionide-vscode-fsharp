@@ -330,7 +330,7 @@ let initTargets () =
 
 
     Target.create "CopyFSACNetcore" (fun _ ->
-        let fsacBinNetcore = "packages/fsac/fsautocomplete/tools/net5.0/any"
+        let fsacBinNetcore = "packages/fsac/fsautocomplete/tools/net6.0/any"
         let releaseBinNetcore = "release/bin"
 
         copyFSACNetcore releaseBinNetcore fsacBinNetcore)
