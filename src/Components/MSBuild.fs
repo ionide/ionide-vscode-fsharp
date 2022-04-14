@@ -59,24 +59,36 @@ module MSBuild =
             (fun p ctok ->
                 promise {
                     let pm =
-                        {| message = Some $"Running MSBuild '{target}' target on '{project}'";
+                        {| message = Some $"Running MSBuild '{target}' target on '{project}'"
                            increment = None |}
 
                     p.report pm
                     let! response = executeWithHost ()
+
                     match response.Code with
                     | Some 0 ->
-                        p.report ({| message = Some "MSBuild completed successfully"; increment = None |})
+                        p.report (
+                            {| message = Some "MSBuild completed successfully"
+                               increment = None |}
+                        )
+
                         return response
                     | Some code ->
-                        p.report ({| message = Some $"MSBuild failed with code %d{code}"; increment = None |})
+                        p.report (
+                            {| message = Some $"MSBuild failed with code %d{code}"
+                               increment = None |}
+                        )
+
                         return response
                     | None ->
-                        p.report ({| message = Some "MSBuild failed with an unknown error"; increment = None |})
+                        p.report (
+                            {| message = Some "MSBuild failed with an unknown error"
+                               increment = None |}
+                        )
+
                         return response
                 }
-                |> Promise.toThenable
-            )
+                |> Promise.toThenable)
         )
         |> Promise.ofThenable
 
@@ -150,15 +162,22 @@ module MSBuild =
             None |> Promise.lift
         else
             promise {
-                let items = projects |> Seq.map (fun p -> path.basename p.Project) |> ResizeArray
+                let items =
+                    projects
+                    |> Seq.map (fun p -> path.basename p.Project)
+                    |> ResizeArray
+
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some placeHolder
                 let! chosen = window.showQuickPick (U2.Case1 items, opts)
                 logger.Debug("user chose project %s", chosen)
+
                 match chosen with
                 | None -> return None
                 | Some chosen ->
-                    return projects |> Seq.tryFind (fun p -> path.basename p.Project = chosen)
+                    return
+                        projects
+                        |> Seq.tryFind (fun p -> path.basename p.Project = chosen)
             }
 
     /// prompts the user to choose a project (if not specified) and builds that project
@@ -172,27 +191,29 @@ module MSBuild =
             return!
                 match chosen with
                 | None -> Promise.lift ()
-                | Some proj -> promise {
-                    let projectFile = path.basename proj.Project
-                    let expectedGroup =
-                        match target with
-                        | "Build" -> Some vscode.TaskGroup.Build
-                        | "Rebuild" -> Some vscode.TaskGroup.Rebuild
-                        | "Clean" -> Some vscode.TaskGroup.Clean
-                        | _ -> None
+                | Some proj ->
+                    promise {
+                        let projectFile = path.basename proj.Project
 
-                    if expectedGroup = None then return ()
+                        let expectedGroup =
+                            match target with
+                            | "Build" -> Some vscode.TaskGroup.Build
+                            | "Rebuild" -> Some vscode.TaskGroup.Rebuild
+                            | "Clean" -> Some vscode.TaskGroup.Clean
+                            | _ -> None
 
-                    let t =
-                        msbuildTasks
-                        |> Seq.tryFind (fun t -> t.name = projectFile && t.group = expectedGroup)
+                        if expectedGroup = None then return ()
 
-                    match t with
-                    | None -> logger.Debug("no task found for target %s for project %s", target, projectFile)
-                    | Some t ->
-                        let! ex = tasks.executeTask (t)
-                        return ()
-                }
+                        let t =
+                            msbuildTasks
+                            |> Seq.tryFind (fun t -> t.name = projectFile && t.group = expectedGroup)
+
+                        match t with
+                        | None -> logger.Debug("no task found for target %s for project %s", target, projectFile)
+                        | Some t ->
+                            let! ex = tasks.executeTask (t)
+                            return ()
+                    }
         }
 
     let buildProjectPath target (project: Project) = invokeMSBuild project.Project target
@@ -314,11 +335,12 @@ module MSBuild =
             logger.Debug "building project"
 
             let! chosen = pickProject "Select a project to restore"
+
             match chosen with
             | None -> return ()
             | Some project ->
                 let projectFile = path.basename project.Project
-                let projectDir = path.dirname  project.Project
+                let projectDir = path.dirname project.Project
                 let! dotnet = dotnetBinary ()
                 let execution = invokeDotnet dotnet "restore" [] projectDir Map.empty
 
@@ -495,14 +517,42 @@ module MSBuild =
         registerCommand "MSBuild.rebuildCurrentSolution" (fun _ -> buildCurrentSolution "Rebuild")
         registerCommand "MSBuild.cleanCurrentSolution" (fun _ -> buildCurrentSolution "Clean")
 
-        commands.registerCommand("MSBuild.buildSelected", fun _ -> buildProject "Build" |> Promise.map box |> box |> Some)
+        commands.registerCommand (
+            "MSBuild.buildSelected",
+            fun _ ->
+                buildProject "Build"
+                |> Promise.map box
+                |> box
+                |> Some
+        )
         |> context.Subscribe
 
-        commands.registerCommand("MSBuild.buildSelected", fun _ -> buildProject "Rebuild" |> Promise.map box |> box |> Some)
+        commands.registerCommand (
+            "MSBuild.buildSelected",
+            fun _ ->
+                buildProject "Rebuild"
+                |> Promise.map box
+                |> box
+                |> Some
+        )
         |> context.Subscribe
 
-        commands.registerCommand("MSBuild.buildSelected", fun _ -> buildProject "Clean" |> Promise.map box |> box |> Some)
+        commands.registerCommand (
+            "MSBuild.buildSelected",
+            fun _ ->
+                buildProject "Clean"
+                |> Promise.map box
+                |> box
+                |> Some
+        )
         |> context.Subscribe
 
-        commands.registerCommand("MSBuild.restoreSelected", fun _ -> restoreProjectCmd () |> Promise.map box |> box |> Some)
+        commands.registerCommand (
+            "MSBuild.restoreSelected",
+            fun _ ->
+                restoreProjectCmd ()
+                |> Promise.map box
+                |> box
+                |> Some
+        )
         |> context.Subscribe

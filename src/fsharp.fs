@@ -43,8 +43,8 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
             progressOpts,
             (fun p ctok ->
                 let pm =
-                    {| increment = None
-                       message = Some "Loading projects" |}
+                    {| message = Some "Loading projects"
+                       increment = None |}
 
                 p.report pm
 
@@ -93,6 +93,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
         tryActivate "fsharpliterate" FSharpLiterate.activate context
         tryActivate "pipelinehints" PipelineHints.activate context
         tryActivate "testExplorer" TestExploer.activate context
+        tryActivate "inlayhints" InlayHints.activate context
 
         let buildProject project =
             promise {

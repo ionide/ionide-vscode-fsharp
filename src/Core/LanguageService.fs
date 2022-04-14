@@ -74,6 +74,19 @@ module LanguageService =
         type FSharpLiterateRequest = { FileName: string }
         type FSharpPipelineHintsRequest = { FileName: string }
 
+        type LspRange =
+            { start: Fable.Import.VSCode.Vscode.Position
+              ``end``: Fable.Import.VSCode.Vscode.Position }
+
+        type InlayHintsRequest =
+            { TextDocument: TextDocumentIdentifier
+              Range: LspRange }
+
+        type InlayHint =
+            { text: string
+              pos: Fable.Import.VSCode.Vscode.Position
+              kind: string }
+
     let mutable client: LanguageClient option = None
 
     let private handleUntitled (fn: string) =
@@ -197,7 +210,9 @@ module LanguageService =
         | None -> Promise.empty
         | Some cl ->
             let req: Types.VersionedTextDocumentPositionParams =
-                { TextDocument = { Uri = fileUri.toString(); Version = version }
+                { TextDocument =
+                    { Uri = fileUri.toString ()
+                      Version = version }
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/documentationGenerator", req)
@@ -484,6 +499,16 @@ module LanguageService =
             cl.sendRequest ("fsharp/pipelineHint", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<PipelineHintsResult>)
 
+    let inlayHints (fileUri: Uri, range) : JS.Promise<Types.InlayHint []> =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req: Types.InlayHintsRequest =
+                { TextDocument = { Uri = fileUri.toString () }
+                  Range = range }
+
+            cl.sendRequest ("fsharp/inlayHints", req)
+
     module FakeSupport =
         open DTO.FakeSupport
 
@@ -606,7 +631,7 @@ Consider:
         client <- Some cl
         cl
 
-    let getOptions () : JS.Promise<Executable> =
+    let getOptions (c: ExtensionContext) : JS.Promise<Executable> =
         promise {
 
             let dotnetNotFound () =
@@ -750,7 +775,13 @@ Consider:
                           if fsacSilencedLogs <> null
                              && fsacSilencedLogs.Length > 0 then
                               yield "--filter"
-                              yield! fsacSilencedLogs ]
+                              yield! fsacSilencedLogs
+                          match c.storageUri with
+                          | Some uri ->
+                              let storageDir = uri.fsPath
+                              yield "--state-directory"
+                              yield storageDir
+                          | None -> () ]
                         |> ResizeArray
 
                     let executable = createEmpty<Executable>
@@ -818,14 +849,14 @@ Consider:
                         Notifications.onDocumentParsedEmitter.fire ev))
             )
 
-            cl.onNotification("fsharp/testDetected", (fun (a: TestForFile ) ->
-                Notifications.testDetectedEmitter.fire a
+            cl.onNotification (
+                "fsharp/testDetected",
+                (fun (a: TestForFile) -> Notifications.testDetectedEmitter.fire a)
             ))
-        )
 
     let start (c: ExtensionContext) =
         promise {
-            let! startOpts = getOptions ()
+            let! startOpts = getOptions c
             let cl = createClient startOpts
             let started = cl.start ()
             c.subscriptions.Add(started |> box |> unbox)

@@ -331,7 +331,7 @@ module SolutionExplorer =
         defaultArg (getSolution ()) (Workspace [])
 
     let private createProvider
-        (event: Event<U2<Model, unit> option> option)
+        (event: Event<U3<Model, ResizeArray<Model>, unit> option> option)
         (rootChanged: EventEmitter<Model>)
         : TreeDataProvider<Model> =
         let plugPath = VSCodeExtension.ionidePluginPath ()
@@ -431,7 +431,6 @@ module SolutionExplorer =
 
                 ti.contextValue <- Some(sprintf "ionide.projectExplorer.%s" context)
 
-
                 let icon, resourceUri =
                     match element with
                     | File (_, path, _, _, _)
@@ -450,15 +449,16 @@ module SolutionExplorer =
                     | WorkspaceFolder _ -> vscode.ThemeIcon.Folder |> U4.Case4 |> Some, None
                     | PackageReference (_, path, _, _)
                     | ProjectReference (_, path, _, _) ->
-                        {| light =
+                        let light =
                             (plugPath + "/images/circuit-board-light.svg")
                             |> U2.Case1
-                           dark =
+
+                        let dark =
                             (plugPath + "/images/circuit-board-dark.svg")
-                            |> U2.Case1 |}
-                        |> U4.Case3
-                        |> Some,
-                        vscode.Uri.file path |> Some
+                            |> U2.Case1
+
+                        let p = {| light = light; dark = dark |} |> U4.Case3
+                        p |> Some, vscode.Uri.file path |> Some
                     | Workspace _ -> None, None
 
                 ti.iconPath <- icon
@@ -486,10 +486,10 @@ module SolutionExplorer =
 
                 U2.Case1 ti
 
-            member this.onDidChangeTreeData: Event<U2<Model, unit> option> option = event
+            member this.onDidChangeTreeData: Event<_> option = event
 
             member this.onDidChangeTreeData
-                with set (v: Event<U2<Model, unit> option> option): unit = event <- v
+                with set (v: Event<_> option): unit = event <- v
 
             override this.resolveTreeItem
                 (
@@ -736,7 +736,7 @@ module SolutionExplorer =
         }
 
     let activate (context: ExtensionContext) =
-        let emiter = vscode.EventEmitter.Create<option<U2<Model, unit>>>()
+        let emiter = vscode.EventEmitter.Create<_>()
         let rootChanged = vscode.EventEmitter.Create<Model>()
 
         let provider = createProvider (Some(emiter.event)) rootChanged

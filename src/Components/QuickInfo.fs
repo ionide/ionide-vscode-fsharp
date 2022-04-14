@@ -83,6 +83,7 @@ module Fsdn =
 module QuickInfo =
 
     module private StatusDisplay =
+        open Fable.Core
 
         let mutable private item: StatusBarItem option = None
 
