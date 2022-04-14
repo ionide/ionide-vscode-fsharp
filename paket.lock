@@ -38,7 +38,7 @@ NUGET
       FSharp.Core (>= 4.7.2)
 GIT
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (b528e4360b4cd967aa93c2f7849e459ff91d192c)
+     (8825a76681cdc14801b5d9490372ff67ec6b9711)
 GITHUB
   remote: ionide/ionide-vscode-helpers
     src/Fable.Import.Showdown.fs (6ed5341be68452af4f93f7c6e462cdfb58dd0464)
@@ -219,7 +219,7 @@ NUGET
     Microsoft.Win32.Registry (5.0)
       System.Security.AccessControl (>= 5.0)
       System.Security.Principal.Windows (>= 5.0)
-    Microsoft.Win32.SystemEvents (6.0)
+    Microsoft.Win32.SystemEvents (6.0.1)
     Mono.Posix.NETStandard (1.0)
     MSBuild.StructuredLogger (2.1.630)
       Microsoft.Build (>= 16.10)
@@ -275,7 +275,7 @@ NUGET
       System.Runtime.CompilerServices.Unsafe (>= 6.0)
     System.Text.Encodings.Web (6.0)
       System.Runtime.CompilerServices.Unsafe (>= 6.0)
-    System.Text.Json (6.0.2)
+    System.Text.Json (6.0.3)
       System.Runtime.CompilerServices.Unsafe (>= 6.0)
       System.Text.Encodings.Web (>= 6.0)
     System.Threading.Tasks.Dataflow (6.0)
@@ -287,4 +287,4 @@ STORAGE: PACKAGES
 RESTRICTION: == netstandard2.0
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    fsautocomplete (0.51)
+    fsautocomplete (0.52)
