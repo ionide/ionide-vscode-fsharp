@@ -362,7 +362,23 @@ module DTO =
           Types: string []
           PrecedingNonPipeExprLine: int option }
 
-    type Result<'T> = { Kind: string; Data: 'T }
+    type TestAdapterEntry = {
+        name: string
+        range: Fable.Import.VSCode.Vscode.Range
+        childs: TestAdapterEntry []
+        id : int
+        list: bool
+        ``type``: string
+    }
+
+    type TestForFile = {
+        file: string
+        tests: TestAdapterEntry []
+    }
+
+    type Result<'T> =
+        { Kind : string
+          Data : 'T }
 
     type CompilerLocationResult = Result<CompilerLocation>
     type HelptextResult = Result<Helptext>
@@ -390,6 +406,7 @@ module DTO =
     type HighlightingResult = Result<HighlightingResponse>
     type FSharpLiterateResult = Result<string>
     type PipelineHintsResult = Result<PipelineHint array>
+    type TestResult = Result<TestForFile>
 
 
     module DotnetNew =

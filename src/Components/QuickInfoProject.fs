@@ -43,9 +43,7 @@ module QuickInfoProject =
                         "$(circuit-board) Not in a F# project"
                         + loadingInfo
 
-                    item.Value.tooltip <-
-                        Some(U2.Case1(sprintf "%s is not in any project known to Ionide" fileNameOnly))
-
+                    item.Value.tooltip <- Some(U2.Case1 $"%s{fileNameOnly} is not in any project known to Ionide")
                     item.Value.command <- Some(U2.Case1 "fsharp.AddFileToProject")
 
                     item.Value.color <-

@@ -41,15 +41,15 @@ module Fsi =
                     let! choice =
                         window.showInformationMessage (
                             "You are running .Net Core version of FsAutoComplete, we recommend also using .Net Core version of F# REPL (`dotnet fsi`). Should we change your settings (`FSharp.useSdkScripts`). This requires .Net Core 3.X?",
-                            "Update settings",
-                            "Ignore",
-                            "Don't show again"
+                            [| Message.choice "Update settings"
+                               Message.choice "Ignore"
+                               Message.choice "Don't show again" |]
                         )
 
                     match choice with
-                    | Some "Update settings" -> do! setUseSdk ()
-                    | Some "Ignore" -> do! disablePromptForProject ()
-                    | Some "Don't show again" -> do! disablePromptGlobally ()
+                    | Some (HasTitle "Update settings") -> do! setUseSdk ()
+                    | Some (HasTitle "Ignore") -> do! disablePromptForProject ()
+                    | Some (HasTitle "Don't show again") -> do! disablePromptGlobally ()
                     | _ -> ()
             }
 
@@ -102,12 +102,13 @@ module Fsi =
                     let! res =
                         window.showInformationMessage (
                             "FSI Watcher is an experimental feature, and it needs to be enabled with `FSharp.addFsiWatcher` setting",
-                            "Enable",
-                            "Ignore"
+                            [| Message.choice "Enable"
+                               Message.choice "Ignore" |]
                         )
 
-                    if res = Some "Enable" then
-                        do! Configuration.setGlobal "FSharp.addFsiWatcher" (Some(box true))
+                    match res with
+                    | Some (HasTitle "Enable") -> do! Configuration.setGlobal "FSharp.addFsiWatcher" (Some(box true))
+                    | _ -> ()
                 else
                     match panel with
                     | Some p -> p.reveal (!! -2, true)

@@ -30,6 +30,9 @@ module Notifications =
                                                    -> unit> =
         None
 
+    let testDetectedEmitter = vscode.EventEmitter.Create<TestForFile>()
+    let testDetected = testDetectedEmitter.event
+
 module LanguageService =
     module Types =
         type PlainNotification = { content: string }
@@ -70,9 +73,19 @@ module LanguageService =
         type HighlightingRequest = { FileName: string }
         type FSharpLiterateRequest = { FileName: string }
         type FSharpPipelineHintsRequest = { FileName: string }
-        type LspRange = { start: Fable.Import.VSCode.Vscode.Position; ``end``: Fable.Import.VSCode.Vscode.Position }
-        type InlayHintsRequest = { TextDocument : TextDocumentIdentifier; Range: LspRange }
-        type InlayHint = { text: string; pos: Fable.Import.VSCode.Vscode.Position; kind: string }
+
+        type LspRange =
+            { start: Fable.Import.VSCode.Vscode.Position
+              ``end``: Fable.Import.VSCode.Vscode.Position }
+
+        type InlayHintsRequest =
+            { TextDocument: TextDocumentIdentifier
+              Range: LspRange }
+
+        type InlayHint =
+            { text: string
+              pos: Fable.Import.VSCode.Vscode.Position
+              kind: string }
 
     let mutable client: LanguageClient option = None
 
@@ -486,11 +499,13 @@ module LanguageService =
             cl.sendRequest ("fsharp/pipelineHint", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<PipelineHintsResult>)
 
-    let inlayHints (fileUri: Uri, range): JS.Promise<Types.InlayHint[]> =
+    let inlayHints (fileUri: Uri, range) : JS.Promise<Types.InlayHint []> =
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req: Types.InlayHintsRequest = { TextDocument = { Uri = fileUri.toString() }; Range = range }
+            let req: Types.InlayHintsRequest =
+                { TextDocument = { Uri = fileUri.toString () }
+                  Range = range }
 
             cl.sendRequest ("fsharp/inlayHints", req)
 
@@ -832,8 +847,12 @@ Consider:
                               Notifications.document = te.document }
 
                         Notifications.onDocumentParsedEmitter.fire ev))
-            ))
+            )
 
+            cl.onNotification (
+                "fsharp/testDetected",
+                (fun (a: TestForFile) -> Notifications.testDetectedEmitter.fire a)
+            ))
 
     let start (c: ExtensionContext) =
         promise {
