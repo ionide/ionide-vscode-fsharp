@@ -197,7 +197,9 @@ module LanguageService =
         | None -> Promise.empty
         | Some cl ->
             let req: Types.VersionedTextDocumentPositionParams =
-                { TextDocument = { Uri = fileUri.toString(); Version = version }
+                { TextDocument =
+                    { Uri = fileUri.toString ()
+                      Version = version }
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/documentationGenerator", req)
@@ -614,7 +616,7 @@ Consider:
         client <- Some cl
         cl
 
-    let getOptions () : JS.Promise<Executable> =
+    let getOptions (c: ExtensionContext) : JS.Promise<Executable> =
         promise {
 
             let dotnetNotFound () =
@@ -758,7 +760,13 @@ Consider:
                           if fsacSilencedLogs <> null
                              && fsacSilencedLogs.Length > 0 then
                               yield "--filter"
-                              yield! fsacSilencedLogs ]
+                              yield! fsacSilencedLogs
+                          match c.storageUri with
+                          | Some uri ->
+                              let storageDir = uri.fsPath
+                              yield "--state-directory"
+                              yield storageDir
+                          | None -> () ]
                         |> ResizeArray
 
                     let executable = createEmpty<Executable>
@@ -829,7 +837,7 @@ Consider:
 
     let start (c: ExtensionContext) =
         promise {
-            let! startOpts = getOptions ()
+            let! startOpts = getOptions c
             let cl = createClient startOpts
             let started = cl.start ()
             c.subscriptions.Add(started |> box |> unbox)
