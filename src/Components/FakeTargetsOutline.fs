@@ -54,22 +54,19 @@ module FakeTargetsOutline =
             | _ -> false
 
     let refresh = vscode.EventEmitter.Create<Uri>()
-    let private reallyRefresh = vscode.EventEmitter.Create<U2<Model, unit> option>()
+    let private reallyRefresh = vscode.EventEmitter.Create<_>()
     let mutable private currentDocument: string option = None
 
     let private getIconPath light dark =
         let plugPath = VSCodeExtension.ionidePluginPath ()
-        let p = createEmpty<TreeItemIconPath>
 
-        p.dark <-
-            node.path.join (plugPath, "images", dark)
-            |> U2.Case1
-
-        p.light <-
+        {| light =
             node.path.join (plugPath, "images", light)
             |> U2.Case1
 
-        p
+           dark =
+            node.path.join (plugPath, "images", dark)
+            |> U2.Case1 |}
 
     let rec add' (state: NodeEntry) (symbol: Symbol) index =
         let sep = "."
@@ -285,10 +282,10 @@ module FakeTargetsOutline =
                 ti.command <- Some c
                 U2.Case1 ti
 
-            member this.onDidChangeTreeData: Event<U2<Model, unit> option> option = e
+            member this.onDidChangeTreeData: _ = e
 
             member this.onDidChangeTreeData
-                with set (v: Event<U2<Model, unit> option> option): unit = e <- v
+                with set (v: _): unit = e <- v
 
             override this.resolveTreeItem
                 (
