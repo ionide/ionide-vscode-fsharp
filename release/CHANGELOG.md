@@ -1,3 +1,19 @@
+### 6.0.0 - 14.4.2022
+
+This is a Major Version update of Ionide! The headline features for this release include
+
+* integrated support for VSCode Tasks for build actions
+* integrated support for VSCode Launch Configurations for debugging
+* Inlay Hints for types and parameter names
+* A new Test Explorer integration
+* Much improved completion support
+* and a host of other minor UX fixes
+* FsAutocomplete version 0.52.0: https://github.com/fsharp/FsAutoComplete/releases/tag/v0.52.0
+
+> This version _requires_ .NET 6 at minimum in order to run. We made this decision because .NET 5 is going _out of support_ in early May 2022.
+
+Find out more about the new features as always over on the website: https://ionide.io/Editors/Code/overview.html
+
 ### 5.12.0 - 13.03.2022
 
 * Update FSAC to 0.51.0 to pick up `textDocument/signatureHelp` fixes and a new CodeFix for converting DU match cases from positional to named patterns.

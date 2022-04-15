@@ -9,6 +9,7 @@ open Fake.IO.Globbing.Operators
 open Fake.Core.TargetOperators
 open Fake.Tools.Git
 open Fake.Api
+open System.Text.Json
 
 // --------------------------------------------------------------------------------------
 // Configuration
@@ -199,24 +200,18 @@ let buildPackage dir =
     !!(sprintf "%s/*.vsix" dir)
     |> Seq.iter (Shell.moveFile "./temp/")
 
-let setPackageJsonField name value releaseDir =
+
+let setPackageJsonField (name: string) (value: string) releaseDir =
     let fileName = sprintf "./%s/package.json" releaseDir
-
-    let lines =
-        File.ReadAllLines fileName
-        |> Seq.map (fun line ->
-            if line
-                .TrimStart()
-                   .StartsWith(sprintf "\"%s\":" name) then
-                let indent = line.Substring(0, line.IndexOf("\""))
-                sprintf "%s\"%s\": %s," indent name value
-            else
-                line)
-
-    File.WriteAllLines(fileName, lines)
+    let content = File.readAsString fileName
+    let jsonObj = System.Text.Json.JsonDocument.Parse content
+    let node = System.Text.Json.Nodes.JsonObject.Create jsonObj.RootElement
+    node[name] <- value
+    let opts = JsonSerializerOptions(WriteIndented = true, AllowTrailingCommas = false)
+    File.WriteAllText(fileName, node.ToJsonString(opts))
 
 let setVersion (release: ReleaseNotes.ReleaseNotes) releaseDir =
-    let versionString = sprintf "\"%O\"" release.NugetVersion
+    let versionString = $"%O{release.NugetVersion}"
     setPackageJsonField "version" versionString releaseDir
 
 let publishToGallery releaseDir =
@@ -405,7 +400,8 @@ let buildTargetTree () =
     "YarnInstall" ==>! "RunScript"
     "DotNetRestore" ==>! "RunScript"
 
-    "Clean" ==> "Format" ==> "RunScript" ==>! "Default"
+    "Clean" ==> "Format" ==> "RunScript"
+    ==>! "Default"
 
     "Clean"
     ==> "RunScript"
