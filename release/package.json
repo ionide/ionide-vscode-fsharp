@@ -1,1630 +1,1630 @@
 {
-    "__metadata": {
-        "id": "0ea05e3f-5a38-419d-8305-f6c3f6d409d2",
-        "publisherDisplayName": "Ionide",
-        "publisherId": "6841d314-11e9-4ec1-a088-08558c6effee"
+  "__metadata": {
+    "id": "0ea05e3f-5a38-419d-8305-f6c3f6d409d2",
+    "publisherDisplayName": "Ionide",
+    "publisherId": "6841d314-11e9-4ec1-a088-08558c6effee"
+  },
+  "activationEvents": [
+    "onCommand:fsharp.NewProject",
+    "onCommand:fsi.Start",
+    "onCommand:workbench.action.tasks.runTask",
+    "onDebugDynamicConfigurations:coreclr",
+    "onLanguage:fsharp",
+    "workspaceContains:**/*.fs",
+    "workspaceContains:**/*.fsproj",
+    "workspaceContains:**/*.fsx",
+    "workspaceContains:**/*.sln"
+  ],
+  "badges": [
+    {
+      "description": "Open Collective Backers",
+      "href": "https://opencollective.com/ionide",
+      "url": "https://img.shields.io/opencollective/backers/ionide.svg?color=blue\u0026style=for-the-badge"
     },
-    "activationEvents": [
-        "onCommand:fsharp.NewProject",
-        "onCommand:fsi.Start",
-        "onCommand:workbench.action.tasks.runTask",
-        "onDebugDynamicConfigurations:coreclr",
-        "onLanguage:fsharp",
-        "workspaceContains:**/*.fs",
-        "workspaceContains:**/*.fsproj",
-        "workspaceContains:**/*.fsx",
-        "workspaceContains:**/*.sln"
+    {
+      "description": "Open Collective Sponsors",
+      "href": "https://opencollective.com/ionide",
+      "url": "https://img.shields.io/opencollective/sponsors/ionide.svg?color=Blue\u0026style=for-the-badge"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/ionide/ionide-vscode-fsharp/issues"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages",
+    "Snippets"
+  ],
+  "contributes": {
+    "breakpoints": [
+      {
+        "language": "fsharp"
+      }
     ],
-    "badges": [
-        {
-            "description": "Open Collective Backers",
-            "href": "https://opencollective.com/ionide",
-            "url": "https://img.shields.io/opencollective/backers/ionide.svg?color=blue&style=for-the-badge"
+    "colors": [
+      {
+        "defaults": {
+          "dark": "#696969",
+          "highContrast": "#A2E2A2",
+          "light": "#919191"
         },
-        {
-            "description": "Open Collective Sponsors",
-            "href": "https://opencollective.com/ionide",
-            "url": "https://img.shields.io/opencollective/sponsors/ionide.svg?color=Blue&style=for-the-badge"
+        "description": "Foreground color for F# LineLenses",
+        "id": "fsharp.linelens"
+      },
+      {
+        "defaults": {
+          "dark": "#696969",
+          "highContrast": "#A2E2A2",
+          "light": "#919191"
+        },
+        "description": "Foreground color for F# Pipeline Hints",
+        "id": "fsharp.pipelineHints"
+      },
+      {
+        "defaults": {
+          "dark": "#FFCC00",
+          "highContrast": "#FFFF00",
+          "light": "#FFCC00"
+        },
+        "description": "Text colors for warnings shown in the status bar",
+        "id": "fsharp.statusBarWarnings"
+      }
+    ],
+    "commands": [
+      {
+        "command": "fsi.Start",
+        "title": "FSI: Start"
+      },
+      {
+        "command": "fsi.SendLine",
+        "title": "FSI: Send Line"
+      },
+      {
+        "command": "fsi.SendSelection",
+        "title": "FSI: Send Selection"
+      },
+      {
+        "command": "fsi.SendLastSelection",
+        "title": "FSI: Send Last Selection"
+      },
+      {
+        "command": "fsi.SendFile",
+        "icon": {
+          "dark": "./images/send-dark.svg",
+          "light": "./images/send-light.svg"
+        },
+        "title": "FSI: Send File"
+      },
+      {
+        "command": "fsi.SendProjectReferences",
+        "title": "FSI: Send References from project"
+      },
+      {
+        "command": "fsi.GenerateProjectReferences",
+        "title": "FSI: Generate script file with references from project"
+      },
+      {
+        "command": "fsi.OpenWatcher",
+        "title": "FSI: Open Watcher"
+      },
+      {
+        "command": "fsharp.scriptrunner.run",
+        "icon": {
+          "dark": "./images/run-dark.svg",
+          "light": "./images/run-light.svg"
+        },
+        "title": "F#: Run script"
+      },
+      {
+        "command": "fsharp.NewProject",
+        "icon": {
+          "dark": "./images/add-dark.svg",
+          "light": "./images/add-light.svg"
+        },
+        "title": "F#: New Project"
+      },
+      {
+        "command": "fsharp.AddFileToProject",
+        "title": "F#: Add Current File To Project"
+      },
+      {
+        "command": "fsharp.getHelp",
+        "title": "F#: Get Help"
+      },
+      {
+        "command": "fsharp.generateDoc",
+        "title": "F#: Generate Documentation"
+      },
+      {
+        "command": "fsharp.clearCache",
+        "title": "F#: Clear Project Cache"
+      },
+      {
+        "command": "fsharp.changeWorkspace",
+        "title": "F#: Change Workspace or Solution"
+      },
+      {
+        "command": "fsharp.fsdn",
+        "title": "F#: Search by signatures on FSDN"
+      },
+      {
+        "command": "MSBuild.buildCurrent",
+        "title": "MSBuild: Build current project"
+      },
+      {
+        "command": "MSBuild.buildSelected",
+        "title": "MSBuild: Build project"
+      },
+      {
+        "command": "MSBuild.rebuildCurrent",
+        "title": "MSBuild: Rebuild current project"
+      },
+      {
+        "command": "MSBuild.rebuildSelected",
+        "title": "MSBuild: Rebuild project"
+      },
+      {
+        "command": "MSBuild.cleanCurrent",
+        "title": "MSBuild: Clean current project"
+      },
+      {
+        "command": "MSBuild.cleanSelected",
+        "title": "MSBuild: Clean project"
+      },
+      {
+        "command": "MSBuild.restoreSelected",
+        "title": "MSBuild: Restore project"
+      },
+      {
+        "command": "MSBuild.buildCurrentSolution",
+        "title": "MSBuild: Build current solution"
+      },
+      {
+        "command": "MSBuild.rebuildCurrentSolution",
+        "title": "MSBuild: Rebuild current solution"
+      },
+      {
+        "command": "MSBuild.cleanCurrentSolution",
+        "title": "MSBuild: Clean current solution"
+      },
+      {
+        "command": "fsharp.explorer.moveUp",
+        "icon": {
+          "dark": "./images/up-mono-dark.svg",
+          "light": "./images/up-mono-light.svg"
+        },
+        "title": "Move file up"
+      },
+      {
+        "command": "fsharp.explorer.moveDown",
+        "icon": {
+          "dark": "./images/down-mono-dark.svg",
+          "light": "./images/down-mono-light.svg"
+        },
+        "title": "Move file down"
+      },
+      {
+        "command": "fsharp.explorer.removeFile",
+        "title": "Remove file"
+      },
+      {
+        "command": "fsharp.explorer.addAbove",
+        "title": "Add file above"
+      },
+      {
+        "command": "fsharp.explorer.addBelow",
+        "title": "Add file below"
+      },
+      {
+        "command": "fsharp.explorer.addFile",
+        "title": "Add file"
+      },
+      {
+        "command": "fsharp.explorer.showProjectLoadFailedInfo",
+        "icon": {
+          "dark": "./images/icon-status-dark.svg",
+          "light": "./images/icon-status-light.svg"
+        },
+        "title": "Show info about failed project loading"
+      },
+      {
+        "command": "fsharp.explorer.showProjectStatus",
+        "icon": {
+          "dark": "./images/icon-status-dark.svg",
+          "light": "./images/icon-status-light.svg"
+        },
+        "title": "Show project status"
+      },
+      {
+        "command": "fsharp.explorer.renameFile",
+        "title": "Rename file"
+      },
+      {
+        "command": "fsharp.explorer.addProjecRef",
+        "title": "Add project reference"
+      },
+      {
+        "command": "fsharp.explorer.removeProjecRef",
+        "title": "Remove project reference"
+      },
+      {
+        "command": "fsharp.explorer.openProjectFile",
+        "icon": {
+          "dark": "images/open-file-mono-dark.svg",
+          "light": "images/open-file-mono-light.svg"
+        },
+        "title": "Open project file"
+      },
+      {
+        "command": "fsharp.explorer.refresh",
+        "title": "Refresh Explorer"
+      },
+      {
+        "command": "fsharp.explorer.clearCache",
+        "title": "Clear project cache"
+      },
+      {
+        "category": "F#",
+        "command": "fsharp.diagnostics.getInfos",
+        "title": "Get info for diagnostics"
+      },
+      {
+        "command": "fsharp.explorer.msbuild.build",
+        "title": "Build"
+      },
+      {
+        "command": "fsharp.explorer.msbuild.rebuild",
+        "title": "Rebuild"
+      },
+      {
+        "command": "fsharp.explorer.msbuild.clean",
+        "title": "Clean"
+      },
+      {
+        "command": "fsharp.explorer.msbuild.restore",
+        "title": "Restore"
+      },
+      {
+        "command": "fsharp.explorer.solution.build",
+        "title": "Build"
+      },
+      {
+        "command": "fsharp.explorer.solution.rebuild",
+        "title": "Rebuild"
+      },
+      {
+        "command": "fsharp.explorer.solution.clean",
+        "title": "Clean"
+      },
+      {
+        "command": "fsharp.explorer.solution.restore",
+        "title": "Restore"
+      },
+      {
+        "command": "fsharp.explorer.project.run",
+        "icon": {
+          "dark": "./images/run-mono-dark.svg",
+          "light": "./images/run-mono-light.svg"
+        },
+        "title": "Run"
+      },
+      {
+        "command": "fsharp.explorer.project.debug",
+        "icon": {
+          "dark": "./images/debug-mono-dark.svg",
+          "light": "./images/debug-mono-light.svg"
+        },
+        "title": "Debug"
+      },
+      {
+        "command": "fsharp.explorer.project.setDefault",
+        "title": "Set as startup project"
+      },
+      {
+        "command": "fsharp.explorer.project.sendFSI",
+        "title": "Send references for FSI"
+      },
+      {
+        "command": "fsharp.explorer.project.generateFSI",
+        "title": "Generate references for FSI"
+      },
+      {
+        "command": "fsharp.runDefaultProject",
+        "icon": "./images/run.png",
+        "title": "F#: Run Default Project"
+      },
+      {
+        "command": "fsharp.debugDefaultProject",
+        "icon": "./images/debug.png",
+        "title": "F#: Debug Default Project"
+      },
+      {
+        "command": "fsharp.chooseDefaultProject",
+        "title": "F#: Choose Default Project"
+      },
+      {
+        "command": "fsharp.explorer.solution.addProject",
+        "title": "Add project"
+      },
+      {
+        "category": "F#",
+        "command": "fsharp.htmlConverter.convert",
+        "description": "Converts your selection to Elmish by assuming that your selection is HTML code",
+        "title": "Convert html to Elmish"
+      },
+      {
+        "category": "F#",
+        "command": "fsharp.revealInSolutionExplorer",
+        "icon": {
+          "dark": "./images/auto-reveal-dark.svg",
+          "light": "./images/auto-reveal-light.svg"
+        },
+        "title": "Reveal in solution explorer"
+      },
+      {
+        "category": "F#",
+        "command": "fsharp.openInfoPanel",
+        "description": "Opens Info Panel displaying documentation",
+        "title": "Open Info Panel"
+      },
+      {
+        "category": "F#",
+        "command": "fsharp.updateInfoPanel",
+        "description": "Updates Info Panel with documentation of current symbol",
+        "title": "Update Info Panel"
+      },
+      {
+        "command": "fsharp.showDocumentation",
+        "title": "Show Documentation for given symbol"
+      },
+      {
+        "category": "F#",
+        "command": "fsharp.openInfoPanel.lock",
+        "icon": {
+          "dark": "./images/lock-solid.svg",
+          "light": "./images/lock-solid-light.svg"
+        },
+        "title": "Lock Info Panel"
+      },
+      {
+        "category": "F#",
+        "command": "fsharp.openInfoPanel.unlock",
+        "icon": {
+          "dark": "./images/lock-open-solid.svg",
+          "light": "./images/lock-open-solid-light.svg"
+        },
+        "title": "Unlock Info Panel"
+      },
+      {
+        "command": "fake.targetsOutline.reloadTargets",
+        "icon": {
+          "dark": "./images/refresh-dark.svg",
+          "light": "./images/refresh-light.svg"
+        },
+        "title": "Reload targets from script"
+      },
+      {
+        "command": "fake.targetsOutline.runTarget",
+        "icon": {
+          "dark": "./images/run-mono-dark.svg",
+          "light": "./images/run-mono-light.svg"
+        },
+        "title": "Run"
+      },
+      {
+        "command": "fake.targetsOutline.debugTarget",
+        "icon": {
+          "dark": "./images/debug-mono-dark.svg",
+          "light": "./images/debug-mono-light.svg"
+        },
+        "title": "Debug"
+      },
+      {
+        "command": "fake.targetsOutline.runSingleTarget",
+        "icon": {
+          "dark": "./images/run-mono-dark.svg",
+          "light": "./images/run-mono-light.svg"
+        },
+        "title": "Run Single"
+      },
+      {
+        "command": "fake.targetsOutline.debugSingleTarget",
+        "icon": {
+          "dark": "./images/debug-mono-dark.svg",
+          "light": "./images/debug-mono-light.svg"
+        },
+        "title": "Debug Single"
+      },
+      {
+        "category": "F#",
+        "command": "fsharp.openFSharpLiterate",
+        "title": "Show F# Literate preview"
+      }
+    ],
+    "configuration": {
+      "properties": {
+        "FAKE.showTargetsOutlineIn": {
+          "default": "explorer",
+          "description": "Set the activity (left bar) where the FAKE targets outline view will be displayed.\nRequires restart.",
+          "enum": [
+            "explorer",
+            "fsharp"
+          ],
+          "scope": "application",
+          "type": "string"
+        },
+        "FAKE.targetsOutline": {
+          "default": true,
+          "description": "Enables the Targets Outline tree view.",
+          "scope": "resource",
+          "type": "boolean"
+        },
+        "FSharp.abstractClassStubGeneration": {
+          "default": true,
+          "description": "Enables a codefix that generates missing members for an abstract class when in an type inheriting from that abstract class.",
+          "type": "boolean"
+        },
+        "FSharp.abstractClassStubGenerationMethodBody": {
+          "default": "failwith \u0022Not Implemented\u0022",
+          "description": "The expression to fill in the right-hand side of inherited members when generating missing members for an abstract base class",
+          "type": "string"
+        },
+        "FSharp.abstractClassStubGenerationObjectIdentifier": {
+          "default": "this",
+          "description": "The name of the \u0027self\u0027 identifier in an inherited member. For example, \u0060this\u0060 in the expression \u0060this.Member(x: int) = ()\u0060",
+          "type": "string"
+        },
+        "FSharp.addFsiWatcher": {
+          "default": false,
+          "description": "Enables a panel for FSI that shows the value of all existing bindings in the FSI session",
+          "type": "boolean"
+        },
+        "FSharp.analyzersPath": {
+          "default": [
+            "packages/Analyzers",
+            "analyzers"
+          ],
+          "description": "Directories in the array are used as a source of custom analyzers. Requires restart.",
+          "scope": "machine-overridable",
+          "type": "array"
+        },
+        "FSharp.autoRevealInExplorer": {
+          "default": "sameAsFileExplorer",
+          "description": "Controls whether the solution explorer should automatically reveal and select files when opening them. If \u0060sameAsFileExplorer\u0060 is set, then the value of the \u0060explorer.autoReveal\u0060 setting will be used instead.",
+          "enum": [
+            "sameAsFileExplorer",
+            "enabled",
+            "disabled"
+          ],
+          "scope": "window",
+          "type": "string"
+        },
+        "FSharp.disableFailedProjectNotifications": {
+          "default": false,
+          "description": "Disables popup notifications for failed project loading",
+          "type": "boolean"
+        },
+        "FSharp.dotnetRoot": {
+          "description": "Sets the root path for finding locating the dotnet CLI binary. Defaults to the \u0060dotnet\u0060 binary found on your system PATH.",
+          "type": "string"
+        },
+        "FSharp.enableAnalyzers": {
+          "default": false,
+          "description": "EXPERIMENTAL. Enables F# analyzers for custom code diagnostics. Requires restart.",
+          "type": "boolean"
+        },
+        "FSharp.enableBackgroundServices": {
+          "default": true,
+          "description": "Enables background services responsible for creating symbol cache and typechecking files in the background. Requires restart.",
+          "type": "boolean"
+        },
+        "FSharp.enableMSBuildProjectGraph": {
+          "default": false,
+          "description": "EXPERIMENTAL. Enables support for loading workspaces with MsBuild\u0027s ProjectGraph. This can improve load times. Requires restart.",
+          "type": "boolean"
+        },
+        "FSharp.enableReferenceCodeLens": {
+          "default": true,
+          "description": "Enables additional code lenses showing number of references of a function or value. Requires background services to be enabled.",
+          "type": "boolean"
+        },
+        "FSharp.enableTouchBar": {
+          "default": true,
+          "description": "Enables TouchBar integration of build/run/debug buttons",
+          "type": "boolean"
+        },
+        "FSharp.enableTreeView": {
+          "default": true,
+          "description": "Enables the solution explorer view of the current workspace, which shows the workspace as MSBuild sees it",
+          "type": "boolean"
+        },
+        "FSharp.excludeProjectDirectories": {
+          "default": [
+            ".git",
+            "paket-files",
+            ".fable",
+            "packages",
+            "node_modules"
+          ],
+          "description": "Directories in the array are excluded from project file search. Requires restart.",
+          "type": "array"
+        },
+        "FSharp.externalAutocomplete": {
+          "default": false,
+          "description": "Includes external (from unopened modules and namespaces) symbols in autocomplete",
+          "type": "boolean"
+        },
+        "FSharp.fsac.attachDebugger": {
+          "default": false,
+          "description": "Appends the \u0027--attachdebugger\u0027 argument to fsac, this will allow you to attach a debugger.",
+          "type": "boolean"
+        },
+        "FSharp.fsac.dotnetArgs": {
+          "default": [],
+          "description": "additional CLI arguments to be provided to the dotnet runner for FSAC",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "FSharp.fsac.netCoreDllPath": {
+          "default": "",
+          "description": "The path to the \u0027fsautocomplete.dll\u0027, useful for debugging a self-built fsac.",
+          "scope": "machine-overridable",
+          "type": "string"
+        },
+        "FSharp.fsac.silencedLogs": {
+          "default": [],
+          "description": "An array of log categories for FSAC to filter out. These can be found by viewing your log output and noting the text in between the brackets in the log line. For example, in the log line \u0060[16:07:14.626 INF] [Compiler] done compiling foo.fsx\u0060, the category is \u0027Compiler\u0027. ",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "FSharp.fsiExtraParameters": {
+          "default": [],
+          "markdownDescription": "An array of additional command line parameters to pass to FSI when it is started. See [the Microsoft documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list.",
+          "type": "array"
+        },
+        "FSharp.fsiFilePath": {
+          "default": "",
+          "description": "The path to the F# Interactive tool used by Ionide-FSharp (.NET Framework only, on .NET Core \u0060FSharp.fsiSdkFilePath\u0060 is used)",
+          "scope": "machine-overridable",
+          "type": "string"
+        },
+        "FSharp.fsiSdkFilePath": {
+          "default": "",
+          "description": "The path to the F# Interactive tool used by Ionide-FSharp (When using .NET SDK scripts)",
+          "scope": "machine-overridable",
+          "type": "string"
+        },
+        "FSharp.generateBinlog": {
+          "default": false,
+          "markdownDescription": "Enables generation of \u0060msbuild.binlog\u0060 files for project loading. It works only for fresh, non-cached project loading. Run \u0060F#: Clear Project Cache\u0060 and reload window to force fresh loading of all projects. These files can be loaded and inspected using the [MSBuild Structured Logger](https://github.com/KirillOsenkov/MSBuildStructuredLog)",
+          "type": "boolean"
+        },
+        "FSharp.infoPanelReplaceHover": {
+          "default": false,
+          "description": "Controls whether the info panel replaces tooltips",
+          "type": "boolean"
+        },
+        "FSharp.infoPanelShowOnStartup": {
+          "default": false,
+          "description": "Controls whether the info panel should be displayed at startup",
+          "type": "boolean"
+        },
+        "FSharp.infoPanelStartLocked": {
+          "default": false,
+          "description": "Controls whether the info panel should be locked at startup",
+          "type": "boolean"
+        },
+        "FSharp.infoPanelUpdate": {
+          "default": "onCursorMove",
+          "description": "Controls when the info panel is updated",
+          "enum": [
+            "onCursorMove",
+            "onHover",
+            "both",
+            "none"
+          ],
+          "type": "string"
+        },
+        "FSharp.inlayHints.enabled": {
+          "default": true,
+          "description": "Controls if the inlay hints feature is enabled",
+          "type": "boolean"
+        },
+        "FSharp.inlayHints.parameterNames": {
+          "default": true,
+          "description": "Controls if parameter-name inlay hints will be displayed for functions and methods",
+          "type": "boolean"
+        },
+        "FSharp.inlayHints.typeAnnotations": {
+          "default": true,
+          "description": "Controls if type-annotation inlay hints will be displayed for bindings.",
+          "type": "boolean"
+        },
+        "FSharp.interfaceStubGeneration": {
+          "default": true,
+          "description": "Enables a codefix that generates missing interface members when inside of an interface implementation expression",
+          "type": "boolean"
+        },
+        "FSharp.interfaceStubGenerationMethodBody": {
+          "default": "failwith \u0022Not Implemented\u0022",
+          "description": "The expression to fill in the right-hand side of interface members when generating missing members for an interface implementation expression",
+          "type": "string"
+        },
+        "FSharp.interfaceStubGenerationObjectIdentifier": {
+          "default": "this",
+          "description": "The name of the \u0027self\u0027 identifier in an interface member. For example, \u0060this\u0060 in the expression \u0060this.Member(x: int) = ()\u0060",
+          "type": "string"
+        },
+        "FSharp.keywordsAutocomplete": {
+          "default": true,
+          "description": "Includes keywords in autocomplete",
+          "type": "boolean"
+        },
+        "FSharp.lineLens.enabled": {
+          "default": "replaceCodeLens",
+          "description": "Usage mode for LineLens. If \u0060never\u0060, LineLens will never be shown.  If \u0060replaceCodeLens\u0060, LineLens will be placed in a decoration on top of the current line.",
+          "enum": [
+            "never",
+            "replaceCodeLens",
+            "always"
+          ],
+          "type": "string"
+        },
+        "FSharp.lineLens.prefix": {
+          "default": "  // ",
+          "description": "The prefix displayed before the signature in a LineLens",
+          "type": "string"
+        },
+        "FSharp.linter": {
+          "default": true,
+          "markdownDescription": "Enables integration with [FSharpLint](https://fsprojects.github.io/FSharpLint/) for additional (user-defined) warnings",
+          "type": "boolean"
+        },
+        "FSharp.msbuildAutoshow": {
+          "default": false,
+          "description": "Automatically shows the MSBuild output panel when MSBuild functionality is invoked",
+          "type": "boolean"
+        },
+        "FSharp.pipelineHints.enabled": {
+          "default": true,
+          "description": "Enables PipeLine hints, which are like LineLenses that appear along each step of a chain of piped expressions",
+          "type": "boolean"
+        },
+        "FSharp.pipelineHints.prefix": {
+          "default": "  // ",
+          "description": "The prefix displayed before the signature",
+          "type": "string"
+        },
+        "FSharp.recordStubGeneration": {
+          "default": true,
+          "description": "Enables a codefix that will generate missing record fields when inside a record construction expression",
+          "type": "boolean"
+        },
+        "FSharp.recordStubGenerationBody": {
+          "default": "failwith \u0022Not Implemented\u0022",
+          "description": "The expression to fill in the right-hand side of record fields when generating missing fields for a record construction expression",
+          "type": "string"
+        },
+        "FSharp.resolveNamespaces": {
+          "default": true,
+          "description": "Enables a codefix that will suggest namespaces or module to open when a name is not recognized",
+          "type": "boolean"
+        },
+        "FSharp.saveOnSendLastSelection": {
+          "default": false,
+          "description": "If enabled, the current file will be saved before sending the last selection to FSI for evaluation",
+          "type": "boolean"
+        },
+        "FSharp.showExplorerOnStartup": {
+          "default": true,
+          "description": "Automatically shows solution explorer on plugin startup",
+          "type": "boolean"
+        },
+        "FSharp.showProjectExplorerIn": {
+          "default": "fsharp",
+          "description": "Set the activity (left bar) where the project explorer view will be displayed. If \u0060explorer\u0060, then the project explorer will be a collapsible tab in the main explorer view, a sibling to the file system explorer. If \u0060fsharp\u0060, a new activity with the F# logo will be added and the project explorer will be rendered in this activity.Requires restart.",
+          "enum": [
+            "explorer",
+            "fsharp"
+          ],
+          "scope": "application",
+          "type": "string"
+        },
+        "FSharp.simplifyNameAnalyzer": {
+          "default": true,
+          "description": "Enables detection of cases when names of functions and values can be simplified",
+          "type": "boolean"
+        },
+        "FSharp.smartIndent": {
+          "default": false,
+          "description": "Enables smart indent feature",
+          "type": "boolean"
+        },
+        "FSharp.suggestGitignore": {
+          "default": true,
+          "description": "Allow Ionide to prompt whenever internal data files aren\u0027t included in your project\u0027s .gitignore",
+          "type": "boolean"
+        },
+        "FSharp.suggestSdkScripts": {
+          "default": true,
+          "description": "Allow Ionide to prompt to use SdkScripts",
+          "type": "boolean"
+        },
+        "FSharp.trace.server": {
+          "default": "off",
+          "description": "Trace server messages at the LSP protocol level for diagnostics.",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "scope": "window",
+          "type": "string"
+        },
+        "FSharp.unionCaseStubGeneration": {
+          "default": true,
+          "description": "Enables a codefix that generates missing union cases when in a match expression",
+          "type": "boolean"
+        },
+        "FSharp.unionCaseStubGenerationBody": {
+          "default": "failwith \u0022Not Implemented\u0022",
+          "description": "The expression to fill in the right-hand side of match cases when generating missing cases for a match on a discriminated union",
+          "type": "string"
+        },
+        "FSharp.unusedDeclarationsAnalyzer": {
+          "default": true,
+          "description": "Enables detection of unused declarations",
+          "type": "boolean"
+        },
+        "FSharp.unusedOpensAnalyzer": {
+          "default": true,
+          "description": "Enables detection of unused opens",
+          "type": "boolean"
+        },
+        "FSharp.useSdkScripts": {
+          "default": true,
+          "description": "Use \u0027dotnet fsi\u0027 instead of \u0027fsi.exe\u0027/\u0027fsharpi\u0027 to start an FSI session",
+          "type": "boolean"
+        },
+        "FSharp.verboseLogging": {
+          "default": false,
+          "description": "Logs additional information to F# output channel. This is equivalent to passing the \u0060--verbose\u0060 flag to FSAC. Requires restart.",
+          "type": "boolean"
+        },
+        "FSharp.workspaceModePeekDeepLevel": {
+          "default": 4,
+          "description": "The deep level of directory hierarchy when searching for sln/projects",
+          "type": "integer"
+        },
+        "FSharp.workspacePath": {
+          "description": "Path to the directory or solution file that should be loaded as a workspace. If set, no workspace probing or discovery is done by Ionide at all.",
+          "scope": "window",
+          "type": "string"
         }
-    ],
-    "bugs": {
-        "url": "https://github.com/ionide/ionide-vscode-fsharp/issues"
+      },
+      "title": "F#",
+      "type": "object"
     },
-    "categories": [
-        "Linters",
-        "Programming Languages",
-        "Snippets"
+    "debuggers": [
+      {
+        "label": "Ionide LaunchSettings",
+        "type": "coreclr"
+      }
     ],
-    "contributes": {
-        "breakpoints": [
-            {
-                "language": "fsharp"
-            }
+    "grammars": [
+      {
+        "language": "fsharp",
+        "path": "./syntaxes/fsharp.json",
+        "scopeName": "source.fsharp"
+      },
+      {
+        "language": "fsharp",
+        "path": "./syntaxes/fsharp.fsx.json",
+        "scopeName": "source.fsharp.fsx"
+      },
+      {
+        "language": "fsharp",
+        "path": "./syntaxes/fsharp.fsi.json",
+        "scopeName": "source.fsharp.fsi"
+      },
+      {
+        "language": "fsharp",
+        "path": "./syntaxes/fsharp.fsl.json",
+        "scopeName": "source.fsharp.fsl"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": "fableconfig.json",
+        "url": "./schemas/fableconfig.json"
+      },
+      {
+        "fileMatch": "wsconfig.json",
+        "url": "./schemas/wsconfig.json"
+      },
+      {
+        "fileMatch": "**/launchSettings.json",
+        "url": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/launchsettings.json"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "fsi.SendLine",
+        "key": "alt\u002B/",
+        "mac": "alt\u002B/",
+        "when": "editorFocus \u0026\u0026 !findWidgetVisible \u0026\u0026 editorLangId == \u0027fsharp\u0027"
+      },
+      {
+        "command": "fsi.SendSelection",
+        "key": "alt\u002BEnter",
+        "mac": "alt\u002BEnter",
+        "when": "editorFocus \u0026\u0026 !findWidgetVisible \u0026\u0026 editorLangId == \u0027fsharp\u0027"
+      },
+      {
+        "command": "fsharp.generateDoc",
+        "key": "alt\u002Bshift\u002Bj",
+        "when": "editorFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027"
+      },
+      {
+        "command": "fsharp.getHelp",
+        "key": "shift\u002BF1",
+        "when": "editorFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027"
+      },
+      {
+        "command": "MSBuild.buildCurrent",
+        "key": "ctrl\u002Balt\u002Bb",
+        "when": "editorFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027"
+      },
+      {
+        "command": "MSBuild.buildCurrentSolution",
+        "key": "ctrl\u002Balt\u002Bshift\u002Bb",
+        "when": "fsharp.project.any"
+      },
+      {
+        "command": "fsharp.openInfoPanel",
+        "key": "alt\u002B,",
+        "when": "editorFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027"
+      },
+      {
+        "command": "fsharp.updateInfoPanel",
+        "key": "alt\u002B.",
+        "when": "editorFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027"
+      }
+    ],
+    "languages": [
+      {
+        "aliases": [
+          "F#",
+          "FSharp",
+          "fsharp"
         ],
-        "colors": [
-            {
-                "defaults": {
-                    "dark": "#696969",
-                    "highContrast": "#A2E2A2",
-                    "light": "#919191"
-                },
-                "description": "Foreground color for F# LineLenses",
-                "id": "fsharp.linelens"
-            },
-            {
-                "defaults": {
-                    "dark": "#696969",
-                    "highContrast": "#A2E2A2",
-                    "light": "#919191"
-                },
-                "description": "Foreground color for F# Pipeline Hints",
-                "id": "fsharp.pipelineHints"
-            },
-            {
-                "defaults": {
-                    "dark": "#FFCC00",
-                    "highContrast": "#FFFF00",
-                    "light": "#FFCC00"
-                },
-                "description": "Text colors for warnings shown in the status bar",
-                "id": "fsharp.statusBarWarnings"
-            }
+        "configuration": "./language-configuration.json",
+        "extensions": [
+          ".fs",
+          ".fsx",
+          ".fsi"
         ],
-        "commands": [
-            {
-                "command": "fsi.Start",
-                "title": "FSI: Start"
-            },
-            {
-                "command": "fsi.SendLine",
-                "title": "FSI: Send Line"
-            },
-            {
-                "command": "fsi.SendSelection",
-                "title": "FSI: Send Selection"
-            },
-            {
-                "command": "fsi.SendLastSelection",
-                "title": "FSI: Send Last Selection"
-            },
-            {
-                "command": "fsi.SendFile",
-                "icon": {
-                    "dark": "./images/send-dark.svg",
-                    "light": "./images/send-light.svg"
-                },
-                "title": "FSI: Send File"
-            },
-            {
-                "command": "fsi.SendProjectReferences",
-                "title": "FSI: Send References from project"
-            },
-            {
-                "command": "fsi.GenerateProjectReferences",
-                "title": "FSI: Generate script file with references from project"
-            },
-            {
-                "command": "fsi.OpenWatcher",
-                "title": "FSI: Open Watcher"
-            },
-            {
-                "command": "fsharp.scriptrunner.run",
-                "icon": {
-                    "dark": "./images/run-dark.svg",
-                    "light": "./images/run-light.svg"
-                },
-                "title": "F#: Run script"
-            },
-            {
-                "command": "fsharp.NewProject",
-                "icon": {
-                    "dark": "./images/add-dark.svg",
-                    "light": "./images/add-light.svg"
-                },
-                "title": "F#: New Project"
-            },
-            {
-                "command": "fsharp.AddFileToProject",
-                "title": "F#: Add Current File To Project"
-            },
-            {
-                "command": "fsharp.getHelp",
-                "title": "F#: Get Help"
-            },
-            {
-                "command": "fsharp.generateDoc",
-                "title": "F#: Generate Documentation"
-            },
-            {
-                "command": "fsharp.clearCache",
-                "title": "F#: Clear Project Cache"
-            },
-            {
-                "command": "fsharp.changeWorkspace",
-                "title": "F#: Change Workspace or Solution"
-            },
-            {
-                "command": "fsharp.fsdn",
-                "title": "F#: Search by signatures on FSDN"
-            },
-            {
-                "command": "MSBuild.buildCurrent",
-                "title": "MSBuild: Build current project"
-            },
-            {
-                "command": "MSBuild.buildSelected",
-                "title": "MSBuild: Build project"
-            },
-            {
-                "command": "MSBuild.rebuildCurrent",
-                "title": "MSBuild: Rebuild current project"
-            },
-            {
-                "command": "MSBuild.rebuildSelected",
-                "title": "MSBuild: Rebuild project"
-            },
-            {
-                "command": "MSBuild.cleanCurrent",
-                "title": "MSBuild: Clean current project"
-            },
-            {
-                "command": "MSBuild.cleanSelected",
-                "title": "MSBuild: Clean project"
-            },
-            {
-                "command": "MSBuild.restoreSelected",
-                "title": "MSBuild: Restore project"
-            },
-            {
-                "command": "MSBuild.buildCurrentSolution",
-                "title": "MSBuild: Build current solution"
-            },
-            {
-                "command": "MSBuild.rebuildCurrentSolution",
-                "title": "MSBuild: Rebuild current solution"
-            },
-            {
-                "command": "MSBuild.cleanCurrentSolution",
-                "title": "MSBuild: Clean current solution"
-            },
-            {
-                "command": "fsharp.explorer.moveUp",
-                "icon": {
-                    "dark": "./images/up-mono-dark.svg",
-                    "light": "./images/up-mono-light.svg"
-                },
-                "title": "Move file up"
-            },
-            {
-                "command": "fsharp.explorer.moveDown",
-                "icon": {
-                    "dark": "./images/down-mono-dark.svg",
-                    "light": "./images/down-mono-light.svg"
-                },
-                "title": "Move file down"
-            },
-            {
-                "command": "fsharp.explorer.removeFile",
-                "title": "Remove file"
-            },
-            {
-                "command": "fsharp.explorer.addAbove",
-                "title": "Add file above"
-            },
-            {
-                "command": "fsharp.explorer.addBelow",
-                "title": "Add file below"
-            },
-            {
-                "command": "fsharp.explorer.addFile",
-                "title": "Add file"
-            },
-            {
-                "command": "fsharp.explorer.showProjectLoadFailedInfo",
-                "icon": {
-                    "dark": "./images/icon-status-dark.svg",
-                    "light": "./images/icon-status-light.svg"
-                },
-                "title": "Show info about failed project loading"
-            },
-            {
-                "command": "fsharp.explorer.showProjectStatus",
-                "icon": {
-                    "dark": "./images/icon-status-dark.svg",
-                    "light": "./images/icon-status-light.svg"
-                },
-                "title": "Show project status"
-            },
-            {
-                "command": "fsharp.explorer.renameFile",
-                "title": "Rename file"
-            },
-            {
-                "command": "fsharp.explorer.addProjecRef",
-                "title": "Add project reference"
-            },
-            {
-                "command": "fsharp.explorer.removeProjecRef",
-                "title": "Remove project reference"
-            },
-            {
-                "command": "fsharp.explorer.openProjectFile",
-                "icon": {
-                    "dark": "images/open-file-mono-dark.svg",
-                    "light": "images/open-file-mono-light.svg"
-                },
-                "title": "Open project file"
-            },
-            {
-                "command": "fsharp.explorer.refresh",
-                "title": "Refresh Explorer"
-            },
-            {
-                "command": "fsharp.explorer.clearCache",
-                "title": "Clear project cache"
-            },
-            {
-                "category": "F#",
-                "command": "fsharp.diagnostics.getInfos",
-                "title": "Get info for diagnostics"
-            },
-            {
-                "command": "fsharp.explorer.msbuild.build",
-                "title": "Build"
-            },
-            {
-                "command": "fsharp.explorer.msbuild.rebuild",
-                "title": "Rebuild"
-            },
-            {
-                "command": "fsharp.explorer.msbuild.clean",
-                "title": "Clean"
-            },
-            {
-                "command": "fsharp.explorer.msbuild.restore",
-                "title": "Restore"
-            },
-            {
-                "command": "fsharp.explorer.solution.build",
-                "title": "Build"
-            },
-            {
-                "command": "fsharp.explorer.solution.rebuild",
-                "title": "Rebuild"
-            },
-            {
-                "command": "fsharp.explorer.solution.clean",
-                "title": "Clean"
-            },
-            {
-                "command": "fsharp.explorer.solution.restore",
-                "title": "Restore"
-            },
-            {
-                "command": "fsharp.explorer.project.run",
-                "icon": {
-                    "dark": "./images/run-mono-dark.svg",
-                    "light": "./images/run-mono-light.svg"
-                },
-                "title": "Run"
-            },
-            {
-                "command": "fsharp.explorer.project.debug",
-                "icon": {
-                    "dark": "./images/debug-mono-dark.svg",
-                    "light": "./images/debug-mono-light.svg"
-                },
-                "title": "Debug"
-            },
-            {
-                "command": "fsharp.explorer.project.setDefault",
-                "title": "Set as startup project"
-            },
-            {
-                "command": "fsharp.explorer.project.sendFSI",
-                "title": "Send references for FSI"
-            },
-            {
-                "command": "fsharp.explorer.project.generateFSI",
-                "title": "Generate references for FSI"
-            },
-            {
-                "command": "fsharp.runDefaultProject",
-                "icon": "./images/run.png",
-                "title": "F#: Run Default Project"
-            },
-            {
-                "command": "fsharp.debugDefaultProject",
-                "icon": "./images/debug.png",
-                "title": "F#: Debug Default Project"
-            },
-            {
-                "command": "fsharp.chooseDefaultProject",
-                "title": "F#: Choose Default Project"
-            },
-            {
-                "command": "fsharp.explorer.solution.addProject",
-                "title": "Add project"
-            },
-            {
-                "category": "F#",
-                "command": "fsharp.htmlConverter.convert",
-                "description": "Converts your selection to Elmish by assuming that your selection is HTML code",
-                "title": "Convert html to Elmish"
-            },
-            {
-                "category": "F#",
-                "command": "fsharp.revealInSolutionExplorer",
-                "icon": {
-                    "dark": "./images/auto-reveal-dark.svg",
-                    "light": "./images/auto-reveal-light.svg"
-                },
-                "title": "Reveal in solution explorer"
-            },
-            {
-                "category": "F#",
-                "command": "fsharp.openInfoPanel",
-                "description": "Opens Info Panel displaying documentation",
-                "title": "Open Info Panel"
-            },
-            {
-                "category": "F#",
-                "command": "fsharp.updateInfoPanel",
-                "description": "Updates Info Panel with documentation of current symbol",
-                "title": "Update Info Panel"
-            },
-            {
-                "command": "fsharp.showDocumentation",
-                "title": "Show Documentation for given symbol"
-            },
-            {
-                "category": "F#",
-                "command": "fsharp.openInfoPanel.lock",
-                "icon": {
-                    "dark": "./images/lock-solid.svg",
-                    "light": "./images/lock-solid-light.svg"
-                },
-                "title": "Lock Info Panel"
-            },
-            {
-                "category": "F#",
-                "command": "fsharp.openInfoPanel.unlock",
-                "icon": {
-                    "dark": "./images/lock-open-solid.svg",
-                    "light": "./images/lock-open-solid-light.svg"
-                },
-                "title": "Unlock Info Panel"
-            },
-            {
-                "command": "fake.targetsOutline.reloadTargets",
-                "icon": {
-                    "dark": "./images/refresh-dark.svg",
-                    "light": "./images/refresh-light.svg"
-                },
-                "title": "Reload targets from script"
-            },
-            {
-                "command": "fake.targetsOutline.runTarget",
-                "icon": {
-                    "dark": "./images/run-mono-dark.svg",
-                    "light": "./images/run-mono-light.svg"
-                },
-                "title": "Run"
-            },
-            {
-                "command": "fake.targetsOutline.debugTarget",
-                "icon": {
-                    "dark": "./images/debug-mono-dark.svg",
-                    "light": "./images/debug-mono-light.svg"
-                },
-                "title": "Debug"
-            },
-            {
-                "command": "fake.targetsOutline.runSingleTarget",
-                "icon": {
-                    "dark": "./images/run-mono-dark.svg",
-                    "light": "./images/run-mono-light.svg"
-                },
-                "title": "Run Single"
-            },
-            {
-                "command": "fake.targetsOutline.debugSingleTarget",
-                "icon": {
-                    "dark": "./images/debug-mono-dark.svg",
-                    "light": "./images/debug-mono-light.svg"
-                },
-                "title": "Debug Single"
-            },
-            {
-                "category": "F#",
-                "command": "fsharp.openFSharpLiterate",
-                "title": "Show F# Literate preview"
-            }
-        ],
-        "configuration": {
-            "properties": {
-                "FAKE.showTargetsOutlineIn": {
-                    "default": "explorer",
-                    "description": "Set the activity (left bar) where the FAKE targets outline view will be displayed.\nRequires restart.",
-                    "enum": [
-                        "explorer",
-                        "fsharp"
-                    ],
-                    "scope": "application",
-                    "type": "string"
-                },
-                "FAKE.targetsOutline": {
-                    "default": true,
-                    "description": "Enables the Targets Outline tree view.",
-                    "scope": "resource",
-                    "type": "boolean"
-                },
-                "FSharp.abstractClassStubGeneration": {
-                    "default": true,
-                    "description": "Enables a codefix that generates missing members for an abstract class when in an type inheriting from that abstract class.",
-                    "type": "boolean"
-                },
-                "FSharp.abstractClassStubGenerationMethodBody": {
-                    "default": "failwith \"Not Implemented\"",
-                    "description": "The expression to fill in the right-hand side of inherited members when generating missing members for an abstract base class",
-                    "type": "string"
-                },
-                "FSharp.abstractClassStubGenerationObjectIdentifier": {
-                    "default": "this",
-                    "description": "The name of the 'self' identifier in an inherited member. For example, `this` in the expression `this.Member(x: int) = ()`",
-                    "type": "string"
-                },
-                "FSharp.addFsiWatcher": {
-                    "default": false,
-                    "description": "Enables a panel for FSI that shows the value of all existing bindings in the FSI session",
-                    "type": "boolean"
-                },
-                "FSharp.analyzersPath": {
-                    "default": [
-                        "packages/Analyzers",
-                        "analyzers"
-                    ],
-                    "description": "Directories in the array are used as a source of custom analyzers. Requires restart.",
-                    "scope": "machine-overridable",
-                    "type": "array"
-                },
-                "FSharp.autoRevealInExplorer": {
-                    "default": "sameAsFileExplorer",
-                    "description": "Controls whether the solution explorer should automatically reveal and select files when opening them. If `sameAsFileExplorer` is set, then the value of the `explorer.autoReveal` setting will be used instead.",
-                    "enum": [
-                        "sameAsFileExplorer",
-                        "enabled",
-                        "disabled"
-                    ],
-                    "scope": "window",
-                    "type": "string"
-                },
-                "FSharp.disableFailedProjectNotifications": {
-                    "default": false,
-                    "description": "Disables popup notifications for failed project loading",
-                    "type": "boolean"
-                },
-                "FSharp.dotnetRoot": {
-                    "description": "Sets the root path for finding locating the dotnet CLI binary. Defaults to the `dotnet` binary found on your system PATH.",
-                    "type": "string"
-                },
-                "FSharp.enableAnalyzers": {
-                    "default": false,
-                    "description": "EXPERIMENTAL. Enables F# analyzers for custom code diagnostics. Requires restart.",
-                    "type": "boolean"
-                },
-                "FSharp.enableBackgroundServices": {
-                    "default": true,
-                    "description": "Enables background services responsible for creating symbol cache and typechecking files in the background. Requires restart.",
-                    "type": "boolean"
-                },
-                "FSharp.enableMSBuildProjectGraph": {
-                    "default": false,
-                    "description": "EXPERIMENTAL. Enables support for loading workspaces with MsBuild's ProjectGraph. This can improve load times. Requires restart.",
-                    "type": "boolean"
-                },
-                "FSharp.enableReferenceCodeLens": {
-                    "default": true,
-                    "description": "Enables additional code lenses showing number of references of a function or value. Requires background services to be enabled.",
-                    "type": "boolean"
-                },
-                "FSharp.enableTouchBar": {
-                    "default": true,
-                    "description": "Enables TouchBar integration of build/run/debug buttons",
-                    "type": "boolean"
-                },
-                "FSharp.enableTreeView": {
-                    "default": true,
-                    "description": "Enables the solution explorer view of the current workspace, which shows the workspace as MSBuild sees it",
-                    "type": "boolean"
-                },
-                "FSharp.excludeProjectDirectories": {
-                    "default": [
-                        ".git",
-                        "paket-files",
-                        ".fable",
-                        "packages",
-                        "node_modules"
-                    ],
-                    "description": "Directories in the array are excluded from project file search. Requires restart.",
-                    "type": "array"
-                },
-                "FSharp.externalAutocomplete": {
-                    "default": false,
-                    "description": "Includes external (from unopened modules and namespaces) symbols in autocomplete",
-                    "type": "boolean"
-                },
-                "FSharp.fsac.attachDebugger": {
-                    "default": false,
-                    "description": "Appends the '--attachdebugger' argument to fsac, this will allow you to attach a debugger.",
-                    "type": "boolean"
-                },
-                "FSharp.fsac.dotnetArgs": {
-                    "default": [],
-                    "description": "additional CLI arguments to be provided to the dotnet runner for FSAC",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "FSharp.fsac.netCoreDllPath": {
-                    "default": "",
-                    "description": "The path to the 'fsautocomplete.dll', useful for debugging a self-built fsac.",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "FSharp.fsac.silencedLogs": {
-                    "default": [],
-                    "description": "An array of log categories for FSAC to filter out. These can be found by viewing your log output and noting the text in between the brackets in the log line. For example, in the log line `[16:07:14.626 INF] [Compiler] done compiling foo.fsx`, the category is 'Compiler'. ",
-                    "items": {
-                        "type": "string"
-                    },
-                    "type": "array"
-                },
-                "FSharp.fsiExtraParameters": {
-                    "default": [],
-                    "markdownDescription": "An array of additional command line parameters to pass to FSI when it is started. See [the Microsoft documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list.",
-                    "type": "array"
-                },
-                "FSharp.fsiFilePath": {
-                    "default": "",
-                    "description": "The path to the F# Interactive tool used by Ionide-FSharp (.NET Framework only, on .NET Core `FSharp.fsiSdkFilePath` is used)",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "FSharp.fsiSdkFilePath": {
-                    "default": "",
-                    "description": "The path to the F# Interactive tool used by Ionide-FSharp (When using .NET SDK scripts)",
-                    "scope": "machine-overridable",
-                    "type": "string"
-                },
-                "FSharp.generateBinlog": {
-                    "default": false,
-                    "markdownDescription": "Enables generation of `msbuild.binlog` files for project loading. It works only for fresh, non-cached project loading. Run `F#: Clear Project Cache` and reload window to force fresh loading of all projects. These files can be loaded and inspected using the [MSBuild Structured Logger](https://github.com/KirillOsenkov/MSBuildStructuredLog)",
-                    "type": "boolean"
-                },
-                "FSharp.infoPanelReplaceHover": {
-                    "default": false,
-                    "description": "Controls whether the info panel replaces tooltips",
-                    "type": "boolean"
-                },
-                "FSharp.infoPanelShowOnStartup": {
-                    "default": false,
-                    "description": "Controls whether the info panel should be displayed at startup",
-                    "type": "boolean"
-                },
-                "FSharp.infoPanelStartLocked": {
-                    "default": false,
-                    "description": "Controls whether the info panel should be locked at startup",
-                    "type": "boolean"
-                },
-                "FSharp.infoPanelUpdate": {
-                    "default": "onCursorMove",
-                    "description": "Controls when the info panel is updated",
-                    "enum": [
-                        "onCursorMove",
-                        "onHover",
-                        "both",
-                        "none"
-                    ],
-                    "type": "string"
-                },
-                "FSharp.inlayHints.enabled": {
-                    "default": true,
-                    "description": "Controls if the inlay hints feature is enabled",
-                    "type": "boolean"
-                },
-                "FSharp.inlayHints.parameterNames": {
-                    "default": true,
-                    "description": "Controls if parameter-name inlay hints will be displayed for functions and methods",
-                    "type": "boolean"
-                },
-                "FSharp.inlayHints.typeAnnotations": {
-                    "default": true,
-                    "description": "Controls if type-annotation inlay hints will be displayed for bindings.",
-                    "type": "boolean"
-                },
-                "FSharp.interfaceStubGeneration": {
-                    "default": true,
-                    "description": "Enables a codefix that generates missing interface members when inside of an interface implementation expression",
-                    "type": "boolean"
-                },
-                "FSharp.interfaceStubGenerationMethodBody": {
-                    "default": "failwith \"Not Implemented\"",
-                    "description": "The expression to fill in the right-hand side of interface members when generating missing members for an interface implementation expression",
-                    "type": "string"
-                },
-                "FSharp.interfaceStubGenerationObjectIdentifier": {
-                    "default": "this",
-                    "description": "The name of the 'self' identifier in an interface member. For example, `this` in the expression `this.Member(x: int) = ()`",
-                    "type": "string"
-                },
-                "FSharp.keywordsAutocomplete": {
-                    "default": true,
-                    "description": "Includes keywords in autocomplete",
-                    "type": "boolean"
-                },
-                "FSharp.lineLens.enabled": {
-                    "default": "replaceCodeLens",
-                    "description": "Usage mode for LineLens. If `never`, LineLens will never be shown.  If `replaceCodeLens`, LineLens will be placed in a decoration on top of the current line.",
-                    "enum": [
-                        "never",
-                        "replaceCodeLens",
-                        "always"
-                    ],
-                    "type": "string"
-                },
-                "FSharp.lineLens.prefix": {
-                    "default": "  // ",
-                    "description": "The prefix displayed before the signature in a LineLens",
-                    "type": "string"
-                },
-                "FSharp.linter": {
-                    "default": true,
-                    "markdownDescription": "Enables integration with [FSharpLint](https://fsprojects.github.io/FSharpLint/) for additional (user-defined) warnings",
-                    "type": "boolean"
-                },
-                "FSharp.msbuildAutoshow": {
-                    "default": false,
-                    "description": "Automatically shows the MSBuild output panel when MSBuild functionality is invoked",
-                    "type": "boolean"
-                },
-                "FSharp.pipelineHints.enabled": {
-                    "default": true,
-                    "description": "Enables PipeLine hints, which are like LineLenses that appear along each step of a chain of piped expressions",
-                    "type": "boolean"
-                },
-                "FSharp.pipelineHints.prefix": {
-                    "default": "  // ",
-                    "description": "The prefix displayed before the signature",
-                    "type": "string"
-                },
-                "FSharp.recordStubGeneration": {
-                    "default": true,
-                    "description": "Enables a codefix that will generate missing record fields when inside a record construction expression",
-                    "type": "boolean"
-                },
-                "FSharp.recordStubGenerationBody": {
-                    "default": "failwith \"Not Implemented\"",
-                    "description": "The expression to fill in the right-hand side of record fields when generating missing fields for a record construction expression",
-                    "type": "string"
-                },
-                "FSharp.resolveNamespaces": {
-                    "default": true,
-                    "description": "Enables a codefix that will suggest namespaces or module to open when a name is not recognized",
-                    "type": "boolean"
-                },
-                "FSharp.saveOnSendLastSelection": {
-                    "default": false,
-                    "description": "If enabled, the current file will be saved before sending the last selection to FSI for evaluation",
-                    "type": "boolean"
-                },
-                "FSharp.showExplorerOnStartup": {
-                    "default": true,
-                    "description": "Automatically shows solution explorer on plugin startup",
-                    "type": "boolean"
-                },
-                "FSharp.showProjectExplorerIn": {
-                    "default": "fsharp",
-                    "description": "Set the activity (left bar) where the project explorer view will be displayed. If `explorer`, then the project explorer will be a collapsible tab in the main explorer view, a sibling to the file system explorer. If `fsharp`, a new activity with the F# logo will be added and the project explorer will be rendered in this activity.Requires restart.",
-                    "enum": [
-                        "explorer",
-                        "fsharp"
-                    ],
-                    "scope": "application",
-                    "type": "string"
-                },
-                "FSharp.simplifyNameAnalyzer": {
-                    "default": true,
-                    "description": "Enables detection of cases when names of functions and values can be simplified",
-                    "type": "boolean"
-                },
-                "FSharp.smartIndent": {
-                    "default": false,
-                    "description": "Enables smart indent feature",
-                    "type": "boolean"
-                },
-                "FSharp.suggestGitignore": {
-                    "default": true,
-                    "description": "Allow Ionide to prompt whenever internal data files aren't included in your project's .gitignore",
-                    "type": "boolean"
-                },
-                "FSharp.suggestSdkScripts": {
-                    "default": true,
-                    "description": "Allow Ionide to prompt to use SdkScripts",
-                    "type": "boolean"
-                },
-                "FSharp.trace.server": {
-                    "default": "off",
-                    "description": "Trace server messages at the LSP protocol level for diagnostics.",
-                    "enum": [
-                        "off",
-                        "messages",
-                        "verbose"
-                    ],
-                    "scope": "window",
-                    "type": "string"
-                },
-                "FSharp.unionCaseStubGeneration": {
-                    "default": true,
-                    "description": "Enables a codefix that generates missing union cases when in a match expression",
-                    "type": "boolean"
-                },
-                "FSharp.unionCaseStubGenerationBody": {
-                    "default": "failwith \"Not Implemented\"",
-                    "description": "The expression to fill in the right-hand side of match cases when generating missing cases for a match on a discriminated union",
-                    "type": "string"
-                },
-                "FSharp.unusedDeclarationsAnalyzer": {
-                    "default": true,
-                    "description": "Enables detection of unused declarations",
-                    "type": "boolean"
-                },
-                "FSharp.unusedOpensAnalyzer": {
-                    "default": true,
-                    "description": "Enables detection of unused opens",
-                    "type": "boolean"
-                },
-                "FSharp.useSdkScripts": {
-                    "default": true,
-                    "description": "Use 'dotnet fsi' instead of 'fsi.exe'/'fsharpi' to start an FSI session",
-                    "type": "boolean"
-                },
-                "FSharp.verboseLogging": {
-                    "default": false,
-                    "description": "Logs additional information to F# output channel. This is equivalent to passing the `--verbose` flag to FSAC. Requires restart.",
-                    "type": "boolean"
-                },
-                "FSharp.workspaceModePeekDeepLevel": {
-                    "default": 4,
-                    "description": "The deep level of directory hierarchy when searching for sln/projects",
-                    "type": "integer"
-                },
-                "FSharp.workspacePath": {
-                    "description": "Path to the directory or solution file that should be loaded as a workspace. If set, no workspace probing or discovery is done by Ionide at all.",
-                    "scope": "window",
-                    "type": "string"
-                }
-            },
-            "title": "F#",
-            "type": "object"
-        },
-        "debuggers": [
-            {
-                "label": "Ionide LaunchSettings",
-                "type": "coreclr"
-            }
-        ],
-        "grammars": [
-            {
-                "language": "fsharp",
-                "path": "./syntaxes/fsharp.json",
-                "scopeName": "source.fsharp"
-            },
-            {
-                "language": "fsharp",
-                "path": "./syntaxes/fsharp.fsx.json",
-                "scopeName": "source.fsharp.fsx"
-            },
-            {
-                "language": "fsharp",
-                "path": "./syntaxes/fsharp.fsi.json",
-                "scopeName": "source.fsharp.fsi"
-            },
-            {
-                "language": "fsharp",
-                "path": "./syntaxes/fsharp.fsl.json",
-                "scopeName": "source.fsharp.fsl"
-            }
-        ],
-        "jsonValidation": [
-            {
-                "fileMatch": "fableconfig.json",
-                "url": "./schemas/fableconfig.json"
-            },
-            {
-                "fileMatch": "wsconfig.json",
-                "url": "./schemas/wsconfig.json"
-            },
-            {
-                "fileMatch": "**/launchSettings.json",
-                "url": "https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/launchsettings.json"
-            }
-        ],
-        "keybindings": [
-            {
-                "command": "fsi.SendLine",
-                "key": "alt+/",
-                "mac": "alt+/",
-                "when": "editorFocus && !findWidgetVisible && editorLangId == 'fsharp'"
-            },
-            {
-                "command": "fsi.SendSelection",
-                "key": "alt+Enter",
-                "mac": "alt+Enter",
-                "when": "editorFocus && !findWidgetVisible && editorLangId == 'fsharp'"
-            },
-            {
-                "command": "fsharp.generateDoc",
-                "key": "alt+shift+j",
-                "when": "editorFocus && editorLangId == 'fsharp'"
-            },
-            {
-                "command": "fsharp.getHelp",
-                "key": "shift+F1",
-                "when": "editorFocus && editorLangId == 'fsharp'"
-            },
-            {
-                "command": "MSBuild.buildCurrent",
-                "key": "ctrl+alt+b",
-                "when": "editorFocus && editorLangId == 'fsharp'"
-            },
-            {
-                "command": "MSBuild.buildCurrentSolution",
-                "key": "ctrl+alt+shift+b",
-                "when": "fsharp.project.any"
-            },
-            {
-                "command": "fsharp.openInfoPanel",
-                "key": "alt+,",
-                "when": "editorFocus && editorLangId == 'fsharp'"
-            },
-            {
-                "command": "fsharp.updateInfoPanel",
-                "key": "alt+.",
-                "when": "editorFocus && editorLangId == 'fsharp'"
-            }
-        ],
-        "languages": [
-            {
-                "aliases": [
-                    "F#",
-                    "FSharp",
-                    "fsharp"
-                ],
-                "configuration": "./language-configuration.json",
-                "extensions": [
-                    ".fs",
-                    ".fsx",
-                    ".fsi"
-                ],
-                "id": "fsharp"
-            }
-        ],
-        "menus": {
-            "commandPalette": [
-                {
-                    "command": "fsharp.explorer.moveUp",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.moveDown",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.removeFile",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.addAbove",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.addBelow",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.addFile",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.addProjecRef",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.removeProjecRef",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.refresh",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.clearCache",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.build",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.rebuild",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.clean",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.restore",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.solution.build",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.solution.rebuild",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.solution.clean",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.solution.restore",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.project.run",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.project.debug",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.project.setDefault",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.project.sendFSI",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.project.generateFSI",
-                    "when": "false"
-                },
-                {
-                    "command": "fsharp.explorer.solution.addProject",
-                    "when": "false"
-                },
-                {
-                    "command": "fsi.SendLine",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "fsharp.AddFileToProject",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "fsi.SendSelection",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "fsi.SendLastSelection",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "fsi.SendFile",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "fsi.SendProjectReferences",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "fsi.GenerateProjectReferences",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "fsharp.scriptrunner.run",
-                    "when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'"
-                },
-                {
-                    "command": "fsharp.getHelp",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "fsharp.generateDoc",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "MSBuild.buildCurrent",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "MSBuild.rebuildCurrent",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "MSBuild.cleanCurrent",
-                    "when": "editorLangId == 'fsharp'"
-                },
-                {
-                    "command": "fsharp.showDocumentation",
-                    "when": "false"
-                },
-                {
-                    "command": "fake.targetsOutline.reloadTargets",
-                    "when": "false"
-                },
-                {
-                    "command": "fake.targetsOutline.runTarget",
-                    "when": "false"
-                },
-                {
-                    "command": "fake.targetsOutline.debugTarget",
-                    "when": "false"
-                },
-                {
-                    "command": "fake.targetsOutline.runSingleTarget",
-                    "when": "false"
-                },
-                {
-                    "command": "fake.targetsOutline.debugSingleTarget",
-                    "when": "false"
-                }
-            ],
-            "editor/context": [
-                {
-                    "command": "fsharp.generateDoc",
-                    "group": "1_modification",
-                    "when": "editorTextFocus && editorLangId == 'fsharp'"
-                }
-            ],
-            "editor/title": [
-                {
-                    "command": "fsi.SendFile",
-                    "group": "navigation",
-                    "when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'"
-                },
-                {
-                    "command": "fsharp.scriptrunner.run",
-                    "group": "navigation",
-                    "when": "editorLangId == 'fsharp' && resourceExtname == '.fsx'"
-                },
-                {
-                    "command": "fsharp.openInfoPanel.unlock",
-                    "group": "navigation",
-                    "when": "infoPanelFocused && infoPanelLocked"
-                },
-                {
-                    "command": "fsharp.openInfoPanel.lock",
-                    "group": "navigation",
-                    "when": "infoPanelFocused && !infoPanelLocked"
-                }
-            ],
-            "touchBar": [
-                {
-                    "command": "fsharp.debugDefaultProject",
-                    "group": "fsharp",
-                    "when": "fsharp.project.any && config.FSharp.enableTouchBar"
-                },
-                {
-                    "command": "fsharp.runDefaultProject",
-                    "group": "fsharp",
-                    "when": "fsharp.project.any && config.FSharp.enableTouchBar"
-                },
-                {
-                    "command": "fsharp.NewProject",
-                    "group": "fsharp",
-                    "when": "fsharp.project.any && config.FSharp.enableTouchBar"
-                },
-                {
-                    "command": "fsi.Start",
-                    "group": "fsharp",
-                    "when": "editorLangId == 'fsharp' && config.FSharp.enableTouchBar"
-                },
-                {
-                    "command": "fsi.SendFile",
-                    "group": "fsharp",
-                    "when": "editorLangId == 'fsharp' && config.FSharp.enableTouchBar"
-                }
-            ],
-            "view/item/context": [
-                {
-                    "command": "fsharp.explorer.moveUp",
-                    "group": "1_navigation@1",
-                    "when": "viewItem == ionide.projectExplorer.file"
-                },
-                {
-                    "command": "fsharp.explorer.moveUp",
-                    "group": "inline@1",
-                    "when": "viewItem == ionide.projectExplorer.file"
-                },
-                {
-                    "command": "fsharp.explorer.moveDown",
-                    "group": "1_navigation@2",
-                    "when": "viewItem == ionide.projectExplorer.file"
-                },
-                {
-                    "command": "fsharp.explorer.moveDown",
-                    "group": "inline@2",
-                    "when": "viewItem == ionide.projectExplorer.file"
-                },
-                {
-                    "command": "fsharp.explorer.removeFile",
-                    "group": "1_navigation@4",
-                    "when": "viewItem == ionide.projectExplorer.file"
-                },
-                {
-                    "command": "fsharp.explorer.addAbove",
-                    "group": "3_add@1",
-                    "when": "viewItem == ionide.projectExplorer.file"
-                },
-                {
-                    "command": "fsharp.explorer.addBelow",
-                    "group": "3_add@2",
-                    "when": "viewItem == ionide.projectExplorer.file"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "when": "viewItem == ionide.projectExplorer.projectNotLoaded"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "group": "inline@99",
-                    "when": "viewItem == ionide.projectExplorer.projectNotLoaded"
-                },
-                {
-                    "command": "fsharp.explorer.showProjectLoadFailedInfo",
-                    "group": "inline@98",
-                    "when": "viewItem == ionide.projectExplorer.projectLoadFailed"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "when": "viewItem == ionide.projectExplorer.projectLoadFailed"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "group": "inline@99",
-                    "when": "viewItem == ionide.projectExplorer.projectLoadFailed"
-                },
-                {
-                    "command": "fsharp.explorer.showProjectStatus",
-                    "when": "viewItem == ionide.projectExplorer.projectLoading"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "when": "viewItem == ionide.projectExplorer.projectLoading"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "when": "viewItem == ionide.projectExplorer.projectNotRestored"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "group": "inline@99",
-                    "when": "viewItem == ionide.projectExplorer.projectLoading"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "group": "inline@99",
-                    "when": "viewItem == ionide.projectExplorer.projectNotRestored"
-                },
-                {
-                    "command": "fsharp.explorer.showProjectStatus",
-                    "group": "inline@98",
-                    "when": "viewItem == ionide.projectExplorer.projectNotRestored"
-                },
-                {
-                    "command": "fsharp.explorer.addProjecRef",
-                    "when": "viewItem == ionide.projectExplorer.projectRefList"
-                },
-                {
-                    "command": "fsharp.explorer.removeProjecRef",
-                    "when": "viewItem == ionide.projectExplorer.projRef"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "group": "4_derails@1",
-                    "when": "viewItem == ionide.projectExplorer.project"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "group": "inline@99",
-                    "when": "viewItem == ionide.projectExplorer.project"
-                },
-                {
-                    "command": "fsharp.explorer.showProjectStatus",
-                    "group": "4_details@2",
-                    "when": "viewItem == ionide.projectExplorer.project"
-                },
-                {
-                    "command": "fsharp.explorer.addFile",
-                    "group": "2_modifications@2",
-                    "when": "viewItem == ionide.projectExplorer.project"
-                },
-                {
-                    "command": "fsharp.explorer.project.generateFSI",
-                    "group": "3_fsi@1",
-                    "when": "viewItem == ionide.projectExplorer.project"
-                },
-                {
-                    "command": "fsharp.explorer.project.sendFSI",
-                    "group": "3_fsi@2",
-                    "when": "viewItem == ionide.projectExplorer.project"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.build",
-                    "group": "1_navigation@1",
-                    "when": "viewItem == ionide.projectExplorer.project"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.rebuild",
-                    "group": "1_navigation@2",
-                    "when": "viewItem == ionide.projectExplorer.project"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.clean",
-                    "group": "1_navigation@3",
-                    "when": "viewItem == ionide.projectExplorer.project"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.restore",
-                    "group": "1_navigation@4",
-                    "when": "viewItem == ionide.projectExplorer.project"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.restore",
-                    "group": "1_navigation@1",
-                    "when": "viewItem == ionide.projectExplorer.projectNotRestored"
-                },
-                {
-                    "command": "fsharp.explorer.solution.build",
-                    "group": "1_navigation@1",
-                    "when": "viewItem == ionide.projectExplorer.solution"
-                },
-                {
-                    "command": "fsharp.explorer.solution.rebuild",
-                    "group": "1_navigation@2",
-                    "when": "viewItem == ionide.projectExplorer.solution"
-                },
-                {
-                    "command": "fsharp.explorer.solution.clean",
-                    "group": "1_navigation@3",
-                    "when": "viewItem == ionide.projectExplorer.solution"
-                },
-                {
-                    "command": "fsharp.explorer.solution.restore",
-                    "group": "1_navigation@3",
-                    "when": "viewItem == ionide.projectExplorer.solution"
-                },
-                {
-                    "command": "fsharp.explorer.solution.addProject",
-                    "group": "2_modification@1",
-                    "when": "viewItem == ionide.projectExplorer.solution"
-                },
-                {
-                    "command": "fsharp.explorer.addFile",
-                    "group": "3_modifications@2",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.project.generateFSI",
-                    "group": "4_fsi@1",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.project.sendFSI",
-                    "group": "4_fsi@2",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "group": "5_detail@1",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.openProjectFile",
-                    "group": "inline@99",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.showProjectStatus",
-                    "group": "5_detail@2",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.build",
-                    "group": "2_navigation@1",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.rebuild",
-                    "group": "2_navigation@2",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.clean",
-                    "group": "2_navigation@3",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.msbuild.restore",
-                    "group": "2_navigation@4",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.project.run",
-                    "group": "1_run@1",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.project.run",
-                    "group": "inline@1",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.project.debug",
-                    "group": "1_run@2",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.project.debug",
-                    "group": "inline@2",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fsharp.explorer.project.setDefault",
-                    "group": "1_run@3",
-                    "when": "viewItem == ionide.projectExplorer.projectExe"
-                },
-                {
-                    "command": "fake.targetsOutline.runTarget",
-                    "group": "inline",
-                    "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target"
-                },
-                {
-                    "command": "fake.targetsOutline.debugTarget",
-                    "group": "inline",
-                    "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target"
-                },
-                {
-                    "command": "fake.targetsOutline.runSingleTarget",
-                    "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target"
-                },
-                {
-                    "command": "fake.targetsOutline.debugSingleTarget",
-                    "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ && viewItem == fake.targetsOutline.target"
-                }
-            ],
-            "view/title": [
-                {
-                    "command": "fsharp.NewProject",
-                    "group": "navigation@1",
-                    "when": "view == ionide.projectExplorer"
-                },
-                {
-                    "command": "fsharp.NewProject",
-                    "group": "navigation@1",
-                    "when": "view == ionide.projectExplorerInActivity"
-                },
-                {
-                    "alt": "fsharp.runDefaultProject",
-                    "command": "fsharp.debugDefaultProject",
-                    "group": "navigation@2",
-                    "when": "view == ionide.projectExplorer"
-                },
-                {
-                    "alt": "fsharp.runDefaultProject",
-                    "command": "fsharp.debugDefaultProject",
-                    "group": "navigation@2",
-                    "when": "view == ionide.projectExplorerInActivity"
-                },
-                {
-                    "command": "fsharp.revealInSolutionExplorer",
-                    "group": "navigation@3",
-                    "when": "view == ionide.projectExplorer"
-                },
-                {
-                    "command": "fsharp.revealInSolutionExplorer",
-                    "group": "navigation@3",
-                    "when": "view == ionide.projectExplorerInActivity"
-                },
-                {
-                    "command": "fsharp.changeWorkspace",
-                    "group": "modification@1",
-                    "when": "view == ionide.projectExplorer"
-                },
-                {
-                    "command": "fsharp.changeWorkspace",
-                    "group": "modification@1",
-                    "when": "view == ionide.projectExplorerInActivity"
-                },
-                {
-                    "command": "fsharp.chooseDefaultProject",
-                    "group": "modification@3",
-                    "when": "view == ionide.projectExplorer"
-                },
-                {
-                    "command": "fsharp.chooseDefaultProject",
-                    "group": "modification@3",
-                    "when": "view == ionide.projectExplorerInActivity"
-                },
-                {
-                    "command": "fsharp.explorer.refresh",
-                    "group": "modification@4",
-                    "when": "view == ionide.projectExplorer"
-                },
-                {
-                    "command": "fsharp.explorer.refresh",
-                    "group": "modification@4",
-                    "when": "view == ionide.projectExplorerInActivity"
-                },
-                {
-                    "command": "fsharp.explorer.clearCache",
-                    "group": "modification@5",
-                    "when": "view == ionide.projectExplorer"
-                },
-                {
-                    "command": "fsharp.explorer.clearCache",
-                    "group": "modification@5",
-                    "when": "view == ionide.projectExplorerInActivity"
-                },
-                {
-                    "command": "fake.targetsOutline.reloadTargets",
-                    "group": "navigation@1",
-                    "when": "view == fake.targetsOutline"
-                },
-                {
-                    "command": "fake.targetsOutline.reloadTargets",
-                    "group": "navigation@1",
-                    "when": "view == fake.targetsOutlineInActivity"
-                }
-            ]
-        },
-        "problemMatchers": [
-            {
-                "background": {
-                    "activeOnStart": true,
-                    "beginsPattern": {
-                        "regexp": "webpack: Compiling"
-                    },
-                    "endsPattern": {
-                        "regexp": "webpack: (Compiled successfully|Failed to compile)"
-                    }
-                },
-                "fileLocation": "absolute",
-                "name": "fable-webpack",
-                "owner": "fsharp",
-                "pattern": {
-                    "column": 3,
-                    "endColumn": 5,
-                    "endLine": 4,
-                    "file": 1,
-                    "line": 2,
-                    "message": 7,
-                    "regexp": "(.*)\\((\\d+),(\\d+),(\\d+),(\\d+)\\)\\s*:\\s*(warning|error) FABLE\\s*:\\s*(.*)$",
-                    "severity": 6
-                }
-            }
-        ],
-        "semanticTokenScopes": [
-            {
-                "language": "fsharp",
-                "scopes": {
-                    "cexpr": [
-                        "keyword.control.fsharp"
-                    ],
-                    "disposable": [
-                        "variable.fsharp.mutable"
-                    ],
-                    "mutable": [
-                        "variable.fsharp.mutable"
-                    ],
-                    "operator": [
-                        "keyword.symbol.fsharp"
-                    ]
-                }
-            }
-        ],
-        "taskDefinitions": [
-            {
-                "properties": {},
-                "required": [],
-                "type": "msbuild"
-            }
-        ],
-        "terminal": {
-            "profiles": [
-                {
-                    "icon": "terminal",
-                    "id": "ionide-fsharp.fsi",
-                    "title": "F# Interactive"
-                }
-            ]
-        },
-        "views": {
-            "explorer": [
-                {
-                    "id": "ionide.projectExplorer",
-                    "name": "F# Solution Explorer",
-                    "when": "fsharp.project.any && fsharp.showProjectExplorerInExplorerActivity"
-                },
-                {
-                    "id": "fake.targetsOutline",
-                    "name": "FAKE Targets Outline",
-                    "when": "fake.targetsOutline.show && fake.targetsOutline.showInExplorerActivity"
-                }
-            ],
-            "ionide-fsharp": [
-                {
-                    "id": "ionide.projectExplorerInActivity",
-                    "name": "Solution Explorer",
-                    "when": "fsharp.project.any && fsharp.showProjectExplorerInFsharpActivity"
-                },
-                {
-                    "id": "fake.targetsOutlineInActivity",
-                    "name": "FAKE Targets Outline",
-                    "when": "fake.targetsOutline.show && fake.targetsOutline.showInFsharpActivity"
-                }
-            ]
-        },
-        "viewsContainers": {
-            "activitybar": [
-                {
-                    "icon": "images/activity-fsharp-logo.svg",
-                    "id": "ionide-fsharp",
-                    "title": "F#",
-                    "when": "fsharp.showProjectExplorerInFsharpActivity"
-                }
-            ]
-        }
-    },
-    "contributors": [
+        "id": "fsharp"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
         {
-            "name": "Krzysztof Cieślak",
-            "url": "https://twitter.com/k_cieslak"
+          "command": "fsharp.explorer.moveUp",
+          "when": "false"
         },
         {
-            "name": "Chet Husk",
-            "url": "https://twitter.com/chet_husk"
+          "command": "fsharp.explorer.moveDown",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.removeFile",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.addAbove",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.addBelow",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.addFile",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.addProjecRef",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.removeProjecRef",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.refresh",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.clearCache",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.build",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.rebuild",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.clean",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.restore",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.solution.build",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.solution.rebuild",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.solution.clean",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.solution.restore",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.project.run",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.project.debug",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.project.setDefault",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.project.sendFSI",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.project.generateFSI",
+          "when": "false"
+        },
+        {
+          "command": "fsharp.explorer.solution.addProject",
+          "when": "false"
+        },
+        {
+          "command": "fsi.SendLine",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "fsharp.AddFileToProject",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "fsi.SendSelection",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "fsi.SendLastSelection",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "fsi.SendFile",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "fsi.SendProjectReferences",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "fsi.GenerateProjectReferences",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "fsharp.scriptrunner.run",
+          "when": "editorLangId == \u0027fsharp\u0027 \u0026\u0026 resourceExtname == \u0027.fsx\u0027"
+        },
+        {
+          "command": "fsharp.getHelp",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "fsharp.generateDoc",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "MSBuild.buildCurrent",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "MSBuild.rebuildCurrent",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "MSBuild.cleanCurrent",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "fsharp.showDocumentation",
+          "when": "false"
+        },
+        {
+          "command": "fake.targetsOutline.reloadTargets",
+          "when": "false"
+        },
+        {
+          "command": "fake.targetsOutline.runTarget",
+          "when": "false"
+        },
+        {
+          "command": "fake.targetsOutline.debugTarget",
+          "when": "false"
+        },
+        {
+          "command": "fake.targetsOutline.runSingleTarget",
+          "when": "false"
+        },
+        {
+          "command": "fake.targetsOutline.debugSingleTarget",
+          "when": "false"
         }
-    ],
-    "description": "F# Language Support, powered by FsAutoComplete",
-    "displayName": "Ionide F#",
-    "engines": {
-        "vscode": "^0.10.0"
+      ],
+      "editor/context": [
+        {
+          "command": "fsharp.generateDoc",
+          "group": "1_modification",
+          "when": "editorTextFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "fsi.SendFile",
+          "group": "navigation",
+          "when": "editorLangId == \u0027fsharp\u0027 \u0026\u0026 resourceExtname == \u0027.fsx\u0027"
+        },
+        {
+          "command": "fsharp.scriptrunner.run",
+          "group": "navigation",
+          "when": "editorLangId == \u0027fsharp\u0027 \u0026\u0026 resourceExtname == \u0027.fsx\u0027"
+        },
+        {
+          "command": "fsharp.openInfoPanel.unlock",
+          "group": "navigation",
+          "when": "infoPanelFocused \u0026\u0026 infoPanelLocked"
+        },
+        {
+          "command": "fsharp.openInfoPanel.lock",
+          "group": "navigation",
+          "when": "infoPanelFocused \u0026\u0026 !infoPanelLocked"
+        }
+      ],
+      "touchBar": [
+        {
+          "command": "fsharp.debugDefaultProject",
+          "group": "fsharp",
+          "when": "fsharp.project.any \u0026\u0026 config.FSharp.enableTouchBar"
+        },
+        {
+          "command": "fsharp.runDefaultProject",
+          "group": "fsharp",
+          "when": "fsharp.project.any \u0026\u0026 config.FSharp.enableTouchBar"
+        },
+        {
+          "command": "fsharp.NewProject",
+          "group": "fsharp",
+          "when": "fsharp.project.any \u0026\u0026 config.FSharp.enableTouchBar"
+        },
+        {
+          "command": "fsi.Start",
+          "group": "fsharp",
+          "when": "editorLangId == \u0027fsharp\u0027 \u0026\u0026 config.FSharp.enableTouchBar"
+        },
+        {
+          "command": "fsi.SendFile",
+          "group": "fsharp",
+          "when": "editorLangId == \u0027fsharp\u0027 \u0026\u0026 config.FSharp.enableTouchBar"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "fsharp.explorer.moveUp",
+          "group": "1_navigation@1",
+          "when": "viewItem == ionide.projectExplorer.file"
+        },
+        {
+          "command": "fsharp.explorer.moveUp",
+          "group": "inline@1",
+          "when": "viewItem == ionide.projectExplorer.file"
+        },
+        {
+          "command": "fsharp.explorer.moveDown",
+          "group": "1_navigation@2",
+          "when": "viewItem == ionide.projectExplorer.file"
+        },
+        {
+          "command": "fsharp.explorer.moveDown",
+          "group": "inline@2",
+          "when": "viewItem == ionide.projectExplorer.file"
+        },
+        {
+          "command": "fsharp.explorer.removeFile",
+          "group": "1_navigation@4",
+          "when": "viewItem == ionide.projectExplorer.file"
+        },
+        {
+          "command": "fsharp.explorer.addAbove",
+          "group": "3_add@1",
+          "when": "viewItem == ionide.projectExplorer.file"
+        },
+        {
+          "command": "fsharp.explorer.addBelow",
+          "group": "3_add@2",
+          "when": "viewItem == ionide.projectExplorer.file"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "when": "viewItem == ionide.projectExplorer.projectNotLoaded"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "group": "inline@99",
+          "when": "viewItem == ionide.projectExplorer.projectNotLoaded"
+        },
+        {
+          "command": "fsharp.explorer.showProjectLoadFailedInfo",
+          "group": "inline@98",
+          "when": "viewItem == ionide.projectExplorer.projectLoadFailed"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "when": "viewItem == ionide.projectExplorer.projectLoadFailed"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "group": "inline@99",
+          "when": "viewItem == ionide.projectExplorer.projectLoadFailed"
+        },
+        {
+          "command": "fsharp.explorer.showProjectStatus",
+          "when": "viewItem == ionide.projectExplorer.projectLoading"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "when": "viewItem == ionide.projectExplorer.projectLoading"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "when": "viewItem == ionide.projectExplorer.projectNotRestored"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "group": "inline@99",
+          "when": "viewItem == ionide.projectExplorer.projectLoading"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "group": "inline@99",
+          "when": "viewItem == ionide.projectExplorer.projectNotRestored"
+        },
+        {
+          "command": "fsharp.explorer.showProjectStatus",
+          "group": "inline@98",
+          "when": "viewItem == ionide.projectExplorer.projectNotRestored"
+        },
+        {
+          "command": "fsharp.explorer.addProjecRef",
+          "when": "viewItem == ionide.projectExplorer.projectRefList"
+        },
+        {
+          "command": "fsharp.explorer.removeProjecRef",
+          "when": "viewItem == ionide.projectExplorer.projRef"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "group": "4_derails@1",
+          "when": "viewItem == ionide.projectExplorer.project"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "group": "inline@99",
+          "when": "viewItem == ionide.projectExplorer.project"
+        },
+        {
+          "command": "fsharp.explorer.showProjectStatus",
+          "group": "4_details@2",
+          "when": "viewItem == ionide.projectExplorer.project"
+        },
+        {
+          "command": "fsharp.explorer.addFile",
+          "group": "2_modifications@2",
+          "when": "viewItem == ionide.projectExplorer.project"
+        },
+        {
+          "command": "fsharp.explorer.project.generateFSI",
+          "group": "3_fsi@1",
+          "when": "viewItem == ionide.projectExplorer.project"
+        },
+        {
+          "command": "fsharp.explorer.project.sendFSI",
+          "group": "3_fsi@2",
+          "when": "viewItem == ionide.projectExplorer.project"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.build",
+          "group": "1_navigation@1",
+          "when": "viewItem == ionide.projectExplorer.project"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.rebuild",
+          "group": "1_navigation@2",
+          "when": "viewItem == ionide.projectExplorer.project"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.clean",
+          "group": "1_navigation@3",
+          "when": "viewItem == ionide.projectExplorer.project"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.restore",
+          "group": "1_navigation@4",
+          "when": "viewItem == ionide.projectExplorer.project"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.restore",
+          "group": "1_navigation@1",
+          "when": "viewItem == ionide.projectExplorer.projectNotRestored"
+        },
+        {
+          "command": "fsharp.explorer.solution.build",
+          "group": "1_navigation@1",
+          "when": "viewItem == ionide.projectExplorer.solution"
+        },
+        {
+          "command": "fsharp.explorer.solution.rebuild",
+          "group": "1_navigation@2",
+          "when": "viewItem == ionide.projectExplorer.solution"
+        },
+        {
+          "command": "fsharp.explorer.solution.clean",
+          "group": "1_navigation@3",
+          "when": "viewItem == ionide.projectExplorer.solution"
+        },
+        {
+          "command": "fsharp.explorer.solution.restore",
+          "group": "1_navigation@3",
+          "when": "viewItem == ionide.projectExplorer.solution"
+        },
+        {
+          "command": "fsharp.explorer.solution.addProject",
+          "group": "2_modification@1",
+          "when": "viewItem == ionide.projectExplorer.solution"
+        },
+        {
+          "command": "fsharp.explorer.addFile",
+          "group": "3_modifications@2",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.project.generateFSI",
+          "group": "4_fsi@1",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.project.sendFSI",
+          "group": "4_fsi@2",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "group": "5_detail@1",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.openProjectFile",
+          "group": "inline@99",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.showProjectStatus",
+          "group": "5_detail@2",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.build",
+          "group": "2_navigation@1",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.rebuild",
+          "group": "2_navigation@2",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.clean",
+          "group": "2_navigation@3",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.msbuild.restore",
+          "group": "2_navigation@4",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.project.run",
+          "group": "1_run@1",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.project.run",
+          "group": "inline@1",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.project.debug",
+          "group": "1_run@2",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.project.debug",
+          "group": "inline@2",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.project.setDefault",
+          "group": "1_run@3",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fake.targetsOutline.runTarget",
+          "group": "inline",
+          "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ \u0026\u0026 viewItem == fake.targetsOutline.target"
+        },
+        {
+          "command": "fake.targetsOutline.debugTarget",
+          "group": "inline",
+          "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ \u0026\u0026 viewItem == fake.targetsOutline.target"
+        },
+        {
+          "command": "fake.targetsOutline.runSingleTarget",
+          "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ \u0026\u0026 viewItem == fake.targetsOutline.target"
+        },
+        {
+          "command": "fake.targetsOutline.debugSingleTarget",
+          "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ \u0026\u0026 viewItem == fake.targetsOutline.target"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "fsharp.NewProject",
+          "group": "navigation@1",
+          "when": "view == ionide.projectExplorer"
+        },
+        {
+          "command": "fsharp.NewProject",
+          "group": "navigation@1",
+          "when": "view == ionide.projectExplorerInActivity"
+        },
+        {
+          "alt": "fsharp.runDefaultProject",
+          "command": "fsharp.debugDefaultProject",
+          "group": "navigation@2",
+          "when": "view == ionide.projectExplorer"
+        },
+        {
+          "alt": "fsharp.runDefaultProject",
+          "command": "fsharp.debugDefaultProject",
+          "group": "navigation@2",
+          "when": "view == ionide.projectExplorerInActivity"
+        },
+        {
+          "command": "fsharp.revealInSolutionExplorer",
+          "group": "navigation@3",
+          "when": "view == ionide.projectExplorer"
+        },
+        {
+          "command": "fsharp.revealInSolutionExplorer",
+          "group": "navigation@3",
+          "when": "view == ionide.projectExplorerInActivity"
+        },
+        {
+          "command": "fsharp.changeWorkspace",
+          "group": "modification@1",
+          "when": "view == ionide.projectExplorer"
+        },
+        {
+          "command": "fsharp.changeWorkspace",
+          "group": "modification@1",
+          "when": "view == ionide.projectExplorerInActivity"
+        },
+        {
+          "command": "fsharp.chooseDefaultProject",
+          "group": "modification@3",
+          "when": "view == ionide.projectExplorer"
+        },
+        {
+          "command": "fsharp.chooseDefaultProject",
+          "group": "modification@3",
+          "when": "view == ionide.projectExplorerInActivity"
+        },
+        {
+          "command": "fsharp.explorer.refresh",
+          "group": "modification@4",
+          "when": "view == ionide.projectExplorer"
+        },
+        {
+          "command": "fsharp.explorer.refresh",
+          "group": "modification@4",
+          "when": "view == ionide.projectExplorerInActivity"
+        },
+        {
+          "command": "fsharp.explorer.clearCache",
+          "group": "modification@5",
+          "when": "view == ionide.projectExplorer"
+        },
+        {
+          "command": "fsharp.explorer.clearCache",
+          "group": "modification@5",
+          "when": "view == ionide.projectExplorerInActivity"
+        },
+        {
+          "command": "fake.targetsOutline.reloadTargets",
+          "group": "navigation@1",
+          "when": "view == fake.targetsOutline"
+        },
+        {
+          "command": "fake.targetsOutline.reloadTargets",
+          "group": "navigation@1",
+          "when": "view == fake.targetsOutlineInActivity"
+        }
+      ]
     },
-    "extensionDependencies": [
-        "ms-dotnettools.csharp"
+    "problemMatchers": [
+      {
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": {
+            "regexp": "webpack: Compiling"
+          },
+          "endsPattern": {
+            "regexp": "webpack: (Compiled successfully|Failed to compile)"
+          }
+        },
+        "fileLocation": "absolute",
+        "name": "fable-webpack",
+        "owner": "fsharp",
+        "pattern": {
+          "column": 3,
+          "endColumn": 5,
+          "endLine": 4,
+          "file": 1,
+          "line": 2,
+          "message": 7,
+          "regexp": "(.*)\\((\\d\u002B),(\\d\u002B),(\\d\u002B),(\\d\u002B)\\)\\s*:\\s*(warning|error) FABLE\\s*:\\s*(.*)$",
+          "severity": 6
+        }
+      }
     ],
-    "homepage": "http://ionide.io",
-    "icon": "images/logo.png",
-    "license": "MIT",
-    "main": "./fsharp",
-    "name": "Ionide-fsharp",
-    "preview": false,
-    "publisher": "Ionide",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
+    "semanticTokenScopes": [
+      {
+        "language": "fsharp",
+        "scopes": {
+          "cexpr": [
+            "keyword.control.fsharp"
+          ],
+          "disposable": [
+            "variable.fsharp.mutable"
+          ],
+          "mutable": [
+            "variable.fsharp.mutable"
+          ],
+          "operator": [
+            "keyword.symbol.fsharp"
+          ]
+        }
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "properties": {},
+        "required": [],
+        "type": "msbuild"
+      }
+    ],
+    "terminal": {
+      "profiles": [
+        {
+          "icon": "terminal",
+          "id": "ionide-fsharp.fsi",
+          "title": "F# Interactive"
+        }
+      ]
     },
-    "version": "5.12.0"
+    "views": {
+      "explorer": [
+        {
+          "id": "ionide.projectExplorer",
+          "name": "F# Solution Explorer",
+          "when": "fsharp.project.any \u0026\u0026 fsharp.showProjectExplorerInExplorerActivity"
+        },
+        {
+          "id": "fake.targetsOutline",
+          "name": "FAKE Targets Outline",
+          "when": "fake.targetsOutline.show \u0026\u0026 fake.targetsOutline.showInExplorerActivity"
+        }
+      ],
+      "ionide-fsharp": [
+        {
+          "id": "ionide.projectExplorerInActivity",
+          "name": "Solution Explorer",
+          "when": "fsharp.project.any \u0026\u0026 fsharp.showProjectExplorerInFsharpActivity"
+        },
+        {
+          "id": "fake.targetsOutlineInActivity",
+          "name": "FAKE Targets Outline",
+          "when": "fake.targetsOutline.show \u0026\u0026 fake.targetsOutline.showInFsharpActivity"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "icon": "images/activity-fsharp-logo.svg",
+          "id": "ionide-fsharp",
+          "title": "F#",
+          "when": "fsharp.showProjectExplorerInFsharpActivity"
+        }
+      ]
+    }
+  },
+  "contributors": [
+    {
+      "name": "Krzysztof Cie\u015Blak",
+      "url": "https://twitter.com/k_cieslak"
+    },
+    {
+      "name": "Chet Husk",
+      "url": "https://twitter.com/chet_husk"
+    }
+  ],
+  "description": "F# Language Support, powered by FsAutoComplete",
+  "displayName": "Ionide for F#",
+  "engines": {
+    "vscode": "^0.10.0"
+  },
+  "extensionDependencies": [
+    "ms-dotnettools.csharp"
+  ],
+  "homepage": "http://ionide.io",
+  "icon": "images/logo.png",
+  "license": "MIT",
+  "main": "./fsharp",
+  "name": "Ionide-fsharp",
+  "preview": false,
+  "publisher": "Ionide",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
+  },
+  "version": "6.0.0"
 }

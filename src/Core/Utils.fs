@@ -447,12 +447,6 @@ module VSCodeExtension =
     let workbenchViewId () =
         sprintf "workbench.view.extension.%s" extensionName
 
-module Environment =
-    /// expand any env variables in a string according to
-    /// .NET's rules - that is any %-encoded name is an env var
-    [<Emit("$0.replace(/%([^%]+)%/g, (_,n) => process.env[n])")>]
-    let expand (s: string) : string = jsNative
-
 [<AutoOpen>]
 module Objectify =
     let inline objfy2 (f: 'a -> 'b) : ResizeArray<obj option> -> obj option = unbox f
