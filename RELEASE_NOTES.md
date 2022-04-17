@@ -1,3 +1,7 @@
+### 6.0.1 - 16.4.2022
+
+* Update FSAC to 0.52.1 to support cross-language project references and .NET SDK workloads
+
 ### 6.0.0 - 14.4.2022
 
 This is a Major Version update of Ionide! The headline features for this release include
