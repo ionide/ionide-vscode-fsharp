@@ -59,7 +59,7 @@ module Gitignore =
     let disablePromptForProject () =
         Configuration.set GITIGNORE_KEY (Some(box false))
 
-    let patternsToIgnore = [ ".fake"; ".ionide" ]
+    let patternsToIgnore = [ ".fake"; ]
 
     let checkForPatternsAndPromptUser () =
         promise {
