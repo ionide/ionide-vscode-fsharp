@@ -23,6 +23,12 @@ let actuallyEnabled () =
     enabled ()
     && (allowTypeAnnotations () || allowParameterNames ())
 
+let inline createEdit (h: LanguageService.Types.InlayHint): TextEdit =
+    let e = createEmpty<TextEdit>
+    e.range <- vscode.Range.Create(h.pos, h.pos)
+    e.newText <- h.text
+    e
+
 let toInlayHint (fsacHint: LanguageService.Types.InlayHint) : InlayHint =
     let h = createEmpty<InlayHint>
     h.position <- vscode.Position.Create(fsacHint.pos.line, fsacHint.pos.character)
@@ -32,11 +38,13 @@ let toInlayHint (fsacHint: LanguageService.Types.InlayHint) : InlayHint =
     | "Type" ->
         h.paddingLeft <- Some true
         h.kind <- Some InlayHintKind.Type
+        h.textEdits <- Some (ResizeArray([ createEdit fsacHint ]))
     | "Parameter" ->
         h.paddingRight <- Some true
         h.kind <- Some InlayHintKind.Parameter
+        // TODO: we don't easily create edits for parameter names - it might help if the insert text
+        // was provided from FSAC as well (because FSAC knows if parens would be required, etc)
     | _ -> ()
-
     h
 
 let inlayProvider () =
