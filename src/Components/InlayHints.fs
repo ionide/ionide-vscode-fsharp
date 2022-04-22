@@ -68,7 +68,7 @@ let toInlayHint useLongTooltip isSetToToggle (fsacHint: LanguageService.Types.In
                 | "Parameter" -> Commands.hideParameterNames
                 | _ -> ""
             lines.Add $"To hide these hints, [click here](command:{hideCommand})."
-            lines.Add $"To hide _all_ hints, [click here](command:{Commands.hideAll})."
+            lines.Add $"To hide *ALL* hints, [click here](command:{Commands.hideAll})."
             if not isSetToToggle && toggleSupported then lines.Add $"Hints can also be hidden by default, and shown when Ctrl/Cmd+Alt is pressed. To do this, [click here](command:{Commands.setToToggle})."
             lines.Add $"Finally, to dismiss this long tooltip forever, [click here](command:{Commands.disableLongTooltip})."
             let t = vscode.MarkdownString.Create (String.concat " " lines)
