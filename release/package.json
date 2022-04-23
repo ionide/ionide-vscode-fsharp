@@ -629,6 +629,11 @@
           ],
           "type": "string"
         },
+        "FSharp.inlayHints.disableLongTooltip": {
+          "default": false,
+          "description": "Hides the explanatory tooltip that appears on InlayHints to describe the different configuration toggles.",
+          "type":"boolean"
+        },
         "FSharp.inlayHints.enabled": {
           "default": true,
           "description": "Controls if the inlay hints feature is enabled",

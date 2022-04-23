@@ -9,19 +9,36 @@ open Fable.Core.JsInterop
 let private logger =
     ConsoleAndOutputChannelLogger(Some "InlayHints", Level.DEBUG, None, Some Level.DEBUG)
 
-let enabled () : bool =
-    Configuration.getUnsafe "FSharp.inlayHints.enabled"
+let mutable private toggleSupported = false
+module Config =
+    let enabled = "FSharp.inlayHints.enabled"
+    let typeAnnotationsEnabled = "FSharp.inlayHints.typeAnnotations"
+    let parameterNamesEnabled = "FSharp.inlayHints.parameterNames"
+    let toggle = "editor.inlayHints.toggle"
+    let disableLongTooltip = "FSharp.inlayHints.disableLongTooltip"
 
+let enabled () : bool =
+    Configuration.getUnsafe Config.enabled
 
 let allowTypeAnnotations () : bool =
-    Configuration.getUnsafe "FSharp.inlayHints.typeAnnotations"
+    Configuration.getUnsafe Config.typeAnnotationsEnabled
 
 let allowParameterNames () : bool =
-    Configuration.getUnsafe "FSharp.inlayHints.parameterNames"
+    Configuration.getUnsafe Config.parameterNamesEnabled
 
 let actuallyEnabled () =
     enabled ()
     && (allowTypeAnnotations () || allowParameterNames ())
+
+let isSetToToggle () =
+    Configuration.tryGet Config.toggle
+    |> Option.map (fun key -> key = "toggle")
+    |> Option.defaultValue false
+
+let useLongTooltip (): bool =
+    Configuration.getUnsafe Config.disableLongTooltip
+    |> Option.map not
+    |> Option.defaultValue true
 
 let inline createEdit (h: LanguageService.Types.InlayHint): TextEdit =
     let e = createEmpty<TextEdit>
@@ -29,10 +46,35 @@ let inline createEdit (h: LanguageService.Types.InlayHint): TextEdit =
     e.newText <- h.text
     e
 
-let toInlayHint (fsacHint: LanguageService.Types.InlayHint) : InlayHint =
+module Commands =
+    let hideTypeAnnotations = "fsharp.inlayHints.hideTypeAnnotations"
+    let hideParameterNames = "fsharp.inlayHints.hideParameterNames"
+    let hideAll = "fsharp.inlayHints.hideAll"
+    let setToToggle = "fsharp.inlayHints.setToToggle"
+    let disableLongTooltip = "fsharp.inlayHints.disableLongTooltip"
+
+let toInlayHint useLongTooltip isSetToToggle (fsacHint: LanguageService.Types.InlayHint) : InlayHint =
     let h = createEmpty<InlayHint>
     h.position <- vscode.Position.Create(fsacHint.pos.line, fsacHint.pos.character)
     h.label <- U2.Case1 fsacHint.text
+
+    let tip kind =
+        if useLongTooltip
+        then
+            let lines = ResizeArray()
+            let hideCommand =
+                match kind with
+                | "Type" -> Commands.hideTypeAnnotations
+                | "Parameter" -> Commands.hideParameterNames
+                | _ -> ""
+            lines.Add $"To hide these hints, [click here](command:{hideCommand})."
+            lines.Add $"To hide *ALL* hints, [click here](command:{Commands.hideAll})."
+            if not isSetToToggle && toggleSupported then lines.Add $"Hints can also be hidden by default, and shown when Ctrl/Cmd+Alt is pressed. To do this, [click here](command:{Commands.setToToggle})."
+            lines.Add $"Finally, to dismiss this long tooltip forever, [click here](command:{Commands.disableLongTooltip})."
+            let t = vscode.MarkdownString.Create (String.concat " " lines)
+            t.isTrusted <- Some true
+            Some t
+        else None
 
     match fsacHint.kind with
     | "Type" ->
@@ -45,6 +87,7 @@ let toInlayHint (fsacHint: LanguageService.Types.InlayHint) : InlayHint =
         // TODO: we don't easily create edits for parameter names - it might help if the insert text
         // was provided from FSAC as well (because FSAC knows if parens would be required, etc)
     | _ -> ()
+    h.tooltip <- tip fsacHint.kind |> Option.map U2.Case2
     h
 
 let inlayProvider () =
@@ -89,10 +132,12 @@ let inlayProvider () =
                             hints
                             |> Array.filter (fun h -> h.kind = "Parameter")
                         | false, false -> [||] // not actually a thing, covered by the actuallyEnabled
-
+                    let useLongTooltip = useLongTooltip ()
+                    let isSetToToggle =
+                        toggleSupported && isSetToToggle()
                     return
                         allowedHints
-                        |> Seq.map toInlayHint
+                        |> Seq.map (toInlayHint useLongTooltip isSetToToggle)
                         |> ResizeArray
                         |> Some
                 }
@@ -109,12 +154,50 @@ let inlayProvider () =
             with set v = v |> Option.iter (fun v -> ev <- v) },
     disposables
 
+let supportsToggle (vscodeVersion: string) =
+    let compareOptions = createEmpty<Semver.Options>
+    compareOptions.includePrerelease <- Some true
+    // toggle was introduced in 1.67.0, so any version of that should allow us to set the toggle
+    Semver.semver.gte(U2.Case1 vscodeVersion, U2.Case1 "1.67.0", U2.Case2 compareOptions)
+
 let activate (context: ExtensionContext) =
-    let provider, disposables = inlayProvider ()
+    let provider, disposables = inlayProvider()
+    toggleSupported <- supportsToggle vscode.version
 
     let selector =
         createObj [ "language" ==> "fsharp" ]
         |> unbox<DocumentFilter>
+
+    commands.registerCommand(Commands.disableLongTooltip, (fun _ ->
+        Configuration.set Config.disableLongTooltip  (Some true)
+        |> box
+        |> Some
+    )) |> context.Subscribe
+
+    if toggleSupported then
+        commands.registerCommand(Commands.setToToggle, (fun _ ->
+            Configuration.set Config.toggle (Some "toggle")
+            |> box
+            |> Some
+        )) |> context.Subscribe
+
+    commands.registerCommand(Commands.hideAll, (fun _ ->
+        Configuration.set Config.enabled (Some false)
+        |> box
+        |> Some
+    )) |> context.Subscribe
+
+    commands.registerCommand(Commands.hideParameterNames , (fun _ ->
+        Configuration.set Config.parameterNamesEnabled (Some false)
+        |> box
+        |> Some
+    )) |> context.Subscribe
+
+    commands.registerCommand(Commands.hideTypeAnnotations, (fun _ ->
+        Configuration.set Config.typeAnnotationsEnabled (Some false)
+        |> box
+        |> Some
+    )) |> context.Subscribe
 
     languages.registerInlayHintsProvider (DocumentSelector.Case1 selector, provider)
     |> context.Subscribe
