@@ -35,6 +35,7 @@ module Notifications =
 
 module LanguageService =
     module Types =
+        open Fable.Import.VSCode.Vscode
         type PlainNotification = { content: string }
 
 
@@ -82,10 +83,16 @@ module LanguageService =
             { TextDocument: TextDocumentIdentifier
               Range: LspRange }
 
+        [<StringEnum>]
+        type InlayHintKind =
+            | [<CompiledName("Parameter")>] Parameter
+            | [<CompiledName("Type")>] Type
+
         type InlayHint =
             { text: string
+              insertText: string option
               pos: Fable.Import.VSCode.Vscode.Position
-              kind: string }
+              kind: InlayHintKind }
 
     let mutable client: LanguageClient option = None
 

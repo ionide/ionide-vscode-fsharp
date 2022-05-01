@@ -1,3 +1,9 @@
+### 6.0.2 - 29.4.2022
+
+* Type parameter inlay hints can be clicked to apply the parameter annotation
+* Tooltips for inlay hints with instructions and links on how to configure them
+* Update FSAC to 0.53.0 to get [these changes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.53.0)
+
 ### 6.0.1 - 16.4.2022
 
 * Update FSAC to 0.52.1 to support cross-language project references and .NET SDK workloads

@@ -499,6 +499,16 @@
           "scope": "window",
           "type": "string"
         },
+        "FSharp.codeLenses.references.enabled": {
+          "description": "If enabled, code lenses for reference counts for methods and functions will be shown.",
+          "type": "boolean",
+          "default": true
+        },
+        "FSharp.codeLenses.signature.enabled": {
+          "description": "If enabled, code lenses for type signatures on methods and functions will be shown.",
+          "type": "boolean",
+          "default": true
+        },
         "FSharp.disableFailedProjectNotifications": {
           "default": false,
           "description": "Disables popup notifications for failed project loading",
@@ -526,7 +536,9 @@
         "FSharp.enableReferenceCodeLens": {
           "default": true,
           "description": "Enables additional code lenses showing number of references of a function or value. Requires background services to be enabled.",
-          "type": "boolean"
+          "type": "boolean",
+          "deprecationMessage": "This setting is deprecated. Use FSharp.codeLenses.references.enabled instead.",
+          "markdownDeprecationMessage": "This setting is **deprecated**. Use `#FSharp.codeLenses.references.enabled#` instead."
         },
         "FSharp.enableTouchBar": {
           "default": true,
@@ -602,6 +614,11 @@
           "default": false,
           "markdownDescription": "Enables generation of \u0060msbuild.binlog\u0060 files for project loading. It works only for fresh, non-cached project loading. Run \u0060F#: Clear Project Cache\u0060 and reload window to force fresh loading of all projects. These files can be loaded and inspected using the [MSBuild Structured Logger](https://github.com/KirillOsenkov/MSBuildStructuredLog)",
           "type": "boolean"
+        },
+        "FSharp.indentationSize": {
+          "description": "The number of spaces used for indentation when generating code, e.g. for interface stubs",
+          "type": "number",
+          "minimum": 0
         },
         "FSharp.infoPanelReplaceHover": {
           "default": false,
