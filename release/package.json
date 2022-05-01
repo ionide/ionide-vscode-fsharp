@@ -538,7 +538,7 @@
           "description": "Enables additional code lenses showing number of references of a function or value. Requires background services to be enabled.",
           "type": "boolean",
           "deprecationMessage": "This setting is deprecated. Use FSharp.codeLenses.references.enabled instead.",
-          "markdownDeprecationMessage": "This setting is **deprecated**. Use `#FSharp.codeLenses.references.enabled#` instead."
+          "markdownDeprecationMessage": "This setting is **deprecated**. Use \u0060#FSharp.codeLenses.references.enabled#\u0060 instead."
         },
         "FSharp.enableTouchBar": {
           "default": true,
@@ -649,7 +649,7 @@
         "FSharp.inlayHints.disableLongTooltip": {
           "default": false,
           "description": "Hides the explanatory tooltip that appears on InlayHints to describe the different configuration toggles.",
-          "type":"boolean"
+          "type": "boolean"
         },
         "FSharp.inlayHints.enabled": {
           "default": true,
@@ -1648,5 +1648,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "6.0.1"
+  "version": "6.0.2"
 }
