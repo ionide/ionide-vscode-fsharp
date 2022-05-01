@@ -1,4 +1,4 @@
-### 6.0.2 - 29.4.2022
+### 6.0.2 - 01.5.2022
 
 * Type parameter inlay hints can be clicked to apply the parameter annotation
 * Tooltips for inlay hints with instructions and links on how to configure them
