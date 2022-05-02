@@ -57,7 +57,6 @@ let toInlayHint useLongTooltip isSetToToggle (fsacHint: LanguageService.Types.In
     let h = createEmpty<InlayHint>
     h.position <- vscode.Position.Create(fsacHint.pos.line, fsacHint.pos.character)
     h.label <- U2.Case1 fsacHint.text
-    h.textEdits <- fsacHint.insertText |> Option.map (fun text -> ResizeArray([createEdit (h.position, text)]))
 
     let tip kind =
         if useLongTooltip then
