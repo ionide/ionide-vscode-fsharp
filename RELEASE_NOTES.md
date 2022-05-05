@@ -1,3 +1,8 @@
+### 6.0.3 - 05.5.2022
+
+* Remove type hint insertion due to flakiness
+* Fixed inlay hint toggle configuration to account for VSCode moving our cheese
+
 ### 6.0.2 - 01.5.2022
 
 * Type parameter inlay hints can be clicked to apply the parameter annotation
