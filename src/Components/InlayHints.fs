@@ -15,10 +15,12 @@ module Config =
     let enabled = "FSharp.inlayHints.enabled"
     let typeAnnotationsEnabled = "FSharp.inlayHints.typeAnnotations"
     let parameterNamesEnabled = "FSharp.inlayHints.parameterNames"
-    let toggle = "editor.inlayHints.toggle"
     let disableLongTooltip = "FSharp.inlayHints.disableLongTooltip"
+    let editorInlayHintsEnabled = "editor.inlayHints.enabled"
 
-let enabled () : bool = Configuration.getUnsafe Config.enabled
+let enabled () : bool =
+    Configuration.getUnsafe Config.enabled
+    || Configuration.getUnsafe Config.editorInlayHintsEnabled = "on"
 
 let allowTypeAnnotations () : bool =
     Configuration.getUnsafe Config.typeAnnotationsEnabled
@@ -31,7 +33,7 @@ let actuallyEnabled () =
     && (allowTypeAnnotations () || allowParameterNames ())
 
 let isSetToToggle () =
-    Configuration.tryGet Config.toggle
+    Configuration.tryGet Config.editorInlayHintsEnabled
     |> Option.map (fun key -> key = "toggle")
     |> Option.defaultValue false
 
@@ -189,7 +191,7 @@ let activate (context: ExtensionContext) =
         commands.registerCommand (
             Commands.setToToggle,
             (fun _ ->
-                Configuration.set Config.toggle (Some "toggle")
+                Configuration.set Config.editorInlayHintsEnabled (Some "offUnlessPressed")
                 |> box
                 |> Some)
         )
