@@ -1,3 +1,7 @@
+### 6.0.4 - 13.5.2022
+
+* Update FSAC to 0.53.2 get updated fantomas tools integration
+
 ### 6.0.3 - 05.5.2022
 
 * Remove type hint insertion due to flakiness
