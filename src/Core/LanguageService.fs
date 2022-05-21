@@ -626,7 +626,7 @@ Consider:
             synch.configurationSection <- Some !^ "FSharp"
             synch.fileEvents <- Some(!^ ResizeArray([ fileDeletedWatcher ]))
 
-            opts.documentSelector <- Some !^selector
+            opts.documentSelector <- Some !^ [| selector |]
             opts.synchronize <- Some synch
             opts.revealOutputChannelOn <- Some Client.RevealOutputChannelOn.Never
 
