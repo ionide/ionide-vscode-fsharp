@@ -299,7 +299,7 @@ let initTargets () =
             { Fable.DefaultArgs with
                 Command = Fable.Watch
                 Debug = true
-                Webpack = Fable.WithoutWebpack })
+                Webpack = Fable.WithWebpack None })
 
     Target.create "InstallVSCE" (fun _ ->
         Process.killAllByName "npm"
@@ -314,16 +314,14 @@ let initTargets () =
             { Fable.DefaultArgs with
                 Command = Fable.Build
                 Debug = false
-                Webpack = Fable.WithoutWebpack })
-
-    Target.create "Bundle" (fun _ -> Yarn.exec "run bundle" id)
+                Webpack = Fable.WithWebpack None })
 
     Target.create "RunDevScript" (fun _ ->
         Fable.run
             { Fable.DefaultArgs with
                 Command = Fable.Build
                 Debug = true
-                Webpack = Fable.WithoutWebpack })
+                Webpack = Fable.WithWebpack None })
 
 
     Target.create "CopyFSACNetcore" (fun _ ->
@@ -407,7 +405,6 @@ let buildTargetTree () =
 
     "Clean"
     ==> "RunScript"
-    ==> "Bundle"
     ==> "CopyDocs"
     ==> "CopyFSACNetcore"
     ==> "CopyGrammar"
