@@ -1,10 +1,21 @@
 fsi.AddPrinter (fun (_: obj) ->
-    let fsiAssembly =
-        System.AppDomain.CurrentDomain.GetAssemblies()
-        |> Seq.find (fun assm -> assm.GetName().Name = "FSI-ASSEMBLY")
+    let fsiAsm = "FSI-ASSEMBLY"
 
+    let asmNum (asm:System.Reflection.Assembly) =
+        asm.GetName().Name.Replace(fsiAsm, "") |> System.Int32.TryParse |> fun (b,v) -> if b then v else 0
 
-    let getWatchableVariables () =
+    let fsiAssemblies () =
+        // use multiple assemblies (FSI-ASSEMBLY1, FSI-ASSEMBLY2...) if single isn't found
+        let fsiAsms =
+            System.AppDomain.CurrentDomain.GetAssemblies()
+            |> Array.filter (fun asm -> asm.GetName().Name.StartsWith fsiAsm)
+        fsiAsms
+        |> Array.tryFind (fun asm -> asm.GetName().Name = fsiAsm)
+        |> function
+        | Some asm -> [| asm |]
+        | None -> fsiAsms
+
+    let getWatchableVariables (fsiAssembly:System.Reflection.Assembly) =
         fsiAssembly.GetTypes() //FSI types have the name pattern FSI_####, where #### is the order in which they were created
         |> Seq.filter (fun ty -> ty.Name.StartsWith("FSI_"))
         |> Seq.sortBy (fun ty -> ty.Name.Split('_').[1] |> int)
@@ -19,7 +30,7 @@ fsi.AddPrinter (fun (_: obj) ->
         |> Seq.sortBy (fun (_, (i, _)) -> i) //order by original index
         |> Seq.map (fun (_, (_, pi)) -> pi.Name, pi.GetValue(null, Array.empty), pi.PropertyType) //discard ordering index, project usuable watch value
 
-    let getRecords () =
+    let getRecords (fsiAssembly:System.Reflection.Assembly) =
         fsiAssembly.GetTypes()
         |> Seq.filter (fun ty -> ty.FullName.StartsWith("FSI"))
         |> Seq.filter (Reflection.FSharpType.IsRecord)
@@ -30,7 +41,7 @@ fsi.AddPrinter (fun (_: obj) ->
 
             ty.Name, flds)
 
-    let getUnions () =
+    let getUnions (fsiAssembly:System.Reflection.Assembly) =
         fsiAssembly.GetTypes()
         |> Seq.filter (fun ty -> ty.FullName.StartsWith("FSI"))
         |> Seq.filter (Reflection.FSharpType.IsUnion)
@@ -47,7 +58,7 @@ fsi.AddPrinter (fun (_: obj) ->
 
             ty.Name, flds)
 
-    let getFuncs () =
+    let getFuncs (fsiAssembly:System.Reflection.Assembly) =
         fsiAssembly.GetTypes()
         |> Seq.filter (fun ty -> ty.FullName.StartsWith("FSI"))
         |> Seq.filter (Reflection.FSharpType.IsModule)
@@ -76,88 +87,106 @@ fsi.AddPrinter (fun (_: obj) ->
                 Some(meth))
         |> Seq.collect id
 
-    let variablesAction =
+    let writeToFile filename (lines:seq<string>) =
+        let path = System.IO.Path.Combine(__SOURCE_DIRECTORY__, filename)
+        System.IO.File.WriteAllText(path, lines |> String.concat "\n")
+
+    let formatVarsAndFuncs name value typ step =
+        (sprintf "%s###IONIDESEP###%A###IONIDESEP###%s###IONIDESEP###%i" name value typ step).Replace("\n", ";")
+
+    let formatRecsAndUnions name flds step =
+        (sprintf "%s###IONIDESEP###%s###IONIDESEP###%i" name flds step).Replace("\n", ";")
+
+    let arrangeVars fsiAssembly =
+        let step = asmNum fsiAssembly
+        getWatchableVariables fsiAssembly
+        |> Seq.map (fun (name, value, typ) -> formatVarsAndFuncs name value typ.Name step)
+        |> Seq.filter (not << System.String.IsNullOrWhiteSpace)
+
+    let arrangeFuncs fsiAssembly =
+        let step = asmNum fsiAssembly
+        getFuncs fsiAssembly
+        |> Seq.map (fun (name, parms, typ) ->
+            let parms =
+                parms
+                |> Seq.map (fun (n, t) -> n + ": " + t)
+                |> String.concat "; "
+
+            formatVarsAndFuncs name parms typ step)
+        |> Seq.filter (not << System.String.IsNullOrWhiteSpace)
+
+    let arrangeRecords fsiAssembly =
+        let step = asmNum fsiAssembly
+        getRecords fsiAssembly
+        |> Seq.map (fun (name, flds) ->
+            let f =
+                flds
+                |> Seq.map (fun (x, y) -> x + ": " + y)
+                |> String.concat "; "
+
+            formatRecsAndUnions name f step)
+        |> Seq.filter (not << System.String.IsNullOrWhiteSpace)
+
+    let arrangeUnions fsiAssembly =
+        let step = asmNum fsiAssembly
+        getUnions fsiAssembly
+        |> Seq.map (fun (name, flds) ->
+            let f =
+                flds
+                |> Seq.map (fun (x, props) ->
+                    let y =
+                        props
+                        |> Seq.map (fun (x, y) -> sprintf "(%s: %s)" x y)
+                        |> String.concat " * "
+
+                    if System.String.IsNullOrWhiteSpace y then
+                        x
+                    else
+                        x + ": " + y)
+                |> String.concat "#|#"
+
+            formatRecsAndUnions name f step)
+        |> Seq.filter (not << System.String.IsNullOrWhiteSpace)
+
+    let allVars () =
+        fsiAssemblies ()
+        |> Array.toSeq
+        |> Seq.map arrangeVars
+        |> Seq.concat
+
+    let allFuncs () =
+        fsiAssemblies ()
+        |> Array.toSeq
+        |> Seq.map arrangeFuncs
+        |> Seq.concat
+
+    let allTypes () =
+        let asms =
+            fsiAssemblies () |> Array.toSeq
+        let unions =
+            asms
+            |> Seq.map arrangeUnions
+            |> Seq.concat
+        let recs =
+            asms
+            |> Seq.map arrangeRecords
+            |> Seq.concat
+
+        Seq.append unions recs
+
+    let writeAll fn filename =
         async {
             try
-                let vars =
-                    getWatchableVariables ()
-                    |> Seq.map (fun (name, value, typ) ->
-                        let x = sprintf "%s###IONIDESEP###%A###IONIDESEP###%s" name value typ.Name
-                        x.Replace("\n", ";"))
-                    |> String.concat "\n"
-
-                let path = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "vars.txt")
-                System.IO.File.WriteAllText(path, vars)
+                do fn () |> writeToFile filename
             with
             | _ -> ()
         }
 
-    let funcsAction =
-        async {
-            try
-                let vars =
-                    getFuncs ()
-                    |> Seq.map (fun (name, parms, typ) ->
-                        let parms =
-                            parms
-                            |> Seq.map (fun (n, t) -> n + ": " + t)
-                            |> String.concat "; "
-
-                        let x = sprintf "%s###IONIDESEP###%s###IONIDESEP###%s" name parms typ
-                        x.Replace("\n", ";"))
-                    |> String.concat "\n"
-
-                let path = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "funcs.txt")
-                System.IO.File.WriteAllText(path, vars)
-            with
-            | _ -> ()
-        }
-
-    let typesAction =
-        async {
-            try
-                let records =
-                    getRecords ()
-                    |> Seq.map (fun (name, flds) ->
-                        let f =
-                            flds
-                            |> Seq.map (fun (x, y) -> x + ": " + y)
-                            |> String.concat "; "
-
-                        let x = sprintf "%s###IONIDESEP###%s" name f
-                        x.Replace("\n", ";"))
-                    |> String.concat "\n"
-
-                let unions =
-                    getUnions ()
-                    |> Seq.map (fun (name, flds) ->
-                        let f =
-                            flds
-                            |> Seq.map (fun (x, props) ->
-                                let y =
-                                    props
-                                    |> Seq.map (fun (x, y) -> sprintf "(%s: %s)" x y)
-                                    |> String.concat " * "
-
-                                if System.String.IsNullOrWhiteSpace y then
-                                    x
-                                else
-                                    x + ": " + y)
-                            |> String.concat "#|#"
-
-                        let x = sprintf "%s###IONIDESEP###%s" name f
-                        x.Replace("\n", ";"))
-                    |> String.concat "\n"
-
-                let path = System.IO.Path.Combine(__SOURCE_DIRECTORY__, "types.txt")
-                System.IO.File.WriteAllText(path, records + "\n" + unions)
-            with
-            | _ -> ()
-        }
-
-
-    Async.Start variablesAction
-    Async.Start typesAction
-    Async.Start funcsAction
+    async {
+        do! writeAll allVars "vars.txt"
+        do! writeAll allFuncs "funcs.txt"
+        do! writeAll allTypes "types.txt"
+    }
+    |> Async.Start
 
     null)
