@@ -106,7 +106,8 @@ module QuickInfo =
                 let doc = textEditor.document
 
                 match doc with
-                | Document.FSharp -> true
+                | Document.FSharp
+                | Document.FSharpScript -> true
                 | _ -> false
             else
                 false
