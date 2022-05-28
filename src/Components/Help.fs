@@ -14,7 +14,7 @@ module Help =
         let pos = te.selection.start
 
         promise {
-            let! res = LanguageService.f1Help (doc.fileName) (int pos.line) (int pos.character)
+            let! res = LanguageService.f1Help (doc.uri) (int pos.line) (int pos.character)
             let api = res.Data.Replace("#ctor", "-ctor")
 
             let uri =

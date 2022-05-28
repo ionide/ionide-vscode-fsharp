@@ -94,8 +94,12 @@ module LanguageService =
               pos: Fable.Import.VSCode.Vscode.Position
               kind: InlayHintKind }
 
+    type Uri with
+        member uri.ToDocumentUri = uri.ToString()
+
     let mutable client: LanguageClient option = None
 
+    //TODO: remove (-> use URI instead)
     let private handleUntitled (fn: string) =
         if fn.EndsWith ".fs"
            || fn.EndsWith ".fsi"
@@ -153,23 +157,23 @@ module LanguageService =
             | Some location -> return Some location
         }
 
-    let f1Help fn line col : JS.Promise<Result<string>> =
+    let f1Help (uri: Uri) line col : JS.Promise<Result<string>> =
         match client with
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = handleUntitled fn }
+                { TextDocument = { Uri = uri.ToDocumentUri }
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/f1Help", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<Result<string>>)
 
-    let documentation fn line col =
+    let documentation (uri: Uri) line col =
         match client with
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = handleUntitled fn }
+                { TextDocument = { Uri = uri.ToDocumentUri }
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/documentation", req)
@@ -190,12 +194,12 @@ module LanguageService =
                 res.content
                 |> ofJson<Result<DocumentationDescription [] []>>)
 
-    let signature fn line col =
+    let signature (uri: Uri) line col =
         match client with
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = handleUntitled fn }
+                { TextDocument = { Uri = uri.ToDocumentUri }
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/signature", req)
@@ -218,7 +222,7 @@ module LanguageService =
         | Some cl ->
             let req: Types.VersionedTextDocumentPositionParams =
                 { TextDocument =
-                    { Uri = fileUri.toString ()
+                    { Uri = fileUri.ToDocumentUri
                       Version = version }
                   Position = { Line = line; Character = col } }
 

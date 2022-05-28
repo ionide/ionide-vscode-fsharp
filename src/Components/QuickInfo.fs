@@ -117,7 +117,7 @@ module QuickInfo =
                    && selections.Count > 0 then
                     let doc = textEditor.document
                     let pos = selections.[0].active
-                    let! o = LanguageService.signature (doc.fileName) (int pos.line) (int pos.character)
+                    let! o = LanguageService.signature (doc.uri) (int pos.line) (int pos.character)
 
                     if isNotNull o then
                         return Some o.Data
