@@ -216,7 +216,7 @@ module FSharpLiterate =
         let update (textEditor: TextEditor) =
             promise {
                 let doc = textEditor.document
-                let! res = LanguageService.fsharpLiterate doc.fileName
+                let! res = LanguageService.fsharpLiterate doc.uri
                 return setContent res.Data
             }
             |> ignore

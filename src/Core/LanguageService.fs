@@ -71,9 +71,14 @@ module LanguageService =
         type WorkspaceLoadParms =
             { TextDocuments: TextDocumentIdentifier [] }
 
-        type HighlightingRequest = { FileName: string }
-        type FSharpLiterateRequest = { FileName: string }
-        type FSharpPipelineHintsRequest = { FileName: string }
+        type HighlightingRequest =
+            { TextDocument: TextDocumentIdentifier }
+
+        type FSharpLiterateRequest =
+            { TextDocument: TextDocumentIdentifier }
+
+        type FSharpPipelineHintsRequest =
+            { TextDocument: TextDocumentIdentifier }
 
         type LspRange =
             { start: Fable.Import.VSCode.Vscode.Position
@@ -483,29 +488,31 @@ module LanguageService =
             cl.sendRequest ("fsharp/loadAnalyzers", req)
             |> Promise.map ignore
 
-    let getHighlighting (f) : JS.Promise<HighlightingResponse> =
+    let getHighlighting (uri: Uri) : JS.Promise<HighlightingResponse> =
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req: Types.HighlightingRequest = { FileName = f }
+            let req: Types.HighlightingRequest = { TextDocument = { Uri = uri.ToDocumentUri } }
 
             cl.sendRequest ("fsharp/highlighting", req)
             |> Promise.map (fun (res: obj) -> res?data)
 
-    let fsharpLiterate (f) =
+    let fsharpLiterate (uri: Uri) =
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req: Types.FSharpLiterateRequest = { FileName = f }
+            let req: Types.FSharpLiterateRequest =
+                { TextDocument = { Uri = uri.ToDocumentUri } }
 
             cl.sendRequest ("fsharp/fsharpLiterate", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<FSharpLiterateResult>)
 
-    let pipelineHints (f) =
+    let pipelineHints (uri: Uri) =
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req: Types.FSharpPipelineHintsRequest = { FileName = f }
+            let req: Types.FSharpPipelineHintsRequest =
+                { TextDocument = { Uri = uri.ToDocumentUri } }
 
             cl.sendRequest ("fsharp/pipelineHint", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<PipelineHintsResult>)
@@ -515,7 +522,7 @@ module LanguageService =
         | None -> Promise.empty
         | Some cl ->
             let req: Types.InlayHintsRequest =
-                { TextDocument = { Uri = fileUri.toString () }
+                { TextDocument = { Uri = fileUri.ToDocumentUri }
                   Range = range }
 
             cl.sendRequest ("fsharp/inlayHints", req)
