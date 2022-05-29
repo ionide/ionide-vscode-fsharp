@@ -15,7 +15,7 @@ open LanguageServer
 
 module Notifications =
     type DocumentParsedEvent =
-        { fileName: string
+        { uri: string
           version: float
           /// BEWARE: Live object, might have changed since the parsing
           document: TextDocument }
@@ -205,12 +205,12 @@ module LanguageService =
             cl.sendRequest ("fsharp/signature", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<Result<string>>)
 
-    let signatureData fn line col =
+    let signatureData (uri: Uri) line col =
         match client with
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = handleUntitled fn }
+                { TextDocument = { Uri = uri.ToDocumentUri }
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/signatureData", req)
@@ -229,11 +229,11 @@ module LanguageService =
             cl.sendRequest ("fsharp/documentationGenerator", req)
             |> Promise.map (fun _ -> ())
 
-    let lineLenses fn =
+    let lineLenses (uri: Uri) =
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req: Types.FileParams = { Project = { Uri = handleUntitled fn } }
+            let req: Types.FileParams = { Project = { Uri = uri.ToDocumentUri } }
 
             cl.sendRequest ("fsharp/lineLens", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<Result<Symbols []>>)
@@ -846,14 +846,13 @@ Consider:
             cl.onNotification (
                 "fsharp/fileParsed",
                 (fun (a: Types.PlainNotification) ->
-                    let fn = a.content
+                    let uri: Types.DocumentUri = a.content
 
                     window.visibleTextEditors
-                    |> Seq.tryFind (fun n ->
-                        path.normalize(n.document.fileName).ToLower() = path.normalize(fn).ToLower())
+                    |> Seq.tryFind (fun n -> n.document.uri.ToDocumentUri.ToLowerInvariant() = uri.ToLowerInvariant())
                     |> Option.iter (fun te ->
                         let ev =
-                            { Notifications.fileName = a.content
+                            { Notifications.uri = uri
                               Notifications.version = te.document.version
                               Notifications.document = te.document }
 
