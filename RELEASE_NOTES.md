@@ -1,3 +1,8 @@
+### 6.0.5 - 29.5.2022
+
+* Update FSAC to 0.54.0 to get crash fixes and API changes
+* Allow several features to work on untitled documents
+
 ### 6.0.4 - 13.5.2022
 
 * Update FSAC to 0.53.2 get updated fantomas tools integration
