@@ -39,26 +39,26 @@ module Documents =
           textEditors: ResizeArray<TextEditor> }
 
     type DocumentInfo =
-        { /// Full path of the document
-          fileName: string
+        { /// Full uri of the document
+          uri: Uri
           /// Current decoration cache
           cache: Cached option }
 
-    type Documents = Dictionary<string, DocumentInfo>
+    type Documents = Dictionary<Uri, DocumentInfo>
 
     let inline create () = Documents()
 
-    let inline tryGet fileName (documents: Documents) = documents.TryGet fileName
+    let inline tryGet uri (documents: Documents) = documents.TryGet uri
 
-    let inline getOrAdd fileName (documents: Documents) =
-        match tryGet fileName documents with
+    let inline getOrAdd uri (documents: Documents) =
+        match tryGet uri documents with
         | Some x -> x
         | None ->
-            let value = { fileName = fileName; cache = None }
-            documents.Add(fileName, value)
+            let value = { uri = uri; cache = None }
+            documents.Add(uri, value)
             value
 
-    let inline set fileName value (documents: Documents) = documents.[fileName] <- value
+    let inline set uri value (documents: Documents) = documents.[uri] <- value
 
     let update info (decorations: ResizeArray<DecorationOptions>) version (documents: Documents) =
         let updated =
@@ -69,17 +69,17 @@ module Documents =
                           decorations = decorations
                           textEditors = ResizeArray() } }
 
-        documents |> set info.fileName updated
+        documents |> set info.uri updated
         updated
 
-    let inline tryGetCached fileName (documents: Documents) =
+    let inline tryGetCached uri (documents: Documents) =
         documents
-        |> tryGet fileName
+        |> tryGet uri
         |> Option.bind (fun info -> info.cache |> Option.map (fun c -> info, c))
 
-    let inline tryGetCachedAtVersion fileName version (documents: Documents) =
+    let inline tryGetCachedAtVersion uri version (documents: Documents) =
         documents
-        |> tryGet fileName
+        |> tryGet uri
         |> Option.bind (fun info ->
             match info.cache with
             | Some cache when cache.version = version -> Some(info, cache)
@@ -144,11 +144,7 @@ module DecorationUpdate =
         | None -> [| getSignature 1 (range, tts) |]
 
 
-    let private declarationsResultToSignatures
-        (doc: TextDocument)
-        (declarationsResult: DTO.PipelineHintsResult)
-        fileName
-        =
+    let private declarationsResultToSignatures (doc: TextDocument) (declarationsResult: DTO.PipelineHintsResult) uri =
         promise {
             let interesting =
                 declarationsResult.Data
@@ -163,22 +159,22 @@ module DecorationUpdate =
     /// * If it change during the process nothing is done and it return None, if a real change is done it return the new state
     let updateDecorationsForDocument (document: TextDocument) (version: float) state =
         promise {
-            let fileName = document.fileName
+            let uri = document.uri
 
             match state.documents
-                  |> Documents.tryGetCachedAtVersion fileName version
+                  |> Documents.tryGetCachedAtVersion uri version
                 with
             | Some (info, _) ->
-                logger.Debug("Found existing decorations in cache for '%s' @%d", fileName, version)
+                logger.Debug("Found existing decorations in cache for '%s' @%d", uri, version)
                 return Some info
             | None when document.version = version ->
-                let! hintsResults = LanguageService.pipelineHints fileName
+                let! hintsResults = LanguageService.pipelineHints uri
 
                 if document.version = version
                    && isNotNull hintsResults then
 
-                    let! signatures = declarationsResultToSignatures document hintsResults fileName
-                    let info = state.documents |> Documents.getOrAdd fileName
+                    let! signatures = declarationsResultToSignatures document hintsResults uri
+                    let info = state.documents |> Documents.getOrAdd uri
 
                     if document.version = version && info.cache.IsNone
                        || info.cache.Value.version <> version then
@@ -187,7 +183,7 @@ module DecorationUpdate =
                             |> Seq.map (fun (r, s) -> PipelineHintsDecorations.create r (config.prefix + s))
                             |> ResizeArray
 
-                        logger.Debug("New decorations generated for '%s' @%d", fileName, version)
+                        logger.Debug("New decorations generated for '%s' @%d", uri, version)
 
                         return
                             Some(
@@ -206,23 +202,23 @@ module DecorationUpdate =
         match info.cache with
         | Some cache when not (cache.textEditors.Contains(textEditor)) ->
             cache.textEditors.Add(textEditor)
-            logger.Debug("Setting decorations for '%s' @%d", info.fileName, cache.version)
+            logger.Debug("Setting decorations for '%s' @%d", info.uri, cache.version)
             textEditor.setDecorations (state.decorationType, U2.Case2(cache.decorations))
         | _ -> ()
 
     /// Set the decorations for the editor if we have them for the current version of the document
     let setDecorationsForEditorIfCurrentVersion (textEditor: TextEditor) state =
-        let fileName = textEditor.document.fileName
+        let uri = textEditor.document.uri
         let version = textEditor.document.version
 
-        match Documents.tryGetCachedAtVersion fileName version state.documents with
+        match Documents.tryGetCachedAtVersion uri version state.documents with
         | None -> () // An event will arrive later when we have generated decorations
         | Some (info, _) -> setDecorationsForEditor textEditor info state
 
-    let documentClosed (fileName: string) state =
+    let documentClosed (uri: Uri) state =
         // We can/must drop all caches as versions are unique only while a document is open.
         // If it's re-opened later versions will start at 1 again.
-        state.documents.Remove(fileName) |> ignore
+        state.documents.Remove(uri) |> ignore
 
 let inline private isFsharpFile (doc: TextDocument) =
     match doc with
@@ -259,7 +255,7 @@ let private documentParsedHandler (event: Notifications.DocumentParsedEvent) =
 
 let private closedTextDocumentHandler (textDocument: TextDocument) =
     state
-    |> Option.iter (DecorationUpdate.documentClosed textDocument.fileName)
+    |> Option.iter (DecorationUpdate.documentClosed textDocument.uri)
 
 let install () =
     logger.Debug "Installing"

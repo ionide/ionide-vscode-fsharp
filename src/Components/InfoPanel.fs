@@ -203,7 +203,7 @@ module InfoPanel =
                    && panel.IsSome then
                     let doc = textEditor.document
                     let pos = selections.[0].active
-                    let! res = LanguageService.documentation doc.fileName (int pos.line) (int pos.character)
+                    let! res = LanguageService.documentation doc.uri (int pos.line) (int pos.character)
                     let res = mapContent res
 
                     match res with
@@ -218,7 +218,7 @@ module InfoPanel =
             promise {
                 if isFsharpTextEditor textEditor && panel.IsSome then
                     let doc = textEditor.document
-                    let! res = LanguageService.documentation doc.fileName (int pos.line) (int pos.character)
+                    let! res = LanguageService.documentation doc.uri (int pos.line) (int pos.character)
                     let res = mapContent res
 
                     match res with
