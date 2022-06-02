@@ -168,7 +168,7 @@ fsi.AddPrinter (fun (_: obj) ->
                 // add assembly names to lookup set
                 |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
 
-            names, (varsWithNames |> List.map fst)
+            names, snd state @ (varsWithNames |> List.map fst)
 
         fsiAssemblies ()
         |> Array.toList
