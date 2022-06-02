@@ -7,13 +7,13 @@ fsi.AddPrinter (fun (_: obj) ->
     let fsiAssemblies () =
         // use multiple assemblies (FSI-ASSEMBLY1, FSI-ASSEMBLY2...) if single isn't found
         let fsiAsms =
-            System.AppDomain.CurrentDomain.GetAssemblies()
-            |> Array.filter (fun asm -> asm.GetName().Name.StartsWith fsiAsm)
-        fsiAsms
+            lazy(System.AppDomain.CurrentDomain.GetAssemblies()
+            |> Array.filter (fun asm -> asm.GetName().Name.StartsWith fsiAsm))
+        fsiAsms.Value
         |> Array.tryFind (fun asm -> asm.GetName().Name = fsiAsm)
         |> function
         | Some asm -> [| asm |]
-        | None -> fsiAsms
+        | None -> fsiAsms.Value
 
     let getWatchableVariables (fsiAssembly:System.Reflection.Assembly) =
         fsiAssembly.GetTypes() //FSI types have the name pattern FSI_####, where #### is the order in which they were created
