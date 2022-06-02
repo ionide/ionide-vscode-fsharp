@@ -4,16 +4,16 @@ fsi.AddPrinter (fun (_: obj) ->
     let asmNum (asm:System.Reflection.Assembly) =
         asm.GetName().Name.Replace(fsiAsm, "") |> System.Int32.TryParse |> fun (b,v) -> if b then v else 0
 
-    let fsiAssemblies () =
+    let fsiAssemblies =
         // use multiple assemblies (FSI-ASSEMBLY1, FSI-ASSEMBLY2...) if single isn't found
         let fsiAsms =
-            lazy(System.AppDomain.CurrentDomain.GetAssemblies()
-            |> Array.filter (fun asm -> asm.GetName().Name.StartsWith fsiAsm))
-        fsiAsms.Value
+            System.AppDomain.CurrentDomain.GetAssemblies()
+            |> Array.filter (fun asm -> asm.GetName().Name.StartsWith fsiAsm)
+        fsiAsms
         |> Array.tryFind (fun asm -> asm.GetName().Name = fsiAsm)
         |> function
         | Some asm -> [| asm |]
-        | None -> fsiAsms.Value
+        | None -> fsiAsms
 
     let getWatchableVariables (fsiAssembly:System.Reflection.Assembly) =
         fsiAssembly.GetTypes() //FSI types have the name pattern FSI_####, where #### is the order in which they were created
@@ -87,129 +87,119 @@ fsi.AddPrinter (fun (_: obj) ->
                 Some(meth))
         |> Seq.collect id
 
+    let formatVarsAndFuncs name value typ step shadowed =
+        let name = if shadowed then (name + " (shadowed)") else name
+        (sprintf "%s###IONIDESEP###%A###IONIDESEP###%s###IONIDESEP###%i" name value typ step).Replace("\n", ";")
+
+    let formatRecsAndUnions name flds step shadowed =
+        let name = if shadowed then (name + " (shadowed)") else name
+        (sprintf "%s###IONIDESEP###%s###IONIDESEP###%i" name flds step).Replace("\n", ";")
+
+    let fromAssemblies folder =
+        fsiAssemblies
+        |> Array.toList
+        |> Seq.map (fun asm -> asmNum asm, asm)
+        |> Seq.sortByDescending fst // assume later/higher assembly # always shadows
+        |> Seq.fold folder (Set.empty, Seq.empty)
+        |> snd
+
+    let arrangeVars (state: Set<string> * seq<string>) (step, asm) =
+        let varsWithNames =
+            getWatchableVariables asm
+            |> Seq.map (fun (name, value, typ) ->
+                let shadowed = (fst state).Contains name
+                formatVarsAndFuncs name value typ.Name step shadowed, name)
+            |> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
+        let names =
+            varsWithNames
+            |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
+            // add assembly names to lookup set
+
+        names, Seq.append (snd state) (varsWithNames |> Seq.map fst)
+
+    let arrangeFuncs (state: Set<string> * seq<string>) (step, asm) =
+        let funcsWithNames =
+            getFuncs asm
+            |> Seq.map (fun (name, parms, typ) ->
+                let shadowed = (fst state).Contains name
+                let parms =
+                    parms
+                    |> Seq.map (fun (n, t) -> n + ": " + t)
+                    |> String.concat "; "
+                formatVarsAndFuncs name parms typ step shadowed, name)
+            |> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
+        let names =
+            funcsWithNames
+            |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
+            // add assembly names to lookup set
+
+        names, Seq.append (snd state) (funcsWithNames |> Seq.map fst)
+
+    let arrangeRecords (state: Set<string> * seq<string>) (step, asm) =
+        let recsWithNames =
+            getRecords asm
+            |> Seq.map (fun (name, flds) ->
+                let shadowed = (fst state).Contains name
+                let f =
+                    flds
+                    |> Seq.map (fun (x, y) -> x + ": " + y)
+                    |> String.concat "; "
+
+                formatRecsAndUnions name f step shadowed, name)
+            |> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
+        let names =
+            recsWithNames
+            |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
+            // add assembly names to lookup set
+
+        names, Seq.append (snd state) (recsWithNames |> Seq.map fst)
+
+    let arrangeUnions (state: Set<string> * seq<string>) (step, asm) =
+        let unionsWithNames =
+            getUnions asm
+            |> Seq.map (fun (name, flds) ->
+                let shadowed = (fst state).Contains name
+                let f =
+                    flds
+                    |> Seq.map (fun (x, props) ->
+                        let y =
+                            props
+                            |> Seq.map (fun (x, y) -> sprintf "(%s: %s)" x y)
+                            |> String.concat " * "
+
+                        if System.String.IsNullOrWhiteSpace y then
+                            x
+                        else
+                            x + ": " + y)
+                    |> String.concat "#|#"
+
+                formatRecsAndUnions name f step shadowed, name)
+            |> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
+        let names =
+            unionsWithNames
+            |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
+            // add assembly names to lookup set
+
+        names, Seq.append (snd state) (unionsWithNames |> Seq.map fst)
+
     let writeToFile filename (lines:seq<string>) =
         let path = System.IO.Path.Combine(__SOURCE_DIRECTORY__, filename)
         System.IO.File.WriteAllText(path, lines |> String.concat "\n")
 
-    let formatVarsAndFuncs name value typ step =
-        (sprintf "%s###IONIDESEP###%A###IONIDESEP###%s###IONIDESEP###%i" name value typ step).Replace("\n", ";")
-
-    let formatVarsAndFuncs' name value typ step (lookup:Set<string>) =
-        let name = if lookup.Contains name then (name + " (shadowed)") else name
-        (sprintf "%s###IONIDESEP###%A###IONIDESEP###%s###IONIDESEP###%i" name value typ step).Replace("\n", ";")
-
-    let formatRecsAndUnions name flds step =
-        (sprintf "%s###IONIDESEP###%s###IONIDESEP###%i" name flds step).Replace("\n", ";")
-
-    let formatRecsAndUnions' name flds step (lookup:Set<string>) =
-        let name = if lookup.Contains name then (name + " (shadowed)") else name
-        (sprintf "%s###IONIDESEP###%s###IONIDESEP###%i" name flds step).Replace("\n", ";")
-
-    let arrangeVars fsiAssembly =
-        let step = asmNum fsiAssembly
-        getWatchableVariables fsiAssembly
-        |> Seq.map (fun (name, value, typ) -> formatVarsAndFuncs name value typ.Name step)
-        |> Seq.filter (not << System.String.IsNullOrWhiteSpace)
-
-    let arrangeFuncs fsiAssembly =
-        let step = asmNum fsiAssembly
-        getFuncs fsiAssembly
-        |> Seq.map (fun (name, parms, typ) ->
-            let parms =
-                parms
-                |> Seq.map (fun (n, t) -> n + ": " + t)
-                |> String.concat "; "
-
-            formatVarsAndFuncs name parms typ step)
-        |> Seq.filter (not << System.String.IsNullOrWhiteSpace)
-
-    let arrangeRecords fsiAssembly =
-        let step = asmNum fsiAssembly
-        getRecords fsiAssembly
-        |> Seq.map (fun (name, flds) ->
-            let f =
-                flds
-                |> Seq.map (fun (x, y) -> x + ": " + y)
-                |> String.concat "; "
-
-            formatRecsAndUnions name f step)
-        |> Seq.filter (not << System.String.IsNullOrWhiteSpace)
-
-    let arrangeUnions fsiAssembly =
-        let step = asmNum fsiAssembly
-        getUnions fsiAssembly
-        |> Seq.map (fun (name, flds) ->
-            let f =
-                flds
-                |> Seq.map (fun (x, props) ->
-                    let y =
-                        props
-                        |> Seq.map (fun (x, y) -> sprintf "(%s: %s)" x y)
-                        |> String.concat " * "
-
-                    if System.String.IsNullOrWhiteSpace y then
-                        x
-                    else
-                        x + ": " + y)
-                |> String.concat "#|#"
-
-            formatRecsAndUnions name f step)
-        |> Seq.filter (not << System.String.IsNullOrWhiteSpace)
-
-    let allVars () =
-        let folder (state: Set<string> * List<string>) (step, asm) : Set<string> * List<string> =
-            let varsWithNames =
-                getWatchableVariables asm
-                |> Seq.map (fun (name, value, typ) -> formatVarsAndFuncs' name value typ.Name step (fst state), name)
-                |> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
-                |> Seq.toList
-            let names =
-                varsWithNames
-                // add assembly names to lookup set
-                |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
-
-            names, snd state @ (varsWithNames |> List.map fst)
-
-        fsiAssemblies ()
-        |> Array.toList
-        |> List.map (fun asm -> asmNum asm, asm)
-        |> List.sortByDescending fst // assume later assembly # always shadows
-        |> List.fold folder (Set.empty, [])
-        |> snd
-        |> List.toSeq
-
-    let allFuncs () =
-        fsiAssemblies ()
-        |> Array.toSeq
-        |> Seq.map arrangeFuncs
-        |> Seq.concat
-
-    let allTypes () =
-        let asms =
-            fsiAssemblies () |> Array.toSeq
-        let unions =
-            asms
-            |> Seq.map arrangeUnions
-            |> Seq.concat
-        let recs =
-            asms
-            |> Seq.map arrangeRecords
-            |> Seq.concat
-
-        Seq.append unions recs
-
-    let write fn filename =
+    let write content filename =
         async {
             try
-                do fn () |> writeToFile filename
+                do content |> writeToFile filename
             with
             | _ -> ()
         }
 
     async {
-        do! write allVars "vars.txt"
-        do! write allFuncs "funcs.txt"
-        do! write allTypes "types.txt"
+        let types = Seq.append (fromAssemblies arrangeUnions) (fromAssemblies arrangeRecords)
+
+        do! write (fromAssemblies arrangeVars) "vars.txt"
+        do! write (fromAssemblies arrangeFuncs) "funcs.txt"
+        do! write types "types.txt"
     }
     |> Async.Start
 
