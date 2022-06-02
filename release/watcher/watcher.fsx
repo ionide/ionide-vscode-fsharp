@@ -94,7 +94,15 @@ fsi.AddPrinter (fun (_: obj) ->
     let formatVarsAndFuncs name value typ step =
         (sprintf "%s###IONIDESEP###%A###IONIDESEP###%s###IONIDESEP###%i" name value typ step).Replace("\n", ";")
 
+    let formatVarsAndFuncs' name value typ step (lookup:Set<string>) =
+        let name = if lookup.Contains name then (name + " (shadowed)") else name
+        (sprintf "%s###IONIDESEP###%A###IONIDESEP###%s###IONIDESEP###%i" name value typ step).Replace("\n", ";")
+
     let formatRecsAndUnions name flds step =
+        (sprintf "%s###IONIDESEP###%s###IONIDESEP###%i" name flds step).Replace("\n", ";")
+
+    let formatRecsAndUnions' name flds step (lookup:Set<string>) =
+        let name = if lookup.Contains name then (name + " (shadowed)") else name
         (sprintf "%s###IONIDESEP###%s###IONIDESEP###%i" name flds step).Replace("\n", ";")
 
     let arrangeVars fsiAssembly =
@@ -149,10 +157,26 @@ fsi.AddPrinter (fun (_: obj) ->
         |> Seq.filter (not << System.String.IsNullOrWhiteSpace)
 
     let allVars () =
+        let folder (state: Set<string> * List<string>) (step, asm) : Set<string> * List<string> =
+            let varsWithNames =
+                getWatchableVariables asm
+                |> Seq.map (fun (name, value, typ) -> formatVarsAndFuncs' name value typ.Name step (fst state), name)
+                |> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
+                |> Seq.toList
+            let names =
+                varsWithNames
+                // add assembly names to lookup set
+                |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
+
+            names, (varsWithNames |> List.map fst)
+
         fsiAssemblies ()
-        |> Array.toSeq
-        |> Seq.map arrangeVars
-        |> Seq.concat
+        |> Array.toList
+        |> List.map (fun asm -> asmNum asm, asm)
+        |> List.sortByDescending fst // assume later assembly # always shadows
+        |> List.fold folder (Set.empty, [])
+        |> snd
+        |> List.toSeq
 
     let allFuncs () =
         fsiAssemblies ()
@@ -174,7 +198,7 @@ fsi.AddPrinter (fun (_: obj) ->
 
         Seq.append unions recs
 
-    let writeAll fn filename =
+    let write fn filename =
         async {
             try
                 do fn () |> writeToFile filename
@@ -183,9 +207,9 @@ fsi.AddPrinter (fun (_: obj) ->
         }
 
     async {
-        do! writeAll allVars "vars.txt"
-        do! writeAll allFuncs "funcs.txt"
-        do! writeAll allTypes "types.txt"
+        do! write allVars "vars.txt"
+        do! write allFuncs "funcs.txt"
+        do! write allTypes "types.txt"
     }
     |> Async.Start
 
