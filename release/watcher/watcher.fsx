@@ -109,7 +109,6 @@ fsi.AddPrinter (fun (_: obj) ->
             |> Seq.map (fun (name, value, typ) ->
                 let shadowed = (fst state).Contains name
                 formatVarsAndFuncs name value typ.Name step shadowed, name)
-            //|> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
         let names =
             varsWithNames
             |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
