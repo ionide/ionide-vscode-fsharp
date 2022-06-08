@@ -109,7 +109,7 @@ fsi.AddPrinter (fun (_: obj) ->
             |> Seq.map (fun (name, value, typ) ->
                 let shadowed = (fst state).Contains name
                 formatVarsAndFuncs name value typ.Name step shadowed, name)
-            |> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
+            //|> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
         let names =
             varsWithNames
             |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
@@ -127,7 +127,6 @@ fsi.AddPrinter (fun (_: obj) ->
                     |> Seq.map (fun (n, t) -> n + ": " + t)
                     |> String.concat "; "
                 formatVarsAndFuncs name parms typ step shadowed, name)
-            |> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
         let names =
             funcsWithNames
             |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
@@ -146,7 +145,6 @@ fsi.AddPrinter (fun (_: obj) ->
                     |> String.concat "; "
 
                 formatRecsAndUnions name f step shadowed, name)
-            |> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
         let names =
             recsWithNames
             |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
@@ -174,7 +172,6 @@ fsi.AddPrinter (fun (_: obj) ->
                     |> String.concat "#|#"
 
                 formatRecsAndUnions name f step shadowed, name)
-            |> Seq.filter (fun (s,_) -> not <| System.String.IsNullOrWhiteSpace s)
         let names =
             unionsWithNames
             |> Seq.fold (fun (st:Set<string>) (_, nm) -> st.Add nm) (fst state)
