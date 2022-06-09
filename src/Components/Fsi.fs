@@ -157,13 +157,14 @@ module Fsi =
                                 let x = row.Split([| "###IONIDESEP###" |], StringSplitOptions.None)
 
                                 sprintf
-                                    "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td></tr>"
+                                    "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td><td>%s</td></tr>"
                                     x.[0]
                                     x.[1]
-                                    x.[2])
+                                    x.[2]
+                                    x.[3])
                             |> String.concat "\n"
                             |> sprintf
-                                """</br><h3>Declared values</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Value</th><th style="width: 20%%">Type</th></tr>%s</table>"""
+                                """</br><h3>Declared values</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Value</th><th style="width: 20%%">Type</th><th>Step</th></tr>%s</table>"""
 
 
                         setContent (
@@ -188,13 +189,14 @@ module Fsi =
                                 let x = row.Split([| "###IONIDESEP###" |], StringSplitOptions.None)
 
                                 sprintf
-                                    "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td></tr>"
+                                    "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td><td>%s</td></tr>"
                                     x.[0]
                                     x.[1]
-                                    x.[2])
+                                    x.[2]
+                                    x.[3])
                             |> String.concat "\n"
                             |> sprintf
-                                """</br><h3>Declared functions</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Parameters</th><th style="width: 20%%">Returned type</th></tr>%s</table>"""
+                                """</br><h3>Declared functions</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Parameters</th><th style="width: 20%%">Returned type</th><th>Step</th></tr>%s</table>"""
 
 
                         setContent (
@@ -227,10 +229,10 @@ module Fsi =
                                         else
                                             x.[1]
 
-                                    sprintf "<tr><td>%s</td><td><code>%s</code></td></tr>" x.[0] signature)
+                                    sprintf "<tr><td>%s</td><td><code>%s</code></td><td>%s</td></tr>" x.[0] signature x.[2])
                                 |> String.concat "\n"
                                 |> sprintf
-                                    """</br><h3>Declared types</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 85%%">Signature</th></tr>%s</table>"""
+                                    """</br><h3>Declared types</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 85%%">Signature</th><th>Step</th></tr>%s</table>"""
 
 
                         setContent (
