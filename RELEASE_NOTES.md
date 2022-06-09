@@ -1,3 +1,7 @@
+### 6.0.6 - 08.06.2022
+
+* Fix the FSI watcher value extraction to not break with the new FSI multi-emit in .NET 6.0.2xx or 6.0.3xx.
+
 ### 6.0.5 - 29.5.2022
 
 * Update FSAC to 0.54.0 to get crash fixes and API changes
