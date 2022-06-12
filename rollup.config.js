@@ -3,6 +3,7 @@ import { cwd, env } from "process";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import rollupJson from "@rollup/plugin-json";
+import { terser } from "rollup-plugin-terser";
 
 const resolve = (...paths) => path.join(cwd(), ...paths);
 const isProduction = env?.IONIDE_MODE === "production";
@@ -20,7 +21,7 @@ const config = {
   },
   context: "undefined",
   treeshake: isProduction,
-  plugins: [nodeResolve(), commonjs(), rollupJson()],
+  plugins: [nodeResolve(), commonjs(), rollupJson(), isProduction && terser()],
   external: ["vscode"],
 };
 
