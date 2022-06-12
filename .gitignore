@@ -83,3 +83,5 @@ fsacpath.txt
 
 build/bin
 build/obj
+
+!rollup.config.js
