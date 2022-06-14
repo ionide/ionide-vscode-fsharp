@@ -473,7 +473,9 @@ module Fsi =
                     editor.selection.active.character
                 )
 
-            let text = editor.document.getText range
+            let fullRange = vscode.Range.Create(range.start.line, 0, range.``end``.line + 1., 0)
+
+            let text = editor.document.getText fullRange
 
             send text
             |> Promise.suppress // prevent unhandled promise exception
