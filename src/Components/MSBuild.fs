@@ -231,7 +231,7 @@ module MSBuild =
         let progressOpts = createEmpty<ProgressOptions>
         progressOpts.location <- U2.Case1 ProgressLocation.Window
 
-        MailboxProcessor.Start (fun inbox ->
+        MailboxProcessor.Start(fun inbox ->
             let rec messageLoop () =
                 async {
                     let! (path, continuation) = inbox.Receive()

@@ -254,13 +254,15 @@ module InfoPanel =
             | Some p -> p.reveal (!! -2, true)
             | None ->
                 let opts =
-                    createObj [ "enableCommandUris" ==> true
-                                "enableFindWidget" ==> true
-                                "retainContextWhenHidden" ==> true ]
+                    createObj
+                        [ "enableCommandUris" ==> true
+                          "enableFindWidget" ==> true
+                          "retainContextWhenHidden" ==> true ]
 
                 let viewOpts =
-                    createObj [ "preserveFocus" ==> true
-                                "viewColumn" ==> -2 ]
+                    createObj
+                        [ "preserveFocus" ==> true
+                          "viewColumn" ==> -2 ]
 
                 let p = window.createWebviewPanel ("infoPanel", "Info Panel", !!viewOpts, opts)
 

@@ -30,16 +30,17 @@ type TestItem with
     member this.Type: string = this?``type``
 
 type TestItemAndProject =
-    { TestItem: TestItem
-      Project: Project }
+    { TestItem: TestItem; Project: Project }
 
 type TestWithFullName = { FullName: string; Test: TestItem }
 
 type ProjectWithTests =
-    { Project: Project
-      Tests: TestWithFullName array
-      /// The Tests are listed due to a include filter, so when running the tests the --filter should be added
-      HasIncludeFilter: bool }
+    {
+        Project: Project
+        Tests: TestWithFullName array
+        /// The Tests are listed due to a include filter, so when running the tests the --filter should be added
+        HasIncludeFilter: bool
+    }
 
 [<RequireQualifiedAccess; StringEnum(CaseRules.None)>]
 type TestResultOutcome =
@@ -200,7 +201,7 @@ let rec mapTest (tc: TestController) (uri: Uri) (t: TestAdapterEntry) : TestItem
 let getProjectsForTests (tc: TestController) (req: TestRunRequest) : ProjectWithTests array =
     let testsWithProject =
         let items =
-            match req.include with
+            match req.``include`` with
             | None -> tc.TestItems()
             | Some includedTests -> includedTests.ToArray()
 
@@ -232,7 +233,7 @@ let getProjectsForTests (tc: TestController) (req: TestRunRequest) : ProjectWith
     |> Array.map (fun (_projectName, tests) ->
         { Project = tests.[0].Project
           Tests = Array.collect collectTests tests
-          HasIncludeFilter = Option.isSome req.include })
+          HasIncludeFilter = Option.isSome req.``include`` })
 
 /// Build test projects and return the succeeded and failed projects
 let buildProjects (projects: ProjectWithTests array) : Thenable<ProjectWithTests array * ProjectWithTests array> =
@@ -349,10 +350,10 @@ let activate (context: ExtensionContext) =
     |> context.subscriptions.Add
 
     //    testController.createRunProfile ("Debug F# Tests", TestRunProfileKind.Debug, runHandler testController, true)
-//    |> unbox
-//    |> context.subscriptions.Add
+    //    |> unbox
+    //    |> context.subscriptions.Add
 
-    Notifications.testDetected.Invoke (fun res ->
+    Notifications.testDetected.Invoke(fun res ->
         logger.Debug("Tests", res)
 
         let res =

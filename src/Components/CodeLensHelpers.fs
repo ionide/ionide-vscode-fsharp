@@ -4,13 +4,10 @@ open System
 open Fable.Core.JsInterop
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
-
-module node = Node.Api
 
 module CodeLensHelpers =
 
-    let showReferences (args: string) (args2: obj) (args3: obj []) =
+    let showReferences (args: string) (args2: obj) (args3: obj[]) =
         let uri = vscode.Uri.parse args
         let pos = vscode.Position.Create(!!args2?Line, !!args2?Character)
 

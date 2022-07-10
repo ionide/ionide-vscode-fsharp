@@ -14,6 +14,7 @@ jobs:
         # need to add linux commands first
         os: [windows-latest, macos-latest]
         dotnet: [6.0.101]
+      fail-fast: false # we have timing issues on some OS, so we want them all to run
     runs-on: ${{ matrix.os }}
 
     steps:

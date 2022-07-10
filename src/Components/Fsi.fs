@@ -114,13 +114,15 @@ module Fsi =
                     | Some p -> p.reveal (!! -2, true)
                     | None ->
                         let opts =
-                            createObj [ "enableCommandUris" ==> true
-                                        "enableFindWidget" ==> true
-                                        "retainContextWhenHidden" ==> true ]
+                            createObj
+                                [ "enableCommandUris" ==> true
+                                  "enableFindWidget" ==> true
+                                  "retainContextWhenHidden" ==> true ]
 
                         let viewOpts =
-                            createObj [ "preserveFocus" ==> true
-                                        "viewColumn" ==> -2 ]
+                            createObj
+                                [ "preserveFocus" ==> true
+                                  "viewColumn" ==> -2 ]
 
                         let p = window.createWebviewPanel ("fsiWatcher", "FSI Watcher", !!viewOpts, opts)
                         let onClose () = panel <- None
@@ -437,9 +439,10 @@ module Fsi =
 
     let private moveCursorDownOneLine () =
         let args =
-            createObj [ "to" ==> "down"
-                        "by" ==> "line"
-                        "value" ==> 1 ]
+            createObj
+                [ "to" ==> "down"
+                  "by" ==> "line"
+                  "value" ==> 1 ]
 
         commands.executeCommand ("cursorMove", Some(box args))
         |> ignore
