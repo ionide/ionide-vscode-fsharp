@@ -15,7 +15,10 @@ var babelOptions = {
       "modules": false
     }]
   ],
-  plugins: ["@babel/plugin-transform-runtime"]
+  plugins: [
+    "@babel/plugin-transform-runtime",
+    "@babel/plugin-proposal-nullish-coalescing-operator"
+  ]
 }
 
 module.exports = function (env, argv) {
