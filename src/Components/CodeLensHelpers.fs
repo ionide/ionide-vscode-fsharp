@@ -7,12 +7,15 @@ open Fable.Import.VSCode.Vscode
 
 module CodeLensHelpers =
 
-    let showReferences (args: string) (args2: obj) (args3: obj[]) =
-        let uri = vscode.Uri.parse args
+    type CustomIExports =
+        abstract registerCommand: command: string * callback: (obj -> obj -> obj -> obj option) * ?thisArg: obj -> Disposable
+
+    let showReferences (args: obj) (args2: obj) (args3: obj) =
+        let uri = vscode.Uri.parse !!args
         let pos = vscode.Position.Create(!!args2?Line, !!args2?Character)
 
         let locs =
-            args3
+            !!args3
             |> Seq.map (fun f ->
                 let uri = vscode.Uri.parse !!f?Uri
 
@@ -30,5 +33,5 @@ module CodeLensHelpers =
         commands.executeCommand ("editor.action.showReferences", Some(box uri), Some(box pos), Some(box locs))
 
     let activate (context: ExtensionContext) =
-        commands.registerCommand ("fsharp.showReferences", showReferences |> objfy4)
+        (unbox<CustomIExports>commands).registerCommand ("fsharp.showReferences",  unbox<(obj -> obj -> obj -> obj option)>(showReferences))
         |> context.Subscribe
