@@ -9,17 +9,6 @@ function resolve(filePath) {
   return path.join(__dirname, filePath)
 }
 
-var babelOptions = {
-  presets: [
-    ["@babel/preset-env", {
-      "modules": false
-    }]
-  ],
-  plugins: [
-    "@babel/plugin-transform-runtime",
-    "@babel/plugin-proposal-nullish-coalescing-operator"
-  ]
-}
 
 module.exports = function (env, argv) {
   var isProduction = argv.mode == "production"
@@ -52,26 +41,6 @@ module.exports = function (env, argv) {
       // Optional dependencies of ws
       "utf-8-validate": "commonjs utf-8-validate",
       "bufferutil": "commonjs bufferutil"
-    },
-    module: {
-      rules: [
-        {
-          test: /\.js$/,
-          exclude: /node_modules/,
-          use: {
-            loader: 'babel-loader',
-            options: babelOptions
-          },
-        },
-        {
-          test: /\.js$/,
-          include: /vscode/,
-          use: {
-            loader: 'babel-loader',
-            options: babelOptions
-          },
-        }
-      ]
     }
   };
   return config;
