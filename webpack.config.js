@@ -62,6 +62,14 @@ module.exports = function (env, argv) {
             loader: 'babel-loader',
             options: babelOptions
           },
+        },
+        {
+          test: /\.js$/,
+          include: /vscode/,
+          use: {
+            loader: 'babel-loader',
+            options: babelOptions
+          },
         }
       ]
     }
