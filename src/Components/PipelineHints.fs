@@ -31,12 +31,14 @@ module PipelineHintsConfig =
 module Documents =
 
     type Cached =
-        { /// vscode document version that was parsed
-          version: Number
-          /// Decorations
-          decorations: ResizeArray<DecorationOptions>
-          /// Text editors where the decorations are shown
-          textEditors: ResizeArray<TextEditor> }
+        {
+            /// vscode document version that was parsed
+            version: Number
+            /// Decorations
+            decorations: ResizeArray<DecorationOptions>
+            /// Text editors where the decorations are shown
+            textEditors: ResizeArray<TextEditor>
+        }
 
     type DocumentInfo =
         { /// Full uri of the document
@@ -118,8 +120,8 @@ module DecorationUpdate =
 
     let interestingSymbolPositions
         (doc: TextDocument)
-        (lines: PipelineHint [])
-        : (Vscode.Range * string [] * Vscode.Range option) [] =
+        (lines: PipelineHint[])
+        : (Vscode.Range * string[] * Vscode.Range option)[] =
         lines
         |> Array.map (fun n ->
             let textLine = doc.lineAt (float n.Line)
@@ -130,13 +132,13 @@ module DecorationUpdate =
 
             textLine.range, n.Types, previousTextLine)
 
-    let private getSignature (index: int) (range: Vscode.Range, tts: string []) =
+    let private getSignature (index: int) (range: Vscode.Range, tts: string[]) =
         let tt = tts.[index]
         let id = tt.IndexOf("is")
         let res = tt.Substring(id + 3)
         range, "  " + res
 
-    let private getSignatures (range: Vscode.Range, tts: string [], previousNonPipeLine: Vscode.Range option) =
+    let private getSignatures (range: Vscode.Range, tts: string[], previousNonPipeLine: Vscode.Range option) =
         match previousNonPipeLine with
         | Some previousLine ->
             [| getSignature 0 (previousLine, tts)

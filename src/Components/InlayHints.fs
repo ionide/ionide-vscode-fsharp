@@ -42,7 +42,7 @@ let useLongTooltip () : bool =
     |> Option.map not
     |> Option.defaultValue true
 
-let inline createEdit (pos: Position, text: string): TextEdit =
+let inline createEdit (pos: Position, text: string) : TextEdit =
     let e = createEmpty<TextEdit>
     e.range <- vscode.Range.Create(pos, pos)
     e.newText <- text
@@ -102,7 +102,7 @@ let inlayProvider () =
     let mutable ev = events.event
     let disposables = ResizeArray()
 
-    workspace.onDidChangeTextDocument.Invoke (fun e ->
+    workspace.onDidChangeTextDocument.Invoke(fun e ->
         if e.document.languageId = "fsharp" then
             events.fire ()
 
@@ -174,9 +174,9 @@ let activate (context: ExtensionContext) =
     let provider, disposables = inlayProvider ()
     toggleSupported <- supportsToggle vscode.version
 
-    let selector =
-        createObj [ "language" ==> "fsharp" ]
-        |> unbox<DocumentFilter>
+    let selector: DocumentSelector =
+        let filter: DocumentFilter = jsOptions<TextDocumentFilter> (fun f -> f.language <- Some "fsharp") |> DocumentFilter.Case1
+        [| U2.Case2 filter |]
 
     commands.registerCommand (
         Commands.disableLongTooltip,
@@ -224,7 +224,7 @@ let activate (context: ExtensionContext) =
     )
     |> context.Subscribe
 
-    languages.registerInlayHintsProvider (DocumentSelector.Case1 selector, provider)
+    languages.registerInlayHintsProvider (selector, provider)
     |> context.Subscribe
 
     disposables |> Seq.iter context.Subscribe

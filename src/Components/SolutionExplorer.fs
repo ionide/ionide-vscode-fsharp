@@ -401,8 +401,9 @@ module SolutionExplorer =
 
                         c.arguments <-
                             Some(
-                                ResizeArray [| Some(box (vscode.Uri.file p))
-                                               Some options |]
+                                ResizeArray
+                                    [| Some(box (vscode.Uri.file p))
+                                       Some options |]
                             )
 
                         Some c
@@ -743,7 +744,7 @@ module SolutionExplorer =
 
         let treeViewId = ShowInActivity.initializeAndGetId ()
 
-        Project.workspaceChanged.Invoke (fun _ ->
+        Project.workspaceChanged.Invoke(fun _ ->
             emiter.fire None
             None)
         |> context.Subscribe

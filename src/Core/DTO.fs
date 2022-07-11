@@ -8,14 +8,14 @@ module DTO =
     type ParseRequest =
         { FileName: string
           IsAsync: bool
-          Lines: string []
+          Lines: string[]
           Version: int }
 
     type ProjectRequest = { FileName: string }
 
     type DeclarationsRequest =
         { FileName: string
-          Lines: string []
+          Lines: string[]
           Version: int }
 
     type HelptextRequest = { Symbol: string }
@@ -39,12 +39,12 @@ module DTO =
     type WorkspacePeekRequest =
         { Directory: string
           Deep: int
-          ExcludedDirs: string [] }
+          ExcludedDirs: string[] }
 
-    type RangesAtPositionRequest = { FileName: string; Positions: Pos [] }
+    type RangesAtPositionRequest = { FileName: string; Positions: Pos[] }
 
     type WorkspaceLoadRequest =
-        { Files: string []
+        { Files: string[]
           DisableInMemoryProjectReferences: bool }
 
     type DocumentationForSymbolRequest = { XmlSig: string; Assembly: string }
@@ -69,29 +69,29 @@ module DTO =
           Footer: string }
 
     type Error =
-        { /// 1-indexed first line of the error block
-          StartLine: int
-          /// 1-indexed first column of the error block
-          StartColumn: int
-          /// 1-indexed last line of the error block
-          EndLine: int
-          /// 1-indexed last column of the error block
-          EndColumn: int
-          /// Description of the error
-          Message: string
-          ///Severity of the error - warning or error
-          Severity: string
-          /// Type of the Error
-          Subcategory: string
-          ///File Name
-          FileName: string }
+        {
+            /// 1-indexed first line of the error block
+            StartLine: int
+            /// 1-indexed first column of the error block
+            StartColumn: int
+            /// 1-indexed last line of the error block
+            EndLine: int
+            /// 1-indexed last column of the error block
+            EndColumn: int
+            /// Description of the error
+            Message: string
+            ///Severity of the error - warning or error
+            Severity: string
+            /// Type of the Error
+            Subcategory: string
+            ///File Name
+            FileName: string
+        }
 
-    type ErrorResp = { File: string; Errors: Error [] }
+    type ErrorResp = { File: string; Errors: Error[] }
 
     type Declaration =
-        { File: string
-          Line: int
-          Column: int }
+        { File: string; Line: int; Column: int }
 
     type Completion =
         { Name: string
@@ -123,7 +123,7 @@ module DTO =
 
     type Helptext =
         { Name: string
-          Overloads: OverloadSignature [] []
+          Overloads: OverloadSignature[][]
           AdditionalEdit: AdditionalEdit }
 
     type OverloadParameter =
@@ -133,15 +133,15 @@ module DTO =
           Description: string }
 
     type Overload =
-        { Tip: OverloadSignature [] []
+        { Tip: OverloadSignature[][]
           TypeText: string
-          Parameters: OverloadParameter []
+          Parameters: OverloadParameter[]
           IsStaticArguments: bool }
 
     type Method =
         { Name: string
           CurrentParameter: int
-          Overloads: Overload [] }
+          Overloads: Overload[] }
 
     type CompilerLocation =
         { Fsc: string option
@@ -170,7 +170,7 @@ module DTO =
 
     type Symbols =
         { Declaration: Symbol
-          Nested: Symbol [] }
+          Nested: Symbol[] }
 
     type Fix =
         { FromRange: Range
@@ -189,11 +189,11 @@ module DTO =
           Code: string
           Severity: string
           Range: Range
-          Fixes: Fix [] }
+          Fixes: Fix[] }
 
     type AnalyzerResponse =
         { File: string
-          Messages: AnalyzerMsg [] }
+          Messages: AnalyzerMsg[] }
 
     type ProjectFilePath = string
     type SourceFilePath = string
@@ -256,8 +256,8 @@ module DTO =
     type QualifySymbol = { Name: string; Qualifier: string }
 
     type ResolveNamespace =
-        { Opens: OpenNamespace []
-          Qualifies: QualifySymbol []
+        { Opens: OpenNamespace[]
+          Qualifies: QualifySymbol[]
           Word: string }
 
     type UnionCaseGenerator = { Text: string; Position: Pos }
@@ -275,20 +275,19 @@ module DTO =
 
     type RangesAtPosition = { Ranges: Range list list }
 
-    type WorkspacePeek = { Found: WorkspacePeekFound [] }
+    type WorkspacePeek = { Found: WorkspacePeekFound[] }
 
     and WorkspacePeekFound =
         | Directory of WorkspacePeekFoundDirectory
         | Solution of WorkspacePeekFoundSolution
 
     and WorkspacePeekFoundDirectory =
-        { Directory: string
-          Fsprojs: string [] }
+        { Directory: string; Fsprojs: string[] }
 
     and WorkspacePeekFoundSolution =
         { Path: string
-          Items: WorkspacePeekFoundSolutionItem []
-          Configurations: WorkspacePeekFoundSolutionConfiguration [] }
+          Items: WorkspacePeekFoundSolutionItem[]
+          Configurations: WorkspacePeekFoundSolutionConfiguration[] }
 
     and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionItem =
         { Guid: string
@@ -300,24 +299,24 @@ module DTO =
         | Folder of WorkspacePeekFoundSolutionItemKindFolder
 
     and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionItemKindMsbuildFormat =
-        { Configurations: WorkspacePeekFoundSolutionConfiguration [] }
+        { Configurations: WorkspacePeekFoundSolutionConfiguration[] }
 
     and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionItemKindFolder =
-        { Items: WorkspacePeekFoundSolutionItem []
-          Files: string [] }
+        { Items: WorkspacePeekFoundSolutionItem[]
+          Files: string[] }
 
     and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionConfiguration =
         { Id: string
           ConfigurationName: string
           PlatformName: string }
 
-    type FsdnResponse = { Functions: string [] }
+    type FsdnResponse = { Functions: string[] }
 
     type HighlightingRange =
         { range: Fable.Import.VSCode.Vscode.Range
           tokenType: string }
 
-    type HighlightingResponse = { highlights: HighlightingRange [] }
+    type HighlightingResponse = { highlights: HighlightingRange[] }
 
     type ResponseError<'T> =
         { Code: int
@@ -345,51 +344,47 @@ module DTO =
 
     type UnusedDeclaration = { Range: Range; IsThisMember: bool }
 
-    type UnusedDeclarations = { Declarations: UnusedDeclaration [] }
+    type UnusedDeclarations = { Declarations: UnusedDeclaration[] }
 
-    type UnusedOpens = { Declarations: Range [] }
+    type UnusedOpens = { Declarations: Range[] }
 
     type SimplifiedNameData =
         { RelativeName: string
           UnnecessaryRange: Range }
 
-    type SimplifiedName = { Names: SimplifiedNameData [] }
+    type SimplifiedName = { Names: SimplifiedNameData[] }
 
     type CompileData = { Code: int }
 
     type PipelineHint =
         { Line: int
-          Types: string []
+          Types: string[]
           PrecedingNonPipeExprLine: int option }
 
-    type TestAdapterEntry = {
-        name: string
-        range: Fable.Import.VSCode.Vscode.Range
-        childs: TestAdapterEntry []
-        id : int
-        list: bool
-        ``type``: string
-    }
+    type TestAdapterEntry =
+        { name: string
+          range: Fable.Import.VSCode.Vscode.Range
+          childs: TestAdapterEntry[]
+          id: int
+          list: bool
+          ``type``: string }
 
-    type TestForFile = {
-        file: string
-        tests: TestAdapterEntry []
-    }
+    type TestForFile =
+        { file: string
+          tests: TestAdapterEntry[] }
 
-    type Result<'T> =
-        { Kind : string
-          Data : 'T }
+    type Result<'T> = { Kind: string; Data: 'T }
 
     type CompilerLocationResult = Result<CompilerLocation>
     type HelptextResult = Result<Helptext>
-    type CompletionResult = Result<Completion []>
+    type CompletionResult = Result<Completion[]>
     type SymbolUseResult = Result<SymbolUses>
-    type TooltipResult = Result<TooltipSignature [] []>
+    type TooltipResult = Result<TooltipSignature[][]>
     type ParseResult = Result<ErrorResp>
     type FindDeclarationResult = Result<Declaration>
     type MethodResult = Result<Method>
-    type DeclarationResult = Result<Symbols []>
-    type LintResult = Result<Lint []>
+    type DeclarationResult = Result<Symbols[]>
+    type LintResult = Result<Lint[]>
     type ProjectResult = Result<Project>
     type ProjectLoadingResult = Result<ProjectLoading>
     type ResolveNamespaceResult = Result<ResolveNamespace>
@@ -453,8 +448,8 @@ module DTO =
         /// a FAKE target, its description and its relations to other targets (dependencies), including the declaration lines of the target and the dependencies.
         type Target =
             { Name: string
-              HardDependencies: Dependency []
-              SoftDependencies: Dependency []
+              HardDependencies: Dependency[]
+              SoftDependencies: Dependency[]
               Declaration: Declaration
               Description: string }
 
@@ -466,5 +461,5 @@ module DTO =
             | FakeCoreTargetsOlderThan5_15 = 3
 
         type GetTargetsResult =
-            { WarningsAndErrors: GetTargetsWarningOrErrorType []
-              Targets: Target [] }
+            { WarningsAndErrors: GetTargetsWarningOrErrorType[]
+              Targets: Target[] }

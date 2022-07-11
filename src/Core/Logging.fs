@@ -43,7 +43,7 @@ module Logging =
     [<Emit("console[$0] ? console[$0]($1...) : void 0")>]
     let private consoleLog (_level: string, [<ParamListAttribute>] _args: obj list) : unit = failwith "JS only"
 
-    let getConsoleLogArgs (level: Level) (source: string option) (template: string) (args: obj []) =
+    let getConsoleLogArgs (level: Level) (source: string option) (template: string) (args: obj[]) =
         // just replace %j (Util.format->JSON specifier --> console->OBJECT %O specifier)
         // the other % specifiers are basically the same
         let browserLogTemplate =
@@ -59,7 +59,7 @@ module Logging =
         let argList = args |> List.ofArray
         nameOnConsoleObject, (List.append [ box browserLogTemplate ] argList)
 
-    let inline private writeDevToolsConsole (level: Level) (source: string option) (template: string) (args: obj []) =
+    let inline private writeDevToolsConsole (level: Level) (source: string option) (template: string) (args: obj[]) =
         let nameOnConsoleObject, logArgs = getConsoleLogArgs level source template args
         consoleLog (nameOnConsoleObject, logArgs)
 
@@ -88,7 +88,7 @@ module Logging =
         (level: Level)
         (source: string option)
         (template: string)
-        (args: obj [])
+        (args: obj[])
         =
         if
             out.IsSome
@@ -111,7 +111,7 @@ module Logging =
         (level: Level)
         (source: string option)
         (template: string)
-        (args: obj [])
+        (args: obj[])
         =
         if
             consoleMinLevel.IsSome
@@ -135,7 +135,7 @@ module Logging =
         /// Logs a different message in either DEBUG (if enabled) or INFO (otherwise).
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
-        member this.DebugOrInfo (debugTemplateAndArgs: string * obj []) (infoTemplateAndArgs: string * obj []) =
+        member this.DebugOrInfo (debugTemplateAndArgs: string * obj[]) (infoTemplateAndArgs: string * obj[]) =
             // OutputChannel: when at DEBUG level, use the DEBUG template and args, otherwise INFO
             if out.IsSome then
                 if this.ChanMinLevel.isLessOrEqualTo (Level.DEBUG) then
@@ -153,25 +153,25 @@ module Logging =
         /// Logs a message that should/could be seen by developers when diagnosing problems.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
-        member this.Debug(template, [<ParamArray>] args: obj []) =
+        member this.Debug(template, [<ParamArray>] args: obj[]) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel DEBUG source template args
 
         /// Logs a message that should/could be seen by the user in the output channel.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
-        member this.Info(template, [<ParamArray>] args: obj []) =
+        member this.Info(template, [<ParamArray>] args: obj[]) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel INFO source template args
 
         /// Logs a message that should/could be seen by the user in the output channel when a problem happens.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
-        member this.Error(template, [<ParamArray>] args: obj []) =
+        member this.Error(template, [<ParamArray>] args: obj[]) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel ERROR source template args
 
         /// Logs a message that should/could be seen by the user in the output channel when a problem happens.
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
-        member this.Warn(template, [<ParamArray>] args: obj []) =
+        member this.Warn(template, [<ParamArray>] args: obj[]) =
             writeBothIfConfigured out this.ChanMinLevel consoleMinLevel WARN source template args
 
         /// Logs a message that should/could be seen by the user in the output channel if the promise fail.
