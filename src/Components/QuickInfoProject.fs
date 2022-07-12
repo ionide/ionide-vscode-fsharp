@@ -82,22 +82,22 @@ module QuickInfoProject =
         if window.visibleTextEditors.Count > 0 then
             handler window.activeTextEditor
 
-        Project.projectLoaded.Invoke (fun _project ->
+        Project.projectLoaded.Invoke(fun _project ->
             handler window.activeTextEditor
             undefined)
         |> context.Subscribe
 
-        Project.projectNotRestoredLoaded.Invoke (fun _project ->
+        Project.projectNotRestoredLoaded.Invoke(fun _project ->
             handler window.activeTextEditor
             undefined)
         |> context.Subscribe
 
-        Project.workspaceChanged.Invoke (fun _workspacePeek ->
+        Project.workspaceChanged.Invoke(fun _workspacePeek ->
             handler window.activeTextEditor
             undefined)
         |> context.Subscribe
 
-        Project.workspaceLoaded.Invoke (fun () ->
+        Project.workspaceLoaded.Invoke(fun () ->
             handler window.activeTextEditor
             undefined)
         |> context.Subscribe

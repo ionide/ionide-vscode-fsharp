@@ -42,16 +42,18 @@ module LanguageService =
         /// Position in a text document expressed as zero-based line and zero-based character offset.
         /// A position is between two characters like an ‘insert’ cursor in a editor.
         type Position =
-            { /// Line position in a document (zero-based).
-              Line: int
+            {
+                /// Line position in a document (zero-based).
+                Line: int
 
-              /// Character offset on a line in a document (zero-based). Assuming that the line is
-              /// represented as a string, the `character` value represents the gap between the
-              /// `character` and `character + 1`.
-              ///
-              /// If the character value is greater than the line length it defaults back to the
-              /// line length.
-              Character: int }
+                /// Character offset on a line in a document (zero-based). Assuming that the line is
+                /// represented as a string, the `character` value represents the gap between the
+                /// `character` and `character + 1`.
+                ///
+                /// If the character value is greater than the line length it defaults back to the
+                /// line length.
+                Character: int
+            }
 
         type DocumentUri = string
 
@@ -69,7 +71,7 @@ module LanguageService =
         type FileParams = { Project: TextDocumentIdentifier }
 
         type WorkspaceLoadParms =
-            { TextDocuments: TextDocumentIdentifier [] }
+            { TextDocuments: TextDocumentIdentifier[] }
 
         type HighlightingRequest =
             { TextDocument: TextDocumentIdentifier }
@@ -184,7 +186,7 @@ module LanguageService =
             cl.sendRequest ("fsharp/documentation", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
                 res.content
-                |> ofJson<Result<DocumentationDescription [] []>>)
+                |> ofJson<Result<DocumentationDescription[][]>>)
 
     let documentationForSymbol xmlSig assembly =
         match client with
@@ -197,7 +199,7 @@ module LanguageService =
             cl.sendRequest ("fsharp/documentationSymbol", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
                 res.content
-                |> ofJson<Result<DocumentationDescription [] []>>)
+                |> ofJson<Result<DocumentationDescription[][]>>)
 
     let signature (uri: Uri) line col =
         match client with
@@ -241,7 +243,7 @@ module LanguageService =
             let req: Types.FileParams = { Project = { Uri = uri.ToDocumentUri } }
 
             cl.sendRequest ("fsharp/lineLens", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<Result<Symbols []>>)
+            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<Result<Symbols[]>>)
 
     let compile s =
         match client with
@@ -517,7 +519,7 @@ module LanguageService =
             cl.sendRequest ("fsharp/pipelineHint", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<PipelineHintsResult>)
 
-    let inlayHints (fileUri: Uri, range) : JS.Promise<Types.InlayHint []> =
+    let inlayHints (fileUri: Uri, range) : JS.Promise<Types.InlayHint[]> =
         match client with
         | None -> Promise.empty
         | Some cl ->
@@ -617,8 +619,7 @@ Consider:
 
     let private createClient (opts: Executable) =
         let options =
-            createObj [ "run" ==> opts
-                        "debug" ==> opts ]
+            createObj [ "run" ==> opts; "debug" ==> opts ]
             |> unbox<ServerOptions>
 
         let fileDeletedWatcher =
@@ -627,9 +628,9 @@ Consider:
         let clientOpts =
             let opts = createEmpty<Client.LanguageClientOptions>
 
-            let selector =
-                createObj [ "language" ==> "fsharp" ]
-                |> unbox<Client.DocumentSelector>
+            let selector: DocumentSelector =
+                let filter: DocumentFilter = jsOptions<TextDocumentFilter> (fun f -> f.language <- Some "fsharp") |> U2.Case1
+                [| U2.Case2 filter |]
 
             let initOpts = createObj [ "AutomaticWorkspaceInit" ==> false ]
 
@@ -637,7 +638,9 @@ Consider:
             synch.configurationSection <- Some !^ "FSharp"
             synch.fileEvents <- Some(!^ ResizeArray([ fileDeletedWatcher ]))
 
-            opts.documentSelector <- Some !^selector
+            // this type needs to be updated on the bindings - DocumentSelector is a (string|DocumentFilter) [] now only.
+            // that's why we need to coerce it here.
+            opts.documentSelector <- Some selector
             opts.synchronize <- Some synch
             opts.revealOutputChannelOn <- Some Client.RevealOutputChannelOn.Never
 

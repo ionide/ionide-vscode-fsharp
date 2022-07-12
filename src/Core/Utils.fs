@@ -278,7 +278,7 @@ module Patterns =
 [<RequireQualifiedAccess>]
 module Array =
 
-    let splitAt (n: int) (xs: 'a []) : 'a [] * 'a [] =
+    let splitAt (n: int) (xs: 'a[]) : 'a[] * 'a[] =
         match xs with
         | [||]
         | [| _ |] -> xs, [||]
@@ -421,11 +421,11 @@ type ShowStatus private (panel: WebviewPanel, body: string) as this =
 module VSCodeExtension =
 
     let private extensionName =
-        #if IONIDE_EXPERIMENTAL
-
+#if IONIDE_EXPERIMENTAL
+        "ionide-fsharp-experimental"
 #else
         "ionide-fsharp"
-    #endif
+#endif
 
     let ionidePluginPath () =
 

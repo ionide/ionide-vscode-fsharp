@@ -8,14 +8,14 @@ open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
-open global.Node.ChildProcess
+open Node.ChildProcess
 
 type Api =
     { ProjectLoadedEvent: Event<DTO.Project>
       BuildProject: DTO.Project -> JS.Promise<string>
       BuildProjectFast: DTO.Project -> JS.Promise<string>
       GetProjectLauncher: OutputChannel -> DTO.Project -> (string list -> JS.Promise<ChildProcess>) option
-      DebugProject: DTO.Project -> string [] -> JS.Promise<unit> }
+      DebugProject: DTO.Project -> string[] -> JS.Promise<unit> }
 
 let activate (context: ExtensionContext) : JS.Promise<Api> =
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
@@ -128,4 +128,4 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
         Unchecked.defaultof<_>)
 
 
-let deactivate (disposables: Disposable []) = LanguageService.stop ()
+let deactivate (disposables: Disposable[]) = LanguageService.stop ()

@@ -31,8 +31,7 @@ module LineLensConfig =
         | _ -> ReplaceCodeLens
 
     type LineLensConfig =
-        { enabled: EnabledMode
-          prefix: string }
+        { enabled: EnabledMode; prefix: string }
 
     let defaultConfig =
         { enabled = ReplaceCodeLens
@@ -62,12 +61,14 @@ module LineLensConfig =
 module Documents =
 
     type Cached =
-        { /// vscode document version that was parsed
-          version: Number
-          /// Decorations
-          decorations: ResizeArray<DecorationOptions>
-          /// Text editors where the decorations are shown
-          textEditors: ResizeArray<TextEditor> }
+        {
+            /// vscode document version that was parsed
+            version: Number
+            /// Decorations
+            decorations: ResizeArray<DecorationOptions>
+            /// Text editors where the decorations are shown
+            textEditors: ResizeArray<TextEditor>
+        }
 
     type DocumentInfo =
         { /// Full uri of the document
@@ -166,7 +167,7 @@ module DecorationUpdate =
         else
             args + " -> " + formatType sign.OutputType
 
-    let interestingSymbolPositions (symbols: Symbols []) : DTO.Range [] =
+    let interestingSymbolPositions (symbols: Symbols[]) : DTO.Range[] =
         symbols
         |> Array.collect (fun syms ->
             let interestingNested =
@@ -216,7 +217,7 @@ module DecorationUpdate =
     let private signatureToDecoration (doc: TextDocument) (range: DTO.Range, signature: string) =
         LineLensDecorations.create (lineRange doc range) (config.prefix + signature)
 
-    let private onePerLine (ranges: Range []) =
+    let private onePerLine (ranges: Range[]) =
         ranges
         |> Array.groupBy (fun r -> r.StartLine)
         |> Array.choose (fun (_, ranges) ->

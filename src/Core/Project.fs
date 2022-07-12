@@ -14,7 +14,6 @@ open System.Collections.Generic
 
 module node = Node.Api
 
-
 module Project =
     let private logger =
         ConsoleAndOutputChannelLogger(Some "Project", Level.DEBUG, None, Some Level.DEBUG)
@@ -57,11 +56,12 @@ module Project =
 
     let excluded =
         "FSharp.excludeProjectDirectories"
-        |> Configuration.get [| ".git"
-                                "paket-files"
-                                ".fable"
-                                "packages"
-                                "node_modules" |]
+        |> Configuration.get
+            [| ".git"
+               "paket-files"
+               ".fable"
+               "packages"
+               "node_modules" |]
 
     let deepLevel =
         "FSharp.workspaceModePeekDeepLevel"
