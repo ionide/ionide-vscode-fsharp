@@ -60,39 +60,28 @@ module Fsi =
                 ()
 
     module Watcher =
+        open Webviews
         let mutable panel: WebviewPanel option = None
 
-        let setContent str =
-            panel
-            |> Option.iter (fun p ->
-                let str =
-                    sprintf
-                        """
-                    <html>
-                    <head>
-                    <meta>
-                    <style>
-                    table { border-collapse: collapse;}
-                    th {
-                        border-left: 1px solid var(--vscode-editor-foreground);
-                        border-right: 1px solid var(--vscode-editor-foreground);
-                        padding: 5px;
-                    }
-                    td {
-                        border: 1px solid var(--vscode-editor-foreground);
-                        min-width: 100px;
-                        padding: 5px;
-                    }
-                    </style>
-                    </head>
-                    <body>
-                    %s
-                    </body>
-                    </html>
-                    """
-                        str
+        let updateContent
+            (context: ExtensionContext)
+            (varsContent: (string * string) option)
+            (typesContent: (string * string) option)
+            (funcsContent: (string * string) option)
+            =
+            let (vars, varsScript) = defaultArg varsContent ("", "")
+            let (types, typesScript) = defaultArg typesContent ("", "")
+            let (funcs, funcsScript) = defaultArg funcsContent ("", "")
 
-                p.webview.html <- str)
+            match panel with
+            | Some panel ->
+                FsWebview.render (
+                    context,
+                    panel,
+                    $"{vars}{types}{funcs}",
+                    scripts = [ varsScript; typesScript; funcsScript ]
+                )
+            | None -> ()
 
         let openPanel () =
             promise {
@@ -113,18 +102,22 @@ module Fsi =
                     match panel with
                     | Some p -> p.reveal (!! -2, true)
                     | None ->
-                        let opts =
-                            createObj
-                                [ "enableCommandUris" ==> true
-                                  "enableFindWidget" ==> true
-                                  "retainContextWhenHidden" ==> true ]
-
                         let viewOpts =
                             createObj
                                 [ "preserveFocus" ==> true
                                   "viewColumn" ==> -2 ]
 
-                        let p = window.createWebviewPanel ("fsiWatcher", "FSI Watcher", !!viewOpts, opts)
+                        let p =
+                            FsWebview.create (
+                                "fsiWatcher",
+                                "FSI Watcher",
+                                !!viewOpts,
+                                enableScripts = true,
+                                enableFindWidget = true,
+                                enableCommandUris = true,
+                                retainContextWhenHidden = true
+                            )
+
                         let onClose () = panel <- None
 
                         p.onDidDispose.Invoke(!!onClose) |> ignore
@@ -140,11 +133,10 @@ module Fsi =
             path.join (VSCodeExtension.ionidePluginPath (), "watcher", "funcs.txt")
 
 
-        let handler () =
-            let mutable varsContent = ""
-            let mutable typesContent = ""
-            let mutable funcsContent = ""
-
+        let handler (context: ExtensionContext) =
+            let mutable varsContent = None
+            let mutable typesContent = None
+            let mutable funcsContent = None
 
             node.fs.readFile (
                 varsUri,
@@ -152,30 +144,33 @@ module Fsi =
                     if not (Utils.isUndefined buf) then
                         let cnt = buf.ToString()
 
-                        varsContent <-
-                            cnt
-                            |> String.split [| '\n' |]
-                            |> Seq.map (fun row ->
-                                let x = row.Split([| "###IONIDESEP###" |], StringSplitOptions.None)
+                        if String.IsNullOrWhiteSpace cnt then
+                            varsContent <- None
+                        else
 
-                                sprintf
-                                    "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td><td>%s</td></tr>"
-                                    x.[0]
-                                    x.[1]
-                                    x.[2]
-                                    x.[3])
-                            |> String.concat "\n"
-                            |> sprintf
-                                """</br><h3>Declared values</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Value</th><th style="width: 20%%">Type</th><th>Step</th></tr>%s</table>"""
+                            let datagridContent =
+                                cnt
+                                |> String.split [| '\n' |]
+                                |> Array.map (fun row ->
+                                    let x = row.Split([| "###IONIDESEP###" |], StringSplitOptions.None)
 
+                                    box
+                                        {| name = x[0]
+                                           value = x[1]
+                                           Type = x[2]
+                                           step = x[3] |})
+                            // ensure column order
+                            let headers =
+                                [| "Name", "name"
+                                   "Value", "value"
+                                   "Type", "Type"
+                                   "Step", "step" |]
 
-                        setContent (
-                            varsContent
-                            + "\n\n"
-                            + funcsContent
-                            + "\n\n"
-                            + typesContent
-                        ))
+                            let grid, script = VsHtml.datagrid ("vars-content", datagridContent, headers)
+
+                            varsContent <- Some(html $"<h3>Declared values</h3>{grid}", script)
+
+                            updateContent context varsContent typesContent funcsContent)
             )
 
             node.fs.readFile (
@@ -184,30 +179,33 @@ module Fsi =
                     if not (Utils.isUndefined buf) then
                         let cnt = buf.ToString()
 
-                        funcsContent <-
-                            cnt
-                            |> String.split [| '\n' |]
-                            |> Seq.map (fun row ->
-                                let x = row.Split([| "###IONIDESEP###" |], StringSplitOptions.None)
+                        if String.IsNullOrWhiteSpace cnt then
+                            funcsContent <- None
+                        else
+                            let datagridContent =
+                                cnt
+                                |> String.split [| '\n' |]
+                                |> Array.map (fun row ->
+                                    let x = row.Split([| "###IONIDESEP###" |], StringSplitOptions.None)
 
-                                sprintf
-                                    "<tr><td>%s</td><td><code>%s</code></td><td><code>%s</code></td><td>%s</td></tr>"
-                                    x.[0]
-                                    x.[1]
-                                    x.[2]
-                                    x.[3])
-                            |> String.concat "\n"
-                            |> sprintf
-                                """</br><h3>Declared functions</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 65%%">Parameters</th><th style="width: 20%%">Returned type</th><th>Step</th></tr>%s</table>"""
+                                    box
+                                        {| name = x[0]
+                                           parameters = x[1]
+                                           returnType = x[2]
+                                           step = x[3] |})
 
+                            let grid, script =
+                                VsHtml.datagrid (
+                                    "funcs-content",
+                                    datagridContent,
+                                    [| "Name", "name"
+                                       "Parameters", "parameters"
+                                       "Return Type", "returnType" |]
+                                )
 
-                        setContent (
-                            varsContent
-                            + "\n\n"
-                            + funcsContent
-                            + "\n\n"
-                            + typesContent
-                        ))
+                            funcsContent <- Some(html $"<h3>Declared functions</h3>{grid}", script)
+
+                            updateContent context varsContent typesContent funcsContent)
             )
 
             node.fs.readFile (
@@ -216,40 +214,39 @@ module Fsi =
                     if not (Utils.isUndefined buf) then
                         let cnt = buf.ToString()
 
-                        typesContent <-
-                            if String.IsNullOrWhiteSpace cnt then
-                                ""
-                            else
+                        if String.IsNullOrWhiteSpace cnt then
+                            typesContent <- None
+                        else
+                            let extractSignature (str: string) =
+                                if str.Contains "#|#" then
+                                    "| " + str.Replace("#|#", "</br>| ")
+                                else
+                                    str
+
+                            let datagridContent =
                                 cnt
                                 |> String.split [| '\n' |]
-                                |> Seq.map (fun row ->
+                                |> Array.map (fun row ->
                                     let x = row.Split([| "###IONIDESEP###" |], StringSplitOptions.None)
 
-                                    let signature =
-                                        if x.[1].Contains "#|#" then
-                                            "| " + x.[1].Replace("#|#", "</br>| ")
-                                        else
-                                            x.[1]
+                                    let signature = extractSignature x[1]
 
-                                    sprintf "<tr><td>%s</td><td><code>%s</code></td><td>%s</td></tr>" x.[0] signature x.[2])
-                                |> String.concat "\n"
-                                |> sprintf
-                                    """</br><h3>Declared types</h3></br><table style="width:100%%"><tr><th style="width: 12%%">Name</th><th style="width: 85%%">Signature</th><th>Step</th></tr>%s</table>"""
+                                    box
+                                        {| Name = x[0]
+                                           Signature = signature
+                                           Step = x[2] |})
 
+                            let grid, script = VsHtml.datagrid ("types-content", datagridContent)
 
-                        setContent (
-                            varsContent
-                            + "\n\n"
-                            + funcsContent
-                            + "\n\n"
-                            + typesContent
-                        ))
+                            typesContent <- Some(html $"<h3>Declared types</h3>{grid}", script)
+
+                            updateContent context varsContent typesContent funcsContent)
             )
 
-        let activate dispsables =
-            fs.watchFile (varsUri, (fun st st2 -> handler ()))
-            fs.watchFile (typesUri, (fun st st2 -> handler ()))
-            fs.watchFile (funcUri, (fun st st2 -> handler ()))
+        let activate context dispsables =
+            fs.watchFile (varsUri, (fun st st2 -> handler context))
+            fs.watchFile (typesUri, (fun st st2 -> handler context))
+            fs.watchFile (funcUri, (fun st st2 -> handler context))
 
     let mutable fsiOutput: Terminal option = None
     let mutable fsiOutputPID: int option = None
@@ -635,7 +632,7 @@ module Fsi =
         }
 
     let activate (context: ExtensionContext) =
-        Watcher.activate (!!context.subscriptions)
+        Watcher.activate context (!!context.subscriptions)
         SdkScriptsNotify.activate context
 
         window.registerTerminalProfileProvider ("ionide-fsharp.fsi", provider)
