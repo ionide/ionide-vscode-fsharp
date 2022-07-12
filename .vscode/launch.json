@@ -38,6 +38,25 @@
 			],
 		},
 		{
+			"preLaunchTask": "Watch",
+			"name": "Build (watch) and Launch Extension",
+			"type": "extensionHost",
+			"runtimeExecutable": "${execPath}",
+			"args": [
+				"--extensionDevelopmentPath=${workspaceRoot}/release"
+			],
+			"stopOnEntry": false,
+			"request": "launch",
+			"sourceMaps": true,
+			"pauseForSourceMap": true,
+			"sourceMapRenames": true,
+			"trace": true,
+			"outFiles": [
+				"${workspaceFolder}/release/*.js",
+				"!**/node_modules/**"
+			],
+		},
+		{
 			"name": "Launch Only",
 			"type": "extensionHost",
 			"runtimeExecutable": "${execPath}",
