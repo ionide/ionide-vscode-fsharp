@@ -304,14 +304,14 @@ module Fsi =
 
         promise {
             if isSdk () then
-                let! dotnet = LanguageService.dotnet ()
+                let! dotnet = LanguageService.tryFindDotnet ()
 
                 match dotnet with
-                | Some dotnet ->
+                | Ok dotnet ->
                     let! fsiSetting = LanguageService.fsiSdk ()
                     let fsiArg = defaultArg fsiSetting "fsi"
                     return dotnet, [| yield fsiArg; yield! parms |]
-                | None -> return failwith "dotnet fsi requested but no dotnet SDK was found."
+                | Error msg -> return failwith msg
             else
                 let! fsi = LanguageService.fsi ()
 

@@ -1,4 +1,4 @@
-﻿open System
+open System
 open System.IO
 open Fake.Core
 open Fake.JavaScript
@@ -386,8 +386,10 @@ let buildTargetTree () =
     "YarnInstall" ==>! "Build"
     "DotNetRestore" ==>! "Build"
 
-    "Format"
-    ==> "Build"
+    // Disable Fantomas because it generates invalid code F# code
+    // "Format"
+    // ==> "Build"
+    "Build"
     ==> "SetVersion"
     ==> "BuildPackage"
     ==> "ReleaseGitHub"

@@ -95,13 +95,13 @@ Error: %A
     let getRuntimeInfos () =
         let netcoreInfos =
             promise {
-                let! dotnet = Environment.dotnet
+                let! dotnet = LanguageService.tryFindDotnet ()
 
                 match dotnet with
-                | Some dotnet ->
+                | Ok dotnet ->
                     let! version = execCommand dotnet [ "--version" ]
                     return Templates.netcoreRuntime version
-                | None -> return "No dotnet installation found"
+                | Error msg -> return msg
             }
 
 
