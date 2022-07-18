@@ -1,11 +1,9 @@
 module Ionide.VSCode.FSharp.PipelineHints
 
-open System
 open System.Collections.Generic
 open Fable.Core
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 open Fable.Core.JsInterop
 open DTO
 
@@ -41,10 +39,12 @@ module Documents =
         }
 
     type DocumentInfo =
-        { /// Full uri of the document
-          uri: Uri
-          /// Current decoration cache
-          cache: Cached option }
+        {
+            /// Full uri of the document
+            uri: Uri
+            /// Current decoration cache
+            cache: Cached option
+        }
 
     type Documents = Dictionary<Uri, DocumentInfo>
 
@@ -127,8 +127,7 @@ module DecorationUpdate =
             let textLine = doc.lineAt (float n.Line)
 
             let previousTextLine =
-                n.PrecedingNonPipeExprLine
-                |> Option.map (fun l -> (doc.lineAt (float l)).range)
+                n.PrecedingNonPipeExprLine |> Option.map (fun l -> (doc.lineAt (float l)).range)
 
             textLine.range, n.Types, previousTextLine)
 
@@ -140,17 +139,13 @@ module DecorationUpdate =
 
     let private getSignatures (range: Vscode.Range, tts: string[], previousNonPipeLine: Vscode.Range option) =
         match previousNonPipeLine with
-        | Some previousLine ->
-            [| getSignature 0 (previousLine, tts)
-               getSignature 1 (range, tts) |]
+        | Some previousLine -> [| getSignature 0 (previousLine, tts); getSignature 1 (range, tts) |]
         | None -> [| getSignature 1 (range, tts) |]
 
 
     let private declarationsResultToSignatures (doc: TextDocument) (declarationsResult: DTO.PipelineHintsResult) uri =
         promise {
-            let interesting =
-                declarationsResult.Data
-                |> interestingSymbolPositions doc
+            let interesting = declarationsResult.Data |> interestingSymbolPositions doc
 
             let signatures = interesting |> Array.collect (getSignatures)
             return signatures
@@ -163,23 +158,22 @@ module DecorationUpdate =
         promise {
             let uri = document.uri
 
-            match state.documents
-                  |> Documents.tryGetCachedAtVersion uri version
-                with
+            match state.documents |> Documents.tryGetCachedAtVersion uri version with
             | Some (info, _) ->
                 logger.Debug("Found existing decorations in cache for '%s' @%d", uri, version)
                 return Some info
             | None when document.version = version ->
                 let! hintsResults = LanguageService.pipelineHints uri
 
-                if document.version = version
-                   && isNotNull hintsResults then
+                if document.version = version && isNotNull hintsResults then
 
                     let! signatures = declarationsResultToSignatures document hintsResults uri
                     let info = state.documents |> Documents.getOrAdd uri
 
-                    if document.version = version && info.cache.IsNone
-                       || info.cache.Value.version <> version then
+                    if
+                        document.version = version && info.cache.IsNone
+                        || info.cache.Value.version <> version
+                    then
                         let decorations =
                             signatures
                             |> Seq.map (fun (r, s) -> PipelineHintsDecorations.create r (config.prefix + s))
@@ -187,11 +181,7 @@ module DecorationUpdate =
 
                         logger.Debug("New decorations generated for '%s' @%d", uri, version)
 
-                        return
-                            Some(
-                                state.documents
-                                |> Documents.update info decorations version
-                            )
+                        return Some(state.documents |> Documents.update info decorations version)
                     else
                         return None
                 else
@@ -256,8 +246,7 @@ let private documentParsedHandler (event: Notifications.DocumentParsedEvent) =
         |> logger.ErrorOnFailed "Updating after parse failed"
 
 let private closedTextDocumentHandler (textDocument: TextDocument) =
-    state
-    |> Option.iter (DecorationUpdate.documentClosed textDocument.uri)
+    state |> Option.iter (DecorationUpdate.documentClosed textDocument.uri)
 
 let install () =
     logger.Debug "Installing"
@@ -302,10 +291,7 @@ let configChangedHandler () =
     let isEnabled = config.enabled
 
     if wasEnabled <> isEnabled then
-        if isEnabled then
-            install ()
-        else
-            uninstall ()
+        if isEnabled then install () else uninstall ()
 
 
 let activate (context: ExtensionContext) =

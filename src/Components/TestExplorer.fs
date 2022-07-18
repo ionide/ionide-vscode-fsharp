@@ -6,10 +6,11 @@ open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 open Ionide.VSCode.FSharp.Import
 open Ionide.VSCode.FSharp.Import.XmlDoc
-open global.Node
 open Fable.Core.JsInterop
 open DTO
 open Ionide.VSCode.Helpers
+
+module node = Node.Api
 
 let private lastOutput = Collections.Generic.Dictionary<string, string>()
 let private outputChannel = window.createOutputChannel "F# - Test Adapter"
@@ -18,15 +19,18 @@ let private logger =
     ConsoleAndOutputChannelLogger(Some "TestExplorer", Level.DEBUG, None, Some Level.DEBUG)
 
 type TestItemCollection with
+
     member x.TestItems() : TestItem array =
         let arr = ResizeArray<TestItem>()
         x.forEach (fun t _ -> !! arr.Add(t))
         arr.ToArray()
 
 type TestController with
+
     member x.TestItems() : TestItem array = x.items.TestItems()
 
 type TestItem with
+
     member this.Type: string = this?``type``
 
 type TestItemAndProject =
@@ -104,11 +108,11 @@ module DotnetTest =
             logger.Debug("Test run exitCode", exitCode)
 
             let trxPath =
-                path.resolve (path.dirname projectWithTests.Project.Project, "TestResults", "Ionide.trx")
+                node.path.resolve (node.path.dirname projectWithTests.Project.Project, "TestResults", "Ionide.trx")
 
             logger.Debug("Trx file at", trxPath)
             // probably possible to read via promise api
-            let trxContent = fs.readFileSync (trxPath, "utf8")
+            let trxContent = node.fs.readFileSync (trxPath, "utf8")
             let xmlDoc = mkDoc trxContent
 
             let xpathSelector =
@@ -191,8 +195,7 @@ let rec mapTest (tc: TestController) (uri: Uri) (t: TestAdapterEntry) : TestItem
             )
         )
 
-    t.childs
-    |> Array.iter (fun n -> mapTest tc uri n |> ti.children.add)
+    t.childs |> Array.iter (fun n -> mapTest tc uri n |> ti.children.add)
 
     ti?``type`` <- t.``type``
     ti
@@ -222,8 +225,7 @@ let getProjectsForTests (tc: TestController) (req: TestRunRequest) : ProjectWith
                 [| { Test = testItem
                      FullName = getFullName testItem } |]
             else
-                testItem.children.TestItems()
-                |> Array.collect visit
+                testItem.children.TestItems() |> Array.collect visit
 
         // The goal is to collect here the actual runnable tests, they might be nested under a tree structure.
         visit testItem.TestItem
@@ -249,8 +251,7 @@ let buildProjects (projects: ProjectWithTests array) : Thenable<ProjectWithTests
                     {| message = Some $"Building {p.Project.Project}"
                        increment = None |}
 
-                MSBuild.buildProjectPath "Build" p.Project
-                |> Promise.map (fun cpe -> p, cpe))
+                MSBuild.buildProjectPath "Build" p.Project |> Promise.map (fun cpe -> p, cpe))
             |> Promise.all
             |> Promise.map (fun projects ->
                 let successfulBuilds =

@@ -1,6 +1,5 @@
 namespace Ionide.VSCode.FSharp
 
-open Fable.Import
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 open Ionide.VSCode.Helpers
@@ -8,7 +7,6 @@ open Fable.Core
 
 module Fsdn =
 
-    open Fable.Core
     open Fable.Core.JsInterop
 
     let pickSignature (functions: string list) =
@@ -31,9 +29,7 @@ module Fsdn =
                 match chosen with
                 | Some chosen ->
                     let selected =
-                        projects
-                        |> List.tryFind (fun (qp, _) -> qp = chosen)
-                        |> Option.map snd
+                        projects |> List.tryFind (fun (qp, _) -> qp = chosen) |> Option.map snd
 
                     match selected with
                     | Some selected -> return Some selected
@@ -101,8 +97,7 @@ module QuickInfo =
             context.subscriptions.Add(unbox (box newItem))
 
         let private isFsharpTextEditor (textEditor: TextEditor) =
-            if JS.isDefined textEditor
-               && JS.isDefined textEditor.document then
+            if JS.isDefined textEditor && JS.isDefined textEditor.document then
                 let doc = textEditor.document
 
                 match doc with
@@ -114,16 +109,12 @@ module QuickInfo =
 
         let private getOverloadSignature (textEditor: TextEditor) (selections: ResizeArray<Selection>) =
             promise {
-                if isFsharpTextEditor textEditor
-                   && selections.Count > 0 then
+                if isFsharpTextEditor textEditor && selections.Count > 0 then
                     let doc = textEditor.document
                     let pos = selections.[0].active
                     let! o = LanguageService.signature (doc.uri) (int pos.line) (int pos.character)
 
-                    if isNotNull o then
-                        return Some o.Data
-                    else
-                        return None
+                    if isNotNull o then return Some o.Data else return None
                 else
                     return None
             }

@@ -2,10 +2,8 @@ namespace Ionide.VSCode.FSharp
 
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 
 open DTO
 open Ionide.VSCode.Helpers
@@ -46,9 +44,7 @@ module MSBuild =
                 if autoshow then
                     outputChannel.show (?preserveFocus = None)
 
-                return!
-                    Process.spawnWithNotification msbuildPath cmd outputChannel
-                    |> Process.toPromise
+                return! Process.spawnWithNotification msbuildPath cmd outputChannel |> Process.toPromise
             }
 
         let progressOpts = createEmpty<ProgressOptions>
@@ -116,7 +112,7 @@ module MSBuild =
                 match currentProject with
                 | Some p ->
                     logger.Debug("found project %s", p.Project)
-                    let projectFile = path.basename p.Project
+                    let projectFile = node.path.basename p.Project
                     let! msbuildTasks = tasks.fetchTasks (msbuildTasksFilter)
 
                     let expectedGroup =
@@ -126,7 +122,8 @@ module MSBuild =
                         | "Clean" -> Some vscode.TaskGroup.Clean
                         | _ -> None
 
-                    if expectedGroup = None then return ()
+                    if expectedGroup = None then
+                        return ()
 
                     let t =
                         msbuildTasks
@@ -163,9 +160,7 @@ module MSBuild =
         else
             promise {
                 let items =
-                    projects
-                    |> Seq.map (fun p -> path.basename p.Project)
-                    |> ResizeArray
+                    projects |> Seq.map (fun p -> node.path.basename p.Project) |> ResizeArray
 
                 let opts = createEmpty<QuickPickOptions>
                 opts.placeHolder <- Some placeHolder
@@ -174,10 +169,7 @@ module MSBuild =
 
                 match chosen with
                 | None -> return None
-                | Some chosen ->
-                    return
-                        projects
-                        |> Seq.tryFind (fun p -> path.basename p.Project = chosen)
+                | Some chosen -> return projects |> Seq.tryFind (fun p -> node.path.basename p.Project = chosen)
             }
 
     /// prompts the user to choose a project (if not specified) and builds that project
@@ -193,7 +185,7 @@ module MSBuild =
                 | None -> Promise.lift ()
                 | Some proj ->
                     promise {
-                        let projectFile = path.basename proj.Project
+                        let projectFile = node.path.basename proj.Project
 
                         let expectedGroup =
                             match target with
@@ -202,7 +194,8 @@ module MSBuild =
                             | "Clean" -> Some vscode.TaskGroup.Clean
                             | _ -> None
 
-                        if expectedGroup = None then return ()
+                        if expectedGroup = None then
+                            return ()
 
                         let t =
                             msbuildTasks
@@ -246,9 +239,7 @@ module MSBuild =
 
                                 p.report pm
 
-                                invokeMSBuild path "Restore"
-                                |> Promise.bind continuation
-                                |> Promise.toThenable)
+                                invokeMSBuild path "Restore" |> Promise.bind continuation |> Promise.toThenable)
                         )
                         |> Promise.ofThenable
                         |> Async.AwaitPromise
@@ -275,7 +266,7 @@ module MSBuild =
 
     let buildSolution target sln =
         promise {
-            let solutionFile = path.basename sln
+            let solutionFile = node.path.basename sln
             let! msbuildTasks = tasks.fetchTasks msbuildTasksFilter
 
             let expectedGroup =
@@ -285,7 +276,8 @@ module MSBuild =
                 | "Clean" -> Some vscode.TaskGroup.Clean
                 | _ -> None
 
-            if expectedGroup = None then return ()
+            if expectedGroup = None then
+                return ()
 
             let t =
                 msbuildTasks
@@ -304,9 +296,7 @@ module MSBuild =
         | Some _ ->
             window.showWarningMessage ("Solution not loaded - plugin in directory mode")
             |> ignore
-        | None ->
-            window.showWarningMessage ("Solution not loaded")
-            |> ignore
+        | None -> window.showWarningMessage ("Solution not loaded") |> ignore
 
     type MSBuildTask = Task
 
@@ -314,10 +304,7 @@ module MSBuild =
     //     abstract Create()
 
     let invokeDotnet dotnetPath subcommand args cwd env : ShellExecution =
-        let args =
-            (subcommand :: args)
-            |> Seq.map U2.Case1
-            |> ResizeArray
+        let args = (subcommand :: args) |> Seq.map U2.Case1 |> ResizeArray
 
         let opts = createEmpty<ShellExecutionOptions>
         opts.cwd <- Some cwd
@@ -339,8 +326,8 @@ module MSBuild =
             match chosen with
             | None -> return ()
             | Some project ->
-                let projectFile = path.basename project.Project
-                let projectDir = path.dirname project.Project
+                let projectFile = node.path.basename project.Project
+                let projectDir = node.path.dirname project.Project
                 let! dotnet = dotnetBinary ()
                 let execution = invokeDotnet dotnet "restore" [] projectDir Map.empty
 
@@ -369,8 +356,8 @@ module MSBuild =
 
     let buildTaskListForProject (p: Project) : JS.Promise<MSBuildTask seq> =
         promise {
-            let projectName = path.basename p.Project
-            let projectDir = path.dirname p.Project
+            let projectName = node.path.basename p.Project
+            let projectDir = node.path.dirname p.Project
             let! dotnet = dotnetBinary ()
 
             return
@@ -402,8 +389,8 @@ module MSBuild =
             | WorkspacePeekFound.Directory _ -> return Seq.empty
             | WorkspacePeekFound.Solution ({ Path = p }) ->
                 let! dotnet = dotnetBinary ()
-                let solutionDir = path.dirname p
-                let solutionName = path.basename p
+                let solutionDir = node.path.dirname p
+                let solutionName = node.path.basename p
 
                 return
                     seq {
@@ -442,9 +429,7 @@ module MSBuild =
             override x.provideTasks(token: CancellationToken) =
                 logger.Info "providing tasks"
 
-                let projectTasks =
-                    Project.getLoaded ()
-                    |> Seq.map buildTaskListForProject
+                let projectTasks = Project.getLoaded () |> Seq.map buildTaskListForProject
 
                 let solutionTasks =
                     Project.getLoadedSolution ()
@@ -469,10 +454,7 @@ module MSBuild =
 
     let activate (context: ExtensionContext) =
         let unlessIgnored (path: string) f =
-            if Project.isIgnored path then
-                unbox ()
-            else
-                f path
+            if Project.isIgnored path then unbox () else f path
 
         let initWorkspace _n = Project.initWorkspace ()
 
@@ -489,12 +471,10 @@ module MSBuild =
         |> context.Subscribe
 
         let registerCommand com (action: unit -> _) =
-            commands.registerCommand (com, action |> objfy2)
-            |> context.Subscribe
+            commands.registerCommand (com, action |> objfy2) |> context.Subscribe
 
         let registerCommand2 com (action: obj -> obj -> _) =
-            commands.registerCommand (com, action |> objfy3)
-            |> context.Subscribe
+            commands.registerCommand (com, action |> objfy3) |> context.Subscribe
 
         /// typed msbuild cmd. Optional project and msbuild host
         let typedMsbuildCmd f projOpt =
@@ -519,40 +499,24 @@ module MSBuild =
 
         commands.registerCommand (
             "MSBuild.buildSelected",
-            fun _ ->
-                buildProject "Build"
-                |> Promise.map box
-                |> box
-                |> Some
+            fun _ -> buildProject "Build" |> Promise.map box |> box |> Some
         )
         |> context.Subscribe
 
         commands.registerCommand (
             "MSBuild.buildSelected",
-            fun _ ->
-                buildProject "Rebuild"
-                |> Promise.map box
-                |> box
-                |> Some
+            fun _ -> buildProject "Rebuild" |> Promise.map box |> box |> Some
         )
         |> context.Subscribe
 
         commands.registerCommand (
             "MSBuild.buildSelected",
-            fun _ ->
-                buildProject "Clean"
-                |> Promise.map box
-                |> box
-                |> Some
+            fun _ -> buildProject "Clean" |> Promise.map box |> box |> Some
         )
         |> context.Subscribe
 
         commands.registerCommand (
             "MSBuild.restoreSelected",
-            fun _ ->
-                restoreProjectCmd ()
-                |> Promise.map box
-                |> box
-                |> Some
+            fun _ -> restoreProjectCmd () |> Promise.map box |> box |> Some
         )
         |> context.Subscribe

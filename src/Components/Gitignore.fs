@@ -3,11 +3,10 @@ namespace Ionide.VSCode.FSharp
 
 module Gitignore =
 
-    open global.Node
-    open Fable.Import.VSCode
     open Fable.Import.VSCode.Vscode
     open Ionide.VSCode.FSharp
-    open Fable.Core.JsInterop
+
+    module node = Node.Api
 
     let GITIGNORE_KEY = "FSharp.suggestGitignore"
 
@@ -15,7 +14,7 @@ module Gitignore =
         ConsoleAndOutputChannelLogger(Some "GitIgnore", Level.DEBUG, None, Some Level.DEBUG)
 
     let gitignorePath () =
-        path.join (workspace.workspaceFolders.Value.[0].uri.fsPath, ".gitignore")
+        node.path.join (workspace.workspaceFolders.Value.[0].uri.fsPath, ".gitignore")
 
     type GitignoreCheckResult =
         | FileNotFound
@@ -28,8 +27,7 @@ module Gitignore =
             logger.Debug("gitignore path:", (gitignorePath ()))
 
             let lines =
-                fs.readFileSync (gitignorePath (), "utf8")
-                |> String.split [| '\n'; '\r' |]
+                node.fs.readFileSync (gitignorePath (), "utf8") |> String.split [| '\n'; '\r' |]
 
             (patterns, lines)
             ||> Array.fold (fun notFoundPats line ->
@@ -41,17 +39,14 @@ module Gitignore =
                     notFoundPats)
             |> Set.toList
             |> MissingPatterns
-        with
-        | ex ->
+        with ex ->
             logger.Debug("Error accessing gitignore file", ex)
             FileNotFound
 
     let writePatternsToGitignore patterns =
-        let data =
-            patterns
-            |> String.concat System.Environment.NewLine
+        let data = patterns |> String.concat System.Environment.NewLine
 
-        fs.appendFileSync (gitignorePath (), System.Environment.NewLine + data, "utf8")
+        node.fs.appendFileSync (gitignorePath (), System.Environment.NewLine + data, "utf8")
 
     let disablePromptGlobally () =
         Configuration.setGlobal GITIGNORE_KEY (Some(box false))

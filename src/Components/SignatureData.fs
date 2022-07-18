@@ -1,9 +1,6 @@
 namespace Ionide.VSCode.FSharp
 
-open System
-open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open DTO
 
 module SignatureData =
 

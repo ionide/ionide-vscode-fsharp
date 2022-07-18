@@ -5,10 +5,8 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 
 open DTO
-open Ionide.VSCode.Helpers
 
 module node = Node.Api
 
@@ -91,8 +89,7 @@ module Fsi =
                     let! res =
                         window.showInformationMessage (
                             "FSI Watcher is an experimental feature, and it needs to be enabled with `FSharp.addFsiWatcher` setting",
-                            [| Message.choice "Enable"
-                               Message.choice "Ignore" |]
+                            [| Message.choice "Enable"; Message.choice "Ignore" |]
                         )
 
                     match res with
@@ -102,10 +99,7 @@ module Fsi =
                     match panel with
                     | Some p -> p.reveal (!! -2, true)
                     | None ->
-                        let viewOpts =
-                            createObj
-                                [ "preserveFocus" ==> true
-                                  "viewColumn" ==> -2 ]
+                        let viewOpts = createObj [ "preserveFocus" ==> true; "viewColumn" ==> -2 ]
 
                         let p =
                             FsWebview.create (
@@ -124,13 +118,14 @@ module Fsi =
                         panel <- Some p
             }
 
-        let varsUri = path.join (VSCodeExtension.ionidePluginPath (), "watcher", "vars.txt")
+        let varsUri =
+            node.path.join (VSCodeExtension.ionidePluginPath (), "watcher", "vars.txt")
 
         let typesUri =
-            path.join (VSCodeExtension.ionidePluginPath (), "watcher", "types.txt")
+            node.path.join (VSCodeExtension.ionidePluginPath (), "watcher", "types.txt")
 
         let funcUri =
-            path.join (VSCodeExtension.ionidePluginPath (), "watcher", "funcs.txt")
+            node.path.join (VSCodeExtension.ionidePluginPath (), "watcher", "funcs.txt")
 
 
         let handler (context: ExtensionContext) =
@@ -160,11 +155,7 @@ module Fsi =
                                            Type = x[2]
                                            step = x[3] |})
                             // ensure column order
-                            let headers =
-                                [| "Name", "name"
-                                   "Value", "value"
-                                   "Type", "Type"
-                                   "Step", "step" |]
+                            let headers = [| "Name", "name"; "Value", "value"; "Type", "Type"; "Step", "step" |]
 
                             let grid, script = VsHtml.datagrid ("vars-content", datagridContent, headers)
 
@@ -198,9 +189,7 @@ module Fsi =
                                 VsHtml.datagrid (
                                     "funcs-content",
                                     datagridContent,
-                                    [| "Name", "name"
-                                       "Parameters", "parameters"
-                                       "Return Type", "returnType" |]
+                                    [| "Name", "name"; "Parameters", "parameters"; "Return Type", "returnType" |]
                                 )
 
                             funcsContent <- Some(html $"<h3>Declared functions</h3>{grid}", script)
@@ -244,9 +233,9 @@ module Fsi =
             )
 
         let activate context dispsables =
-            fs.watchFile (varsUri, (fun st st2 -> handler context))
-            fs.watchFile (typesUri, (fun st st2 -> handler context))
-            fs.watchFile (funcUri, (fun st st2 -> handler context))
+            node.fs.watchFile (varsUri, (fun st st2 -> handler context))
+            node.fs.watchFile (typesUri, (fun st st2 -> handler context))
+            node.fs.watchFile (funcUri, (fun st st2 -> handler context))
 
     let mutable fsiOutput: Terminal option = None
     let mutable fsiOutputPID: int option = None
@@ -274,8 +263,7 @@ module Fsi =
         | _ ->
             let msg = sprintf "# silentCd @\"%s\";;\n" dir
 
-            fsiOutput
-            |> Option.iter (fun n -> n.sendText (msg, false))
+            fsiOutput |> Option.iter (fun n -> n.sendText (msg, false))
 
             lastCd <- Some dir
 
@@ -284,8 +272,7 @@ module Fsi =
         | _ ->
             let msg = sprintf "# %d @\"%s\"\n;;\n" 1 file
 
-            fsiOutput
-            |> Option.iter (fun n -> n.sendText (msg, false))
+            fsiOutput |> Option.iter (fun n -> n.sendText (msg, false))
 
             lastCurrentFile <- Some file
 
@@ -298,7 +285,8 @@ module Fsi =
                 |> Configuration.get Array.empty<string>
                 |> List.ofArray
 
-            let p = path.join (VSCodeExtension.ionidePluginPath (), "watcher", "watcher.fsx")
+            let p =
+                node.path.join (VSCodeExtension.ionidePluginPath (), "watcher", "watcher.fsx")
 
             let fsiParams =
                 if addWatcher then
@@ -308,8 +296,7 @@ module Fsi =
 
             if Environment.isWin then
                 // these flags are added to work around issues with the vscode terminal shell on windows
-                [ "--fsi-server-input-codepage:28591"
-                  "--fsi-server-output-codepage:65001" ]
+                [ "--fsi-server-input-codepage:28591"; "--fsi-server-output-codepage:65001" ]
                 @ fsiParams
             else
                 fsiParams
@@ -344,11 +331,7 @@ module Fsi =
                         let! (fsiBinary, fsiArguments) = fsiBinaryAndParameters ()
                         let fsiArguments = U2.Case1(ResizeArray fsiArguments)
 
-                        let name =
-                            if isSdk () then
-                                fsiNetCoreName
-                            else
-                                fsiNetFrameworkName
+                        let name = if isSdk () then fsiNetCoreName else fsiNetFrameworkName
 
                         let options: TerminalOptions = createEmpty<_>
                         options.name <- Some name
@@ -374,9 +357,7 @@ module Fsi =
 
     let tryFindExistingTerminal () =
         window.terminals
-        |> Seq.tryFind (fun t ->
-            t.name = fsiNetFrameworkName
-            || t.name = fsiNetCoreName)
+        |> Seq.tryFind (fun t -> t.name = fsiNetFrameworkName || t.name = fsiNetCoreName)
 
     let private start () =
         promise {
@@ -392,8 +373,7 @@ module Fsi =
                 match profile with
                 | Some opts -> opts
                 | None ->
-                    window.showErrorMessage ("Unable to spawn FSI")
-                    |> ignore
+                    window.showErrorMessage ("Unable to spawn FSI") |> ignore
 
                     failwith "unable to spawn FSI"
 
@@ -418,10 +398,7 @@ module Fsi =
               i1 <- i2 ]
 
     let private send (msg: string) =
-        let msgWithNewline =
-            msg
-            + (if msg.Contains "//" then "\n" else "")
-            + ";;\n"
+        let msgWithNewline = msg + (if msg.Contains "//" then "\n" else "") + ";;\n"
 
         match fsiOutput with
         | None -> start ()
@@ -430,19 +407,12 @@ module Fsi =
             fp.show true
             fp.sendText (msgWithNewline, false)
             lastSelectionSent <- Some msg)
-        |> Promise.onFail (fun _ ->
-            window.showErrorMessage ("Failed to send text to FSI")
-            |> ignore)
+        |> Promise.onFail (fun _ -> window.showErrorMessage ("Failed to send text to FSI") |> ignore)
 
     let private moveCursorDownOneLine () =
-        let args =
-            createObj
-                [ "to" ==> "down"
-                  "by" ==> "line"
-                  "value" ==> 1 ]
+        let args = createObj [ "to" ==> "down"; "by" ==> "line"; "value" ==> 1 ]
 
-        commands.executeCommand ("cursorMove", Some(box args))
-        |> ignore
+        commands.executeCommand ("cursorMove", Some(box args)) |> ignore
 
     let private sendLine () =
         let editor = window.activeTextEditor.Value
@@ -482,10 +452,8 @@ module Fsi =
     let private sendLastSelection () =
         match lastSelectionSent with
         | Some x ->
-            if "FSharp.saveOnSendLastSelection"
-               |> Configuration.get false then
-                window.activeTextEditor.Value.document.save ()
-                |> Promise.ofThenable
+            if "FSharp.saveOnSendLastSelection" |> Configuration.get false then
+                window.activeTextEditor.Value.document.save () |> Promise.ofThenable
             else
                 Promise.lift true
             |> Promise.bind (fun _ -> send x)
@@ -517,9 +485,7 @@ module Fsi =
             sendCd window.activeTextEditor
 
             p.References
-            |> Seq.filter (fun n ->
-                n.EndsWith "FSharp.Core.dll" |> not
-                && n.EndsWith "mscorlib.dll" |> not)
+            |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not)
             |> Seq.toList
             |> referenceAssemblies
             |> Promise.suppress
@@ -548,8 +514,7 @@ module Fsi =
 
     // when a new terminal is created, if it's FSI and if we don't already have a terminal then setup the state for tracking FSI
     let private handleOpenTerminal (terminal: Terminal) =
-        if terminal.name = fsiNetCoreName
-           || terminal.name = fsiNetFrameworkName then
+        if terminal.name = fsiNetCoreName || terminal.name = fsiNetFrameworkName then
             clearOldTerminalState ()
             setupTerminalState terminal
             // initially have to set up the terminal to be in the correct start directory
@@ -565,9 +530,7 @@ module Fsi =
             |> Option.map (fun p ->
                 [| yield!
                        p.References
-                       |> Seq.filter (fun n ->
-                           n.EndsWith "FSharp.Core.dll" |> not
-                           && n.EndsWith "mscorlib.dll" |> not)
+                       |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not)
                        |> Seq.map (sprintf "#r @\"%s\"")
                    yield! p.Files |> Seq.map (sprintf "#load @\"%s\"") |])
 
@@ -576,9 +539,7 @@ module Fsi =
             | Some c ->
                 let path = node.path.join (workspace.rootPath.Value, "references.fsx")
 
-                let! td =
-                    vscode.Uri.parse ("untitled:" + path)
-                    |> workspace.openTextDocument
+                let! td = vscode.Uri.parse ("untitled:" + path) |> workspace.openTextDocument
 
                 let! te = window.showTextDocument (td, ViewColumn.Three)
 
@@ -595,9 +556,7 @@ module Fsi =
 
     let sendReferencesForProject project =
         project.References
-        |> Seq.filter (fun n ->
-            n.EndsWith "FSharp.Core.dll" |> not
-            && n.EndsWith "mscorlib.dll" |> not)
+        |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not)
         |> Seq.toList
         |> referenceAssemblies
         |> Promise.suppress
@@ -607,18 +566,14 @@ module Fsi =
         let ctn =
             [| yield!
                    project.References
-                   |> Seq.filter (fun n ->
-                       n.EndsWith "FSharp.Core.dll" |> not
-                       && n.EndsWith "mscorlib.dll" |> not)
+                   |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not)
                    |> Seq.map (sprintf "#r @\"%s\"")
                yield! project.Files |> Seq.map (sprintf "#load @\"%s\"") |]
 
         promise {
             let path = node.path.join (workspace.rootPath.Value, "references.fsx")
 
-            let! td =
-                vscode.Uri.parse ("untitled:" + path)
-                |> workspace.openTextDocument
+            let! td = vscode.Uri.parse ("untitled:" + path) |> workspace.openTextDocument
 
             let! te = window.showTextDocument (td, ViewColumn.Three)
 
@@ -638,14 +593,11 @@ module Fsi =
         window.registerTerminalProfileProvider ("ionide-fsharp.fsi", provider)
         |> context.Subscribe
 
-        window.onDidCloseTerminal.Invoke(handleCloseTerminal)
-        |> context.Subscribe
+        window.onDidCloseTerminal.Invoke(handleCloseTerminal) |> context.Subscribe
 
-        window.onDidOpenTerminal.Invoke(handleOpenTerminal)
-        |> context.Subscribe
+        window.onDidOpenTerminal.Invoke(handleOpenTerminal) |> context.Subscribe
 
-        commands.registerCommand ("fsi.Start", start |> objfy2)
-        |> context.Subscribe
+        commands.registerCommand ("fsi.Start", start |> objfy2) |> context.Subscribe
 
         commands.registerCommand ("fsi.SendLine", sendLine |> objfy2)
         |> context.Subscribe

@@ -1,11 +1,9 @@
 namespace Ionide.VSCode.FSharp
 
-open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
+open Fable.Core
 
 module node = Node.Api
-open Fable.Core
 
 module ScriptRunner =
 
@@ -16,10 +14,7 @@ module ScriptRunner =
         promise {
             let! (fsiBinary, fsiParameters) = Fsi.fsiBinaryAndParameters ()
 
-            let flatArgs =
-                fsiParameters
-                |> Array.map (sprintf "\"%s\"")
-                |> String.concat " "
+            let flatArgs = fsiParameters |> Array.map (sprintf "\"%s\"") |> String.concat " "
 
             let (shellCmd, shellArgs, textToSend) =
                 match node.os.``type`` () with

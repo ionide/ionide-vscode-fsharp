@@ -1,7 +1,6 @@
 namespace Ionide.VSCode.FSharp
 
 open Fable.Core
-open Fable.Core.JsInterop
 
 module Webviews =
     open Fable.Import.VSCode.Vscode

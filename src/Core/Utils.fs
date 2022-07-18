@@ -8,6 +8,7 @@ open Fable.Core
 [<AutoOpen>]
 module ContextExtensions =
     type ExtensionContext with
+
         member inline x.Subscribe< ^t when ^t: (member dispose: unit -> obj option)>(item: ^t) =
             x.subscriptions.Add(unbox (box item))
 
@@ -16,6 +17,7 @@ module PromiseBuilder =
     type Foo = JS.PromiseConstructor
 
     type Promise.PromiseBuilder with
+
         member x.Source(p: Thenable<'t>) : JS.Promise<'t> = box p |> unbox
         member x.Source(p: JS.Promise<'t>) : JS.Promise<'t> = p
 
@@ -118,8 +120,7 @@ module Option =
 [<RequireQualifiedAccess>]
 module Document =
     let (|FSharp|CSharp|VB|FSharpScript|Markdown|Other|) (document: TextDocument) =
-        if document.languageId = "fsharp"
-           && document.fileName.EndsWith "fsx" then
+        if document.languageId = "fsharp" && document.fileName.EndsWith "fsx" then
             FSharpScript
         else if document.languageId = "fsharp" then
             FSharp
@@ -138,24 +139,17 @@ module Configuration =
     let tryGet key =
         let configuredValue = workspace.getConfiguration().get (key)
 
-        if configuredValue = Some "" then
-            None
-        else
-            configuredValue
+        if configuredValue = Some "" then None else configuredValue
 
     /// get a key of a given value, asusming that a default has been set by extension configuration settings
     let getUnsafe key =
         workspace.getConfiguration().get(key).Value
 
     let get defaultValue key =
-        workspace
-            .getConfiguration()
-            .get (key, defaultValue)
+        workspace.getConfiguration().get (key, defaultValue)
 
     let getInContext context defaultValue key =
-        workspace
-            .getConfiguration(scope = U4.Case1 context)
-            .get (key, defaultValue)
+        workspace.getConfiguration(scope = U4.Case1 context).get (key, defaultValue)
 
     /// write the value to the given key in the workspace configuration
     let set key value =
@@ -179,6 +173,7 @@ module Utils =
     let isUndefined (x: 'a) : bool = jsNative
 
     type System.Collections.Generic.Dictionary<'key, 'value> with
+
         [<Emit("$0.has($1) ? $0.get($1) : null")>]
         member this.TryGet(key: 'key) : 'value option = jsNative
 
@@ -190,17 +185,15 @@ module Message =
 
 [<AutoOpen>]
 module JS =
-    open Fable.Core
-    open global.Node
 
     /// Schedules execution of a one-time callback after delay milliseconds.
     /// Returns a Timeout for use with `clearTimeout`.
     [<Emit("setTimeout($0, $1)")>]
-    let setTimeout (callback: unit -> unit) (delay: float) : Base.Timer = jsNative
+    let setTimeout (callback: unit -> unit) (delay: float) : Node.Base.Timer = jsNative
 
     /// Cancels a Timeout object created by `setTimeout`.
     [<Emit("clearTimeout($0)")>]
-    let clearTimeout (timeout: Base.Timer) : unit = jsNative
+    let clearTimeout (timeout: Node.Base.Timer) : unit = jsNative
 
     [<Emit("debugger")>]
     let debugger () : unit = failwith "JS Only"
@@ -270,10 +263,7 @@ module Patterns =
         (^t: (member get_title: unit -> string) (item))
 
     let inline (|HasTitle|_|) expected t =
-        if title t = expected then
-            Some()
-        else
-            None
+        if title t = expected then Some() else None
 
 [<RequireQualifiedAccess>]
 module Array =
@@ -304,16 +294,13 @@ module Promise =
             Promise.reject reason)
 
     let suppress (pr: JS.Promise<'T>) =
-        pr
-        |> Promise.either (fun _ -> U2.Case1()) (fun _ -> U2.Case1())
+        pr |> Promise.either (fun _ -> U2.Case1()) (fun _ -> U2.Case1())
 
     let executeForAll f items =
         match items with
         | [] -> empty
         | [ x ] -> f x
-        | x :: tail ->
-            tail
-            |> List.fold (fun acc next -> acc |> Promise.bind (fun _ -> f next)) (f x)
+        | x :: tail -> tail |> List.fold (fun acc next -> acc |> Promise.bind (fun _ -> f next)) (f x)
 
 module Event =
 
@@ -369,7 +356,9 @@ type ShowStatus private (panel: WebviewPanel, body: string) as this =
 
         panel.onDidChangeViewState.Invoke(
             (fun _ev ->
-                if panel.visible then this.Update()
+                if panel.visible then
+                    this.Update()
+
                 None),
             this,
             _disposables
@@ -437,8 +426,8 @@ module VSCodeExtension =
         let path =
             try
                 (VSCode.getPluginPath (sprintf "Ionide.%s" extensionName))
-            with
-            | _ -> (VSCode.getPluginPath (sprintf "Ionide.%s" oldExtensionName))
+            with _ ->
+                (VSCode.getPluginPath (sprintf "Ionide.%s" oldExtensionName))
 
         match path with
         | Some p -> p

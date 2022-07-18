@@ -3,7 +3,6 @@ namespace Ionide.VSCode.FSharp
 open Fable.Core
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 
 module node = Node.Api
 
@@ -27,10 +26,7 @@ module QuickInfoProject =
             match proj with
             | None ->
                 match te.document with
-                | Document.FSharp when
-                    path.extname te.document.fileName <> ".fsx"
-                    && not (te.document.isUntitled)
-                    ->
+                | Document.FSharp when node.path.extname te.document.fileName <> ".fsx" && not (te.document.isUntitled) ->
                     let loadingInfo =
                         if Project.isLoadingWorkspaceComplete () then
                             ""
@@ -39,17 +35,12 @@ module QuickInfoProject =
 
                     let fileNameOnly = node.path.basename fileName
 
-                    item.Value.text <-
-                        "$(circuit-board) Not in a F# project"
-                        + loadingInfo
+                    item.Value.text <- "$(circuit-board) Not in a F# project" + loadingInfo
 
                     item.Value.tooltip <- Some(U2.Case1 $"%s{fileNameOnly} is not in any project known to Ionide")
                     item.Value.command <- Some(U2.Case1 "fsharp.AddFileToProject")
 
-                    item.Value.color <-
-                        vscode.ThemeColor.Create "fsharp.statusBarWarnings"
-                        |> U2.Case2
-                        |> Some
+                    item.Value.color <- vscode.ThemeColor.Create "fsharp.statusBarWarnings" |> U2.Case2 |> Some
 
                     item.Value.show ()
                 | _ -> ()
@@ -76,8 +67,7 @@ module QuickInfoProject =
         item <- Some statusBarItem
         context.subscriptions.Add(unbox (box statusBarItem))
 
-        window.onDidChangeActiveTextEditor.Invoke(unbox handler)
-        |> context.Subscribe
+        window.onDidChangeActiveTextEditor.Invoke(unbox handler) |> context.Subscribe
 
         if window.visibleTextEditors.Count > 0 then
             handler window.activeTextEditor

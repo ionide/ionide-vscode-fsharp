@@ -20,16 +20,13 @@ type Api =
 let activate (context: ExtensionContext) : JS.Promise<Api> =
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
 
-    let showExplorer =
-        "FSharp.showExplorerOnStartup"
-        |> Configuration.get true
+    let showExplorer = "FSharp.showExplorerOnStartup" |> Configuration.get true
 
     let tryActivate label activationFn =
         fun ctx ->
             try
                 activationFn ctx
-            with
-            | ex ->
+            with ex ->
                 printfn $"Error while activating feature '{label}': {ex}"
                 Unchecked.defaultof<_>
 

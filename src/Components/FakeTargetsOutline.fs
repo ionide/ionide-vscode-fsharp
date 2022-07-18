@@ -6,7 +6,6 @@ open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 open Ionide.VSCode.Helpers
 open System.Collections.Generic
 
@@ -20,8 +19,7 @@ module FakeTargetsOutline =
     let private configurationKey = "FAKE.targetsOutline"
 
     let private isEnabledFor (uri: Uri) =
-        configurationKey
-        |> Configuration.getInContext uri true
+        configurationKey |> Configuration.getInContext uri true
 
     type NodeEntry =
         { Key: string
@@ -31,6 +29,7 @@ module FakeTargetsOutline =
     type DependencyType =
         | SoftDependency
         | HardDependency
+
         member x.Arrow =
             match x with
             | SoftDependency -> "<=?"
@@ -48,6 +47,7 @@ module FakeTargetsOutline =
           Declaration: Declaration option
           Type: ModelType
           getChildren: unit -> ResizeArray<Model> }
+
         member x.IsTarget =
             match x.Type with
             | TargetModel -> true
@@ -60,13 +60,9 @@ module FakeTargetsOutline =
     let private getIconPath light dark =
         let plugPath = VSCodeExtension.ionidePluginPath ()
 
-        {| light =
-            node.path.join (plugPath, "images", light)
-            |> U2.Case1
+        {| light = node.path.join (plugPath, "images", light) |> U2.Case1
 
-           dark =
-            node.path.join (plugPath, "images", dark)
-            |> U2.Case1 |}
+           dark = node.path.join (plugPath, "images", dark) |> U2.Case1 |}
 
     let rec add' (state: NodeEntry) (symbol: Symbol) index =
         let sep = "."
@@ -78,11 +74,7 @@ module FakeTargetsOutline =
         else
             let endIndex = entry.IndexOf(sep, index)
 
-            let endIndex =
-                if endIndex = -1 then
-                    entry.Length
-                else
-                    endIndex
+            let endIndex = if endIndex = -1 then entry.Length else endIndex
 
             let key = entry.Substring(index, endIndex - index)
 
@@ -105,17 +97,11 @@ module FakeTargetsOutline =
         match node.Type with
         | ModelType.ErrorOrWarning ->
             if node.AllTargets.Length = 0 then // error
-                Some
-                <| getIconPath "error-inverse.svg" "error.svg"
+                Some <| getIconPath "error-inverse.svg" "error.svg"
             else
-                Some
-                <| getIconPath "warning-inverse.svg" "warning.svg"
-        | ModelType.TargetModel ->
-            Some
-            <| getIconPath "icon-function-light.svg" "icon-function-dark.svg"
-        | ModelType.DependencyModel _ ->
-            Some
-            <| getIconPath "auto-reveal-light.svg" "auto-reveal-dark.svg"
+                Some <| getIconPath "warning-inverse.svg" "warning.svg"
+        | ModelType.TargetModel -> Some <| getIconPath "icon-function-light.svg" "icon-function-dark.svg"
+        | ModelType.DependencyModel _ -> Some <| getIconPath "auto-reveal-light.svg" "auto-reveal-dark.svg"
 
     let tryFindTarget (allTargets: Target[]) (name: string) =
         allTargets
@@ -240,14 +226,8 @@ module FakeTargetsOutline =
                                     return generateErrorRoot "null response from fsac"
                             }
                             |> unbox
-                        | _ ->
-                            generateErrorRoot "No active F# document"
-                            |> U2.Case1
-                            |> Some
-                    | None ->
-                        generateErrorRoot "No active document"
-                        |> U2.Case1
-                        |> Some
+                        | _ -> generateErrorRoot "No active F# document" |> U2.Case1 |> Some
+                    | None -> generateErrorRoot "No active document" |> U2.Case1 |> Some
 
             override this.getParent(element: Model) : ProviderResult<Model> = None
 
@@ -303,9 +283,7 @@ module FakeTargetsOutline =
             Context.cachedSetter<bool> "fake.targetsOutline.showInExplorerActivity"
 
         let showInFsharpActivity () =
-            let showIn =
-                "FAKE.showTargetsOutlineIn"
-                |> Configuration.get "explorer"
+            let showIn = "FAKE.showTargetsOutlineIn" |> Configuration.get "explorer"
 
             showIn = "fsharp"
 
@@ -330,8 +308,7 @@ module FakeTargetsOutline =
         let newValue =
             match textEditor with
             | Some textEditor ->
-                if isFsharpFile textEditor.document
-                   || ShowInActivity.showInFsharpActivity () then
+                if isFsharpFile textEditor.document || ShowInActivity.showInFsharpActivity () then
                     isEnabledFor textEditor.document.uri
                 else
                     false
@@ -399,13 +376,9 @@ module FakeTargetsOutline =
                 | Some decl ->
                     let line = decl.Line
 
-                    let args =
-                        createObj
-                            [ "lineNumber" ==> line
-                              "at" ==> "center" ]
+                    let args = createObj [ "lineNumber" ==> line; "at" ==> "center" ]
 
-                    commands.executeCommand ("revealLine", Some(box args))
-                    |> unbox
+                    commands.executeCommand ("revealLine", Some(box args)) |> unbox
                 | None -> JS.undefined)
         )
         |> context.Subscribe
@@ -429,10 +402,7 @@ module FakeTargetsOutline =
                                preArg
                                targetName |]
                         else
-                            [| "run"
-                               scriptName
-                               preArg
-                               targetName |]
+                            [| "run"; scriptName; preArg; targetName |]
 
                     let cfg: RequestLaunch =
                         { name = "Fake Script Debugging"
@@ -469,6 +439,25 @@ module FakeTargetsOutline =
                                 { new TaskDefinition with
                                     member this.Item
                                         with get (name: string): obj option = data.TryGet name
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                                         and set (name: string) (v: obj option): unit =
                                             match v with

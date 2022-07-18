@@ -3,9 +3,7 @@ module rec Semver
 
 #nowarn "3390" // disable warnings for invalid XML comments
 
-open System
 open Fable.Core
-open Fable.Core.JS
 
 type ReadonlyArray<'T> = System.Collections.Generic.IReadOnlyList<'T>
 

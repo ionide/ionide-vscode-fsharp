@@ -3,10 +3,8 @@ namespace Ionide.VSCode.FSharp
 open System
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 open Ionide.VSCode.Helpers
 
 open DTO
@@ -56,21 +54,12 @@ module Project =
 
     let excluded =
         "FSharp.excludeProjectDirectories"
-        |> Configuration.get
-            [| ".git"
-               "paket-files"
-               ".fable"
-               "packages"
-               "node_modules" |]
+        |> Configuration.get [| ".git"; "paket-files"; ".fable"; "packages"; "node_modules" |]
 
-    let deepLevel =
-        "FSharp.workspaceModePeekDeepLevel"
-        |> Configuration.get 2
-        |> max 0
+    let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
 
     let isNetCoreApp (project: Project) =
-        project.Info.TargetFramework
-        :: project.Info.TargetFrameworks
+        project.Info.TargetFramework :: project.Info.TargetFrameworks
         |> Seq.exists (fun tfm -> tfm = "net5.0" || tfm.StartsWith "netcoreapp")
 
     let isSDKProjectPath (project: string) =
@@ -85,9 +74,7 @@ module Project =
         | _ -> false
 
     let getInWorkspace () =
-        loadedProjects
-        |> Seq.toList
-        |> List.map (fun n -> n.Value)
+        loadedProjects |> Seq.toList |> List.map (fun n -> n.Value)
 
     let tryFindInWorkspace (path: string) =
         loadedProjects
@@ -118,9 +105,7 @@ module Project =
                 | MsbuildFormat _proj -> [| item.Name |]
                 | Folder folder -> folder.Items |> Array.collect getProjs
 
-            sln.Items
-            |> Array.collect getProjs
-            |> Array.toList
+            sln.Items |> Array.collect getProjs |> Array.toList
         | Some (WorkspacePeekFound.Directory dir) -> dir.Fsprojs |> Array.toList
 
 
@@ -162,8 +147,8 @@ module Project =
                         [ s ]
                     else
                         []
-                with
-                | _ -> [])
+                with _ ->
+                    [])
 
         match workspace.rootPath with
         | None -> []
@@ -183,14 +168,12 @@ module Project =
                         []
                     elif node.fs.statSync(U2.Case1 s).isDirectory () then
                         findProjs (s)
-                    elif s.EndsWith ".fsproj"
-                         || s.EndsWith ".csproj"
-                         || s.EndsWith ".vbproj" then
+                    elif s.EndsWith ".fsproj" || s.EndsWith ".csproj" || s.EndsWith ".vbproj" then
                         [ s ]
                     else
                         []
-                with
-                | _ -> [])
+                with _ ->
+                    [])
 
         match workspace.rootPath with
         | None -> []
@@ -231,8 +214,7 @@ module Project =
                 | Some (path, state) ->
                     updateInWorkspace path state
 
-                    loadedWorkspace
-                    |> Option.iter (workspaceChangedEmitter.fire)
+                    loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
 
                     setAnyProjectContext true
                 | None -> ())
@@ -269,10 +251,7 @@ module Project =
             match loadedWorkspace with
             | None -> Array.empty
             | Some (WorkspacePeekFound.Directory dir) -> dir.Fsprojs
-            | Some (WorkspacePeekFound.Solution sln) ->
-                sln.Items
-                |> Array.collect foldFsproj
-                |> Array.map fst
+            | Some (WorkspacePeekFound.Solution sln) -> sln.Items |> Array.collect foldFsproj |> Array.map fst
 
         let loadingInProgress p =
             match tryFindInWorkspace p with
@@ -308,8 +287,8 @@ module Project =
                             [ s ]
                         else
                             []
-                    with
-                    | _ -> [])
+                    with _ ->
+                        [])
 
         match workspace.rootPath with
         | None -> []
@@ -318,16 +297,12 @@ module Project =
     let clearCache () =
         let cached = getCaches ()
 
-        cached
-        |> Seq.iter (U2.Case1 >> node.fs.unlinkSync)
+        cached |> Seq.iter (U2.Case1 >> node.fs.unlinkSync)
 
-        window.showInformationMessage ("Project Cache cleared")
-        |> ignore
+        window.showInformationMessage ("Project Cache cleared") |> ignore
 
     let countProjectsInSln (sln: WorkspacePeekFoundSolution) =
-        sln.Items
-        |> Array.map foldFsproj
-        |> Array.sumBy Array.length
+        sln.Items |> Array.map foldFsproj |> Array.sumBy Array.length
 
     [<RequireQualifiedAccess>]
     type ConfiguredWorkspace =
@@ -356,14 +331,14 @@ module Project =
                 try
                     let stats = fs.statSync (U2.Case1 dir)
                     not (isNull stats) && (stats.isDirectory ())
-                with
-                | _ -> false
+                with _ ->
+                    false
             | ConfiguredWorkspace.Solution sln ->
                 try
                     let stats = fs.statSync (U2.Case1 sln)
                     not (isNull stats) && (stats.isFile ())
-                with
-                | _ -> false
+                with _ ->
+                    false
 
         let private parseAndValidate (config: string option) =
             match config with
@@ -412,10 +387,7 @@ module Project =
                 let relativePath =
                     let raw = path.relative (workspace.rootPath.Value, configuredPath)
 
-                    if
-                        not (path.isAbsolute raw)
-                        && not (raw.StartsWith "..")
-                    then
+                    if not (path.isAbsolute raw) && not (raw.StartsWith "..") then
                         "./" + raw
                     else
                         raw
@@ -491,9 +463,7 @@ module Project =
                 match chosen with
                 | Some chosen ->
                     let selected =
-                        projects
-                        |> List.tryFind (fun (qp, _) -> qp = chosen)
-                        |> Option.map snd
+                        projects |> List.tryFind (fun (qp, _) -> qp = chosen) |> Option.map snd
 
                     match selected with
                     | Some selected ->
@@ -535,7 +505,8 @@ module Project =
                         [ "run"
                           "--project"
                           project.Project
-                          if not (List.isEmpty args) then " -- " ]
+                          if not (List.isEmpty args) then
+                              " -- " ]
                         @ args
                     )
 
@@ -555,7 +526,8 @@ module Project =
                         [ "run"
                           "--project"
                           project.Project
-                          if not (List.isEmpty args) then " -- " ]
+                          if not (List.isEmpty args) then
+                              " -- " ]
                         @ args
                     )
 
@@ -631,8 +603,7 @@ module Project =
 
     let handleProjectParsedNotification res =
         let disableShowNotification =
-            "FSharp.disableFailedProjectNotifications"
-            |> Configuration.get false
+            "FSharp.disableFailedProjectNotifications" |> Configuration.get false
 
         let projStatus =
             match res with
@@ -651,8 +622,7 @@ module Project =
                     Some(true, d.Project, ProjectLoadingState.LanguageNotSupported(d.Project))
                 | _ ->
                     if not disableShowNotification then
-                        window.showErrorMessage ("Project loading failed")
-                        |> ignore
+                        window.showErrorMessage ("Project loading failed") |> ignore
 
                     None
             | Choice4Of4 msg ->
@@ -666,10 +636,10 @@ module Project =
         | Some (isDone, path, state) ->
             updateInWorkspace path state
 
-            loadedWorkspace
-            |> Option.iter (workspaceChangedEmitter.fire)
+            loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
 
-            if isDone then setAnyProjectContext true
+            if isDone then
+                setAnyProjectContext true
         | None -> ()
 
     let private initWorkspaceHelper x =
@@ -680,20 +650,14 @@ module Project =
         let projs =
             match x with
             | WorkspacePeekFound.Directory dir -> dir.Fsprojs
-            | WorkspacePeekFound.Solution sln ->
-                sln.Items
-                |> Array.collect foldFsproj
-                |> Array.map fst
+            | WorkspacePeekFound.Solution sln -> sln.Items |> Array.collect foldFsproj |> Array.map fst
 
         match x with
         | WorkspacePeekFound.Solution _ -> setAnyProjectContext true
         | WorkspacePeekFound.Directory _ when not (projs |> Array.isEmpty) -> setAnyProjectContext true
         | _ -> ()
 
-        projs
-        |> List.ofArray
-        |> LanguageService.workspaceLoad
-        |> Promise.map ignore
+        projs |> List.ofArray |> LanguageService.workspaceLoad |> Promise.map ignore
 
 
     let initWorkspace () =
@@ -725,10 +689,7 @@ module Project =
             item.Value.tooltip <- Some(U2.Case1 tooltip)
             item.Value.command <- Some(U2.Case1 "showProjStatusFromIndicator")
 
-            item.Value.color <-
-                vscode.ThemeColor.Create "fsharp.statusBarWarnings"
-                |> U2.Case2
-                |> Some
+            item.Value.color <- vscode.ThemeColor.Create "fsharp.statusBarWarnings" |> U2.Case2 |> Some
 
             item.Value.show ()
 
@@ -736,25 +697,28 @@ module Project =
         let update () =
             let projs = getInWorkspace ()
 
-            match projs
-                  |> List.tryPick (function
-                      | ProjectLoadingState.Failed (p, er) -> Some p
-                      | _ -> None)
-                with
+            match
+                projs
+                |> List.tryPick (function
+                    | ProjectLoadingState.Failed (p, er) -> Some p
+                    | _ -> None)
+            with
             | Some p -> showItem "Project loading failed" p
             | None ->
-                match projs
-                      |> List.tryPick (function
-                          | ProjectLoadingState.Loading (p) -> Some p
-                          | _ -> None)
-                    with
+                match
+                    projs
+                    |> List.tryPick (function
+                        | ProjectLoadingState.Loading (p) -> Some p
+                        | _ -> None)
+                with
                 | Some p -> showItem "Project loading" p
                 | None ->
-                    match projs
-                          |> List.tryPick (function
-                              | ProjectLoadingState.NotRestored (p, _) -> Some p
-                              | _ -> None)
-                        with
+                    match
+                        projs
+                        |> List.tryPick (function
+                            | ProjectLoadingState.NotRestored (p, _) -> Some p
+                            | _ -> None)
+                    with
                     | Some p -> showItem "Project not restored" p
                     | None -> hideItem ()
 
@@ -772,8 +736,7 @@ module Project =
         workspaceNotificationAvaiable <- true
         ProjectStatus.item <- Some(window.createStatusBarItem (StatusBarAlignment.Right, 9000.))
 
-        statusUpdated.Invoke(!!ProjectStatus.statusUpdateHandler)
-        |> context.Subscribe
+        statusUpdated.Invoke(!!ProjectStatus.statusUpdateHandler) |> context.Subscribe
 
         commands.registerCommand (
             "fsharp.changeWorkspace",
@@ -793,9 +756,7 @@ module Project =
             (fun _ ->
                 let name = path.basename (ProjectStatus.path)
 
-                ShowStatus.CreateOrShow(ProjectStatus.path, name)
-                |> box
-                |> Some)
+                ShowStatus.CreateOrShow(ProjectStatus.path, name) |> box |> Some)
         )
         |> context.Subscribe
 

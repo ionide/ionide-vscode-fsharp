@@ -8,18 +8,14 @@ module Environment =
 
     open Fable.Core
     open Fable.Core.JsInterop
-    open global.Node
     open Ionide.VSCode.Helpers
 
     module node = Node.Api
 
-    let isWin = process.platform = Base.Platform.Win32
+    let isWin = node.``process``.platform = Node.Base.Platform.Win32
 
     let private (</>) a b =
-        if isWin then
-            a + @"\" + b
-        else
-            a + "/" + b
+        if isWin then a + @"\" + b else a + "/" + b
 
     let configFsiFilePath () =
         Configuration.tryGet "FSharp.fsiFilePath"
@@ -37,23 +33,14 @@ module Environment =
         if isWin then
             spawnAndGetTrimmedOutput "cmd" (ResizeArray [ "/C"; "where"; toolName ])
             |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None)
-            |> Promise.map (
-                Option.bind (fun paths ->
-                    paths.Split('\n')
-                    |> Array.map (String.trim)
-                    |> Array.tryHead)
-            )
+            |> Promise.map (Option.bind (fun paths -> paths.Split('\n') |> Array.map (String.trim) |> Array.tryHead))
         else
             spawnAndGetTrimmedOutput "which" (ResizeArray [ toolName ])
             |> Promise.map (fun (err, path, errs) -> if path <> "" then Some path else None)
 
     let dotnet =
         Configuration.tryGet "FSharp.dotnetRoot"
-        |> Option.map (fun root ->
-            root
-            </> (if isWin then "dotnet.exe" else "dotnet")
-            |> Some
-            |> Promise.lift)
+        |> Option.map (fun root -> root </> (if isWin then "dotnet.exe" else "dotnet") |> Some |> Promise.lift)
         |> Option.defaultWith (fun () -> tryGetTool "dotnet")
 
 
@@ -62,11 +49,9 @@ module Environment =
             if node.path.isAbsolute path then
                 None
             else
-                Some __dirname
+                Some node.__dirname
 
-        let segments =
-            path.Split [| char node.path.sep |]
-            |> Array.toList
+        let segments = path.Split [| char node.path.sep |] |> Array.toList
 
         let rec ensure segments currentPath =
             match segments with
