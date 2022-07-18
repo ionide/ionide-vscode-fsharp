@@ -386,10 +386,8 @@ let buildTargetTree () =
     "YarnInstall" ==>! "Build"
     "DotNetRestore" ==>! "Build"
 
-    // Disable Fantomas because it generates invalid code F# code
-    // "Format"
-    // ==> "Build"
-    "Build"
+    "Format"
+    ==> "Build"
     ==> "SetVersion"
     ==> "BuildPackage"
     ==> "ReleaseGitHub"
