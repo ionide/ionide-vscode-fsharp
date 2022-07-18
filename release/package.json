@@ -1089,6 +1089,10 @@
           "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027"
         },
         {
+          "command": "fsharp.clearCache",
+          "when": "fsharp.project.any"
+        },
+        {
           "command": "MSBuild.buildSelected",
           "when": "fsharp.project.any"
         },
