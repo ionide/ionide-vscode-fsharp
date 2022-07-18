@@ -803,57 +803,51 @@ Consider:
 
         }
 
-    let readyClient (cl: LanguageClient) =
-        cl.onReady ()
-        |> Promise.onSuccess (fun _ ->
-            cl.onNotification (
-                "fsharp/notifyWorkspace",
-                (fun (a: Types.PlainNotification) ->
-                    match Notifications.notifyWorkspaceHandler with
-                    | None -> ()
-                    | Some cb ->
-                        let onMessage res =
-                            match res?Kind |> unbox with
-                            | "project" -> res |> unbox<ProjectResult> |> Choice1Of4 |> cb
-                            | "projectLoading" -> res |> unbox<ProjectLoadingResult> |> Choice2Of4 |> cb
-                            | "error" -> res?Data |> parseError |> Choice3Of4 |> cb
-                            | "workspaceLoad" -> res?Data?Status |> unbox<string> |> Choice4Of4 |> cb
-                            | _ -> ()
+    let registerCustomNotifications (cl: LanguageClient) =
+        cl.onNotification (
+            "fsharp/notifyWorkspace",
+            (fun (a: Types.PlainNotification) ->
+                match Notifications.notifyWorkspaceHandler with
+                | None -> ()
+                | Some cb ->
+                    let onMessage res =
+                        match res?Kind |> unbox with
+                        | "project" -> res |> unbox<ProjectResult> |> Choice1Of4 |> cb
+                        | "projectLoading" -> res |> unbox<ProjectLoadingResult> |> Choice2Of4 |> cb
+                        | "error" -> res?Data |> parseError |> Choice3Of4 |> cb
+                        | "workspaceLoad" -> res?Data?Status |> unbox<string> |> Choice4Of4 |> cb
+                        | _ -> ()
 
-                        let res = a.content |> ofJson<obj>
-                        onMessage res)
-            )
+                    let res = a.content |> ofJson<obj>
+                    onMessage res)
+        )
 
-            cl.onNotification (
-                "fsharp/fileParsed",
-                (fun (a: Types.PlainNotification) ->
-                    let uri: Types.DocumentUri = a.content
+        cl.onNotification (
+            "fsharp/fileParsed",
+            (fun (a: Types.PlainNotification) ->
+                let uri: Types.DocumentUri = a.content
 
-                    window.visibleTextEditors
-                    |> Seq.tryFind (fun n -> n.document.uri.ToDocumentUri.ToLowerInvariant() = uri.ToLowerInvariant())
-                    |> Option.iter (fun te ->
-                        let ev =
-                            { Notifications.uri = uri
-                              Notifications.version = te.document.version
-                              Notifications.document = te.document }
+                window.visibleTextEditors
+                |> Seq.tryFind (fun n -> n.document.uri.ToDocumentUri.ToLowerInvariant() = uri.ToLowerInvariant())
+                |> Option.iter (fun te ->
+                    let ev =
+                        { Notifications.uri = uri
+                          Notifications.version = te.document.version
+                          Notifications.document = te.document }
 
-                        Notifications.onDocumentParsedEmitter.fire ev))
-            )
+                    Notifications.onDocumentParsedEmitter.fire ev))
+        )
 
-            cl.onNotification (
-                "fsharp/testDetected",
-                (fun (a: TestForFile) -> Notifications.testDetectedEmitter.fire a)
-            ))
+        cl.onNotification ("fsharp/testDetected", (fun (a: TestForFile) -> Notifications.testDetectedEmitter.fire a))
 
     let start (c: ExtensionContext) =
         promise {
             let! startOpts = getOptions c
             let cl = createClient startOpts
+            registerCustomNotifications cl
             let started = cl.start ()
             c.subscriptions.Add(started |> box |> unbox)
-            let! _ = readyClient cl
             return ()
-
         }
 
     let stop () =
