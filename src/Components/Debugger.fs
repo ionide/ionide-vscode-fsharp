@@ -2,10 +2,8 @@ namespace Ionide.VSCode.FSharp
 
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 open Ionide.VSCode.Helpers
 open DTO
 
@@ -66,9 +64,7 @@ module Debugger =
             let launcher = Project.getLauncherWithShell project
 
             match launcher with
-            | None ->
-                window.showWarningMessage ("Can't start project")
-                |> ignore
+            | None -> window.showWarningMessage ("Can't start project") |> ignore
             | Some l ->
                 let! terminal = l []
                 terminal.show ()
@@ -76,10 +72,7 @@ module Debugger =
 
     let setProgramPath project (cfg: LaunchJsonVersion2.RequestLaunch) =
         let relativeOutPath =
-            node
-                .path
-                .relative(workspace.rootPath.Value, project.Output)
-                .Replace("\\", "/")
+            node.path.relative(workspace.rootPath.Value, project.Output).Replace("\\", "/")
 
         let programPath = sprintf "${workspaceRoot}/%s" relativeOutPath
 
@@ -98,9 +91,7 @@ module Debugger =
             let cfg = LaunchJsonVersion2.createRequestLaunch ()
 
             match debuggerRuntime project with
-            | None ->
-                window.showWarningMessage ("Can't start debugger")
-                |> ignore
+            | None -> window.showWarningMessage ("Can't start debugger") |> ignore
             | Some rntm ->
                 cfg |> setProgramPath project
                 cfg?``type`` <- rntm
@@ -122,9 +113,7 @@ module Debugger =
             let cfg = LaunchJsonVersion2.createRequestLaunch ()
 
             match debuggerRuntime project with
-            | None ->
-                window.showWarningMessage ("Can't start debugger")
-                |> ignore
+            | None -> window.showWarningMessage ("Can't start debugger") |> ignore
             | Some rntm ->
                 cfg |> setProgramPath project
                 cfg?``type`` <- rntm
@@ -150,9 +139,7 @@ module Debugger =
         startup <- Some project
 
         context
-        |> Option.iter (fun c ->
-            c.workspaceState.update ("defaultProject", Some(box project))
-            |> ignore)
+        |> Option.iter (fun c -> c.workspaceState.update ("defaultProject", Some(box project)) |> ignore)
 
     let chooseDefaultProject () =
         promise {
@@ -177,16 +164,12 @@ module Debugger =
 
     let buildAndRunDefault () =
         match startup with
-        | None ->
-            chooseDefaultProject ()
-            |> Promise.map (Option.map (buildAndRun) >> ignore)
+        | None -> chooseDefaultProject () |> Promise.map (Option.map (buildAndRun) >> ignore)
         | Some p -> buildAndRun p
 
     let buildAndDebugDefault () =
         match startup with
-        | None ->
-            chooseDefaultProject ()
-            |> Promise.map (Option.map (buildAndDebug) >> ignore)
+        | None -> chooseDefaultProject () |> Promise.map (Option.map (buildAndDebug) >> ignore)
         | Some p -> buildAndDebug p
 
     /// minimal set of properties from the launchsettings json
@@ -246,8 +229,7 @@ module Debugger =
             project: Project,
             buildTaskOpt: Task option
         ) : DebugConfiguration option =
-        if ls.commandName <> Some "Project"
-           || ls.commandName = None then
+        if ls.commandName <> Some "Project" || ls.commandName = None then
             None
         else if project.OutputType <> "exe" then
             None
@@ -255,10 +237,7 @@ module Debugger =
             let projectName = node.path.basename (project.Project)
             let projectExecutable = project.Output
 
-            let cliArgs =
-                ls.commandLineArgs
-                |> Option.defaultValue ""
-                |> String.split [| ' ' |] // this is bad splitting - ideally we would get an args array from the json file...
+            let cliArgs = ls.commandLineArgs |> Option.defaultValue "" |> String.split [| ' ' |] // this is bad splitting - ideally we would get an args array from the json file...
 
             let c = createEmpty<DebugConfiguration>
             c.name <- $"{projectName}: {name}"
@@ -271,9 +250,7 @@ module Debugger =
             | Some bt -> c?preLaunchTask <- $"Build: {bt.name}"
             | None -> ()
 
-            c?cwd <-
-                ls.workingDirectory
-                |> Option.defaultValue "${workspaceFolder}"
+            c?cwd <- ls.workingDirectory |> Option.defaultValue "${workspaceFolder}"
 
 
 
@@ -331,7 +308,7 @@ module Debugger =
             None
         else
             let c = createEmpty<DebugConfiguration>
-            c.name <- $"{path.basename p.Project}"
+            c.name <- $"{node.path.basename p.Project}"
             c.``type`` <- "coreclr"
             c.request <- "launch"
             c?program <- p.Output
@@ -358,29 +335,37 @@ module Debugger =
 
         { new DebugConfigurationProvider with
             override x.provideDebugConfigurations(folder: option<WorkspaceFolder>, token: option<CancellationToken>) =
-                let generate () = promise {
-                    logger.Info $"Evaluating launch settings configurations for workspace '%A{folder}'"
-                    let projects = Project.getLoaded()
-                    let! msbuildTasks = tasks.fetchTasks(msbuildTasksFilter)
-                    let tasks =
-                        projects
-                        |> Seq.collect (fun (p: Project) ->
-                            seq {
-                                let projectFile = path.basename p.Project
-                                let buildTaskForProject = msbuildTasks |> Seq.tryFind (fun t -> t.group = Some vscode.TaskGroup.Build && t.name = projectFile)
-                                // emit configurations for any launchsettings for this project
-                                match readSettingsForProject p with
-                                | Some launchSettings -> yield! configsForProject (p, launchSettings, buildTaskForProject)
-                                | None -> ()
-                                // emit a default configuration for this project if it is an executable
-                                match defaultConfigForProject (p, buildTaskForProject) with
-                                | Some p -> yield p
-                                | None -> ()
-                            })
-                    return ResizeArray tasks
-                }
+                let generate () =
+                    promise {
+                        logger.Info $"Evaluating launch settings configurations for workspace '%A{folder}'"
+                        let projects = Project.getLoaded ()
+                        let! msbuildTasks = tasks.fetchTasks (msbuildTasksFilter)
 
-                generate()
+                        let tasks =
+                            projects
+                            |> Seq.collect (fun (p: Project) ->
+                                seq {
+                                    let projectFile = node.path.basename p.Project
+
+                                    let buildTaskForProject =
+                                        msbuildTasks
+                                        |> Seq.tryFind (fun t ->
+                                            t.group = Some vscode.TaskGroup.Build && t.name = projectFile)
+                                    // emit configurations for any launchsettings for this project
+                                    match readSettingsForProject p with
+                                    | Some launchSettings ->
+                                        yield! configsForProject (p, launchSettings, buildTaskForProject)
+                                    | None -> ()
+                                    // emit a default configuration for this project if it is an executable
+                                    match defaultConfigForProject (p, buildTaskForProject) with
+                                    | Some p -> yield p
+                                    | None -> ()
+                                })
+
+                        return ResizeArray tasks
+                    }
+
+                generate ()
                 |> Promise.map Some
                 |> Promise.toThenable
                 |> U2.Case2

@@ -25,9 +25,7 @@ let gitHome = "https://github.com/" + gitOwner
 let gitName = "ionide-vscode-fsharp"
 
 // Read additional information from the release notes document
-let releaseNotesData =
-    File.ReadAllLines "RELEASE_NOTES.md"
-    |> ReleaseNotes.parseAll
+let releaseNotesData = File.ReadAllLines "RELEASE_NOTES.md" |> ReleaseNotes.parseAll
 
 let release = List.head releaseNotesData
 
@@ -99,11 +97,7 @@ module Fable =
 
         let fableProjPath = args.ProjectPath
 
-        let fableDebug =
-            if args.Debug then
-                "--define DEBUG"
-            else
-                ""
+        let fableDebug = if args.Debug then "--define DEBUG" else ""
 
         let fableExperimental =
             if args.Experimental then
@@ -117,9 +111,7 @@ module Fable =
             | None -> ""
 
         let fableDefines =
-            args.Defines
-            |> List.map (sprintf "--define %s")
-            |> String.concat " "
+            args.Defines |> List.map (sprintf "--define %s") |> String.concat " "
 
         let fableAdditionalArgs = args.AdditionalFableArgs |> Option.defaultValue ""
 
@@ -136,10 +128,7 @@ module Fable =
                          "--mode=development"
                      else
                          "--mode=production")
-                    (if args.Experimental then
-                         "--env.ionideExperimental"
-                     else
-                         "")
+                    (if args.Experimental then "--env.ionideExperimental" else "")
                     (webpackArgs |> Option.defaultValue "")
 
         let sourceMaps = if args.SourceMaps then "-s" else ""
@@ -197,8 +186,7 @@ let buildPackage dir =
     Process.killAllByName "vsce"
     run vsceTool.Value "package" dir
 
-    !!(sprintf "%s/*.vsix" dir)
-    |> Seq.iter (Shell.moveFile "./temp/")
+    !!(sprintf "%s/*.vsix" dir) |> Seq.iter (Shell.moveFile "./temp/")
 
 
 let setPackageJsonField (name: string) (value: string) releaseDir =
@@ -288,11 +276,9 @@ let initTargets () =
         Shell.copyFiles "release" [ "README.md"; "LICENSE.md" ]
         Shell.copyFile "release/CHANGELOG.md" "RELEASE_NOTES.md")
 
-    Target.create "YarnInstall"
-    <| fun _ -> Yarn.install id
+    Target.create "YarnInstall" <| fun _ -> Yarn.install id
 
-    Target.create "DotNetRestore"
-    <| fun _ -> DotNet.restore id "src"
+    Target.create "DotNetRestore" <| fun _ -> DotNet.restore id "src"
 
     Target.create "Watch" (fun _ ->
         Fable.run
@@ -366,28 +352,13 @@ let initTargets () =
     Target.create "ReleaseGitHub" (fun _ -> releaseGithub release)
 
     Target.create "Format" (fun _ ->
-        let fantomasExtensions = [ ".fs"; ".fsi"; ".fsx" ] |> Set.ofList
-
-        let changedFiles =
-            Fake.Tools.Git.FileStatus.getChangedFilesInWorkingCopy "" "HEAD"
-            |> Seq.choose (fun (stat, path) ->
-                match Set.contains (Path.GetExtension path) fantomasExtensions with
-                | true when stat <> FileStatus.Deleted -> Some path
-                | _ -> None)
-            |> List.ofSeq
-
-        match changedFiles with
-        | [] -> ()
-        | changedFiles ->
-            let args = String.concat " " changedFiles
-
-            DotNet.exec id "fantomas" args
-            |> fun r ->
-                if r.OK then
-                    ()
-                else
-                    r.Errors |> List.iter (Trace.tracefn "%s")
-                    failwith "Error running fantomas")
+        DotNet.exec id "fantomas" "-r src build"
+        |> fun r ->
+            if r.OK then
+                ()
+            else
+                r.Errors |> List.iter (Trace.tracefn "%s")
+                failwith "Error running fantomas")
 
     Target.create "Default" ignore
     Target.create "Build" ignore
@@ -400,8 +371,7 @@ let buildTargetTree () =
     "YarnInstall" ==>! "RunScript"
     "DotNetRestore" ==>! "RunScript"
 
-    "Clean" ==> "Format" ==> "RunScript"
-    ==>! "Default"
+    "Clean" ==> "Format" ==> "RunScript" ==>! "Default"
 
     "Clean"
     ==> "RunScript"

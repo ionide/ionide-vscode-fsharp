@@ -3,7 +3,6 @@ module Ionide.VSCode.FSharp.InlayHints
 open Fable.Core
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 open Fable.Core.JsInterop
 
 let private logger =
@@ -29,8 +28,7 @@ let allowParameterNames () : bool =
     Configuration.getUnsafe Config.parameterNamesEnabled
 
 let actuallyEnabled () =
-    enabled ()
-    && (allowTypeAnnotations () || allowParameterNames ())
+    enabled () && (allowTypeAnnotations () || allowParameterNames ())
 
 let isSetToToggle () =
     Configuration.tryGet Config.editorInlayHintsEnabled
@@ -175,15 +173,15 @@ let activate (context: ExtensionContext) =
     toggleSupported <- supportsToggle vscode.version
 
     let selector: DocumentSelector =
-        let filter: DocumentFilter = jsOptions<TextDocumentFilter> (fun f -> f.language <- Some "fsharp") |> DocumentFilter.Case1
+        let filter: DocumentFilter =
+            jsOptions<TextDocumentFilter> (fun f -> f.language <- Some "fsharp")
+            |> DocumentFilter.Case1
+
         [| U2.Case2 filter |]
 
     commands.registerCommand (
         Commands.disableLongTooltip,
-        (fun _ ->
-            Configuration.set Config.disableLongTooltip (Some true)
-            |> box
-            |> Some)
+        (fun _ -> Configuration.set Config.disableLongTooltip (Some true) |> box |> Some)
     )
     |> context.Subscribe
 
@@ -197,35 +195,22 @@ let activate (context: ExtensionContext) =
         )
         |> context.Subscribe
 
-    commands.registerCommand (
-        Commands.hideAll,
-        (fun _ ->
-            Configuration.set Config.enabled (Some false)
-            |> box
-            |> Some)
-    )
+    commands.registerCommand (Commands.hideAll, (fun _ -> Configuration.set Config.enabled (Some false) |> box |> Some))
     |> context.Subscribe
 
     commands.registerCommand (
         Commands.hideParameterNames,
-        (fun _ ->
-            Configuration.set Config.parameterNamesEnabled (Some false)
-            |> box
-            |> Some)
+        (fun _ -> Configuration.set Config.parameterNamesEnabled (Some false) |> box |> Some)
     )
     |> context.Subscribe
 
     commands.registerCommand (
         Commands.hideTypeAnnotations,
-        (fun _ ->
-            Configuration.set Config.typeAnnotationsEnabled (Some false)
-            |> box
-            |> Some)
+        (fun _ -> Configuration.set Config.typeAnnotationsEnabled (Some false) |> box |> Some)
     )
     |> context.Subscribe
 
-    languages.registerInlayHintsProvider (selector, provider)
-    |> context.Subscribe
+    languages.registerInlayHintsProvider (selector, provider) |> context.Subscribe
 
     disposables |> Seq.iter context.Subscribe
 

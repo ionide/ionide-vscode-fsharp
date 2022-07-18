@@ -3,8 +3,6 @@ namespace Ionide.VSCode.FSharp
 [<AutoOpen>]
 module Logging =
     open Fable.Core
-    open global.Node
-    open Fable.Import.VSCode
     open Fable.Import.VSCode.Vscode
     open Ionide.VSCode.FSharp.Node.Util
     open System
@@ -14,6 +12,7 @@ module Logging =
         | INFO
         | WARN
         | ERROR
+
         static member GetLevelNum =
             function
             | DEBUG -> 10
@@ -29,12 +28,10 @@ module Logging =
             | DEBUG -> "DEBUG"
 
         member this.isGreaterOrEqualTo level =
-            Level.GetLevelNum(this)
-            >= Level.GetLevelNum(level)
+            Level.GetLevelNum(this) >= Level.GetLevelNum(level)
 
         member this.isLessOrEqualTo level =
-            Level.GetLevelNum(this)
-            <= Level.GetLevelNum(level)
+            Level.GetLevelNum(this) <= Level.GetLevelNum(level)
 
     let mutable private ionideLogsMemory = []
 
@@ -90,10 +87,7 @@ module Logging =
         (template: string)
         (args: obj[])
         =
-        if
-            out.IsSome
-            && level.isGreaterOrEqualTo (chanMinLevel)
-        then
+        if out.IsSome && level.isGreaterOrEqualTo (chanMinLevel) then
             writeOutputChannel out.Value level source template args
 
         // Only write FSAC logs into the file
@@ -101,8 +95,8 @@ module Logging =
             try
                 if string args.[0] <> "parse" then
                     writeToFile level template args
-            with
-            | _ -> () // Do nothing
+            with _ ->
+                () // Do nothing
 
     let inline private writeBothIfConfigured
         (out: OutputChannel option)
@@ -113,10 +107,7 @@ module Logging =
         (template: string)
         (args: obj[])
         =
-        if
-            consoleMinLevel.IsSome
-            && level.isGreaterOrEqualTo (consoleMinLevel.Value)
-        then
+        if consoleMinLevel.IsSome && level.isGreaterOrEqualTo (consoleMinLevel.Value) then
             writeDevToolsConsole level source template args
 
         writeOutputChannelIfConfigured out chanMinLevel level source template args
@@ -178,5 +169,4 @@ module Logging =
         /// The templates may use node util.format placeholders: %s, %d, %j, %%
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.ErrorOnFailed text (p: JS.Promise<_>) =
-            p
-            |> Promise.catchEnd (fun err -> this.Error(text + ": %O", err))
+            p |> Promise.catchEnd (fun err -> this.Error(text + ": %O", err))

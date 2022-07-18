@@ -6,19 +6,22 @@ open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 open Ionide.VSCode.Helpers
 open Semver
 
 open DTO
 open LanguageServer
 
+module node = Node.Api
+
 module Notifications =
     type DocumentParsedEvent =
-        { uri: string
-          version: float
-          /// BEWARE: Live object, might have changed since the parsing
-          document: TextDocument }
+        {
+            uri: string
+            version: float
+            /// BEWARE: Live object, might have changed since the parsing
+            document: TextDocument
+        }
 
     let onDocumentParsedEmitter = vscode.EventEmitter.Create<DocumentParsedEvent>()
     let onDocumentParsed = onDocumentParsedEmitter.event
@@ -102,15 +105,14 @@ module LanguageService =
               kind: InlayHintKind }
 
     type Uri with
+
         member uri.ToDocumentUri = uri.ToString()
 
     let mutable client: LanguageClient option = None
 
     //TODO: remove (-> use URI instead)
     let private handleUntitled (fn: string) =
-        if fn.EndsWith ".fs"
-           || fn.EndsWith ".fsi"
-           || fn.EndsWith ".fsx" then
+        if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then
             fn
         else
             (fn + ".fsx")
@@ -157,9 +159,9 @@ module LanguageService =
                 match location.Data.SdkRoot with
                 | Some root ->
                     if Environment.isWin then
-                        return Some(path.join (root, "dotnet.exe"))
+                        return Some(node.path.join (root, "dotnet.exe"))
                     else
-                        return Some(path.join (root, "dotnet"))
+                        return Some(node.path.join (root, "dotnet"))
                 | None -> return None
             | Some location -> return Some location
         }
@@ -185,8 +187,7 @@ module LanguageService =
 
             cl.sendRequest ("fsharp/documentation", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
-                res.content
-                |> ofJson<Result<DocumentationDescription[][]>>)
+                res.content |> ofJson<Result<DocumentationDescription[][]>>)
 
     let documentationForSymbol xmlSig assembly =
         match client with
@@ -198,8 +199,7 @@ module LanguageService =
 
             cl.sendRequest ("fsharp/documentationSymbol", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
-                res.content
-                |> ofJson<Result<DocumentationDescription[][]>>)
+                res.content |> ofJson<Result<DocumentationDescription[][]>>)
 
     let signature (uri: Uri) line col =
         match client with
@@ -276,9 +276,7 @@ module LanguageService =
 
             cl.sendRequest ("fsharp/dotnetnewlist", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
-                let x =
-                    res.content
-                    |> ofJson<DotnetNew.DotnetNewListResponse>
+                let x = res.content |> ofJson<DotnetNew.DotnetNewListResponse>
 
                 x.Data)
 
@@ -473,13 +471,9 @@ module LanguageService =
         | None -> Promise.empty
         | Some cl ->
             let req: Types.WorkspaceLoadParms =
-                { TextDocuments =
-                    projects
-                    |> List.map (fun s -> { Types.Uri = s })
-                    |> List.toArray }
+                { TextDocuments = projects |> List.map (fun s -> { Types.Uri = s }) |> List.toArray }
 
-            cl.sendRequest ("fsharp/workspaceLoad", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsharp/workspaceLoad", req) |> Promise.map ignore
 
     let loadAnalyzers () =
         match client with
@@ -487,8 +481,7 @@ module LanguageService =
         | Some cl ->
             let req: Types.FileParams = { Project = { Uri = "" } }
 
-            cl.sendRequest ("fsharp/loadAnalyzers", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsharp/loadAnalyzers", req) |> Promise.map ignore
 
     let getHighlighting (uri: Uri) : JS.Promise<HighlightingResponse> =
         match client with
@@ -575,24 +568,21 @@ Consider:
 
 
     let private fsacConfig () =
-        compilerLocation ()
-        |> Promise.map (fun c -> c.Data)
+        compilerLocation () |> Promise.map (fun c -> c.Data)
 
     let fsi () =
         let fileExists (path: string) : JS.Promise<bool> =
             Promise.create (fun success _failure ->
-                fs.access (!^path, fs.constants.F_OK, (fun err -> success (err.IsNone))))
+                node.fs.access (!^path, node.fs.constants.F_OK, (fun err -> success (err.IsNone))))
 
         let getAnyCpuFsiPathFromCompilerLocation (location: CompilerLocation) =
             promise {
                 match location.Fsi with
                 | Some fsi ->
                     // Only rewrite if FSAC returned 'fsi.exe' (For future-proofing)
-                    if path.basename fsi = "fsi.exe" then
+                    if node.path.basename fsi = "fsi.exe" then
                         // If there is an anyCpu variant in the same dir we do the rewrite
-                        let anyCpuFile =
-                            path.join [| path.dirname fsi
-                                         "fsiAnyCpu.exe" |]
+                        let anyCpuFile = node.path.join [| node.path.dirname fsi; "fsiAnyCpu.exe" |]
 
                         let! anyCpuExists = fileExists anyCpuFile
 
@@ -618,9 +608,7 @@ Consider:
         promise { return Environment.configFsiSdkFilePath () }
 
     let private createClient (opts: Executable) =
-        let options =
-            createObj [ "run" ==> opts; "debug" ==> opts ]
-            |> unbox<ServerOptions>
+        let options = createObj [ "run" ==> opts; "debug" ==> opts ] |> unbox<ServerOptions>
 
         let fileDeletedWatcher =
             workspace.createFileSystemWatcher (U2.Case1 "**/*.{fs,fsx}", true, true, false)
@@ -629,7 +617,9 @@ Consider:
             let opts = createEmpty<Client.LanguageClientOptions>
 
             let selector: DocumentSelector =
-                let filter: DocumentFilter = jsOptions<TextDocumentFilter> (fun f -> f.language <- Some "fsharp") |> U2.Case1
+                let filter: DocumentFilter =
+                    jsOptions<TextDocumentFilter> (fun f -> f.language <- Some "fsharp") |> U2.Case1
+
                 [| U2.Case2 filter |]
 
             let initOpts = createObj [ "AutomaticWorkspaceInit" ==> false ]
@@ -671,24 +661,16 @@ Consider:
                 }
 
             let backgroundSymbolCache =
-                "FSharp.enableBackgroundServices"
-                |> Configuration.get true
+                "FSharp.enableBackgroundServices" |> Configuration.get true
 
             let enableProjectGraph =
-                "FSharp.enableMSBuildProjectGraph"
-                |> Configuration.get false
+                "FSharp.enableMSBuildProjectGraph" |> Configuration.get false
 
-            let fsacAttachDebugger =
-                "FSharp.fsac.attachDebugger"
-                |> Configuration.get false
+            let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
 
-            let fsacNetcorePath =
-                "FSharp.fsac.netCoreDllPath"
-                |> Configuration.get ""
+            let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
 
-            let fsacSilencedLogs =
-                "FSharp.fsac.silencedLogs"
-                |> Configuration.get [||]
+            let fsacSilencedLogs = "FSharp.fsac.silencedLogs" |> Configuration.get [||]
 
             let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
@@ -754,7 +736,7 @@ Consider:
                 promise {
                     let fsautocompletePath =
                         if String.IsNullOrEmpty fsacNetcorePath then
-                            path.join (VSCodeExtension.ionidePluginPath (), "bin", "fsautocomplete.dll")
+                            node.path.join (VSCodeExtension.ionidePluginPath (), "bin", "fsautocomplete.dll")
                         else
                             fsacNetcorePath
 
@@ -769,12 +751,9 @@ Consider:
                         | [] -> None
                         | fsacEnvVars ->
                             // only need to set the process env if FSAC needs rollfoward env vars.
-                            let keys = Node.Util.Object.keys process.env
+                            let keys = Node.Util.Object.keys node.``process``.env
 
-                            let baseEnv =
-                                keys
-                                |> Seq.toList
-                                |> List.map (fun k -> k, process.env?(k))
+                            let baseEnv = keys |> Seq.toList |> List.map (fun k -> k, node.``process``.env?(k))
 
                             let combinedEnv = baseEnv @ fsacEnvVars |> ResizeArray
                             let envObj = createObj combinedEnv
@@ -792,9 +771,9 @@ Consider:
                               yield "--background-service-enabled"
                           if enableProjectGraph then
                               yield "--project-graph-enabled"
-                          if verbose then yield "--verbose"
-                          if fsacSilencedLogs <> null
-                             && fsacSilencedLogs.Length > 0 then
+                          if verbose then
+                              yield "--verbose"
+                          if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0 then
                               yield "--filter"
                               yield! fsacSilencedLogs
                           match c.storageUri with
@@ -836,17 +815,9 @@ Consider:
                         let onMessage res =
                             match res?Kind |> unbox with
                             | "project" -> res |> unbox<ProjectResult> |> Choice1Of4 |> cb
-                            | "projectLoading" ->
-                                res
-                                |> unbox<ProjectLoadingResult>
-                                |> Choice2Of4
-                                |> cb
+                            | "projectLoading" -> res |> unbox<ProjectLoadingResult> |> Choice2Of4 |> cb
                             | "error" -> res?Data |> parseError |> Choice3Of4 |> cb
-                            | "workspaceLoad" ->
-                                res?Data?Status
-                                |> unbox<string>
-                                |> Choice4Of4
-                                |> cb
+                            | "workspaceLoad" -> res?Data?Status |> unbox<string> |> Choice4Of4 |> cb
                             | _ -> ()
 
                         let res = a.content |> ofJson<obj>

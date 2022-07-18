@@ -3,10 +3,7 @@ namespace Ionide.VSCode.FSharp
 open System
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import
-open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 open Ionide.VSCode.Helpers
 open DTO
 
@@ -15,8 +12,7 @@ module node = Node.Api
 module InfoPanel =
 
     let private isFsharpTextEditor (textEditor: TextEditor) =
-        if JS.isDefined textEditor
-           && JS.isDefined textEditor.document then
+        if JS.isDefined textEditor && JS.isDefined textEditor.document then
             let doc = textEditor.document
 
             match doc with
@@ -74,8 +70,7 @@ module InfoPanel =
                 p.webview.html <- str)
 
         let clear () =
-            panel
-            |> Option.iter (fun p -> p.webview.html <- "")
+            panel |> Option.iter (fun p -> p.webview.html <- "")
 
         let mapContent res =
             if isNotNull res then
@@ -97,8 +92,7 @@ module InfoPanel =
 
                     match lines |> Array.splitAt (lines.Length - 1) with
                     | (h, [| StartsWith "Full name:" fullName |]) ->
-                        [| yield fsharpBlock h
-                           yield "*" + fullName + "*" |]
+                        [| yield fsharpBlock h; yield "*" + fullName + "*" |]
                     | _ -> [| fsharpBlock lines |]
                     |> String.concat "\n"
 
@@ -198,9 +192,7 @@ module InfoPanel =
 
         let update (textEditor: TextEditor) (selections: ResizeArray<Selection>) =
             promise {
-                if isFsharpTextEditor textEditor
-                   && selections.Count > 0
-                   && panel.IsSome then
+                if isFsharpTextEditor textEditor && selections.Count > 0 && panel.IsSome then
                     let doc = textEditor.document
                     let pos = selections.[0].active
                     let! res = LanguageService.documentation doc.uri (int pos.line) (int pos.character)
@@ -259,10 +251,7 @@ module InfoPanel =
                           "enableFindWidget" ==> true
                           "retainContextWhenHidden" ==> true ]
 
-                let viewOpts =
-                    createObj
-                        [ "preserveFocus" ==> true
-                          "viewColumn" ==> -2 ]
+                let viewOpts = createObj [ "preserveFocus" ==> true; "viewColumn" ==> -2 ]
 
                 let p = window.createWebviewPanel ("infoPanel", "Info Panel", !!viewOpts, opts)
 
@@ -273,8 +262,7 @@ module InfoPanel =
                     clearTimer ()
                     Panel.panel <- None
 
-                p.onDidChangeViewState.Invoke(!!onChange)
-                |> ignore
+                p.onDidChangeViewState.Invoke(!!onChange) |> ignore
 
                 p.onDidDispose.Invoke(!!onClose) |> ignore
                 Panel.panel <- Some p
@@ -299,28 +287,22 @@ module InfoPanel =
 
 
     let private selectionChanged (event: TextEditorSelectionChangeEvent) =
-        let updateMode =
-            "FSharp.infoPanelUpdate"
-            |> Configuration.get "onCursorMove"
+        let updateMode = "FSharp.infoPanelUpdate" |> Configuration.get "onCursorMove"
 
-        if not Panel.locked
-           && (updateMode = "onCursorMove" || updateMode = "both") then
+        if not Panel.locked && (updateMode = "onCursorMove" || updateMode = "both") then
             clearTimer ()
             timer <- Some(setTimeout (fun () -> Panel.update event.textEditor event.selections) 500.)
 
 
     let private documentParsedHandler (event: Notifications.DocumentParsedEvent) =
-        if event.document = window.activeTextEditor.Value.document
-           && not Panel.locked then
+        if event.document = window.activeTextEditor.Value.document && not Panel.locked then
             clearTimer ()
             Panel.update window.activeTextEditor.Value window.activeTextEditor.Value.selections
 
         ()
 
     let tooltipRequested (pos: Position) =
-        let updateMode =
-            "FSharp.infoPanelUpdate"
-            |> Configuration.get "onCursorMove"
+        let updateMode = "FSharp.infoPanelUpdate" |> Configuration.get "onCursorMove"
 
         if updateMode = "onHover" || updateMode = "both" then
             clearTimer ()
@@ -340,13 +322,9 @@ module InfoPanel =
 
 
     let activate (context: ExtensionContext) =
-        let startLocked =
-            "FSharp.infoPanelStartLocked"
-            |> Configuration.get false
+        let startLocked = "FSharp.infoPanelStartLocked" |> Configuration.get false
 
-        let show =
-            "FSharp.infoPanelShowOnStartup"
-            |> Configuration.get false
+        let show = "FSharp.infoPanelShowOnStartup" |> Configuration.get false
 
         context.Subscribe(window.onDidChangeTextEditorSelection.Invoke(selectionChanged >> box >> Some))
         context.Subscribe(Notifications.onDocumentParsed.Invoke(documentParsedHandler >> box >> Some))
@@ -367,11 +345,10 @@ module InfoPanel =
         commands.registerCommand ("fsharp.showDocumentation", showDocumentation |> objfy2)
         |> context.Subscribe
 
-        if startLocked then Panel.locked <- true
+        if startLocked then
+            Panel.locked <- true
 
-        if show
-           && window.visibleTextEditors
-              |> Seq.exists isFsharpTextEditor then
+        if show && window.visibleTextEditors |> Seq.exists isFsharpTextEditor then
             openPanel () |> ignore
         else
             ()

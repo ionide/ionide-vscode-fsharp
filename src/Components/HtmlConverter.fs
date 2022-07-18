@@ -1,8 +1,6 @@
 namespace Ionide.VSCode.FSharp
 
 open Fable.Core.JsInterop
-open Fable.Import
-open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 open HtmlConverter.Converter
 

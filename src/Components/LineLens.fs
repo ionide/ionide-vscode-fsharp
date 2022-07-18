@@ -43,13 +43,9 @@ module LineLensConfig =
         let cfg = workspace.getConfiguration ()
 
         let fsharpCodeLensConfig =
-            cfg
-                .get("[fsharp]", JsObject.empty)
-                .tryGet<bool> ("editor.codeLens")
+            cfg.get("[fsharp]", JsObject.empty).tryGet<bool> ("editor.codeLens")
 
-        { enabled =
-            cfg.get ("FSharp.lineLens.enabled", "replacecodelens")
-            |> parseEnabledMode
+        { enabled = cfg.get ("FSharp.lineLens.enabled", "replacecodelens") |> parseEnabledMode
           prefix = cfg.get ("FSharp.lineLens.prefix", defaultConfig.prefix) }
 
     let isEnabled conf =
@@ -71,10 +67,12 @@ module Documents =
         }
 
     type DocumentInfo =
-        { /// Full uri of the document
-          uri: Uri
-          /// Current decoration cache
-          cache: Cached option }
+        {
+            /// Full uri of the document
+            uri: Uri
+            /// Current decoration cache
+            cache: Cached option
+        }
 
     type Documents = Dictionary<Uri, DocumentInfo>
 
@@ -156,10 +154,7 @@ module DecorationUpdate =
 
         let args =
             sign.Parameters
-            |> List.map (fun group ->
-                group
-                |> List.map (fun p -> formatType p.Type)
-                |> String.concat " * ")
+            |> List.map (fun group -> group |> List.map (fun p -> formatType p.Type) |> String.concat " * ")
             |> String.concat " -> "
 
         if String.IsNullOrEmpty args then
@@ -173,16 +168,17 @@ module DecorationUpdate =
             let interestingNested =
                 syms.Nested
                 |> Array.choose (fun sym ->
-                    if sym.GlyphChar <> "Fc"
-                       && sym.GlyphChar <> "M"
-                       && sym.GlyphChar <> "F"
-                       && sym.GlyphChar <> "P"
-                       || sym.IsAbstract
-                       || sym.EnclosingEntity = "I" // interface
-                       || sym.EnclosingEntity = "R" // record
-                       || sym.EnclosingEntity = "D" // DU
-                       || sym.EnclosingEntity = "En" // enum
-                       || sym.EnclosingEntity = "E" // exception
+                    if
+                        sym.GlyphChar <> "Fc"
+                        && sym.GlyphChar <> "M"
+                        && sym.GlyphChar <> "F"
+                        && sym.GlyphChar <> "P"
+                        || sym.IsAbstract
+                        || sym.EnclosingEntity = "I" // interface
+                        || sym.EnclosingEntity = "R" // record
+                        || sym.EnclosingEntity = "D" // DU
+                        || sym.EnclosingEntity = "En" // enum
+                        || sym.EnclosingEntity = "E" // exception
                     then
                         None
                     else
@@ -191,8 +187,7 @@ module DecorationUpdate =
             if syms.Declaration.GlyphChar <> "Fc" then
                 interestingNested
             else
-                interestingNested
-                |> Array.append [| syms.Declaration.BodyRange |])
+                interestingNested |> Array.append [| syms.Declaration.BodyRange |])
 
     let private lineRange (doc: TextDocument) (range: DTO.Range) =
         let lineNumber = float range.StartLine - 1.
@@ -209,9 +204,7 @@ module DecorationUpdate =
                 else
                     None
 
-            return
-                signaturesResult
-                |> Option.map (fun r -> range, formatSignature r.Data)
+            return signaturesResult |> Option.map (fun r -> range, formatSignature r.Data)
         }
 
     let private signatureToDecoration (doc: TextDocument) (range: DTO.Range, signature: string) =
@@ -220,29 +213,18 @@ module DecorationUpdate =
     let private onePerLine (ranges: Range[]) =
         ranges
         |> Array.groupBy (fun r -> r.StartLine)
-        |> Array.choose (fun (_, ranges) ->
-            if ranges.Length = 1 then
-                Some(ranges.[0])
-            else
-                None)
+        |> Array.choose (fun (_, ranges) -> if ranges.Length = 1 then Some(ranges.[0]) else None)
 
     let private needUpdate (uri: Uri) (version: Number) { documents = documents } =
-        (documents
-         |> Documents.tryGetCachedAtVersion uri version)
-            .IsSome
+        (documents |> Documents.tryGetCachedAtVersion uri version).IsSome
 
     let private declarationsResultToSignatures declarationsResult uri =
         promise {
-            let interesting =
-                declarationsResult.Data
-                |> interestingSymbolPositions
+            let interesting = declarationsResult.Data |> interestingSymbolPositions
 
             let interesting = onePerLine interesting
 
-            let! signatures =
-                interesting
-                |> Array.map (getSignature uri)
-                |> Promise.all
+            let! signatures = interesting |> Array.map (getSignature uri) |> Promise.all
 
             return signatures |> Seq.choose id
         }
@@ -254,9 +236,7 @@ module DecorationUpdate =
         promise {
             let uri = document.uri
 
-            match state.documents
-                  |> Documents.tryGetCachedAtVersion uri version
-                with
+            match state.documents |> Documents.tryGetCachedAtVersion uri version with
             | Some (info, _) ->
                 logger.Debug("Found existing decorations in cache for '%s' @%d", uri, version)
                 return Some info
@@ -264,25 +244,20 @@ module DecorationUpdate =
                 let text = document.getText ()
                 let! declarationsResult = LanguageService.lineLenses uri
 
-                if document.version = version
-                   && isNotNull declarationsResult then
+                if document.version = version && isNotNull declarationsResult then
                     let! signatures = declarationsResultToSignatures declarationsResult uri
                     let info = state.documents |> Documents.getOrAdd uri
 
-                    if document.version = version && info.cache.IsNone
-                       || info.cache.Value.version <> version then
+                    if
+                        document.version = version && info.cache.IsNone
+                        || info.cache.Value.version <> version
+                    then
                         let decorations =
-                            signatures
-                            |> Seq.map (signatureToDecoration document)
-                            |> ResizeArray
+                            signatures |> Seq.map (signatureToDecoration document) |> ResizeArray
 
                         logger.Debug("New decorations generated for '%s' @%d", uri, version)
 
-                        return
-                            Some(
-                                state.documents
-                                |> Documents.update info decorations version
-                            )
+                        return Some(state.documents |> Documents.update info decorations version)
                     else
                         return None
                 else
@@ -347,8 +322,7 @@ let private documentParsedHandler (event: Notifications.DocumentParsedEvent) =
         |> logger.ErrorOnFailed "Updating after parse failed"
 
 let private closedTextDocumentHandler (textDocument: TextDocument) =
-    state
-    |> Option.iter (DecorationUpdate.documentClosed textDocument.uri)
+    state |> Option.iter (DecorationUpdate.documentClosed textDocument.uri)
 
 let install () =
     logger.Debug "Installing"
@@ -393,10 +367,7 @@ let configChangedHandler () =
     let isEnabled = LineLensConfig.isEnabled config
 
     if wasEnabled <> isEnabled then
-        if isEnabled then
-            install ()
-        else
-            uninstall ()
+        if isEnabled then install () else uninstall ()
 
 
 let activate (context: ExtensionContext) =

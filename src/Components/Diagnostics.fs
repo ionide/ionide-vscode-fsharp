@@ -5,7 +5,6 @@ open Fable.Core
 open Fable.Import
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 open JsInterop
 
 open Ionide.VSCode.Helpers
@@ -107,8 +106,7 @@ Error: %A
 
 
 
-        Promise.all [ netcoreInfos ]
-        |> Promise.map (String.concat "\n")
+        Promise.all [ netcoreInfos ] |> Promise.map (String.concat "\n")
 
     let writeToFile (text: string) =
         promise {
@@ -121,11 +119,9 @@ Error: %A
             let! success = workspace.applyEdit (edit)
 
             if success then
-                window.showTextDocument (document, ?options = None)
-                |> ignore
+                window.showTextDocument (document, ?options = None) |> ignore
             else
-                window.showErrorMessage ("Error when printing diagnostic report.")
-                |> ignore
+                window.showErrorMessage ("Error when printing diagnostic report.") |> ignore
         }
 
     let getDiagnosticsInfos () =

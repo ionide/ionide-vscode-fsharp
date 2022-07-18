@@ -39,7 +39,4 @@ module XPath =
         member this.TrySelectString(xpath: string) : string option =
             let s = this.SelectString(xpath)
 
-            if System.String.IsNullOrWhiteSpace(s) then
-                None
-            else
-                Some s
+            if System.String.IsNullOrWhiteSpace(s) then None else Some s

@@ -3,12 +3,9 @@ namespace Ionide.VSCode.FSharp
 open System
 open Fable.Core
 open Fable.Core.JsInterop
-open Fable.Import
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 open Ionide.VSCode.Helpers
-open System.Collections.Generic
 open System.Text.RegularExpressions
 
 open DTO
@@ -82,10 +79,7 @@ module SolutionExplorer =
                 state.Children <- x :: state.Children
                 addhelper x xs
 
-        virtualPath.Split('/')
-        |> List.ofArray
-        |> addhelper root
-        |> ignore
+        virtualPath.Split('/') |> List.ofArray |> addhelper root |> ignore
 
 
     let getParentRef (model: Model) =
@@ -130,10 +124,7 @@ module SolutionExplorer =
 
     let rec toModel (projPath: string) (entry: NodeEntry) =
         if entry.Children.Length > 0 then
-            let childs =
-                entry.Children
-                |> Seq.map (toModel projPath)
-                |> Seq.toList
+            let childs = entry.Children |> Seq.map (toModel projPath) |> Seq.toList
 
             let result = Folder(ref None, entry.Key, entry.FilePath, childs, projPath)
             setParentRefs childs result
@@ -150,13 +141,9 @@ module SolutionExplorer =
               VirtualPath = ""
               Children = [] }
 
-        files
-        |> List.iter (fun (virtualPath, path) -> add' entry virtualPath path)
+        files |> List.iter (fun (virtualPath, path) -> add' entry virtualPath path)
 
-        entry.Children
-        |> Seq.rev
-        |> Seq.map (toModel projPath)
-        |> Seq.toList
+        entry.Children |> Seq.rev |> Seq.map (toModel projPath) |> Seq.toList
 
     let private getProjectModel (proj: Project) =
         let projects = Project.getLoaded () |> Seq.toArray
@@ -269,18 +256,14 @@ module SolutionExplorer =
             setParentRef s result
             result
         | WorkspacePeekFound.Directory dir ->
-            let items =
-                dir.Fsprojs
-                |> Array.map getProjItem
-                |> List.ofArray
+            let items = dir.Fsprojs |> Array.map getProjItem |> List.ofArray
 
             let result = Workspace items
             setParentRefs items result
             result
 
     let private getSolution () =
-        Project.getLoadedSolution ()
-        |> Option.map getSolutionModel
+        Project.getLoadedSolution () |> Option.map getSolutionModel
 
     let private getSubmodel node =
         match node with
@@ -399,12 +382,7 @@ module SolutionExplorer =
                         let options = createEmpty<obj>
                         options?preserveFocus <- true
 
-                        c.arguments <-
-                            Some(
-                                ResizeArray
-                                    [| Some(box (vscode.Uri.file p))
-                                       Some options |]
-                            )
+                        c.arguments <- Some(ResizeArray [| Some(box (vscode.Uri.file p)); Some options |])
 
                         Some c
                     | _ -> None
@@ -450,13 +428,9 @@ module SolutionExplorer =
                     | WorkspaceFolder _ -> vscode.ThemeIcon.Folder |> U4.Case4 |> Some, None
                     | PackageReference (_, path, _, _)
                     | ProjectReference (_, path, _, _) ->
-                        let light =
-                            (plugPath + "/images/circuit-board-light.svg")
-                            |> U2.Case1
+                        let light = (plugPath + "/images/circuit-board-light.svg") |> U2.Case1
 
-                        let dark =
-                            (plugPath + "/images/circuit-board-dark.svg")
-                            |> U2.Case1
+                        let dark = (plugPath + "/images/circuit-board-dark.svg") |> U2.Case1
 
                         let p = {| light = light; dark = dark |} |> U4.Case3
                         p |> Some, vscode.Uri.file path |> Some
@@ -481,9 +455,7 @@ module SolutionExplorer =
                     | File (_, _, _, _, pp) ->
                         (resourceUri
                          |> Option.map (fun u -> (label ti + "||" + u.toString () + "||" + pp)))
-                    | _ ->
-                        (resourceUri
-                         |> Option.map (fun u -> (label ti + "||" + u.toString ())))
+                    | _ -> (resourceUri |> Option.map (fun u -> (label ti + "||" + u.toString ())))
 
                 U2.Case1 ti
 
@@ -509,9 +481,7 @@ module SolutionExplorer =
             Context.cachedSetter<bool> "fsharp.showProjectExplorerInExplorerActivity"
 
         let initializeAndGetId () : string =
-            let showIn =
-                "FSharp.showProjectExplorerIn"
-                |> Configuration.get "fsharp"
+            let showIn = "FSharp.showProjectExplorerIn" |> Configuration.get "fsharp"
 
             let inFsharpActivity = (showIn = "fsharp")
             setInFsharpActivity inFsharpActivity
@@ -542,8 +512,7 @@ module SolutionExplorer =
 
         let private findModelFromUri (state: State option ref) (uri: Uri) =
             if uri.scheme = "file" && JS.isDefined uri.fsPath then
-                state.Value
-                |> Option.bind (fun s -> s.ModelPerFile |> Map.tryFind uri.fsPath)
+                state.Value |> Option.bind (fun s -> s.ModelPerFile |> Map.tryFind uri.fsPath)
             else
                 None
 
@@ -618,8 +587,7 @@ module SolutionExplorer =
             (state: State option ref)
             (change: TreeViewVisibilityChangeEvent)
             =
-            if change.visible
-               && RevealConfiguration.getAutoReveal () then
+            if change.visible && RevealConfiguration.getAutoReveal () then
                 // Done out of the event call to avoid VSCode double-selecting due to a race-condition
                 JS.setTimeout (fun () -> revealTextEditor tree state window.activeTextEditor true) 0
                 |> ignore
@@ -634,8 +602,7 @@ module SolutionExplorer =
 
             let onModelChanged' = onModelChanged treeView state
 
-            rootChanged.Invoke(unbox onModelChanged')
-            |> context.Subscribe
+            rootChanged.Invoke(unbox onModelChanged') |> context.Subscribe
 
             let onDidChangeTreeVisibility' = onDidChangeTreeVisibility treeView state
 
@@ -651,9 +618,7 @@ module SolutionExplorer =
 
 
     let private handleUntitled (fn: string) =
-        if fn.EndsWith ".fs"
-           || fn.EndsWith ".fsi"
-           || fn.EndsWith ".fsx" then
+        if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then
             fn
         else
             (fn + ".fs")
@@ -689,17 +654,9 @@ module SolutionExplorer =
 
                     match dir, name with
                     | Some dir, Some name ->
-                        let output =
-                            if String.IsNullOrWhiteSpace dir then
-                                None
-                            else
-                                Some dir
+                        let output = if String.IsNullOrWhiteSpace dir then None else Some dir
 
-                        let projName =
-                            if String.IsNullOrWhiteSpace name then
-                                None
-                            else
-                                Some name
+                        let projName = if String.IsNullOrWhiteSpace name then None else Some name
 
                         match template.description with
                         | None -> return ()
@@ -715,14 +672,12 @@ module SolutionExplorer =
                                     else if output.IsSome then
                                         output.Value + ".fsproj"
                                     else
-                                        (path.dirname workspace.rootPath.Value)
-                                        + ".fsproj"
+                                        (node.path.dirname workspace.rootPath.Value) + ".fsproj"
 
-                                let proj = path.join (workspace.rootPath.Value, dir, name, pname)
+                                let proj = node.path.join (workspace.rootPath.Value, dir, name, pname)
                                 let args = [ "sln"; slnName; "add"; proj ]
 
-                                Project.execWithDotnet MSBuild.outputChannel (ResizeArray args)
-                                |> ignore
+                                Project.execWithDotnet MSBuild.outputChannel (ResizeArray args) |> ignore
                             | _ ->
                                 //If it's the first project in the workspace we need to init the workspace
                                 if Project.getInWorkspace().IsEmpty then
@@ -731,9 +686,7 @@ module SolutionExplorer =
                         ()
                     | _ -> ()
                 | None -> ()
-            | None ->
-                window.showErrorMessage ("No open folder.")
-                |> ignore
+            | None -> window.showErrorMessage ("No open folder.") |> ignore
         }
 
     let activate (context: ExtensionContext) =
@@ -917,13 +870,10 @@ module SolutionExplorer =
                             project)) ->
                     let files = project.Files
 
-                    let projRefs =
-                        project.ProjectReferences
-                        |> Array.map (fun n -> n.ProjectFileName)
+                    let projRefs = project.ProjectReferences |> Array.map (fun n -> n.ProjectFileName)
 
                     let packageRefs =
-                        project.PackageReferences
-                        |> Array.map (fun n -> n.Name + " " + n.Version)
+                        project.PackageReferences |> Array.map (fun n -> n.Name + " " + n.Version)
 
                     let refs =
                         refs
@@ -1012,10 +962,7 @@ module SolutionExplorer =
                           error ]
                     | _ -> [ error ]
 
-                [ "<b>Status:</b> failed to load"
-                  ""
-                  "<b>Error:</b>" ]
-                @ errorMsg
+                [ "<b>Status:</b> failed to load"; ""; "<b>Error:</b>" ] @ errorMsg
                 |> String.concat "<br />"
 
             let mutable e = None
@@ -1090,10 +1037,7 @@ module SolutionExplorer =
                     let launchRequestCfg =
                         let debuggerRuntime = Debugger.debuggerRuntime proj
                         // create or update right launch setting
-                        match
-                            configurations :> seq<_>
-                            |> Seq.tryPick (findCoreclrLaunch debuggerRuntime)
-                            with
+                        match configurations :> seq<_> |> Seq.tryPick (findCoreclrLaunch debuggerRuntime) with
                         | Some cfg -> cfg
                         | None ->
                             //TODO is possibile to programmatically run the "Add Configuration" for .net console?
@@ -1239,9 +1183,7 @@ module SolutionExplorer =
             "fsharp.explorer.project.generateFSI",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, _, _, _, _, _, _, pr) ->
-                    Fsi.generateProjectReferencesForProject pr
-                    |> unbox
+                | Project (_, _, _, _, _, _, _, pr) -> Fsi.generateProjectReferencesForProject pr |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1277,8 +1219,7 @@ module SolutionExplorer =
                             | Some proj ->
                                 let args = [ "sln"; name; "add"; proj ]
 
-                                Project.execWithDotnet MSBuild.outputChannel (ResizeArray args)
-                                |> ignore
+                                Project.execWithDotnet MSBuild.outputChannel (ResizeArray args) |> ignore
                             | None -> ()
                     }
                     |> unbox

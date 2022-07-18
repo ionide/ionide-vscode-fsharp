@@ -1,11 +1,7 @@
 namespace Ionide.VSCode.FSharp
 
-open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
-open global.Node
 open Fable.Core.JsInterop
-
-module node = Node.Api
 
 module FSharpLiterate =
     module private Panel =
@@ -210,8 +206,7 @@ module FSharpLiterate =
                 p.webview.html <- str)
 
         let clear () =
-            panel
-            |> Option.iter (fun p -> p.webview.html <- "")
+            panel |> Option.iter (fun p -> p.webview.html <- "")
 
         let update (textEditor: TextEditor) =
             promise {
@@ -233,10 +228,7 @@ module FSharpLiterate =
                               "enableFindWidget" ==> true
                               "retainContextWhenHidden" ==> true ]
 
-                    let viewOpts =
-                        createObj
-                            [ "preserveFocus" ==> true
-                              "viewColumn" ==> -2 ]
+                    let viewOpts = createObj [ "preserveFocus" ==> true; "viewColumn" ==> -2 ]
 
                     let p =
                         window.createWebviewPanel ("fsharpLiterate", "F# Literate", !!viewOpts, opts)
@@ -271,8 +263,7 @@ module FSharpLiterate =
 
 
     let activate (context: ExtensionContext) =
-        workspace.onDidSaveTextDocument.Invoke(unbox fileSaved)
-        |> context.Subscribe
+        workspace.onDidSaveTextDocument.Invoke(unbox fileSaved) |> context.Subscribe
 
         window.onDidChangeActiveTextEditor.Invoke(unbox updatePanel)
         |> context.Subscribe
