@@ -900,7 +900,7 @@
       {
         "command": "MSBuild.buildCurrent",
         "key": "ctrl\u002Balt\u002Bb",
-        "when": "editorFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027"
+        "when": "fsharp.project.any \u0026\u0026 editorFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027"
       },
       {
         "command": "MSBuild.buildCurrentSolution",
@@ -1042,7 +1042,7 @@
         },
         {
           "command": "fsharp.AddFileToProject",
-          "when": "editorLangId == \u0027fsharp\u0027"
+          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027"
         },
         {
           "command": "fsi.SendSelection",
@@ -1058,11 +1058,11 @@
         },
         {
           "command": "fsi.SendProjectReferences",
-          "when": "editorLangId == \u0027fsharp\u0027"
+          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027"
         },
         {
           "command": "fsi.GenerateProjectReferences",
-          "when": "editorLangId == \u0027fsharp\u0027"
+          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027"
         },
         {
           "command": "fsharp.scriptrunner.run",
@@ -1078,15 +1078,55 @@
         },
         {
           "command": "MSBuild.buildCurrent",
-          "when": "editorLangId == \u0027fsharp\u0027"
+          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027"
         },
         {
           "command": "MSBuild.rebuildCurrent",
-          "when": "editorLangId == \u0027fsharp\u0027"
+          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027"
         },
         {
           "command": "MSBuild.cleanCurrent",
-          "when": "editorLangId == \u0027fsharp\u0027"
+          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "MSBuild.buildSelected",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "MSBuild.rebuildSelected",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "MSBuild.cleanSelected",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "MSBuild.restoreSelected",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "MSBuild.buildCurrentSolution",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "MSBuild.rebuildCurrentSolution",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "MSBuild.cleanCurrentSolution",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "fsharp.runDefaultProject",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "fsharp.debugDefaultProject",
+          "when": "fsharp.project.any"
+        },
+        {
+          "command": "fsharp.chooseDefaultProject",
+          "when": "fsharp.project.any"
         },
         {
           "command": "fsharp.showDocumentation",
