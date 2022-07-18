@@ -163,24 +163,6 @@ Consider:
                     return Core.Error msg
         }
 
-// Old implementation: How does compilerLocation work?
-// If dotnet is not found on the system, client cannot be run, no?
-//                let! dotnet = Environment.dotnet
-
-//                match dotnet with
-//                | None ->
-//                    let! location = compilerLocation ()
-//
-//                    match location.Data.SdkRoot with
-//                    | Some root ->
-//                        if Environment.isWin then
-//                            return Some(path.join (root, "dotnet.exe"))
-//                        else
-//                            return Some(path.join (root, "dotnet"))
-//                    | None -> return None
-//                | Some location -> return Some location
-
-
     /// runs `dotnet --version` in the current rootPath to determine the resolved sdk version from the global.json file.
     let runtimeVersion () =
         promise {
