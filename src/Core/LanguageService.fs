@@ -126,13 +126,10 @@ module LanguageService =
                     path.join(dotnetRoot, program)
 
                 // Check if the program exists at the computed location
-                match! Environment.tryGetTool dotnetFullPath with
-                // Everything is fine, return the path
-                | Some dotnet ->
-                    return Ok dotnet
+                if fs.existsSync (U2.Case1 dotnetFullPath) then
+                    return Ok dotnetFullPath
 
-                // The program does not exist, return the error
-                | None ->
+                else
                     let msg =
                         // The special syntax: %s{"\n" + dotnetFullPath}
                         // Force a new line to be added, if I put %s{dotnetFullPath}
