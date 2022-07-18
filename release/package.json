@@ -1129,6 +1129,10 @@
           "when": "fsharp.project.any"
         },
         {
+          "command": "fsharp.NewProject",
+          "when": "workbenchState != empty"
+        },
+        {
           "command": "fsharp.showDocumentation",
           "when": "false"
         },
