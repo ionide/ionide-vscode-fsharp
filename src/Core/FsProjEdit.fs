@@ -16,6 +16,7 @@ module FsProjEdit =
 
     let removeFilePath project file = Promise.empty
     //TODO
+    //Also disabled in project.json, reenable when it's fixed
     //sprintf "remove file -n %s" (quotePath path) |> spawnForge |> ignore
 
     let addFileAbove project fromFile newFile =
