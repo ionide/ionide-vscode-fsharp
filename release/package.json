@@ -434,11 +434,6 @@
           "light": "./images/debug-mono-light.svg"
         },
         "title": "Debug Single"
-      },
-      {
-        "category": "F#",
-        "command": "fsharp.openFSharpLiterate",
-        "title": "Show F# Literate preview"
       }
     ],
     "configuration": {
