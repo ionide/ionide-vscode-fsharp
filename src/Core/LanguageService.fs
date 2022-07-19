@@ -123,10 +123,10 @@ module LanguageService =
 
                 // Compute the full path
                 let dotnetFullPath =
-                    path.join(dotnetRoot, program)
+                    node.path.join(dotnetRoot, program)
 
                 // Check if the program exists at the computed location
-                if fs.existsSync (U2.Case1 dotnetFullPath) then
+                if node.fs.existsSync (U2.Case1 dotnetFullPath) then
                     return Ok dotnetFullPath
 
                 else
