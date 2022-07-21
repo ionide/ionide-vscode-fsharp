@@ -635,6 +635,7 @@ Consider:
             opts.revealOutputChannelOn <- Some Client.RevealOutputChannelOn.Never
 
             opts.initializationOptions <- Some !^(Some initOpts)
+            opts?markdown <- createObj ["isTrusted" ==> true]
 
             opts
 
