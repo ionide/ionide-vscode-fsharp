@@ -17,34 +17,6 @@ module Config =
     let disableLongTooltip = "FSharp.inlayHints.disableLongTooltip"
     let editorInlayHintsEnabled = "editor.inlayHints.enabled"
 
-let enabled () : bool =
-    Configuration.getUnsafe Config.enabled
-    || Configuration.getUnsafe Config.editorInlayHintsEnabled = "on"
-
-let allowTypeAnnotations () : bool =
-    Configuration.getUnsafe Config.typeAnnotationsEnabled
-
-let allowParameterNames () : bool =
-    Configuration.getUnsafe Config.parameterNamesEnabled
-
-let actuallyEnabled () =
-    enabled () && (allowTypeAnnotations () || allowParameterNames ())
-
-let isSetToToggle () =
-    Configuration.tryGet Config.editorInlayHintsEnabled
-    |> Option.map (fun key -> key = "toggle")
-    |> Option.defaultValue false
-
-let useLongTooltip () : bool =
-    Configuration.getUnsafe Config.disableLongTooltip
-    |> Option.map not
-    |> Option.defaultValue true
-
-let inline createEdit (pos: Position, text: string) : TextEdit =
-    let e = createEmpty<TextEdit>
-    e.range <- vscode.Range.Create(pos, pos)
-    e.newText <- text
-    e
 
 module Commands =
     let hideTypeAnnotations = "fsharp.inlayHints.hideTypeAnnotations"
@@ -53,115 +25,6 @@ module Commands =
     let setToToggle = "fsharp.inlayHints.setToToggle"
     let disableLongTooltip = "fsharp.inlayHints.disableLongTooltip"
 
-let toInlayHint useLongTooltip isSetToToggle (fsacHint: LanguageService.Types.InlayHint) : InlayHint =
-    let h = createEmpty<InlayHint>
-    h.position <- vscode.Position.Create(fsacHint.pos.line, fsacHint.pos.character)
-    h.label <- U2.Case1 fsacHint.text
-
-    let tip kind =
-        if useLongTooltip then
-            let lines = ResizeArray()
-
-            let hideCommand =
-                match kind with
-                | LanguageService.Types.InlayHintKind.Type -> Commands.hideTypeAnnotations
-                | LanguageService.Types.InlayHintKind.Parameter -> Commands.hideParameterNames
-
-            lines.Add $"To hide these hints, [click here](command:{hideCommand})."
-            lines.Add $"To hide *ALL* hints, [click here](command:{Commands.hideAll})."
-
-            if not isSetToToggle && toggleSupported then
-                lines.Add
-                    $"Hints can also be hidden by default, and shown when Ctrl/Cmd+Alt is pressed. To do this, [click here](command:{Commands.setToToggle})."
-
-            lines.Add
-                $"Finally, to dismiss this long tooltip forever, [click here](command:{Commands.disableLongTooltip})."
-
-            let t = vscode.MarkdownString.Create(String.concat " " lines)
-            t.isTrusted <- Some true
-            Some t
-        else
-            None
-
-    match fsacHint.kind with
-    | LanguageService.Types.InlayHintKind.Type ->
-        h.paddingLeft <- Some true
-        h.kind <- Some InlayHintKind.Type
-    | LanguageService.Types.InlayHintKind.Parameter ->
-        h.paddingRight <- Some true
-        h.kind <- Some InlayHintKind.Parameter
-    // TODO: we don't easily create edits for parameter names - it might help if the insert text
-    // was provided from FSAC as well (because FSAC knows if parens would be required, etc)
-    h.tooltip <- tip fsacHint.kind |> Option.map U2.Case2
-    h
-
-let inlayProvider () =
-    let events = vscode.EventEmitter.Create()
-    let mutable ev = events.event
-    let disposables = ResizeArray()
-
-    workspace.onDidChangeTextDocument.Invoke(fun e ->
-        if e.document.languageId = "fsharp" then
-            events.fire ()
-
-        None)
-    |> disposables.Add
-
-    workspace.onDidChangeConfiguration.Invoke(
-        (fun _ ->
-            events.fire ()
-            None)
-    )
-    |> disposables.Add
-
-    { new InlayHintsProvider with
-        member x.onDidChangeInlayHints = Some ev
-
-        member x.provideInlayHints(document: TextDocument, range: Range, token: CancellationToken) =
-            let doThing () =
-                promise {
-                    logger.Info("Getting inlay hints for %s", document.fileName)
-
-                    let! hints =
-                        LanguageService.inlayHints (
-                            document.uri,
-                            { start = range.start
-                              ``end`` = range.``end`` }
-                        )
-
-                    let allowedHints =
-                        match allowParameterNames (), allowTypeAnnotations () with
-                        | true, true -> hints
-                        | false, true ->
-                            hints
-                            |> Array.filter (fun h -> h.kind = LanguageService.Types.InlayHintKind.Type)
-                        | true, false ->
-                            hints
-                            |> Array.filter (fun h -> h.kind = LanguageService.Types.InlayHintKind.Parameter)
-                        | false, false -> [||] // not actually a thing, covered by the actuallyEnabled
-
-                    let useLongTooltip = useLongTooltip ()
-                    let isSetToToggle = toggleSupported && isSetToToggle ()
-
-                    return
-                        allowedHints
-                        |> Seq.map (toInlayHint useLongTooltip isSetToToggle)
-                        |> ResizeArray
-                        |> Some
-                }
-                |> Promise.toThenable
-
-            if not (actuallyEnabled ()) then
-                ProviderResult.None
-            else
-                ProviderResult.Some(U2.Case2(doThing ()))
-
-        member x.resolveInlayHint(hint, token: CancellationToken) = None
-
-        member x.onDidChangeInlayHints
-            with set v = v |> Option.iter (fun v -> ev <- v) },
-    disposables
-
 let supportsToggle (vscodeVersion: string) =
     let compareOptions = createEmpty<Semver.Options>
     compareOptions.includePrerelease <- Some true
@@ -169,15 +32,7 @@ let supportsToggle (vscodeVersion: string) =
     Semver.semver.gte (U2.Case1 vscodeVersion, U2.Case1 "1.67.0", U2.Case2 compareOptions)
 
 let activate (context: ExtensionContext) =
-    let provider, disposables = inlayProvider ()
     toggleSupported <- supportsToggle vscode.version
-
-    let selector: DocumentSelector =
-        let filter: DocumentFilter =
-            jsOptions<TextDocumentFilter> (fun f -> f.language <- Some "fsharp")
-            |> DocumentFilter.Case1
-
-        [| U2.Case2 filter |]
 
     commands.registerCommand (
         Commands.disableLongTooltip,
@@ -209,10 +64,6 @@ let activate (context: ExtensionContext) =
         (fun _ -> Configuration.set Config.typeAnnotationsEnabled (Some false) |> box |> Some)
     )
     |> context.Subscribe
-
-    languages.registerInlayHintsProvider (selector, provider) |> context.Subscribe
-
-    disposables |> Seq.iter context.Subscribe
 
     logger.Info "Activating F# inlay hints"
     ()

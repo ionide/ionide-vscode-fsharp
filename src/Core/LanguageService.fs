@@ -89,21 +89,6 @@ module LanguageService =
             { start: Fable.Import.VSCode.Vscode.Position
               ``end``: Fable.Import.VSCode.Vscode.Position }
 
-        type InlayHintsRequest =
-            { TextDocument: TextDocumentIdentifier
-              Range: LspRange }
-
-        [<StringEnum>]
-        type InlayHintKind =
-            | [<CompiledName("Parameter")>] Parameter
-            | [<CompiledName("Type")>] Type
-
-        type InlayHint =
-            { text: string
-              insertText: string option
-              pos: Fable.Import.VSCode.Vscode.Position
-              kind: InlayHintKind }
-
     type Uri with
 
         member uri.ToDocumentUri = uri.ToString()
@@ -512,16 +497,6 @@ module LanguageService =
             cl.sendRequest ("fsharp/pipelineHint", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<PipelineHintsResult>)
 
-    let inlayHints (fileUri: Uri, range) : JS.Promise<Types.InlayHint[]> =
-        match client with
-        | None -> Promise.empty
-        | Some cl ->
-            let req: Types.InlayHintsRequest =
-                { TextDocument = { Uri = fileUri.ToDocumentUri }
-                  Range = range }
-
-            cl.sendRequest ("fsharp/inlayHints", req)
-
     module FakeSupport =
         open DTO.FakeSupport
 
@@ -635,7 +610,7 @@ Consider:
             opts.revealOutputChannelOn <- Some Client.RevealOutputChannelOn.Never
 
             opts.initializationOptions <- Some !^(Some initOpts)
-            opts?markdown <- createObj ["isTrusted" ==> true]
+            opts?markdown <- createObj [ "isTrusted" ==> true ]
 
             opts
 
