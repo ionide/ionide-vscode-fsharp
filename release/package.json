@@ -1236,7 +1236,7 @@
         {
           "command": "fsharp.explorer.removeFile",
           "group": "1_navigation@4",
-          "when": "viewItem == ionide.projectExplorer.file && false"
+          "when": "viewItem == ionide.projectExplorer.file \u0026\u0026 false"
         },
         {
           "command": "fsharp.explorer.addAbove",
@@ -1692,5 +1692,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "6.0.6"
+  "version": "7.0.0"
 }

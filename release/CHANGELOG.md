@@ -1,3 +1,18 @@
+### 7.0.0 - 23.07.2022
+
+* Remove custom inlay hints implementation 
+* Remove FAKE Targets Outline (it was disabled for a while)
+* Remove F# Literate integration (it was disabled for a while)
+* Remove `Remove File` command from UI 
+* Add VSC UI Toolkit and improve UI of FSI Watcher
+* Trust markdown comming from FSAC
+* Small improvements to general command handling (new `when` clauses)
+* Fix: Implement Interface emits members without indentation when user hasn't specified `FSharp.indentationSize`
+* Fix Reference CodeLenses
+* Update to VSCode-LanguageClient 8.0
+* Update to new version of fsgrammar
+* Update FSAC to 0.56.0 to get [these (0.55.0)](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.55.0) and [these changes (0.56.0)](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.56.0)
+
 ### 6.0.6 - 08.06.2022
 
 * Fix the FSI watcher value extraction to not break with the new FSI multi-emit in .NET 6.0.2xx or 6.0.3xx.
