@@ -394,66 +394,10 @@
           "light": "./images/lock-open-solid-light.svg"
         },
         "title": "Unlock Info Panel"
-      },
-      {
-        "command": "fake.targetsOutline.reloadTargets",
-        "icon": {
-          "dark": "./images/refresh-dark.svg",
-          "light": "./images/refresh-light.svg"
-        },
-        "title": "Reload targets from script"
-      },
-      {
-        "command": "fake.targetsOutline.runTarget",
-        "icon": {
-          "dark": "./images/run-mono-dark.svg",
-          "light": "./images/run-mono-light.svg"
-        },
-        "title": "Run"
-      },
-      {
-        "command": "fake.targetsOutline.debugTarget",
-        "icon": {
-          "dark": "./images/debug-mono-dark.svg",
-          "light": "./images/debug-mono-light.svg"
-        },
-        "title": "Debug"
-      },
-      {
-        "command": "fake.targetsOutline.runSingleTarget",
-        "icon": {
-          "dark": "./images/run-mono-dark.svg",
-          "light": "./images/run-mono-light.svg"
-        },
-        "title": "Run Single"
-      },
-      {
-        "command": "fake.targetsOutline.debugSingleTarget",
-        "icon": {
-          "dark": "./images/debug-mono-dark.svg",
-          "light": "./images/debug-mono-light.svg"
-        },
-        "title": "Debug Single"
       }
     ],
     "configuration": {
       "properties": {
-        "FAKE.showTargetsOutlineIn": {
-          "default": "explorer",
-          "description": "Set the activity (left bar) where the FAKE targets outline view will be displayed.\nRequires restart.",
-          "enum": [
-            "explorer",
-            "fsharp"
-          ],
-          "scope": "application",
-          "type": "string"
-        },
-        "FAKE.targetsOutline": {
-          "default": true,
-          "description": "Enables the Targets Outline tree view.",
-          "scope": "resource",
-          "type": "boolean"
-        },
         "FSharp.abstractClassStubGeneration": {
           "default": true,
           "description": "Enables a codefix that generates missing members for an abstract class when in an type inheriting from that abstract class.",
@@ -1134,26 +1078,6 @@
         {
           "command": "fsharp.showDocumentation",
           "when": "false"
-        },
-        {
-          "command": "fake.targetsOutline.reloadTargets",
-          "when": "false"
-        },
-        {
-          "command": "fake.targetsOutline.runTarget",
-          "when": "false"
-        },
-        {
-          "command": "fake.targetsOutline.debugTarget",
-          "when": "false"
-        },
-        {
-          "command": "fake.targetsOutline.runSingleTarget",
-          "when": "false"
-        },
-        {
-          "command": "fake.targetsOutline.debugSingleTarget",
-          "when": "false"
         }
       ],
       "editor/context": [
@@ -1460,24 +1384,6 @@
           "command": "fsharp.explorer.project.setDefault",
           "group": "1_run@3",
           "when": "viewItem == ionide.projectExplorer.projectExe"
-        },
-        {
-          "command": "fake.targetsOutline.runTarget",
-          "group": "inline",
-          "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ \u0026\u0026 viewItem == fake.targetsOutline.target"
-        },
-        {
-          "command": "fake.targetsOutline.debugTarget",
-          "group": "inline",
-          "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ \u0026\u0026 viewItem == fake.targetsOutline.target"
-        },
-        {
-          "command": "fake.targetsOutline.runSingleTarget",
-          "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ \u0026\u0026 viewItem == fake.targetsOutline.target"
-        },
-        {
-          "command": "fake.targetsOutline.debugSingleTarget",
-          "when": "view =~ /(fake.targetsOutline|fake.targetsOutlineInActivity)/ \u0026\u0026 viewItem == fake.targetsOutline.target"
         }
       ],
       "view/title": [
@@ -1552,16 +1458,6 @@
           "command": "fsharp.explorer.clearCache",
           "group": "modification@5",
           "when": "view == ionide.projectExplorerInActivity"
-        },
-        {
-          "command": "fake.targetsOutline.reloadTargets",
-          "group": "navigation@1",
-          "when": "view == fake.targetsOutline"
-        },
-        {
-          "command": "fake.targetsOutline.reloadTargets",
-          "group": "navigation@1",
-          "when": "view == fake.targetsOutlineInActivity"
         }
       ]
     },
@@ -1632,11 +1528,6 @@
           "id": "ionide.projectExplorer",
           "name": "F# Solution Explorer",
           "when": "fsharp.project.any \u0026\u0026 fsharp.showProjectExplorerInExplorerActivity"
-        },
-        {
-          "id": "fake.targetsOutline",
-          "name": "FAKE Targets Outline",
-          "when": "fake.targetsOutline.show \u0026\u0026 fake.targetsOutline.showInExplorerActivity"
         }
       ],
       "ionide-fsharp": [
@@ -1644,11 +1535,6 @@
           "id": "ionide.projectExplorerInActivity",
           "name": "Solution Explorer",
           "when": "fsharp.project.any \u0026\u0026 fsharp.showProjectExplorerInFsharpActivity"
-        },
-        {
-          "id": "fake.targetsOutlineInActivity",
-          "name": "FAKE Targets Outline",
-          "when": "fake.targetsOutline.show \u0026\u0026 fake.targetsOutline.showInFsharpActivity"
         }
       ]
     },
