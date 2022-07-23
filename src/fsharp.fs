@@ -85,9 +85,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
         tryActivate "htmlconverter" HtmlConverter.activate context
         tryActivate "infopanel" InfoPanel.activate context
         tryActivate "codelens" CodeLensHelpers.activate context
-        // tryActivate "faketargetsoutline" FakeTargetsOutline.activate context
         tryActivate "gitignore" Gitignore.activate context
-        tryActivate "fsharpliterate" FSharpLiterate.activate context
         tryActivate "pipelinehints" PipelineHints.activate context
         tryActivate "testExplorer" TestExploer.activate context
         tryActivate "inlayhints" InlayHints.activate context
