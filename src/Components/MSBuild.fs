@@ -22,9 +22,7 @@ module MSBuild =
         LanguageService.tryFindDotnet ()
         |> Promise.bind (function
             | Ok msbuild -> Promise.lift msbuild
-            | Error msg ->
-                Promise.reject (exn msg)
-        )
+            | Error msg -> Promise.reject (exn msg))
 
     let invokeMSBuild project target =
         let autoshow =
