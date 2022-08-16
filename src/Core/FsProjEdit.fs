@@ -29,7 +29,7 @@ module FsProjEdit =
         LanguageService.fsprojAddFile project file
 
 
-    let addCurrentFileToProject _ _ =
+    let addCurrentFileToProject _ _ _ =
         promise {
 
             let projects = Project.getAll () |> ResizeArray
