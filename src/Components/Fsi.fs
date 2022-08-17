@@ -586,6 +586,19 @@ module Fsi =
             return ()
         }
 
+    let private generateProjectReferences () =
+        let projectOpt =
+            window.activeTextEditor.Value.document.fileName
+            |> Project.tryFindLoadedProjectByFile
+
+        promise {
+            match projectOpt with
+            | Some project ->
+                return! generateProjectReferencesForProject project
+
+            | None -> return ()
+        }
+
     let activate (context: ExtensionContext) =
         Watcher.activate context (!!context.subscriptions)
         SdkScriptsNotify.activate context
