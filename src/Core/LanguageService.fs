@@ -102,14 +102,107 @@ module LanguageService =
         else
             (fn + ".fsx")
 
+
+    let compilerLocation () =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            cl.sendRequest ("fsharp/compilerLocation", null)
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                let r = res.content |> ofJson<CompilerLocationResult>
+                r)
+
+    let tryFindDotnet () =
+        let reportError (msg: string) =
+            promise {
+                let! selection = window.showErrorMessage ("Could not find 'dotnet'", "More details")
+
+                match selection with
+                | Some "More details" ->
+                    // Prepare a temporary file to store the error message
+                    let fileName =
+                        "ionide_dotnet_not_found_details_"
+                        + node.crypto.randomBytes(4).readUInt32LE(0).ToString()
+                        + ".md"
+
+                    let tempPath = node.path.join (node.os.tmpdir (), fileName)
+                    // Write the error message to the file, this will allow us to close the text editor
+                    // without a confirmation dialog as the file content will not be modified.
+                    node.fs.writeFileSync (tempPath, msg)
+                    // Open the file in VSCode
+                    let newFile = vscode.Uri.parse (tempPath)
+                    let! document = workspace.openTextDocument newFile
+                    let! _ = window.showTextDocument (document, ?options = None)
+                    // Show the error message in the markdown preview (better display)
+                    do! commands.executeCommand ("markdown.showPreview", Some(box document))
+                    // Close the text editor (this does not close the markdown preview)
+                    do! commands.executeCommand ("workbench.action.closeActiveEditor", Some(box document))
+                    // Delete the temporary file as it is not needed anymore.
+                    node.fs.unlinkSync (U2.Case1 tempPath)
+                | Some _
+                | None -> ()
+            }
+
+        promise {
+            // User has specified a custom dotnet location
+            match Configuration.tryGet "FSharp.dotnetRoot" with
+            | Some dotnetRoot ->
+                // Choose the right program name depending on the OS
+                let program = if Environment.isWin then "dotnet.exe" else "dotnet"
+
+                // Compute the full path
+                let dotnetFullPath = node.path.join (dotnetRoot, program)
+
+                // Check if the program exists at the computed location
+                if node.fs.existsSync (U2.Case1 dotnetFullPath) then
+                    return Ok dotnetFullPath
+
+                else
+                    let msg =
+                        // The special syntax: %s{"\n" + dotnetFullPath}
+                        // Force a new line to be added, if I put %s{dotnetFullPath}
+                        // at the beginning of the next line, there is a compiler error...
+                        $"""
+Could not find `dotnet` in the `dotnetRoot` directory: %s{"\n" + dotnetFullPath}
+
+Consider:
+- updating the `FSharp.dotnetRoot` settings key to a directory with a `dotnet` binary
+- removing the `FSharp.dotnetRoot` settings key and :
+    - including `dotnet` in your PATH
+    - installing .NET Core"""
+
+                    do! reportError msg
+
+                    return Core.Error "Could not find 'dotnet'"
+
+            // No custom location was specified, try to find it from the PATH
+            | None ->
+                match! Environment.tryGetTool "dotnet" with
+                | Some dotnetFullPath -> return Ok dotnetFullPath
+
+                | None ->
+                    let msg =
+                        """Could not find `dotnet` in the path.
+
+Consider:
+- setting the `FSharp.dotnetRoot` settings key to a directory with a `dotnet` binary
+- including `dotnet` in your PATH
+- installing .NET Core
+"""
+
+                    do! reportError msg
+
+                    return Core.Error "Could not find 'dotnet'"
+        }
+
     /// runs `dotnet --version` in the current rootPath to determine the resolved sdk version from the global.json file.
     let runtimeVersion () =
         promise {
-            let! dotnet = Environment.dotnet
+            let! dotnet = tryFindDotnet ()
 
             match dotnet with
-            | None -> return Core.Error "No dotnet binary found"
-            | Some dotnet ->
+            | Error msg -> return Core.Error msg
+            | Ok dotnet ->
                 let! (error, stdout, stderr) = Process.exec dotnet (ResizeArray [ "--version" ])
 
                 match error with
@@ -123,33 +216,6 @@ module LanguageService =
                     | Some semver -> return Core.Ok semver
         }
 
-
-    let compilerLocation () =
-        match client with
-        | None -> Promise.empty
-        | Some cl ->
-            cl.sendRequest ("fsharp/compilerLocation", null)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
-                let r = res.content |> ofJson<CompilerLocationResult>
-                r)
-
-    let dotnet () =
-        promise {
-            let! dotnet = Environment.dotnet
-
-            match dotnet with
-            | None ->
-                let! location = compilerLocation ()
-
-                match location.Data.SdkRoot with
-                | Some root ->
-                    if Environment.isWin then
-                        return Some(node.path.join (root, "dotnet.exe"))
-                    else
-                        return Some(node.path.join (root, "dotnet"))
-                | None -> return None
-            | Some location -> return Some location
-        }
 
     let f1Help (uri: Uri) line col : JS.Promise<Result<string>> =
         match client with
@@ -576,21 +642,6 @@ module LanguageService =
     let getOptions (c: ExtensionContext) : JS.Promise<Executable> =
         promise {
 
-            let dotnetNotFound () =
-                promise {
-                    let msg =
-                        """
-            Cannot start .NET Core language services because `dotnet` was not found.
-            Consider:
-            * setting the `FSharp.dotnetRoot` settings key to a directory with a `dotnet` binary,
-            * including `dotnet` in your PATH, or
-            * installing .NET Core into one of the default locations.
-            """
-
-                    let! result = window.showErrorMessage (msg)
-                    return failwith "no `dotnet` binary found"
-                }
-
             let backgroundSymbolCache =
                 "FSharp.enableBackgroundServices" |> Configuration.get true
 
@@ -722,16 +773,12 @@ module LanguageService =
                     return executable
                 }
 
-            let! dotnet = Environment.dotnet
-
-            printfn "DOTNET PATH: %A" dotnet
+            let! dotnet = tryFindDotnet ()
 
             match dotnet with
-
             // dotnet SDK handling
-            | Some dotnet -> return! spawnNetCore dotnet
-            | None -> return! dotnetNotFound ()
-
+            | Ok dotnet -> return! spawnNetCore dotnet
+            | Error msg -> return failwith msg
         }
 
     let registerCustomNotifications (cl: LanguageClient) =

@@ -19,14 +19,10 @@ module MSBuild =
         ConsoleAndOutputChannelLogger(Some "msbuild", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
 
     let private dotnetBinary () =
-        LanguageService.dotnet ()
+        LanguageService.tryFindDotnet ()
         |> Promise.bind (function
-            | Some msbuild -> Promise.lift msbuild
-            | None ->
-                Promise.reject (
-                    exn
-                        "dotnet SDK not found. Please install it from the [Dotnet SDK Download Page](https://www.microsoft.com/net/download)"
-                ))
+            | Ok msbuild -> Promise.lift msbuild
+            | Error msg -> Promise.reject (exn msg))
 
     let invokeMSBuild project target =
         let autoshow =

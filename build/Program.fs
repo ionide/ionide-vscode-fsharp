@@ -1,4 +1,4 @@
-﻿open System
+open System
 open System.IO
 open Fake.Core
 open Fake.JavaScript

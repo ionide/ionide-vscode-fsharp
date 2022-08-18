@@ -417,10 +417,10 @@ module SolutionExplorer =
                     | ProjectLoading (_, path, _)
                     | ProjectFailedToLoad (_, path, _, _)
                     | ProjectNotRestored (_, path, _, _)
-                    | ProjectLanguageNotSupported (_, path, _) ->
-                        vscode.ThemeIcon.File |> U4.Case4 |> Some, vscode.Uri.file path |> Some
+                    | ProjectLanguageNotSupported (_, path, _)
                     | Project (_, path, _, _, _, _, _, _)
-                    | Solution (_, path, _, _)
+                    | Solution (_, path, _, _) ->
+                        vscode.ThemeIcon.File |> U4.Case4 |> Some, vscode.Uri.file path |> Some
                     | Folder (_, _, path, _, _) ->
                         vscode.ThemeIcon.Folder |> U4.Case4 |> Some, vscode.Uri.file path |> Some
                     | PackageReferenceList _

@@ -475,11 +475,11 @@ module Project =
 
     let execWithDotnet outputChannel cmd =
         promise {
-            let! dotnet = LanguageService.dotnet ()
+            let! dotnet = LanguageService.tryFindDotnet ()
 
             match dotnet with
-            | Some dotnet -> return Process.spawnWithNotification dotnet cmd outputChannel
-            | None -> return! Promise.reject (exn "dotnet binary not found")
+            | Ok dotnet -> return Process.spawnWithNotification dotnet cmd outputChannel
+            | Error msg -> return! Promise.reject (exn msg)
         }
 
     let exec exe outputChannel cmd =
@@ -487,11 +487,11 @@ module Project =
 
     let private execWithDotnetWithShell cmd =
         promise {
-            let! dotnet = LanguageService.dotnet ()
+            let! dotnet = LanguageService.tryFindDotnet ()
 
             match dotnet with
-            | Some dotnet -> return Process.spawnWithShell dotnet cmd
-            | None -> return! Promise.reject (exn "dotnet binary not found")
+            | Ok dotnet -> return Process.spawnWithShell dotnet cmd
+            | Error msg -> return! Promise.reject (exn msg)
         }
 
     let private execWithShell exe cmd =
