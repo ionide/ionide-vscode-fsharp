@@ -361,7 +361,14 @@ let activate (context: ExtensionContext) =
             res.tests
             |> Array.map (mapTest testController (vscode.Uri.parse (res.file, true)))
 
-        res |> Array.iter testController.items.add
+        res
+        |> Array.iter (fun testItem ->
+            let parentOpt =
+                testController.TestItems() |> Array.tryFind (fun i -> i.label = testItem.label)
+
+            match parentOpt with
+            | None -> testController.items.add testItem
+            | Some parent -> testItem.children.forEach (fun childTestItem _ -> parent.children.add childTestItem))
 
         None)
     |> unbox
