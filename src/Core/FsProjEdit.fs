@@ -14,10 +14,8 @@ module FsProjEdit =
     let moveFileDownPath project file =
         LanguageService.fsprojMoveFileDown project file
 
-    let removeFilePath project file = Promise.empty
-    //TODO
-    //Also disabled in project.json, reenable when it's fixed
-    //sprintf "remove file -n %s" (quotePath path) |> spawnForge |> ignore
+    let removeFilePath project file =
+        LanguageService.fsprojRemoveFile project file
 
     let addFileAbove project fromFile newFile =
         LanguageService.fsprojAddFileAbove project fromFile newFile

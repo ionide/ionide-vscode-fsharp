@@ -437,6 +437,16 @@ Consider:
             cl.sendRequest ("fsproj/addFile", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> ())
 
+    let fsprojRemoveFile (fsproj : string) (file : string) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req: FsProj.DotnetFileRequest =
+                { FsProj = fsproj
+                  FileVirtualPath = file }
+            cl.sendRequest ("fsproj/removeFile", req)
+            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+
     let parseError (err: obj) =
         let data =
             match err?Code |> unbox with
