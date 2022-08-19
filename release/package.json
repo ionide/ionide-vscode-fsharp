@@ -1160,7 +1160,7 @@
         {
           "command": "fsharp.explorer.removeFile",
           "group": "1_navigation@4",
-          "when": "viewItem == ionide.projectExplorer.file \u0026\u0026 false"
+          "when": "viewItem == ionide.projectExplorer.file"
         },
         {
           "command": "fsharp.explorer.addAbove",
