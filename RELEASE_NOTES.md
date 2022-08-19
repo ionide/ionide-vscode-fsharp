@@ -1,5 +1,5 @@
 ### 7.1.0 - 19.08.2022
-* Update FSAC to 0.56.1 for [these changes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.56.1)
+* Update FSAC to 0.56.12 for [these changes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.56.2)
 * Removed unused FAKE configuration settings and handler code
 * Massively improve error messages when dotnet isn't found (thanks @MangelMaxime!)
 * Improve FSI management (thanks @MangelMaxime!)
