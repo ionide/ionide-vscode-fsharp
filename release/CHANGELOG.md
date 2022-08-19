@@ -1,3 +1,12 @@
+### 7.1.0 - 19.08.2022
+* Update FSAC to 0.56.12 for [these changes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.56.2)
+* Removed unused FAKE configuration settings and handler code
+* Massively improve error messages when dotnet isn't found (thanks @MangelMaxime!)
+* Improve FSI management (thanks @MangelMaxime!)
+* Fix solution explorer icons for solutions and projects (thanks @MangelMaxime!)
+* Fix logic in 'add file to project' (thanks @MangelMaxime!)
+* Fix hangs on double-backticked identifiers (thanks @MangelMaxime!)
+
 ### 7.0.0 - 23.07.2022
 
 * Remove custom inlay hints implementation 
