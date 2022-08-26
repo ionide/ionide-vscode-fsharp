@@ -623,6 +623,44 @@ module SolutionExplorer =
         else
             (fn + ".fs")
 
+    let private createNewFileDialg (proj : string) (existingFiles : list<Model>) (prompt : string) =
+        let opts = createEmpty<InputBoxOptions>
+        opts.placeHolder <- Some "new.fs"
+        opts.prompt <- Some prompt
+
+        opts.validateInput <-
+            Some(fun userInput ->
+                let fileExist =
+                    existingFiles
+                    |> List.tryFind (fun file ->
+                        match file with
+                        | Workspace _
+                        | Solution _
+                        | WorkspaceFolder _
+                        | PackageReferenceList _
+                        | ProjectReferencesList _
+                        | ProjectNotLoaded _
+                        | ProjectLoading _
+                        | ProjectFailedToLoad _
+                        | ProjectNotRestored _
+                        | ProjectLanguageNotSupported _
+                        | Project _
+                        | Folder _
+                        | PackageReference _
+                        | ProjectReference _ -> false
+                        | File (_, filePath, _, _, _) ->
+                            let projDir = node.path.dirname proj
+                            // Need to compute the relative path from the project in order to match the user input
+                            let relativeFilePathFromProject = node.path.relative (projDir, filePath)
+                            // Sanitize the path for comparison
+                            userInput.Replace("\\", "/") = relativeFilePathFromProject.Replace("\\", "/"))
+
+                match fileExist with
+                | Some _ -> U2.Case1 "File already exists"
+                | None -> undefined)
+
+        window.showInputBox opts
+
     let newProject () =
         promise {
             let! templates = LanguageService.dotnetNewList ()
@@ -763,21 +801,19 @@ module SolutionExplorer =
             "fsharp.explorer.addAbove",
             objfy2 (fun m ->
                 match unbox m with
-                | File (_, _, name, Some virtPath, proj) ->
-                    let opts = createEmpty<InputBoxOptions>
-                    opts.placeHolder <- Some "new.fs"
-                    opts.prompt <- Some "New file name, relative to selected file"
-                    opts.value <- Some "new.fs"
-
-                    window.showInputBox (opts)
-                    |> Promise.ofThenable
-                    |> Promise.bind (fun file ->
-                        match file with
-                        | Some file ->
-                            let file' = handleUntitled file
-                            FsProjEdit.addFileAbove proj virtPath file'
-                        | None -> Promise.empty)
-                    |> unbox
+                | File (parent, _, name, Some virtPath, proj) ->
+                    match parent.Value with
+                    | Some (Project (_, proj, _, files, _, _, _, _)) ->
+                        createNewFileDialg proj files "New file name, relative to selected file"
+                        |> Promise.ofThenable
+                        |> Promise.bind (fun file ->
+                            match file with
+                            | Some file ->
+                                let file' = handleUntitled file
+                                FsProjEdit.addFileAbove proj virtPath file'
+                            | None -> Promise.empty)
+                        |> unbox
+                    | _ -> undefined
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -786,21 +822,21 @@ module SolutionExplorer =
             "fsharp.explorer.addBelow",
             objfy2 (fun m ->
                 match unbox m with
-                | File (_, fr_om, name, Some virtPath, proj) ->
-                    let opts = createEmpty<InputBoxOptions>
-                    opts.placeHolder <- Some "new.fs"
-                    opts.prompt <- Some "New file name, relative to selected file"
-                    opts.value <- Some "new.fs"
+                | File (parent, fr_om, name, Some virtPath, proj) ->
+                    match parent.Value with
+                    | Some (Project (_, proj, _, files, _, _, _, _)) ->
+                        createNewFileDialg proj files "New file name, relative to selected file"
+                        |> Promise.ofThenable
+                        |> Promise.map (fun file ->
+                            match file with
+                            | Some file ->
+                                let file' = handleUntitled file
+                                FsProjEdit.addFileBelow proj virtPath file'
+                            | None -> Promise.empty)
+                        |> unbox
+                    | _ ->
+                        undefined
 
-                    window.showInputBox (opts)
-                    |> Promise.ofThenable
-                    |> Promise.map (fun file ->
-                        match file with
-                        | Some file ->
-                            let file' = handleUntitled file
-                            FsProjEdit.addFileBelow proj virtPath file'
-                        | None -> Promise.empty)
-                    |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -809,13 +845,8 @@ module SolutionExplorer =
             "fsharp.explorer.addFile",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, proj, _, _, _, _, _, _) ->
-                    let opts = createEmpty<InputBoxOptions>
-                    opts.placeHolder <- Some "new.fs"
-                    opts.prompt <- Some "New file name, relative to project file"
-                    opts.value <- Some "new.fs"
-
-                    window.showInputBox (opts)
+                | Project (_, proj, _, files, _, _, _, _) ->
+                    createNewFileDialg proj files "New file name, relative to project file"
                     |> Promise.ofThenable
                     |> Promise.map (fun file ->
                         match file with
