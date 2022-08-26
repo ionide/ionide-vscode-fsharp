@@ -220,6 +220,10 @@
         "title": "Add file"
       },
       {
+        "command": "fsharp.explorer.addExistingFile",
+        "title": "Add existing file"
+      },
+      {
         "command": "fsharp.explorer.showProjectLoadFailedInfo",
         "icon": {
           "dark": "./images/icon-status-dark.svg",
@@ -900,6 +904,10 @@
           "when": "false"
         },
         {
+          "command": "fsharp.explorer.addExistingFile",
+          "when": "false"
+        },
+        {
           "command": "fsharp.explorer.addProjecRef",
           "when": "false"
         },
@@ -1247,9 +1255,14 @@
         },
         {
           "command": "fsharp.explorer.addFile",
-          "group": "2_modifications@2",
+          "group": "2_modifications@1",
           "when": "viewItem == ionide.projectExplorer.project"
         },
+        {
+          "command": "fsharp.explorer.addExistingFile",
+          "group": "2_modifications@2",
+          "when": "viewItem == ionide.projectExplorer.project"
+        },        
         {
           "command": "fsharp.explorer.project.generateFSI",
           "group": "3_fsi@1",
@@ -1312,6 +1325,11 @@
         },
         {
           "command": "fsharp.explorer.addFile",
+          "group": "3_modifications@1",
+          "when": "viewItem == ionide.projectExplorer.projectExe"
+        },
+        {
+          "command": "fsharp.explorer.addExistingFile",
           "group": "3_modifications@2",
           "when": "viewItem == ionide.projectExplorer.projectExe"
         },

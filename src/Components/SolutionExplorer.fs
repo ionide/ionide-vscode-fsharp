@@ -865,6 +865,37 @@ module SolutionExplorer =
         |> context.Subscribe
 
         commands.registerCommand (
+            "fsharp.explorer.addExistingFile",
+            objfy2 (fun m ->
+                match unbox m with
+                | Project (_, proj, _, _, _, _, _, _) ->
+                    let projectUri = vscode.Uri.file proj
+
+                    let opts = createEmpty<OpenDialogOptions>
+                    opts.canSelectMany <- Some false
+                    opts.openLabel <- Some "Add"
+                    opts.title <- Some "Choose a file to add"
+                    opts.defaultUri <- Some projectUri
+
+                    window.showOpenDialog opts
+                    |> Promise.ofThenable
+                    |> Promise.map (fun selectedFilesOpt ->
+                        match selectedFilesOpt with
+                        | Some selectedFiles ->
+                            // The dialog doesn't allow multiple selection
+                            if selectedFiles.Count = 1 then
+                                // Need to use the directory of the project file
+                                // otherwise the path is prefixed with '../'
+                                FsProjEdit.addExistingFile proj selectedFiles[0].fsPath
+                            else
+                                Promise.empty
+                        | None -> Promise.empty)
+                    |> unbox
+                | _ -> undefined)
+        )
+        |> context.Subscribe
+
+        commands.registerCommand (
             "fsharp.explorer.addProjecRef",
             objfy2 (fun m ->
                 match unbox m with

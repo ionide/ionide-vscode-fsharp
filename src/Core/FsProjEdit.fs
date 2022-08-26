@@ -26,6 +26,8 @@ module FsProjEdit =
     let addFile project file =
         LanguageService.fsprojAddFile project file
 
+    let addExistingFile project file =
+        LanguageService.fsprojAddExistingFile project file
 
     let addCurrentFileToProject _ _ _ =
         promise {
