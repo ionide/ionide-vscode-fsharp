@@ -788,7 +788,12 @@ module SolutionExplorer =
             "fsharp.explorer.removeFile",
             objfy2 (fun m ->
                 match unbox m with
-                | File (_, _, name, Some virtPath, proj) -> FsProjEdit.removeFilePath proj virtPath
+                | File (_, filePath, _, _, proj) ->
+                    let projDir = node.path.dirname proj
+                    // Need to compute the relative path from the project in order to match the user input
+                    let relativeFilePathFromProject = node.path.relative (projDir, filePath)
+
+                    FsProjEdit.removeFilePath proj relativeFilePathFromProject
                 | _ -> undefined
                 |> ignore
 
