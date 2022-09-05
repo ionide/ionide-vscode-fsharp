@@ -1,0 +1,22 @@
+image:
+  file: .gitpod/Dockerfile
+
+tasks:
+  - name: Build
+    init: |
+      ./build.sh -t Build
+
+vscode:
+  extensions:
+    - Ionide.Ionide-fsharp
+    - muhammad-sammy.csharp
+
+github:
+  prebuilds:
+    master: true
+    branches: true
+    pullRequests: true
+    pullRequestsFromForks: true
+    addCheck: false
+    addComment: false
+    addBadge: false
