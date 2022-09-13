@@ -663,6 +663,8 @@ Consider:
 
     let getOptions (c: ExtensionContext) : JS.Promise<Executable> =
         promise {
+            let enableAdaptiveLspServer =
+                "FSharp.enableAdaptiveLspServer" |> Configuration.get false
 
             let backgroundSymbolCache =
                 "FSharp.enableBackgroundServices" |> Configuration.get true
@@ -787,6 +789,8 @@ Consider:
                               yield "--background-service-enabled"
                           if enableProjectGraph then
                               yield "--project-graph-enabled"
+                          if enableAdaptiveLspServer then
+                              yield "--adaptive-lsp-server-enabled"
                           if verbose then
                               yield "--verbose"
                           if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0 then
