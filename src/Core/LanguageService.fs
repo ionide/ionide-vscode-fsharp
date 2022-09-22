@@ -667,19 +667,33 @@ Consider:
 
             let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
+            let fsacPathForTfm (tfm: string) =
+                if String.IsNullOrEmpty fsacNetcorePath then
+                    node.path.join (VSCodeExtension.ionidePluginPath (), "bin", tfm, "fsautocomplete.dll")
+                else
+                    fsacNetcorePath
 
+            let tfmForSdkVersion (v: SemVer) =
+                match int v.major, int v.minor with
+                | 3, 1 -> "netcoreapp3.1"
+                | 3, 0 -> "netcoreapp3.0"
+                | 2, 1 -> "netcoreapp2.1"
+                | 2, 0 -> "netcoreapp2.0"
+                | n, _ -> $"net{n}.0"
 
             let discoverDotnetArgs () =
                 promise {
-                    let! (rollForwardArgs, necessaryEnvVariables) =
+                    let! (rollForwardArgs, necessaryEnvVariables, fsacPath) =
                         promise {
                             let! sdkVersionAtRootPath = runtimeVersion ()
 
                             match sdkVersionAtRootPath with
                             | Error e ->
                                 printfn $"FSAC (NETCORE): {e}"
-                                return [], []
+                                return [], [], ""
                             | Ok v ->
+                                let tfm = tfmForSdkVersion v
+                                let fsacPath = fsacPathForTfm tfm
                                 if v.major >= 6.0 then
                                     // when we run on a sdk higher than 5.x (aka what FSAC is currently built/targeted for),
                                     // we have to tell the runtime to allow it to actually run on that runtime (instead of presenting 6.x as 5.x)
@@ -692,9 +706,9 @@ Consider:
                                         else
                                             []
 
-                                    return args, envs
+                                    return args, envs, fsacPath
                                 else
-                                    return [], []
+                                    return [], [], fsacPath
                         }
 
                     let userDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
@@ -722,20 +736,14 @@ Consider:
                         [ if shouldApplyImplicitRollForward then
                               yield! necessaryEnvVariables ]
 
-                    return args, envVariables
+                    return args, envVariables, fsacPath
                 }
 
             let spawnNetCore dotnet : JS.Promise<Executable> =
                 promise {
-                    let fsautocompletePath =
-                        if String.IsNullOrEmpty fsacNetcorePath then
-                            node.path.join (VSCodeExtension.ionidePluginPath (), "bin", "fsautocomplete.dll")
-                        else
-                            fsacNetcorePath
+                    let! (fsacDotnetArgs, fsacEnvVars, fsacPath) = discoverDotnetArgs ()
 
-                    let! (fsacDotnetArgs, fsacEnvVars) = discoverDotnetArgs ()
-
-                    printfn $"FSAC (NETCORE): '%s{fsautocompletePath}'"
+                    printfn $"FSAC (NETCORE): '%s{fsacPath}'"
 
                     let exeOpts = createEmpty<ExecutableOptions>
 
@@ -756,7 +764,7 @@ Consider:
 
                     let args =
                         [ yield! fsacDotnetArgs
-                          yield fsautocompletePath
+                          yield fsacPath
                           if fsacAttachDebugger then
                               yield "--attachdebugger"
                               yield "--wait-for-debugger"
