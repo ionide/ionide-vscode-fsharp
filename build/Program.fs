@@ -311,13 +311,17 @@ let initTargets () =
 
 
     Target.create "CopyFSACNetcore" (fun _ ->
-        let tfms = ["net6.0"; "net7.0"]
+        let tfms = [ "net6.0"; "net7.0" ]
+
         for tfm in tfms do
             let fsacBinNetcore = $"packages/fsac/fsautocomplete/tools/{tfm}/any"
-            let releaseBinNetcore = "release/bin/{tfm}"
 
-            copyFSACNetcore releaseBinNetcore fsacBinNetcore
-    )
+            if Directory.Exists fsacBinNetcore then
+                let releaseBinNetcore = "release/bin/{tfm}"
+                Trace.tracefn $"Copying FSAC binaries from {fsacBinNetcore} to {releaseBinNetcore}"
+                copyFSACNetcore releaseBinNetcore fsacBinNetcore
+            else
+                Trace.tracefn $"No FSAC binaries found for {tfm}")
 
     Target.create "CopyGrammar" (fun _ ->
         let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammars"
