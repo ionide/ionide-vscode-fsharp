@@ -317,7 +317,7 @@ let initTargets () =
             let fsacBinNetcore = $"packages/fsac/fsautocomplete/tools/{tfm}/any"
 
             if Directory.Exists fsacBinNetcore then
-                let releaseBinNetcore = "release/bin/{tfm}"
+                let releaseBinNetcore = $"release/bin/{tfm}"
                 Trace.tracefn $"Copying FSAC binaries from {fsacBinNetcore} to {releaseBinNetcore}"
                 copyFSACNetcore releaseBinNetcore fsacBinNetcore
             else

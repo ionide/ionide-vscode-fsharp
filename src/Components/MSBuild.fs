@@ -500,13 +500,13 @@ module MSBuild =
         |> context.Subscribe
 
         commands.registerCommand (
-            "MSBuild.buildSelected",
+            "MSBuild.rebuildSelected",
             fun _ -> buildProject "Rebuild" |> Promise.map box |> box |> Some
         )
         |> context.Subscribe
 
         commands.registerCommand (
-            "MSBuild.buildSelected",
+            "MSBuild.cleanSelected",
             fun _ -> buildProject "Clean" |> Promise.map box |> box |> Some
         )
         |> context.Subscribe
