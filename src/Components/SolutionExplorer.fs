@@ -623,13 +623,13 @@ module SolutionExplorer =
         else
             (fn + ".fs")
 
-    let private createNewFileDialg (proj : string) (existingFiles : list<Model>) (prompt : string) =
+    let private createNewFileDialg (proj: string) (existingFiles: list<Model>) (prompt: string) =
         let opts = createEmpty<InputBoxOptions>
         opts.placeHolder <- Some "new.fs"
         opts.prompt <- Some prompt
 
         opts.validateInput <-
-            Some(fun userInput ->
+            fun userInput ->
                 let fileExist =
                     existingFiles
                     |> List.tryFind (fun file ->
@@ -656,8 +656,9 @@ module SolutionExplorer =
                             userInput.Replace("\\", "/") = relativeFilePathFromProject.Replace("\\", "/"))
 
                 match fileExist with
-                | Some _ -> U2.Case1 "File already exists"
-                | None -> undefined)
+                | Some _ -> Some <| U2.Case1 "File already exists"
+                | None -> None
+
 
         window.showInputBox opts
 
@@ -839,8 +840,7 @@ module SolutionExplorer =
                                 FsProjEdit.addFileBelow proj virtPath file'
                             | None -> Promise.empty)
                         |> unbox
-                    | _ ->
-                        undefined
+                    | _ -> undefined
 
                 | _ -> undefined)
         )

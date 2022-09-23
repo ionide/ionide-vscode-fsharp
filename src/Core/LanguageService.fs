@@ -704,6 +704,7 @@ Consider:
                             | Ok v ->
                                 let tfm = tfmForSdkVersion v
                                 let fsacPath = fsacPathForTfm tfm
+
                                 if v.major >= 6.0 then
                                     // when we run on a sdk higher than 5.x (aka what FSAC is currently built/targeted for),
                                     // we have to tell the runtime to allow it to actually run on that runtime (instead of presenting 6.x as 5.x)
