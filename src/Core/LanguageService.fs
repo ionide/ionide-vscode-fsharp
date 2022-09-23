@@ -692,24 +692,27 @@ Consider:
                                 printfn $"FSAC (NETCORE): {e}"
                                 return [], [], ""
                             | Ok v ->
+                                printfn "Parsed SDK version at root path: %s" v.raw
                                 let tfm = tfmForSdkVersion v
+                                printfn "Parsed SDK version to tfm: %s" tfm
                                 let fsacPath = fsacPathForTfm tfm
+                                printfn "Parsed TFM to fsac path: %s" fsacPath
+                                return [], [], fsacPath
+                                // if v.major >= 6.0 then
+                                //     // when we run on a sdk higher than 6.x (aka what FSAC is currently built/targeted for),
+                                //     // we have to tell the runtime to allow it to actually run on that runtime (instead of presenting 6.x as 5.x)
+                                //     // in order for msbuild resolution to work
+                                //     let args = [ "--roll-forward"; "LatestMajor" ]
 
-                                if v.major >= 6.0 then
-                                    // when we run on a sdk higher than 5.x (aka what FSAC is currently built/targeted for),
-                                    // we have to tell the runtime to allow it to actually run on that runtime (instead of presenting 6.x as 5.x)
-                                    // in order for msbuild resolution to work
-                                    let args = [ "--roll-forward"; "LatestMajor" ]
+                                //     let envs =
+                                //         if v.prerelease <> null || v.prerelease.Count > 0 then
+                                //             [ "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1 ]
+                                //         else
+                                //             []
 
-                                    let envs =
-                                        if v.prerelease <> null || v.prerelease.Count > 0 then
-                                            [ "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1 ]
-                                        else
-                                            []
-
-                                    return args, envs, fsacPath
-                                else
-                                    return [], [], fsacPath
+                                //     return args, envs, fsacPath
+                                // else
+                                //     return [], [], fsacPath
                         }
 
                     let userDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
