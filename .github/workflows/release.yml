@@ -20,16 +20,15 @@ jobs:
     steps:
     # manual triggers are detached HEADs, so we need to checkout the branch
     # to actually create + push a commit later on in the workflow
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         ref: ${{ github.head_ref }}
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v2
+    - uses: actions/setup-node@v3
       with:
-        dotnet-version: '6.0.101'
-    - uses: actions/setup-node@v2-beta
-      with:
-        node-version: '14'
+        node-version: '16'
+        cache: 'yarn'
     - name: Restore tools
       run: dotnet tool restore
     - name: install VSCE globally

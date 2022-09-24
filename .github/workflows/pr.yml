@@ -13,19 +13,17 @@ jobs:
         # ubuntu build not supported in paket.dependencies for repo builds,
         # need to add linux commands first
         os: [windows-latest, macos-latest]
-        dotnet: [6.0.101]
       fail-fast: false # we have timing issues on some OS, so we want them all to run
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      uses: actions/setup-dotnet@v2
+    - uses: actions/setup-node@v3
       with:
-        dotnet-version: ${{ matrix.dotnet }}
-    - uses: actions/setup-node@v2-beta
-      with:
-        node-version: '14'
+        node-version: '16'
+        cache: 'yarn'
     - name: Restore tools
       run: dotnet tool restore
     - run: yarn global add vsce
