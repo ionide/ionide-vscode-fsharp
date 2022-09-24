@@ -1,5 +1,13 @@
+### 7.2.0 - 24.08.2022
+
+* [Group discovered tests by namespace](https://github.com/ionide/ionide-vscode-fsharp/pull/1766) (thanks @kojo12228!)
+* [Many](https://github.com/ionide/ionide-vscode-fsharp/pull/1775), [many](https://github.com/ionide/ionide-vscode-fsharp/pull/1776) [fixes](https://github.com/ionide/ionide-vscode-fsharp/pull/1777) to the add and remove files functionality (thanks @MangelMaxime!)
+* [Added support for gitpod](https://github.com/ionide/ionide-vscode-fsharp/pull/1779) (thanks @purkhusid!)
+* Update and use FSAC 0.57.2 to pick up many fixes, especially for .net 6 and .net 7 SDK support. Changes can be seen at the release notes for [0.57.0](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.57.0), [0.57.1](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.57.1), and [0.57.2](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.57.2).
+
 ### 7.1.0 - 19.08.2022
-* Update FSAC to 0.56.12 for [these changes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.56.2)
+
+* Update FSAC to 0.56.2 for [these changes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.56.2)
 * Removed unused FAKE configuration settings and handler code
 * Massively improve error messages when dotnet isn't found (thanks @MangelMaxime!)
 * Improve FSI management (thanks @MangelMaxime!)
