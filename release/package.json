@@ -1262,7 +1262,7 @@
           "command": "fsharp.explorer.addExistingFile",
           "group": "2_modifications@2",
           "when": "viewItem == ionide.projectExplorer.project"
-        },        
+        },
         {
           "command": "fsharp.explorer.project.generateFSI",
           "group": "3_fsi@1",
@@ -1596,5 +1596,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.1.0"
+  "version": "7.2.0"
 }
