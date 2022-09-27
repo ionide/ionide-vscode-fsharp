@@ -1,4 +1,8 @@
-### 7.2.0 - 24.08.2022
+### 7.2.1 - 27.09.2022
+
+* Update and use FSAC 0.57.3 to fix crashes in codefixes
+
+### 7.2.0 - 24.09.2022
 
 * [Group discovered tests by namespace](https://github.com/ionide/ionide-vscode-fsharp/pull/1766) (thanks @kojo12228!)
 * [Many](https://github.com/ionide/ionide-vscode-fsharp/pull/1775), [many](https://github.com/ionide/ionide-vscode-fsharp/pull/1776) [fixes](https://github.com/ionide/ionide-vscode-fsharp/pull/1777) to the add and remove files functionality (thanks @MangelMaxime!)
