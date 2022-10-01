@@ -1,3 +1,7 @@
+### 7.2.2 - 30.09.2022
+
+* Update and use FSAC 0.57.4 to fix crashes in diagnostics
+
 ### 7.2.1 - 27.09.2022
 
 * Update and use FSAC 0.57.3 to fix crashes in codefixes
