@@ -790,11 +790,23 @@ module SolutionExplorer =
             objfy2 (fun m ->
                 match unbox m with
                 | File (_, filePath, _, _, proj) ->
-                    let projDir = node.path.dirname proj
-                    // Need to compute the relative path from the project in order to match the user input
-                    let relativeFilePathFromProject = node.path.relative (projDir, filePath)
+                    promise {
+                        let projDir = node.path.dirname proj
+                        // Need to compute the relative path from the project in order to match the user input
+                        let relativeFilePathFromProject = node.path.relative (projDir, filePath)
 
-                    FsProjEdit.removeFilePath proj relativeFilePathFromProject
+                        // Step 1. Remove file from the fsproj
+                        do! FsProjEdit.removeFilePath proj relativeFilePathFromProject
+
+                        // Step 2. Clean text editor decorations
+
+                        // VSCode seems to used Unix style paths
+                        let normalizedPath = filePath.Replace("\\", "/")
+                        let fileUri = vscode.Uri.parse $"file:///%s{normalizedPath}"
+
+                        LineLens.removeDocument fileUri
+                        PipelineHints.removeDocument fileUri
+                    }
                 | _ -> undefined
                 |> ignore
 

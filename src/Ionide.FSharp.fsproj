@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -42,11 +42,11 @@
     <Compile Include="Components/MSBuild.fs" />
     <Compile Include="Components/Help.fs" />
     <Compile Include="Components/Debugger.fs" />
-    <Compile Include="Components/SolutionExplorer.fs" />
     <Compile Include="Components/HtmlConverter.fs" />
     <Compile Include="Components/InfoPanel.fs" />
     <Compile Include="Components/CodeLensHelpers.fs" />
     <Compile Include="Components/PipelineHints.fs" />
+    <Compile Include="Components/SolutionExplorer.fs" />
     <Compile Include="Components/TestExplorer.fs" />
     <Compile Include="Components/InlayHints.fs" />
     <Compile Include="fsharp.fs" />
