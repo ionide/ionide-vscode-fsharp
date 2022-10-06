@@ -1,3 +1,7 @@
+### 7.2.3 - 06.10.2022
+
+* Update VSCode bindings to fix add and remove file commands
+
 ### 7.2.2 - 30.09.2022
 
 * Update and use FSAC 0.57.4 to fix crashes in diagnostics
