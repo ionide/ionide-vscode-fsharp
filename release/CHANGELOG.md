@@ -1,3 +1,7 @@
+### 7.3.0 - 09.10.2022
+
+* Update and use FSAC 0.58.0 to get the new experimental adaptive mode.
+
 ### 7.2.3 - 06.10.2022
 
 * Update VSCode bindings to fix add and remove file commands
