@@ -195,8 +195,10 @@ module DecorationUpdate =
         textLine.range
 
     let private getSignature (uri: Uri) (range: DTO.Range) =
-        promise {
-            let! signaturesResult = LanguageService.signatureData uri range.StartLine (range.StartColumn - 1)
+        async {
+            let! signaturesResult =
+                LanguageService.signatureData uri range.StartLine (range.StartColumn - 1)
+                |> Async.AwaitPromise
 
             let signaturesResult =
                 if isNotNull signaturesResult then
@@ -224,7 +226,11 @@ module DecorationUpdate =
 
             let interesting = onePerLine interesting
 
-            let! signatures = interesting |> Array.map (getSignature uri) |> Promise.all
+            let! signatures =
+                interesting
+                |> Array.map (getSignature uri)
+                |> Async.Sequential
+                |> Async.StartAsPromise
 
             return signatures |> Seq.choose id
         }
