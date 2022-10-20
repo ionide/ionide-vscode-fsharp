@@ -378,12 +378,8 @@ let buildTargetTree () =
     "YarnInstall" ==>! "RunScript"
     "DotNetRestore" ==>! "RunScript"
 
-    "Clean"
-        ==> "Format"
-        ==> "RunScript"
-        ==> "CopyGrammar"
-        ==> "CopySchemas"
-        ==>! "Default"
+    "Clean" ==> "Format" ==> "RunScript" ==> "CopyGrammar" ==> "CopySchemas"
+    ==>! "Default"
 
     "Clean"
     ==> "RunScript"

@@ -228,16 +228,14 @@ let private textEditorsChangedHandler (textEditors: ResizeArray<TextEditor>) =
                 DecorationUpdate.setDecorationsForEditorIfCurrentVersion textEditor state
     | None -> ()
 
-let removeDocument (uri : Uri) =
+let removeDocument (uri: Uri) =
     match state with
     | Some state ->
         let documentExistInCache =
             state.documents
             // Try to find the document in the cache
             // We use the path as the search value because parsed URI are not unified by VSCode
-            |> Seq.tryFind (fun element ->
-                element.Key.path = uri.path
-            )
+            |> Seq.tryFind (fun element -> element.Key.path = uri.path)
 
         match documentExistInCache with
         | Some (KeyValue (uri, _)) ->
@@ -245,13 +243,9 @@ let removeDocument (uri : Uri) =
 
             window.visibleTextEditors
             // Find the text editor related to the document in cache
-            |> Seq.tryFind (fun textEditor ->
-                textEditor.document.uri = uri
-            )
+            |> Seq.tryFind (fun textEditor -> textEditor.document.uri = uri)
             // If the text editor is found, remove the decorations
-            |> Option.iter (fun textEditor ->
-                textEditor.setDecorations (state.decorationType, U2.Case1(ResizeArray()))
-            )
+            |> Option.iter (fun textEditor -> textEditor.setDecorations (state.decorationType, U2.Case1(ResizeArray())))
 
         | None -> ()
 
