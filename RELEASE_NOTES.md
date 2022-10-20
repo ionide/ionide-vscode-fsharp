@@ -1,3 +1,8 @@
+### 7.3.1 - 19.10.2022
+
+* Update FSAC to 0.58.1 to get adaptive performance fixes, proj-info fixes, and file-deletion fixes
+* process FSharpSignatureData requests serially instead of in parallel to prevent choking the server
+
 ### 7.3.0 - 09.10.2022
 
 * Update and use FSAC 0.58.0 to get the new experimental adaptive mode.
