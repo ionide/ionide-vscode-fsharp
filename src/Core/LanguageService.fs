@@ -666,9 +666,6 @@ Consider:
             let enableAdaptiveLspServer =
                 "FSharp.enableAdaptiveLspServer" |> Configuration.get false
 
-            let backgroundSymbolCache =
-                "FSharp.enableBackgroundServices" |> Configuration.get true
-
             let enableProjectGraph =
                 "FSharp.enableMSBuildProjectGraph" |> Configuration.get false
 
@@ -785,8 +782,6 @@ Consider:
                           if fsacAttachDebugger then
                               yield "--attachdebugger"
                               yield "--wait-for-debugger"
-                          if backgroundSymbolCache then
-                              yield "--background-service-enabled"
                           if enableProjectGraph then
                               yield "--project-graph-enabled"
                           if enableAdaptiveLspServer then
