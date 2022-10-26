@@ -56,7 +56,7 @@ module SolutionExplorer =
         let rec addhelper state items =
             match items, state.Children with
             | [], _ -> state
-            | [ key ], children when children |> List.exists (fun c -> c.Key = key) -> state
+            | [ key ], children when children |> List.exists (fun c -> c.Key = Uri.UnescapeDataString key) -> state
             | [ key ], _ ->
                 let x =
                     { Key = Uri.UnescapeDataString key
@@ -66,7 +66,8 @@ module SolutionExplorer =
 
                 state.Children <- x :: state.Children
                 state
-            | dirName :: xs, lastFileOrDir :: _ when dirName = lastFileOrDir.Key -> addhelper lastFileOrDir xs
+            | dirName :: xs, lastFileOrDir :: _ when Uri.UnescapeDataString dirName = lastFileOrDir.Key ->
+                addhelper lastFileOrDir xs
             | dirName :: xs, _ ->
                 let dirPath = pathCombine state.FilePath dirName
 
