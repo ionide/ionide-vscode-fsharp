@@ -1,3 +1,7 @@
+### 7.4.0 = 08.11.2022
+
+* Update FSAC to 0.58.2 to get fixes for assembly reference resolution on .NET 7. 
+
 ### 7.3.1 - 19.10.2022
 
 * Update FSAC to 0.58.1 to get adaptive performance fixes, proj-info fixes, and file-deletion fixes
