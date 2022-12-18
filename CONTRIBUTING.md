@@ -111,7 +111,7 @@ There are **two steps** involved in running Ionide in Watch Mode.
 
 TL;DR: watch this video clip:
 
-https://user-images.githubusercontent.com/2154029/143313128-94b7b5ce-64d3-4008-97ac-ff44fdce58cc.mp4
+https://user-images.githubusercontent.com/3221269/208322748-401bc978-1f43-4098-a812-78e0c7f93e18.mp4
 
 1. **Start the `Watch` task**.
     - Open the command palette (`cmd`+`shift`+`p` or `ctrl`+`shift`+`p`)
