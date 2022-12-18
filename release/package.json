@@ -555,7 +555,7 @@
         },
         "FSharp.generateBinlog": {
           "default": false,
-          "markdownDescription": "Enables generation of \u0060msbuild.binlog\u0060 files for project loading. It works only for fresh, non-cached project loading. Run \u0060F#: Clear Project Cache\u0060 and reload window to force fresh loading of all projects. These files can be loaded and inspected using the [MSBuild Structured Logger](https://github.com/KirillOsenkov/MSBuildStructuredLog)",
+          "markdownDescription": "Enables generation of \u0060msbuild.binlog\u0060 files for project loading. It works only for fresh, non-cached project loading. Run \u0060F#: Clear Project Cache\u0060 and \u0060Developer: Reload Window\u0060 to force fresh loading of all projects. These files can be loaded and inspected using the [MSBuild Structured Logger](https://github.com/KirillOsenkov/MSBuildStructuredLog)",
           "type": "boolean"
         },
         "FSharp.indentationSize": {
