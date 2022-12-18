@@ -114,8 +114,9 @@ TL;DR: watch this video clip:
 https://user-images.githubusercontent.com/2154029/143313128-94b7b5ce-64d3-4008-97ac-ff44fdce58cc.mp4
 
 1. **Start the `Watch` task**.
-    - Open the command palette (`cmd`+`p` or `ctl`+`p`)
-    - Enter `tasks watch`.
+    - Open the command palette (`cmd`+`shift`+`p` or `ctrl`+`shift`+`p`)
+    - Enter `tasks: run tasks`.
+    - Enter `watch`.
     - **Wait a few seconds**. It might take 15-30 seconds for the initial build to complete
 2. **Run the `Launch Only` launch configuration**.
     - Open the Run and Debug menu (`cmd`+`shift`+`d` or `ctrl`+`shift`+`d`)
@@ -124,7 +125,7 @@ https://user-images.githubusercontent.com/2154029/143313128-94b7b5ce-64d3-4008-9
 
 Note: Step 1 starts a new "Watch" task that rebuilds Ionide in the background while you're making source code changes. You should wait for this to finish before opening the Extension Host.
 
-If you're curious what's going on, you can view the log output for this task by running `Tasks: Show Running Tasks` from the command palete.
+If you're curious what's going on, you can view the log output for this task by running `Tasks: Show Running Tasks` from the command palette.
 
 ### Working with FSAC
 
