@@ -86,20 +86,20 @@ module SolutionExplorer =
     let getParentRef (model: Model) =
         match model with
         | Workspace _ -> ref None
-        | Solution (parent, _, _, _) -> parent
-        | WorkspaceFolder (parent, _, _) -> parent
-        | PackageReferenceList (parent, _, _) -> parent
-        | ProjectReferencesList (parent, _, _) -> parent
-        | ProjectNotLoaded (parent, _, _) -> parent
-        | ProjectLoading (parent, _, _) -> parent
-        | ProjectFailedToLoad (parent, _, _, _) -> parent
-        | ProjectNotRestored (parent, _, _, _) -> parent
-        | ProjectLanguageNotSupported (parent, _, _) -> parent
-        | Project (parent, _, _, _, _, _, _, _) -> parent
-        | Folder (parent, _, _, _, _) -> parent
-        | File (parent, _, _, _, _) -> parent
-        | PackageReference (parent, _, _, _) -> parent
-        | ProjectReference (parent, _, _, _) -> parent
+        | Solution(parent, _, _, _) -> parent
+        | WorkspaceFolder(parent, _, _) -> parent
+        | PackageReferenceList(parent, _, _) -> parent
+        | ProjectReferencesList(parent, _, _) -> parent
+        | ProjectNotLoaded(parent, _, _) -> parent
+        | ProjectLoading(parent, _, _) -> parent
+        | ProjectFailedToLoad(parent, _, _, _) -> parent
+        | ProjectNotRestored(parent, _, _, _) -> parent
+        | ProjectLanguageNotSupported(parent, _, _) -> parent
+        | Project(parent, _, _, _, _, _, _, _) -> parent
+        | Folder(parent, _, _, _, _) -> parent
+        | File(parent, _, _, _, _) -> parent
+        | PackageReference(parent, _, _, _) -> parent
+        | ProjectReference(parent, _, _, _) -> parent
 
     let inline setParentRef (model: Model) (parent: Model) =
         let parentRef = getParentRef model
@@ -196,11 +196,11 @@ module SolutionExplorer =
         match proj with
         | Project.ProjectLoadingState.Loading p -> Model.ProjectLoading(ref None, p, node.path.basename p)
         | Project.ProjectLoadingState.Loaded proj -> getProjectModel proj
-        | Project.ProjectLoadingState.Failed (p, err) ->
+        | Project.ProjectLoadingState.Failed(p, err) ->
             Model.ProjectFailedToLoad(ref None, p, node.path.basename p, err)
-        | Project.ProjectLoadingState.NotRestored (p, err) ->
+        | Project.ProjectLoadingState.NotRestored(p, err) ->
             Model.ProjectNotRestored(ref None, p, node.path.basename p, err)
-        | Project.ProjectLoadingState.LanguageNotSupported (p) ->
+        | Project.ProjectLoadingState.LanguageNotSupported(p) ->
             Model.ProjectLanguageNotSupported(ref None, p, node.path.basename p)
 
 
@@ -208,8 +208,8 @@ module SolutionExplorer =
         let rec loop model lst =
             match model with
             | Workspace fls -> fls |> List.collect (fun x -> loop x lst)
-            | Project (_, _, _, fls, _, _, _, _) -> fls |> List.collect (fun x -> loop x lst)
-            | Folder (_, _, f, fls, _) -> fls |> List.collect (fun x -> loop x lst @ [ f ])
+            | Project(_, _, _, fls, _, _, _, _) -> fls |> List.collect (fun x -> loop x lst)
+            | Folder(_, _, f, fls, _) -> fls |> List.collect (fun x -> loop x lst @ [ f ])
             | _ -> []
 
         let lst =
@@ -269,22 +269,22 @@ module SolutionExplorer =
     let private getSubmodel node =
         match node with
         | Workspace projects -> projects
-        | WorkspaceFolder (_, _, items) -> items
-        | Solution (_, _, _, items) -> items
+        | WorkspaceFolder(_, _, items) -> items
+        | Solution(_, _, _, items) -> items
         | ProjectNotLoaded _ -> []
         | ProjectLoading _ -> []
         | ProjectFailedToLoad _ -> []
         | ProjectNotRestored _ -> []
         | ProjectLanguageNotSupported _ -> []
-        | Project (_, _, _, files, projs, refs, _, _) ->
+        | Project(_, _, _, files, projs, refs, _, _) ->
             [
               // SHOULD REFS BE DISPLAYED AT ALL? THOSE ARE RESOLVED BY MSBUILD REFS
               yield refs
               yield projs
               yield! files ]
-        | PackageReferenceList (_, refs, _) -> refs
-        | ProjectReferencesList (_, refs, _) -> refs
-        | Folder (_, _, _, files, _) -> files |> List.rev
+        | PackageReferenceList(_, refs, _) -> refs
+        | ProjectReferencesList(_, refs, _) -> refs
+        | Folder(_, _, _, files, _) -> files |> List.rev
         | File _ -> []
         | PackageReference _ -> []
         | ProjectReference _ -> []
@@ -292,24 +292,24 @@ module SolutionExplorer =
     let private getLabel node =
         match node with
         | Workspace _ -> "Workspace"
-        | WorkspaceFolder (_, name, _) -> name
-        | Solution (_, _, name, _) -> name
-        | ProjectNotLoaded (_, _, name) -> sprintf "%s (not loaded yet)" name
-        | ProjectLoading (_, _, name) -> sprintf "%s (loading..)" name
-        | ProjectFailedToLoad (_, _, name, _) -> sprintf "%s (load failed)" name
-        | ProjectNotRestored (_, _, name, _) -> sprintf "%s (not restored)" name
-        | ProjectLanguageNotSupported (_, _, name) -> sprintf "%s (language not supported)" name
-        | Project (_, _, name, _, _, _, _, _) -> name
+        | WorkspaceFolder(_, name, _) -> name
+        | Solution(_, _, name, _) -> name
+        | ProjectNotLoaded(_, _, name) -> sprintf "%s (not loaded yet)" name
+        | ProjectLoading(_, _, name) -> sprintf "%s (loading..)" name
+        | ProjectFailedToLoad(_, _, name, _) -> sprintf "%s (load failed)" name
+        | ProjectNotRestored(_, _, name, _) -> sprintf "%s (not restored)" name
+        | ProjectLanguageNotSupported(_, _, name) -> sprintf "%s (language not supported)" name
+        | Project(_, _, name, _, _, _, _, _) -> name
         | PackageReferenceList _ -> "Package References"
-        | ProjectReferencesList (_, refs, _) -> "Project References"
-        | Folder (_, n, _, _, _) -> n
-        | File (_, _, name, _, _) -> name
-        | PackageReference (_, _, name, _) ->
+        | ProjectReferencesList(_, refs, _) -> "Project References"
+        | Folder(_, n, _, _, _) -> n
+        | File(_, _, name, _, _) -> name
+        | PackageReference(_, _, name, _) ->
             if name.ToLowerInvariant().EndsWith(".dll") then
                 name.Substring(0, name.Length - 4)
             else
                 name
-        | ProjectReference (_, _, name, _) -> name
+        | ProjectReference(_, _, name, _) -> name
 
     let private getRoot () =
         defaultArg (getSolution ()) (Workspace [])
@@ -353,7 +353,7 @@ module SolutionExplorer =
                     | ProjectLanguageNotSupported _
                     | Workspace _
                     | Solution _ -> TreeItemCollapsibleState.Expanded
-                    | WorkspaceFolder (_, _, items) ->
+                    | WorkspaceFolder(_, _, items) ->
                         let isProj model =
                             match model with
                             | ProjectNotLoaded _ -> true
@@ -376,7 +376,7 @@ module SolutionExplorer =
 
                 let command =
                     match element with
-                    | File (_, p, _, _, _) ->
+                    | File(_, p, _, _, _) ->
                         let c = createEmpty<Command>
                         c.command <- "vscode.open"
                         c.title <- "open"
@@ -395,8 +395,8 @@ module SolutionExplorer =
                     | File _ -> "file"
                     | ProjectReferencesList _ -> "projectRefList"
                     | PackageReferenceList _ -> "referencesList"
-                    | Project (_, _, _, _, _, _, false, _) -> "project"
-                    | Project (_, _, _, _, _, _, true, _) -> "projectExe"
+                    | Project(_, _, _, _, _, _, false, _) -> "project"
+                    | Project(_, _, _, _, _, _, true, _) -> "projectExe"
                     | ProjectReference _ -> "projectRef"
                     | PackageReference _ -> "reference"
                     | Folder _ -> "folder"
@@ -413,22 +413,21 @@ module SolutionExplorer =
 
                 let icon, resourceUri =
                     match element with
-                    | File (_, path, _, _, _)
-                    | ProjectNotLoaded (_, path, _)
-                    | ProjectLoading (_, path, _)
-                    | ProjectFailedToLoad (_, path, _, _)
-                    | ProjectNotRestored (_, path, _, _)
-                    | ProjectLanguageNotSupported (_, path, _)
-                    | Project (_, path, _, _, _, _, _, _)
-                    | Solution (_, path, _, _) ->
-                        vscode.ThemeIcon.File |> U4.Case4 |> Some, vscode.Uri.file path |> Some
-                    | Folder (_, _, path, _, _) ->
+                    | File(_, path, _, _, _)
+                    | ProjectNotLoaded(_, path, _)
+                    | ProjectLoading(_, path, _)
+                    | ProjectFailedToLoad(_, path, _, _)
+                    | ProjectNotRestored(_, path, _, _)
+                    | ProjectLanguageNotSupported(_, path, _)
+                    | Project(_, path, _, _, _, _, _, _)
+                    | Solution(_, path, _, _) -> vscode.ThemeIcon.File |> U4.Case4 |> Some, vscode.Uri.file path |> Some
+                    | Folder(_, _, path, _, _) ->
                         vscode.ThemeIcon.Folder |> U4.Case4 |> Some, vscode.Uri.file path |> Some
                     | PackageReferenceList _
                     | ProjectReferencesList _
                     | WorkspaceFolder _ -> vscode.ThemeIcon.Folder |> U4.Case4 |> Some, None
-                    | PackageReference (_, path, _, _)
-                    | ProjectReference (_, path, _, _) ->
+                    | PackageReference(_, path, _, _)
+                    | ProjectReference(_, path, _, _) ->
                         let light = (plugPath + "/images/circuit-board-light.svg") |> U2.Case1
 
                         let dark = (plugPath + "/images/circuit-board-dark.svg") |> U2.Case1
@@ -443,17 +442,17 @@ module SolutionExplorer =
                 ti.id <-
                     let label (ti: TreeItem) =
                         match ti.label with
-                        | Some (U2.Case1 l) -> l
-                        | Some (U2.Case2 l) -> l.label
+                        | Some(U2.Case1 l) -> l
+                        | Some(U2.Case2 l) -> l.label
                         | None -> ""
 
                     match element with
-                    | PackageReferenceList (_, _, pp)
-                    | ProjectReferencesList (_, _, pp)
-                    | PackageReference (_, _, _, pp)
-                    | ProjectReference (_, _, _, pp) -> Some(label ti + "||" + pp)
+                    | PackageReferenceList(_, _, pp)
+                    | ProjectReferencesList(_, _, pp)
+                    | PackageReference(_, _, _, pp)
+                    | ProjectReference(_, _, _, pp) -> Some(label ti + "||" + pp)
                     | Folder _ -> None
-                    | File (_, _, _, _, pp) ->
+                    | File(_, _, _, _, pp) ->
                         (resourceUri
                          |> Option.map (fun u -> (label ti + "||" + u.toString () + "||" + pp)))
                     | _ -> (resourceUri |> Option.map (fun u -> (label ti + "||" + u.toString ())))
@@ -551,19 +550,19 @@ module SolutionExplorer =
 
         let rec private getModelPerFile (model: Model) : (string * Model) list =
             match model with
-            | File (_, path, _, _, _)
-            | ProjectNotLoaded (_, path, _)
-            | ProjectLoading (_, path, _)
-            | ProjectFailedToLoad (_, path, _, _)
-            | ProjectNotRestored (_, path, _, _)
-            | ProjectLanguageNotSupported (_, path, _) -> [ path, model ]
-            | Project (_, path, _, children, _, _, _, _)
-            | Solution (_, path, _, children) ->
+            | File(_, path, _, _, _)
+            | ProjectNotLoaded(_, path, _)
+            | ProjectLoading(_, path, _)
+            | ProjectFailedToLoad(_, path, _, _)
+            | ProjectNotRestored(_, path, _, _)
+            | ProjectLanguageNotSupported(_, path, _) -> [ path, model ]
+            | Project(_, path, _, children, _, _, _, _)
+            | Solution(_, path, _, children) ->
                 let current = path, model
                 let forChildren = children |> List.collect getModelPerFile
                 current :: forChildren
-            | Folder (_, _, _, children, _)
-            | WorkspaceFolder (_, _, children)
+            | Folder(_, _, _, children, _)
+            | WorkspaceFolder(_, _, children)
             | Workspace children -> children |> List.collect getModelPerFile
             | PackageReference _
             | ProjectReference _
@@ -649,7 +648,7 @@ module SolutionExplorer =
                         | Folder _
                         | PackageReference _
                         | ProjectReference _ -> false
-                        | File (_, filePath, _, _, _) ->
+                        | File(_, filePath, _, _, _) ->
                             let projDir = node.path.dirname proj
                             // Need to compute the relative path from the project in order to match the user input
                             let relativeFilePathFromProject = node.path.relative (projDir, filePath)
@@ -705,7 +704,7 @@ module SolutionExplorer =
                             let model = getSolution ()
                             //If it's the solution workspace we want to add project to the solution
                             match model with
-                            | Some (Workspace [ Solution (_, _, slnName, _) ]) ->
+                            | Some(Workspace [ Solution(_, _, slnName, _) ]) ->
                                 let pname =
                                     if projName.IsSome then
                                         projName.Value + ".fsproj"
@@ -766,7 +765,7 @@ module SolutionExplorer =
             "fsharp.explorer.moveUp",
             objfy2 (fun m ->
                 match unbox m with
-                | File (_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileUpPath proj virtPath
+                | File(_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileUpPath proj virtPath
                 | _ -> undefined
                 |> ignore
 
@@ -778,7 +777,7 @@ module SolutionExplorer =
             "fsharp.explorer.moveDown",
             objfy2 (fun m ->
                 match unbox m with
-                | File (_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileDownPath proj virtPath
+                | File(_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileDownPath proj virtPath
                 | _ -> undefined
                 |> ignore
 
@@ -790,7 +789,7 @@ module SolutionExplorer =
             "fsharp.explorer.removeFile",
             objfy2 (fun m ->
                 match unbox m with
-                | File (_, filePath, _, _, proj) ->
+                | File(_, filePath, _, _, proj) ->
                     promise {
                         let projDir = node.path.dirname proj
                         // Need to compute the relative path from the project in order to match the user input
@@ -820,9 +819,9 @@ module SolutionExplorer =
             "fsharp.explorer.addAbove",
             objfy2 (fun m ->
                 match unbox m with
-                | File (parent, _, name, Some virtPath, proj) ->
+                | File(parent, _, name, Some virtPath, proj) ->
                     match parent.Value with
-                    | Some (Project (_, proj, _, files, _, _, _, _)) ->
+                    | Some(Project(_, proj, _, files, _, _, _, _)) ->
                         createNewFileDialg proj files "New file name, relative to selected file"
                         |> Promise.ofThenable
                         |> Promise.bind (fun file ->
@@ -841,9 +840,9 @@ module SolutionExplorer =
             "fsharp.explorer.addBelow",
             objfy2 (fun m ->
                 match unbox m with
-                | File (parent, fr_om, name, Some virtPath, proj) ->
+                | File(parent, fr_om, name, Some virtPath, proj) ->
                     match parent.Value with
-                    | Some (Project (_, proj, _, files, _, _, _, _)) ->
+                    | Some(Project(_, proj, _, files, _, _, _, _)) ->
                         createNewFileDialg proj files "New file name, relative to selected file"
                         |> Promise.ofThenable
                         |> Promise.map (fun file ->
@@ -863,7 +862,7 @@ module SolutionExplorer =
             "fsharp.explorer.addFile",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, proj, _, files, _, _, _, _) ->
+                | Project(_, proj, _, files, _, _, _, _) ->
                     createNewFileDialg proj files "New file name, relative to project file"
                     |> Promise.ofThenable
                     |> Promise.map (fun file ->
@@ -881,7 +880,7 @@ module SolutionExplorer =
             "fsharp.explorer.addExistingFile",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, proj, _, _, _, _, _, _) ->
+                | Project(_, proj, _, _, _, _, _, _) ->
                     let projectUri = vscode.Uri.file proj
 
                     let opts = createEmpty<OpenDialogOptions>
@@ -912,7 +911,7 @@ module SolutionExplorer =
             "fsharp.explorer.addProjecRef",
             objfy2 (fun m ->
                 match unbox m with
-                | ProjectReferencesList (_, _, p) -> FsProjEdit.addProjectReferencePath (Some p)
+                | ProjectReferencesList(_, _, p) -> FsProjEdit.addProjectReferencePath (Some p)
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -921,7 +920,7 @@ module SolutionExplorer =
             "fsharp.explorer.removeProjecRef",
             objfy2 (fun m ->
                 match unbox m with
-                | ProjectReference (_, path, _, p) -> FsProjEdit.removeProjectReferencePath path p
+                | ProjectReference(_, path, _, p) -> FsProjEdit.removeProjectReferencePath path p
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -940,14 +939,14 @@ module SolutionExplorer =
 
             let viewParsed (proj: Project) =
                 match getProjectModel proj with
-                | (Project (_,
-                            _,
-                            _,
-                            files,
-                            ProjectReferencesList (_, projRefs, _),
-                            PackageReferenceList (_, refs, _),
-                            _,
-                            project)) ->
+                | (Project(_,
+                           _,
+                           _,
+                           files,
+                           ProjectReferencesList(_, projRefs, _),
+                           PackageReferenceList(_, refs, _),
+                           _,
+                           project)) ->
                     let files = project.Files
 
                     let projRefs = project.ProjectReferences |> Array.map (fun n -> n.ProjectFileName)
@@ -961,7 +960,7 @@ module SolutionExplorer =
                             | PackageReference _ -> true
                             | _ -> false)
                         |> List.map (function
-                            | PackageReference (_, p, _, _) -> p
+                            | PackageReference(_, p, _, _) -> p
                             | _ -> failwith "Should not happend, we filtered the `refs` list before")
 
                     let info = proj.Info
@@ -1062,11 +1061,11 @@ module SolutionExplorer =
 
                             match Project.tryFindInWorkspace path with
                             | None -> sprintf "Project '%s' not found" path
-                            | Some (Project.ProjectLoadingState.Loading path) -> viewLoading path
-                            | Some (Project.ProjectLoadingState.Loaded proj) -> viewParsed proj
-                            | Some (Project.ProjectLoadingState.NotRestored (path, error)) -> viewFailed path error
-                            | Some (Project.ProjectLoadingState.Failed (path, error)) -> viewFailed path error
-                            | Some (Project.ProjectLoadingState.LanguageNotSupported path) ->
+                            | Some(Project.ProjectLoadingState.Loading path) -> viewLoading path
+                            | Some(Project.ProjectLoadingState.Loaded proj) -> viewParsed proj
+                            | Some(Project.ProjectLoadingState.NotRestored(path, error)) -> viewFailed path error
+                            | Some(Project.ProjectLoadingState.Failed(path, error)) -> viewFailed path error
+                            | Some(Project.ProjectLoadingState.LanguageNotSupported path) ->
                                 viewLanguageNotSupported path
                         | _ -> sprintf "Requested uri: %s" (uri.toString ())
 
@@ -1086,15 +1085,15 @@ module SolutionExplorer =
 
         let projectStatusCommand m =
             match m with
-            | ProjectFailedToLoad (_, path, name, _) -> ShowStatus.CreateOrShow(path, name)
-            | ProjectNotRestored (_, path, name, _) -> ShowStatus.CreateOrShow(path, name)
-            | Model.ProjectLoading (_, path, name) -> ShowStatus.CreateOrShow(path, name)
-            | Model.Project (_, path, name, _, _, _, _, proj) -> ShowStatus.CreateOrShow(path, name)
+            | ProjectFailedToLoad(_, path, name, _) -> ShowStatus.CreateOrShow(path, name)
+            | ProjectNotRestored(_, path, name, _) -> ShowStatus.CreateOrShow(path, name)
+            | Model.ProjectLoading(_, path, name) -> ShowStatus.CreateOrShow(path, name)
+            | Model.Project(_, path, name, _, _, _, _, proj) -> ShowStatus.CreateOrShow(path, name)
             | _ -> ()
 
         let runDebug m =
             match m with
-            | Model.Project (_, path, name, _, _, _, _, proj) -> proj |> Debugger.buildAndDebug
+            | Model.Project(_, path, name, _, _, _, _, proj) -> proj |> Debugger.buildAndDebug
             | _ -> Promise.empty
 
         let setLaunchSettingsCommand m =
@@ -1104,7 +1103,7 @@ module SolutionExplorer =
                 | _ -> None
 
             match m with
-            | Model.Project (_, path, name, _, _, _, _, proj) ->
+            | Model.Project(_, path, name, _, _, _, _, proj) ->
                 promise {
                     let launchConfig = workspace.getConfiguration ("launch")
                     do! LaunchJsonVersion2.assertVersion2 launchConfig
@@ -1151,11 +1150,11 @@ module SolutionExplorer =
             objfy2 (fun m ->
                 let pathOpt =
                     match unbox m with
-                    | ProjectNotLoaded (_, path, _) -> Some path
-                    | ProjectLoading (_, path, _) -> Some path
-                    | ProjectFailedToLoad (_, path, _, _) -> Some path
-                    | ProjectNotRestored (_, path, _, _) -> Some path
-                    | Project (_, path, _, _, _, _, _, _) -> Some path
+                    | ProjectNotLoaded(_, path, _) -> Some path
+                    | ProjectLoading(_, path, _) -> Some path
+                    | ProjectFailedToLoad(_, path, _, _) -> Some path
+                    | ProjectNotRestored(_, path, _, _) -> Some path
+                    | Project(_, path, _, _, _, _, _, _) -> Some path
                     | _ -> None
 
                 match pathOpt with
@@ -1172,7 +1171,7 @@ module SolutionExplorer =
             "fsharp.explorer.msbuild.build",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, path, _, _, _, _, _, pr) -> MSBuild.buildProjectPath "Build" pr |> unbox
+                | Project(_, path, _, _, _, _, _, pr) -> MSBuild.buildProjectPath "Build" pr |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1181,7 +1180,7 @@ module SolutionExplorer =
             "fsharp.explorer.msbuild.rebuild",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, path, _, _, _, _, _, pr) -> MSBuild.buildProjectPath "Rebuild" pr |> unbox
+                | Project(_, path, _, _, _, _, _, pr) -> MSBuild.buildProjectPath "Rebuild" pr |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1190,7 +1189,7 @@ module SolutionExplorer =
             "fsharp.explorer.msbuild.clean",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, path, _, _, _, _, _, pr) -> MSBuild.buildProjectPath "Clean" pr |> unbox
+                | Project(_, path, _, _, _, _, _, pr) -> MSBuild.buildProjectPath "Clean" pr |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1199,8 +1198,8 @@ module SolutionExplorer =
             "fsharp.explorer.msbuild.restore",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, path, _, _, _, _, _, pr) -> MSBuild.restoreKnownProject pr |> unbox
-                | ProjectNotRestored (_, path, _, _) -> MSBuild.restoreProjectAsync path |> unbox
+                | Project(_, path, _, _, _, _, _, pr) -> MSBuild.restoreKnownProject pr |> unbox
+                | ProjectNotRestored(_, path, _, _) -> MSBuild.restoreProjectAsync path |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1209,7 +1208,7 @@ module SolutionExplorer =
             "fsharp.explorer.solution.build",
             objfy2 (fun m ->
                 match unbox m with
-                | Solution (_, path, _, _) -> MSBuild.buildSolution "Build" path |> unbox
+                | Solution(_, path, _, _) -> MSBuild.buildSolution "Build" path |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1218,7 +1217,7 @@ module SolutionExplorer =
             "fsharp.explorer.solution.rebuild",
             objfy2 (fun m ->
                 match unbox m with
-                | Solution (_, path, _, _) -> MSBuild.buildSolution "Rebuild" path |> unbox
+                | Solution(_, path, _, _) -> MSBuild.buildSolution "Rebuild" path |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1227,7 +1226,7 @@ module SolutionExplorer =
             "fsharp.explorer.solution.clean",
             objfy2 (fun m ->
                 match unbox m with
-                | Solution (_, path, _, _) -> MSBuild.buildSolution "Clean" path |> unbox
+                | Solution(_, path, _, _) -> MSBuild.buildSolution "Clean" path |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1236,7 +1235,7 @@ module SolutionExplorer =
             "fsharp.explorer.solution.restore",
             objfy2 (fun m ->
                 match unbox m with
-                | Solution (_, path, _, _) -> MSBuild.buildSolution "Restore" path |> unbox
+                | Solution(_, path, _, _) -> MSBuild.buildSolution "Restore" path |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1245,7 +1244,7 @@ module SolutionExplorer =
             "fsharp.explorer.project.run",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, _, _, _, _, _, _, pr) -> Debugger.buildAndRun pr |> unbox
+                | Project(_, _, _, _, _, _, _, pr) -> Debugger.buildAndRun pr |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1254,7 +1253,7 @@ module SolutionExplorer =
             "fsharp.explorer.project.setDefault",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, _, _, _, _, _, _, pr) -> Debugger.setDefaultProject pr |> unbox
+                | Project(_, _, _, _, _, _, _, pr) -> Debugger.setDefaultProject pr |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1263,7 +1262,7 @@ module SolutionExplorer =
             "fsharp.explorer.project.generateFSI",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, _, _, _, _, _, _, pr) -> Fsi.generateProjectReferencesForProject pr |> unbox
+                | Project(_, _, _, _, _, _, _, pr) -> Fsi.generateProjectReferencesForProject pr |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1272,7 +1271,7 @@ module SolutionExplorer =
             "fsharp.explorer.project.sendFSI",
             objfy2 (fun m ->
                 match unbox m with
-                | Project (_, _, _, _, _, _, _, pr) -> Fsi.sendReferencesForProject pr |> unbox
+                | Project(_, _, _, _, _, _, _, pr) -> Fsi.sendReferencesForProject pr |> unbox
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1281,7 +1280,7 @@ module SolutionExplorer =
             "fsharp.explorer.solution.addProject",
             objfy2 (fun m ->
                 match unbox m with
-                | Solution (_, _, name, _) ->
+                | Solution(_, _, name, _) ->
                     promise {
                         let projects = Project.getAll ()
 

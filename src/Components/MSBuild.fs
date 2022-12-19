@@ -288,7 +288,7 @@ module MSBuild =
 
     let buildCurrentSolution target =
         match Project.getLoadedSolution () with
-        | Some (Solution e) -> buildSolution target e.Path |> ignore
+        | Some(Solution e) -> buildSolution target e.Path |> ignore
         | Some _ ->
             window.showWarningMessage ("Solution not loaded - plugin in directory mode")
             |> ignore
@@ -383,7 +383,7 @@ module MSBuild =
         promise {
             match s with
             | WorkspacePeekFound.Directory _ -> return Seq.empty
-            | WorkspacePeekFound.Solution ({ Path = p }) ->
+            | WorkspacePeekFound.Solution({ Path = p }) ->
                 let! dotnet = dotnetBinary ()
                 let solutionDir = node.path.dirname p
                 let solutionName = node.path.basename p

@@ -99,14 +99,14 @@ module Project =
     let getProjectsFromWorkspacePeek () =
         match loadedWorkspace with
         | None -> []
-        | Some (WorkspacePeekFound.Solution sln) ->
+        | Some(WorkspacePeekFound.Solution sln) ->
             let rec getProjs (item: WorkspacePeekFoundSolutionItem) =
                 match item.Kind with
                 | MsbuildFormat _proj -> [| item.Name |]
                 | Folder folder -> folder.Items |> Array.collect getProjs
 
             sln.Items |> Array.collect getProjs |> Array.toList
-        | Some (WorkspacePeekFound.Directory dir) -> dir.Fsprojs |> Array.toList
+        | Some(WorkspacePeekFound.Directory dir) -> dir.Fsprojs |> Array.toList
 
 
     let getNotLoaded () =
@@ -211,7 +211,7 @@ module Project =
                 | Error err -> failed err)
             |> Promise.map (fun r ->
                 match r with
-                | Some (path, state) ->
+                | Some(path, state) ->
                     updateInWorkspace path state
 
                     loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
@@ -250,17 +250,17 @@ module Project =
         let projs =
             match loadedWorkspace with
             | None -> Array.empty
-            | Some (WorkspacePeekFound.Directory dir) -> dir.Fsprojs
-            | Some (WorkspacePeekFound.Solution sln) -> sln.Items |> Array.collect foldFsproj |> Array.map fst
+            | Some(WorkspacePeekFound.Directory dir) -> dir.Fsprojs
+            | Some(WorkspacePeekFound.Solution sln) -> sln.Items |> Array.collect foldFsproj |> Array.map fst
 
         let loadingInProgress p =
             match tryFindInWorkspace p with
             | None
-            | Some (ProjectLoadingState.Loading _) -> true
-            | Some (ProjectLoadingState.Loaded _)
-            | Some (ProjectLoadingState.Failed _)
-            | Some (ProjectLoadingState.NotRestored _)
-            | Some (ProjectLoadingState.LanguageNotSupported _) -> false
+            | Some(ProjectLoadingState.Loading _) -> true
+            | Some(ProjectLoadingState.Loaded _)
+            | Some(ProjectLoadingState.Failed _)
+            | Some(ProjectLoadingState.NotRestored _)
+            | Some(ProjectLoadingState.LanguageNotSupported _) -> false
 
         projs |> Array.exists loadingInProgress
 
@@ -607,12 +607,12 @@ module Project =
 
         let projStatus =
             match res with
-            | Choice1Of4 (pr: ProjectResult) ->
+            | Choice1Of4(pr: ProjectResult) ->
                 projectLoadedEmitter.fire (pr.Data)
                 Some(true, pr.Data.Project, (ProjectLoadingState.Loaded pr.Data))
-            | Choice2Of4 (pr: ProjectLoadingResult) ->
+            | Choice2Of4(pr: ProjectLoadingResult) ->
                 Some(false, pr.Data.Project, (ProjectLoadingState.Loading pr.Data.Project))
-            | Choice3Of4 (msg, err) ->
+            | Choice3Of4(msg, err) ->
                 match err with
                 | ErrorData.ProjectNotRestored d ->
                     projectNotRestoredLoadedEmitter.fire d.Project
@@ -633,7 +633,7 @@ module Project =
                 | _ -> None
 
         match projStatus with
-        | Some (isDone, path, state) ->
+        | Some(isDone, path, state) ->
             updateInWorkspace path state
 
             loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
@@ -700,7 +700,7 @@ module Project =
             match
                 projs
                 |> List.tryPick (function
-                    | ProjectLoadingState.Failed (p, er) -> Some p
+                    | ProjectLoadingState.Failed(p, er) -> Some p
                     | _ -> None)
             with
             | Some p -> showItem "Project loading failed" p
@@ -708,7 +708,7 @@ module Project =
                 match
                     projs
                     |> List.tryPick (function
-                        | ProjectLoadingState.Loading (p) -> Some p
+                        | ProjectLoadingState.Loading(p) -> Some p
                         | _ -> None)
                 with
                 | Some p -> showItem "Project loading" p
@@ -716,7 +716,7 @@ module Project =
                     match
                         projs
                         |> List.tryPick (function
-                            | ProjectLoadingState.NotRestored (p, _) -> Some p
+                            | ProjectLoadingState.NotRestored(p, _) -> Some p
                             | _ -> None)
                     with
                     | Some p -> showItem "Project not restored" p
