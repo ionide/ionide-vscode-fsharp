@@ -240,7 +240,7 @@ let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
         |> Seq.tryFind (fun (s: string) -> s.Contains(gitOwner + "/" + gitName))
         |> function
             | None -> gitHome + "/" + gitName
-            | Some (s: string) -> s.Split().[0]
+            | Some(s: string) -> s.Split().[0]
 
     Staging.stageAll ""
     ensureGitUser user email

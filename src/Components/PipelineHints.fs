@@ -159,7 +159,7 @@ module DecorationUpdate =
             let uri = document.uri
 
             match state.documents |> Documents.tryGetCachedAtVersion uri version with
-            | Some (info, _) ->
+            | Some(info, _) ->
                 logger.Debug("Found existing decorations in cache for '%s' @%d", uri, version)
                 return Some info
             | None when document.version = version ->
@@ -205,7 +205,7 @@ module DecorationUpdate =
 
         match Documents.tryGetCachedAtVersion uri version state.documents with
         | None -> () // An event will arrive later when we have generated decorations
-        | Some (info, _) -> setDecorationsForEditor textEditor info state
+        | Some(info, _) -> setDecorationsForEditor textEditor info state
 
     let documentClosed (uri: Uri) state =
         // We can/must drop all caches as versions are unique only while a document is open.
@@ -238,7 +238,7 @@ let removeDocument (uri: Uri) =
             |> Seq.tryFind (fun element -> element.Key.path = uri.path)
 
         match documentExistInCache with
-        | Some (KeyValue (uri, _)) ->
+        | Some(KeyValue(uri, _)) ->
             DecorationUpdate.documentClosed uri state
 
             window.visibleTextEditors

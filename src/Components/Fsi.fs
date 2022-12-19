@@ -43,9 +43,9 @@ module Fsi =
                         )
 
                     match choice with
-                    | Some (HasTitle "Update settings") -> do! setUseSdk ()
-                    | Some (HasTitle "Ignore") -> do! disablePromptForProject ()
-                    | Some (HasTitle "Don't show again") -> do! disablePromptGlobally ()
+                    | Some(HasTitle "Update settings") -> do! setUseSdk ()
+                    | Some(HasTitle "Ignore") -> do! disablePromptForProject ()
+                    | Some(HasTitle "Don't show again") -> do! disablePromptGlobally ()
                     | _ -> ()
             }
 
@@ -91,7 +91,7 @@ module Fsi =
                         )
 
                     match res with
-                    | Some (HasTitle "Enable") -> do! Configuration.setGlobal "FSharp.addFsiWatcher" (Some(box true))
+                    | Some(HasTitle "Enable") -> do! Configuration.setGlobal "FSharp.addFsiWatcher" (Some(box true))
                     | _ -> ()
                 else
                     match panel with
@@ -258,7 +258,7 @@ module Fsi =
 
         match lastCd with
         // Same dir as last time, no need to send it
-        | Some (cd) when cd = dir -> ()
+        | Some(cd) when cd = dir -> ()
         | _ ->
             let msg = sprintf "# silentCd @\"%s\";;\n" dir
 
@@ -268,7 +268,7 @@ module Fsi =
 
         match lastCurrentFile with
         // Same file as last time, no need to send it
-        | Some (currentFile) when currentFile = file -> ()
+        | Some(currentFile) when currentFile = file -> ()
         | _ ->
             let msg = sprintf "# %d @\"%s\"\n;;\n" 1 file
 
@@ -352,8 +352,8 @@ module Fsi =
             let! profile =
                 match provider.provideTerminalProfile (ctok) with
                 | None -> promise.Return None
-                | Some (U2.Case1 options) -> promise.Return(Some options)
-                | Some (U2.Case2 work) -> Promise.ofThenable work
+                | Some(U2.Case1 options) -> promise.Return(Some options)
+                | Some(U2.Case2 work) -> Promise.ofThenable work
 
             let profile =
                 match profile with

@@ -72,9 +72,9 @@ module Gitignore =
                     )
 
                 match choice with
-                | Some (HasTitle "Add entries") -> writePatternsToGitignore patternsToAdd
-                | Some (HasTitle "Ignore") -> do! disablePromptForProject ()
-                | Some (HasTitle "Don't show again") -> do! disablePromptGlobally ()
+                | Some(HasTitle "Add entries") -> writePatternsToGitignore patternsToAdd
+                | Some(HasTitle "Ignore") -> do! disablePromptForProject ()
+                | Some(HasTitle "Don't show again") -> do! disablePromptGlobally ()
                 | _ -> ()
         }
 
