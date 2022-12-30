@@ -57,6 +57,7 @@ type TestResult =
       FullTestName: string
       Outcome: TestResultOutcome
       ErrorMessage: string option
+      ErrorStackTrace: string option
       Expected: string option
       Actual: string option
       Timing: float }
@@ -150,6 +151,10 @@ module DotnetTest =
                         xpathSelector.TrySelectString
                             $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:Message"
 
+                    let errorStackTrace =
+                        xpathSelector.TrySelectString
+                            $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:StackTrace"
+
                     let timing =
                         let duration =
                             xpathSelector.SelectString
@@ -175,6 +180,7 @@ module DotnetTest =
                       FullTestName = t.FullName
                       Outcome = !!outcome
                       ErrorMessage = errorInfoMessage
+                      ErrorStackTrace = errorStackTrace
                       Expected = expected
                       Actual = actual
                       Timing = timing })
@@ -332,7 +338,13 @@ let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToke
                         test.ErrorMessage
                         |> Option.iter (fun em ->
                             let ti = test.Test
-                            let msg = vscode.TestMessage.Create(!^em)
+
+                            let fullMsg =
+                                test.ErrorStackTrace
+                                |> Option.map (fun stackTrace -> sprintf "%s\n%s" em stackTrace)
+                                |> Option.defaultValue em
+
+                            let msg = vscode.TestMessage.Create(!^fullMsg)
                             msg.location <- Some(vscode.Location.Create(ti.uri.Value, !^ti.range.Value))
                             msg.expectedOutput <- test.Expected
                             msg.actualOutput <- test.Actual
