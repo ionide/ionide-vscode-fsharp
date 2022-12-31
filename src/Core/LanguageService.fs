@@ -679,7 +679,27 @@ Consider:
 
             let fsacPathForTfm (tfm: string) =
                 if String.IsNullOrEmpty fsacNetcorePath then
-                    node.path.join (VSCodeExtension.ionidePluginPath (), "bin", tfm, "fsautocomplete.dll")
+                    let ionideBinRoot = node.path.join (VSCodeExtension.ionidePluginPath (), "bin")
+                    let potentialFsacTfms =
+                        node.fs.readdirSync(U2.Case1 ionideBinRoot)
+                        |> Seq.map (node.path.dirname >> node.path.basename)
+                        |> Set.ofSeq
+                    if (Set.contains tfm potentialFsacTfms) then
+                        node.path.join (ionideBinRoot, tfm, "fsautocomplete.dll")
+                    else
+                        window.showErrorMessage(
+                            $"""Could not find a matching FSAutoComplete version the .NET SDK in use by your workspace.
+FsAutoComplete supports the following TargetFrameworks:
+{ potentialFsacTfms |> Seq.map (fun tfm -> $"* \t`{tfm}`") |> String.concat Environment.NewLine }
+
+Your project requires the following TargetFramework due to its choice of .NET SDK: `{tfm}`
+
+Please choose a .NET SDK compatible with this TargetFramework. If you have a global.json limiting your selection of .NET SDKs,
+consider removing it or changing the limitation imposed by it.
+                        """)
+                        |> ignore
+                        failwith "Bad .NET runtime version for FSAutoComplete"
+
                 else
                     fsacNetcorePath
 
@@ -708,6 +728,8 @@ Consider:
                                 let fsacPath = fsacPathForTfm tfm
                                 printfn "Parsed TFM to fsac path: %s" fsacPath
                                 return [], [], fsacPath
+
+
                         // if v.major >= 6.0 then
                         //     // when we run on a sdk higher than 6.x (aka what FSAC is currently built/targeted for),
                         //     // we have to tell the runtime to allow it to actually run on that runtime (instead of presenting 6.x as 5.x)
