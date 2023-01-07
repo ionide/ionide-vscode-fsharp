@@ -25,7 +25,7 @@ The library that powers project and script loading is [proj-info](https://github
 
 * .NET 6.0 SDK (.NET 5 is supported as well) - https://dotnet.microsoft.com/download/dotnet/5.0
 
-* VS Code C# plugin (optional, suggested) - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. To get it install [C# extension from VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
+* VS Code C# plugin - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. 
 
 ## Features
 
