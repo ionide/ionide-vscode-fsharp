@@ -635,10 +635,22 @@ Consider:
             let opts = createEmpty<Client.LanguageClientOptions>
 
             let selector: DocumentSelector =
-                let filter: DocumentFilter =
-                    jsOptions<TextDocumentFilter> (fun f -> f.language <- Some "fsharp") |> U2.Case1
+                let fileSchemeFilter: DocumentFilter =
+                    jsOptions<TextDocumentFilter> (fun f ->
+                        f.language <- Some "fsharp"
+                        f.scheme <- Some "file"
+                    ) |> U2.Case1
 
-                [| U2.Case2 filter |]
+                let untitledSchemeFilter: DocumentFilter =
+                    jsOptions<TextDocumentFilter> (fun f ->
+                        f.language <- Some "fsharp"
+                        f.scheme <- Some "untitled"
+                    ) |> U2.Case1
+
+                [|
+                    U2.Case2 fileSchemeFilter
+                    U2.Case2 untitledSchemeFilter
+                |]
 
             let initOpts = createObj [ "AutomaticWorkspaceInit" ==> false ]
 
