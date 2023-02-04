@@ -638,19 +638,16 @@ Consider:
                 let fileSchemeFilter: DocumentFilter =
                     jsOptions<TextDocumentFilter> (fun f ->
                         f.language <- Some "fsharp"
-                        f.scheme <- Some "file"
-                    ) |> U2.Case1
+                        f.scheme <- Some "file")
+                    |> U2.Case1
 
                 let untitledSchemeFilter: DocumentFilter =
                     jsOptions<TextDocumentFilter> (fun f ->
                         f.language <- Some "fsharp"
-                        f.scheme <- Some "untitled"
-                    ) |> U2.Case1
+                        f.scheme <- Some "untitled")
+                    |> U2.Case1
 
-                [|
-                    U2.Case2 fileSchemeFilter
-                    U2.Case2 untitledSchemeFilter
-                |]
+                [| U2.Case2 fileSchemeFilter; U2.Case2 untitledSchemeFilter |]
 
             let initOpts = createObj [ "AutomaticWorkspaceInit" ==> false ]
 

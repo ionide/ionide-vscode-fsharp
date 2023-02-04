@@ -1,3 +1,10 @@
+### 7.4.1 - 04.02.2023
+
+* Update FSAC to 0.58.4 to get adaptive LSP server performance enhancements.
+* Fix rendering of the reload command (thanks @dawedawe!)
+* Include error stack traces in test failures inside the Test Explorer (thanks @kojo12228!)
+* Prevent excessive resource usage inside of git comparisons of F# files (thanks @vain0x!)
+
 ### 7.4.0 = 08.11.2022
 
 * Update FSAC to 0.58.2 to get fixes for assembly reference resolution on .NET 7. 
