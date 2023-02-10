@@ -31,8 +31,6 @@ jobs:
         cache: 'yarn'
     - name: Restore tools
       run: dotnet tool restore
-    - name: install VSCE globally
-      run: dotnet run --project build -- -t InstallVSCE
     - name: Run Test
       run: dotnet run --project build -- -t BuildPackage
     - name: upload artifact package

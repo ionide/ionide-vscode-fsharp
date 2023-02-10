@@ -52,9 +52,7 @@ let platformTool tool path =
         | None -> failwithf "can't find tool %s on PATH" tool
         | Some v -> v
 
-let npmTool = platformTool "npm" "npm.cmd"
-
-let vsceTool = lazy (platformTool "vsce" "vsce.cmd")
+let npxTool = lazy (platformTool "npx" "npx.cmd")
 
 module Fable =
     type Command =
@@ -183,8 +181,8 @@ let copyLib libDir releaseDir =
     Shell.copyFile releaseDir (libDir </> "libe_sqlite3.dylib")
 
 let buildPackage dir =
-    Process.killAllByName "vsce"
-    run vsceTool.Value "package" dir
+    Process.killAllByName "npx"
+    run npxTool.Value "@vscode/vsce package" dir
 
     !!(sprintf "%s/*.vsix" dir) |> Seq.iter (Shell.moveFile "./temp/")
 
@@ -208,8 +206,8 @@ let publishToGallery releaseDir =
         | s when not (String.IsNullOrWhiteSpace s) -> s
         | _ -> UserInput.getUserPassword "VSCE Token: "
 
-    Process.killAllByName "vsce"
-    run vsceTool.Value (sprintf "publish --pat %s" token) releaseDir
+    Process.killAllByName "npx"
+    run npxTool.Value (sprintf "@vscode/vsce publish --pat %s" token) releaseDir
 
 let ensureGitUser user email =
     match Fake.Tools.Git.CommandHelper.runGitCommand "." "config user.name" with
@@ -286,10 +284,6 @@ let initTargets () =
                 Command = Fable.Watch
                 Debug = true
                 Webpack = Fable.WithWebpack None })
-
-    Target.create "InstallVSCE" (fun _ ->
-        Process.killAllByName "npm"
-        run npmTool "install -g vsce@1.103.1" "")
 
     Target.create "CopyDocs" (fun _ ->
         Shell.copyFiles "release" [ "README.md"; "LICENSE.md" ]
