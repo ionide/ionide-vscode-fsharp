@@ -56,8 +56,16 @@ module Fsi =
                 ()
 
     module Watcher =
+
+
+        let private logger =
+            ConsoleAndOutputChannelLogger(Some "FsiWatcher", Level.DEBUG, None, Some Level.DEBUG)
+
         open Webviews
         let mutable panel: WebviewPanel option = None
+
+        let valuesUpdated = vscode.EventEmitter.Create<unit>()
+        let mutable values: (string * string) list = []
 
         let updateContent
             (context: ExtensionContext)
@@ -125,7 +133,6 @@ module Fsi =
         let funcUri =
             node.path.join (VSCodeExtension.ionidePluginPath (), "watcher", "funcs.txt")
 
-
         let handler (context: ExtensionContext) =
             let mutable varsContent = None
             let mutable typesContent = None
@@ -139,6 +146,7 @@ module Fsi =
 
                         if String.IsNullOrWhiteSpace cnt then
                             varsContent <- None
+                            values <- []
                         else
 
                             let datagridContent =
@@ -147,19 +155,26 @@ module Fsi =
                                 |> Array.map (fun row ->
                                     let x = row.Split([| "###IONIDESEP###" |], StringSplitOptions.None)
 
-                                    box
-                                        {| name = x[0]
-                                           value = x[1]
-                                           Type = x[2]
-                                           step = x[3] |})
+
+                                    {| name = x[0]
+                                       value = x[1]
+                                       Type = x[2]
+                                       step = x[3] |})
+
+                            values <- datagridContent |> Array.map (fun x -> x.name, x.value) |> Array.toList
                             // ensure column order
                             let headers = [| "Name", "name"; "Value", "value"; "Type", "Type"; "Step", "step" |]
 
-                            let grid, script = VsHtml.datagrid ("vars-content", datagridContent, headers)
+                            let grid, script = VsHtml.datagrid ("vars-content", !!datagridContent, headers)
 
                             varsContent <- Some(html $"<h3>Declared values</h3>{grid}", script)
 
-                            updateContent context varsContent typesContent funcsContent)
+                            updateContent context varsContent typesContent funcsContent
+                    else
+                        varsContent <- None
+                        values <- []
+
+                    valuesUpdated.fire ())
             )
 
             node.fs.readFile (
@@ -230,7 +245,63 @@ module Fsi =
                             updateContent context varsContent typesContent funcsContent)
             )
 
-        let activate context dispsables =
+        let provider =
+            { new InlayHintsProvider with
+                member _.onDidChangeInlayHints
+                    with get (): Event<unit> option = (Some valuesUpdated.event)
+                    and set (v: Event<unit> option): unit = ()
+
+                member this.provideInlayHints
+                    (
+                        document: TextDocument,
+                        range: Vscode.Range,
+                        token: CancellationToken
+                    ) : ProviderResult<ResizeArray<InlayHint>> =
+                    promise {
+                        let! symbols =
+                            Vscode.commands.executeCommand<ResizeArray<DocumentSymbol>> (
+                                "vscode.executeDocumentSymbolProvider",
+                                Some(box document.uri)
+                            )
+                            |> Promise.ofThenable
+
+                        let rec flatten (symbols: ResizeArray<DocumentSymbol>) =
+                            symbols
+                            |> Seq.map (fun s ->
+                                if s.children.Count > 0 then
+                                    flatten s.children
+                                else
+                                    [ s ] |> Seq.ofList)
+                            |> Seq.collect id
+
+                        let symbols = flatten symbols
+
+                        let symbolsWithValues =
+                            symbols
+                            |> Seq.choose (fun s ->
+                                match values |> List.tryFind (fun (name, _) -> name = s.name) with
+                                | Some (_, value) -> Some (s, value)
+                                | None -> None)
+
+                        let hints =
+                            symbolsWithValues
+                            |> Seq.map (fun (s, value) ->
+                                let line = document.lineAt s.range.``start``.line
+                                let hint = vscode.InlayHint.Create (line.range.``end``, !!(" == " + value), InlayHintKind.Parameter)
+                                hint.paddingLeft <- Some true
+                                hint)
+                            |> ResizeArray
+
+                        logger.Debug ("Hints", hints)
+                        return hints
+                    }
+                    |> unbox
+
+                member this.resolveInlayHint(hint: InlayHint, token: CancellationToken) : ProviderResult<InlayHint> =
+                    hint |> unbox }
+
+        let activate context selector (dispsables: ResizeArray<Disposable>) =
+            languages.registerInlayHintsProvider (selector, provider) |> dispsables.Add
             node.fs.watchFile (varsUri, (fun st st2 -> handler context))
             node.fs.watchFile (typesUri, (fun st st2 -> handler context))
             node.fs.watchFile (funcUri, (fun st st2 -> handler context))
@@ -592,7 +663,7 @@ module Fsi =
         }
 
     let activate (context: ExtensionContext) =
-        Watcher.activate context (!!context.subscriptions)
+        Watcher.activate context LanguageService.selector (!!context.subscriptions)
         SdkScriptsNotify.activate context
 
         window.registerTerminalProfileProvider ("ionide-fsharp.fsi", provider)

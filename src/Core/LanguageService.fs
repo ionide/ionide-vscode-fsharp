@@ -95,6 +95,21 @@ module LanguageService =
 
     let mutable client: LanguageClient option = None
 
+    let selector: DocumentSelector =
+        let fileSchemeFilter: DocumentFilter =
+            jsOptions<TextDocumentFilter> (fun f ->
+                f.language <- Some "fsharp"
+                f.scheme <- Some "file")
+            |> U2.Case1
+
+        let untitledSchemeFilter: DocumentFilter =
+            jsOptions<TextDocumentFilter> (fun f ->
+                f.language <- Some "fsharp"
+                f.scheme <- Some "untitled")
+            |> U2.Case1
+
+        [| U2.Case2 fileSchemeFilter; U2.Case2 untitledSchemeFilter |]
+
     //TODO: remove (-> use URI instead)
     let private handleUntitled (fn: string) =
         if fn.EndsWith ".fs" || fn.EndsWith ".fsi" || fn.EndsWith ".fsx" then
@@ -634,20 +649,7 @@ Consider:
         let clientOpts =
             let opts = createEmpty<Client.LanguageClientOptions>
 
-            let selector: DocumentSelector =
-                let fileSchemeFilter: DocumentFilter =
-                    jsOptions<TextDocumentFilter> (fun f ->
-                        f.language <- Some "fsharp"
-                        f.scheme <- Some "file")
-                    |> U2.Case1
 
-                let untitledSchemeFilter: DocumentFilter =
-                    jsOptions<TextDocumentFilter> (fun f ->
-                        f.language <- Some "fsharp"
-                        f.scheme <- Some "untitled")
-                    |> U2.Case1
-
-                [| U2.Case2 fileSchemeFilter; U2.Case2 untitledSchemeFilter |]
 
             let initOpts = createObj [ "AutomaticWorkspaceInit" ==> false ]
 
