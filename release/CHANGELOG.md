@@ -1,4 +1,4 @@
-### 7.4.1 - 04.02.2023
+### 7.4.2 - 10.02.2023
 
 * Update FSAC to 0.58.4 to get adaptive LSP server performance enhancements.
 * Fix rendering of the reload command (thanks @dawedawe!)
