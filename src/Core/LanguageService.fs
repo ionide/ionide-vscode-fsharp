@@ -678,6 +678,8 @@ Consider:
             let enableProjectGraph =
                 "FSharp.enableMSBuildProjectGraph" |> Configuration.get false
 
+            let convserveMemory = "FSharp.fsac.conserveMemory" |> Configuration.get false
+
             let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
 
             let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
@@ -765,6 +767,11 @@ Consider:
             let spawnNetCore dotnet : JS.Promise<Executable> =
                 promise {
                     let! (fsacDotnetArgs, fsacEnvVars, fsacPath) = discoverDotnetArgs ()
+
+                    let fsacEnvVars =
+                        [ yield! fsacEnvVars
+                          if convserveMemory then
+                              yield "DOTNET_GCConserveMemory", box "9" ]
 
                     printfn $"FSAC (NETCORE): '%s{fsacPath}'"
 

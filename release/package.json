@@ -514,6 +514,11 @@
           "description": "Appends the \u0027--attachdebugger\u0027 argument to fsac, this will allow you to attach a debugger.",
           "type": "boolean"
         },
+        "FSharp.fsac.conserveMemory" : {
+          "default" : false,
+          "description": "This will set DOTNET_GCConserveMemory. Requires restart.",
+          "type" : "boolean"
+        },
         "FSharp.fsac.dotnetArgs": {
           "default": [],
           "description": "additional CLI arguments to be provided to the dotnet runner for FSAC",
