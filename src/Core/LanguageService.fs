@@ -678,7 +678,7 @@ Consider:
             let enableProjectGraph =
                 "FSharp.enableMSBuildProjectGraph" |> Configuration.get false
 
-            let convserveMemory = "FSharp.fsac.conserveMemory" |> Configuration.get false
+            let conserveMemory = "FSharp.fsac.conserveMemory" |> Configuration.get false
 
             let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
 
@@ -770,7 +770,7 @@ Consider:
 
                     let fsacEnvVars =
                         [ yield! fsacEnvVars
-                          if convserveMemory then
+                          if conserveMemory then
                               yield "DOTNET_GCConserveMemory", box "9" ]
 
                     printfn $"FSAC (NETCORE): '%s{fsacPath}'"

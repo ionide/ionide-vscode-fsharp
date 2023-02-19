@@ -516,7 +516,7 @@
         },
         "FSharp.fsac.conserveMemory" : {
           "default" : false,
-          "description": "This will set DOTNET_GCConserveMemory. Requires restart.",
+          "description": "Configures FsAutoComplete with settings intended to reduce memory consumption. Requires restart.",
           "type" : "boolean"
         },
         "FSharp.fsac.dotnetArgs": {
