@@ -511,10 +511,10 @@
           "description": "Appends the \u0027--attachdebugger\u0027 argument to fsac, this will allow you to attach a debugger.",
           "type": "boolean"
         },
-        "FSharp.fsac.conserveMemory" : {
-          "default" : false,
+        "FSharp.fsac.conserveMemory": {
+          "default": false,
           "description": "Configures FsAutoComplete with settings intended to reduce memory consumption. Requires restart.",
-          "type" : "boolean"
+          "type": "boolean"
         },
         "FSharp.fsac.dotnetArgs": {
           "default": [],
@@ -1610,5 +1610,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.4.2"
+  "version": "7.5.0"
 }

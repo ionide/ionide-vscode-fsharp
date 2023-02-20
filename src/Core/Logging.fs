@@ -115,12 +115,7 @@ module Logging =
     /// The templates may use node util.format placeholders: %s, %d, %j, %%
     /// https://nodejs.org/api/util.html#util_util_format_format
     type ConsoleAndOutputChannelLogger
-        (
-            source: string option,
-            chanDefaultMinLevel: Level,
-            out: OutputChannel option,
-            consoleMinLevel: Level option
-        ) =
+        (source: string option, chanDefaultMinLevel: Level, out: OutputChannel option, consoleMinLevel: Level option) =
         member val ChanMinLevel = chanDefaultMinLevel with get, set
 
         /// Logs a different message in either DEBUG (if enabled) or INFO (otherwise).
