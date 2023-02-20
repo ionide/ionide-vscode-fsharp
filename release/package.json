@@ -5,11 +5,8 @@
     "publisherId": "6841d314-11e9-4ec1-a088-08558c6effee"
   },
   "activationEvents": [
-    "onCommand:fsharp.NewProject",
-    "onCommand:fsi.Start",
     "onCommand:workbench.action.tasks.runTask",
     "onDebugDynamicConfigurations:coreclr",
-    "onLanguage:fsharp",
     "workspaceContains:**/*.fs",
     "workspaceContains:**/*.fsproj",
     "workspaceContains:**/*.fsx",
@@ -615,6 +612,16 @@
           "description": "Controls if type-annotation inlay hints will be displayed for bindings.",
           "type": "boolean"
         },
+        "FSharp.inlineValues.enabled": {
+          "default": true,
+          "description": "Enables rendering all kinds of hints inline with your code. Currently supports pipelineHints, which are like LineLenses that appear along each step of a chain of piped expressions",
+          "type": "boolean"
+        },
+        "FSharp.inlineValues.prefix": {
+          "default": "  // ",
+          "description": "The prefix used when rendering inline values.",
+          "type": "string"
+        },
         "FSharp.interfaceStubGeneration": {
           "default": true,
           "description": "Enables a codefix that generates missing interface members when inside of an interface implementation expression",
@@ -661,14 +668,16 @@
           "type": "boolean"
         },
         "FSharp.pipelineHints.enabled": {
-          "default": true,
+          "default": false,
           "description": "Enables PipeLine hints, which are like LineLenses that appear along each step of a chain of piped expressions",
-          "type": "boolean"
+          "type": "boolean",
+          "deprecationMessage": "Deprecated in favor of FSharp.inlineValues.enabled - that mechanism is more general."
         },
         "FSharp.pipelineHints.prefix": {
           "default": "  // ",
           "description": "The prefix displayed before the signature",
-          "type": "string"
+          "type": "string",
+          "deprecationMessage": "Deprecated in favor of FSharp.inlineValues.prefix."
         },
         "FSharp.recordStubGeneration": {
           "default": true,
