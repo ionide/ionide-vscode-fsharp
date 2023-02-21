@@ -680,6 +680,9 @@ Consider:
 
             let conserveMemory = "FSharp.fsac.conserveMemory" |> Configuration.get false
 
+            let parallelReferenceResolution =
+                "FSharp.fsac.parallelReferenceResolution" |> Configuration.get false
+
             let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
 
             let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
@@ -771,7 +774,9 @@ Consider:
                     let fsacEnvVars =
                         [ yield! fsacEnvVars
                           if conserveMemory then
-                              yield "DOTNET_GCConserveMemory", box "9" ]
+                              yield "DOTNET_GCConserveMemory", box "9"
+                          if parallelReferenceResolution then
+                              yield "FCS_ParallelReferenceResolution", box "true" ]
 
                     printfn $"FSAC (NETCORE): '%s{fsacPath}'"
 
