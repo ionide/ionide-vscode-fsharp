@@ -49,7 +49,7 @@ First things first! In order to build & develop Ionide locally, you'll need to i
     ```
     (or on Windows)
     ```bash
-    build.cmd # (might need ./build Build instead here.)
+    .\build.cmd
     ```
 4. **Voilà!** You're ready to run Ionide.
 
@@ -64,6 +64,10 @@ This should *always* be done __at least once after any clone/pull__.
 ```bash
 ./build.sh -t Build
 ```
+(or on Windows)
+```bash
+.\build.cmd -t Build
+```
 
 This will re-install any necesssary packages and files.
 
@@ -76,7 +80,7 @@ This will re-install any necesssary packages and files.
     # build FsAutoComplete (Mac/Linux)
     ./build.sh LocalRelease
     # build FsAutoComplete (Windows)
-    build.cmd LocalRelease
+    .\build.cmd LocalRelease
   ```
 
 - If `dotnet restore` gives the error ` The tools version "14.0" is unrecognized`, then you need to install [msbuildtools2015][msbuildtools2015]
