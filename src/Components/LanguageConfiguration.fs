@@ -17,7 +17,7 @@ module LanguageConfiguration =
 
             o.decreaseIndentPattern <- Regex("""^(\s*(else|elif|and)).*$"""))
 
-    let setLanguageConfiguration (triggerNotification: bool) (context: ExtensionContext) =
+    let setLanguageConfiguration (triggerNotification: bool) =
         // Config always setted
         let config =
             jsOptions<LanguageConfiguration> (fun o ->
@@ -62,16 +62,14 @@ module LanguageConfiguration =
 
             window.showInformationMessage (msg) |> ignore
 
-        context.Subscribe disp
-
-    let onDidChangeConfiguration (ev: ConfigurationChangeEvent) (context: ExtensionContext) =
+    let onDidChangeConfiguration (ev: ConfigurationChangeEvent) =
         let triggerNotification = ev.affectsConfiguration ("FSharp.smartIndent")
-        setLanguageConfiguration triggerNotification context
+        setLanguageConfiguration triggerNotification
 
     let activate (context: ExtensionContext) =
         // We listen for config change so we can update on the fly the language configuration
         workspace.onDidChangeConfiguration
-        $ (onDidChangeConfiguration, context, context.subscriptions)
+        $ (onDidChangeConfiguration, (), context.subscriptions)
         |> ignore
 
-        setLanguageConfiguration false context
+        setLanguageConfiguration false
