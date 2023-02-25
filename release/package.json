@@ -442,6 +442,13 @@
           "scope": "window",
           "type": "string"
         },
+        "FSharp.buildOptions.msBuildProperties": {
+          "default": [
+            "Configuration=Debug"
+          ],
+          "type": "array",
+          "description": "An array of MSBuild properties to set at design time load."
+        },
         "FSharp.codeLenses.references.enabled": {
           "description": "If enabled, code lenses for reference counts for methods and functions will be shown.",
           "type": "boolean",
