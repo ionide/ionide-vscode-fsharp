@@ -613,7 +613,7 @@
           "type": "boolean"
         },
         "FSharp.inlineValues.enabled": {
-          "default": true,
+          "default": false,
           "description": "Enables rendering all kinds of hints inline with your code. Currently supports pipelineHints, which are like LineLenses that appear along each step of a chain of piped expressions",
           "type": "boolean"
         },
@@ -668,16 +668,14 @@
           "type": "boolean"
         },
         "FSharp.pipelineHints.enabled": {
-          "default": false,
+          "default": true,
           "description": "Enables PipeLine hints, which are like LineLenses that appear along each step of a chain of piped expressions",
-          "type": "boolean",
-          "deprecationMessage": "Deprecated in favor of FSharp.inlineValues.enabled - that mechanism is more general."
+          "type": "boolean"
         },
         "FSharp.pipelineHints.prefix": {
           "default": "  // ",
           "description": "The prefix displayed before the signature",
-          "type": "string",
-          "deprecationMessage": "Deprecated in favor of FSharp.inlineValues.prefix."
+          "type": "string"
         },
         "FSharp.recordStubGeneration": {
           "default": true,
