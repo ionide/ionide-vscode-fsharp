@@ -443,11 +443,16 @@
           "type": "string"
         },
         "FSharp.buildOptions.msBuildProperties": {
-          "default": [
-            "Configuration=Debug"
-          ],
-          "type": "array",
-          "description": "An array of MSBuild properties to set at design time load."
+          "type": "object",
+          "description": "An array of MSBuild properties to set at design time load.",
+          "additionalProperties": {
+            "type" : "string"
+          },
+          "default": 
+            {
+              "Configuration": "Debug"
+            }
+          
         },
         "FSharp.codeLenses.references.enabled": {
           "description": "If enabled, code lenses for reference counts for methods and functions will be shown.",
@@ -521,10 +526,10 @@
           "description": "Appends the \u0027--attachdebugger\u0027 argument to fsac, this will allow you to attach a debugger.",
           "type": "boolean"
         },
-        "FSharp.fsac.conserveMemory" : {
-          "default" : false,
+        "FSharp.fsac.conserveMemory": {
+          "default": false,
           "description": "Configures FsAutoComplete with settings intended to reduce memory consumption. Requires restart.",
-          "type" : "boolean"
+          "type": "boolean"
         },
         "FSharp.fsac.dotnetArgs": {
           "default": [],
@@ -540,10 +545,10 @@
           "scope": "machine-overridable",
           "type": "string"
         },
-        "FSharp.fsac.parallelReferenceResolution" : {
-          "default" : false,
+        "FSharp.fsac.parallelReferenceResolution": {
+          "default": false,
           "description": "EXPERIMENTAL: Speed up analyzing of projects in parallel. Requires restart.",
-          "type" : "boolean"
+          "type": "boolean"
         },
         "FSharp.fsac.silencedLogs": {
           "default": [],
@@ -675,7 +680,7 @@
         "FSharp.notifications.trace": {
           "default": false,
           "description": "Enables more verbose notifications using System.Diagnostics.Activity to view traces from FSharp.Compiler.Service.",
-          "type" : "boolean"
+          "type": "boolean"
         },
         "FSharp.notifications.traceNamespaces": {
           "default": [
@@ -683,8 +688,10 @@
             "BackgroundCompiler."
           ],
           "description": "The set of System.Diagnostics.Activity names to watch.",
-          "type" : "array",
-          "required": ["FSharp.notifications.trace"]
+          "type": "array",
+          "required": [
+            "FSharp.notifications.trace"
+          ]
         },
         "FSharp.openTelemetry.enabled": {
           "default": false,
