@@ -665,6 +665,25 @@
           "description": "Automatically shows the MSBuild output panel when MSBuild functionality is invoked",
           "type": "boolean"
         },
+        "FSharp.notifications.trace": {
+          "default": false,
+          "description": "Enables more verbose notifications using System.Diagnostics.Activity to view traces from FSharp.Compiler.Service.",
+          "type" : "boolean"
+        },
+        "FSharp.notifications.traceNamespaces": {
+          "default": [
+            "BoundModel.TypeCheck",
+            "BackgroundCompiler."
+          ],
+          "description": "The set of System.Diagnostics.Activity names to watch.",
+          "type" : "array",
+          "required": ["FSharp.notifications.trace"]
+        },
+        "FSharp.openTelemetry.enabled": {
+          "default": false,
+          "description": "Enables OpenTelemetry exporter. See https://opentelemetry.io/docs/reference/specification/protocol/exporter/ for environment variables to configure for the exporter. Requires Restart.",
+          "type": "boolean"
+        },
         "FSharp.pipelineHints.enabled": {
           "default": true,
           "description": "Enables PipeLine hints, which are like LineLenses that appear along each step of a chain of piped expressions",
