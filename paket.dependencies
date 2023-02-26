@@ -9,7 +9,7 @@ nuget Fable.Browser.Dom
 
 nuget Fable.HtmlConverter
 
-nuget Thoth.Json
+nuget Thoth.Json 7.0
 
 git https://github.com/ionide/ionide-fsgrammar.git master
 
@@ -27,7 +27,7 @@ group fsac
 group build
   source https://api.nuget.org/v3/index.json
   storage: none
-  framework: net6.0
+  framework: net7.0
 
   nuget Fake.Core.Target
   nuget Fake.Core.Process

@@ -29,8 +29,8 @@ module Notifications =
     let private tooltipRequestedEmitter = vscode.EventEmitter.Create<Position>()
     let tooltipRequested = tooltipRequestedEmitter.event
 
-    let mutable notifyWorkspaceHandler: Option<Choice<ProjectResult, ProjectLoadingResult, (string * ErrorData), string>
-        -> unit> =
+    let mutable notifyWorkspaceHandler
+        : Option<Choice<ProjectResult, ProjectLoadingResult, (string * ErrorData), string> -> unit> =
         None
 
     let testDetectedEmitter = vscode.EventEmitter.Create<TestForFile>()

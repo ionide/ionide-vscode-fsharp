@@ -17,12 +17,17 @@ module PipelineHintsConfig =
 
     type PipelineHintsConfig = { enabled: bool; prefix: string }
 
-    let defaultConfig = { enabled = true; prefix = " //  " }
+    let defaultConfig = { enabled = false; prefix = " //  " }
 
     let getConfig () =
         let cfg = workspace.getConfiguration ()
 
-        { enabled = cfg.get ("FSharp.pipelineHints.enabled", defaultConfig.enabled)
+        {
+          // we can only enable the feature overall if it's explicitly enabled and
+          // inline values are disabled (because inline values deliver the same functionality)
+          enabled =
+              cfg.get ("FSharp.pipelineHints.enabled", defaultConfig.enabled)
+              && not (cfg.get ("FSharp.inlineValues.enabled", false))
           prefix = cfg.get ("FSharp.pipelineHints.prefix", defaultConfig.prefix) }
 
 

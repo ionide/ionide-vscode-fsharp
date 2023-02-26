@@ -313,7 +313,8 @@ let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToke
         logger.Debug("Found projects", projectsWithTests)
 
         projectsWithTests
-        |> Array.iter (fun { Tests = tests } -> Array.iter (fun (test: TestWithFullName) -> tr.enqueued test.Test) tests)
+        |> Array.iter (fun { Tests = tests } ->
+            Array.iter (fun (test: TestWithFullName) -> tr.enqueued test.Test) tests)
 
         logger.Debug("Test run list in projects", projectsWithTests)
 
