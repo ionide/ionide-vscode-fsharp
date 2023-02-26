@@ -677,6 +677,9 @@ Consider:
             let enableAdaptiveLspServer =
                 "FSharp.enableAdaptiveLspServer" |> Configuration.get false
 
+            let openTelemetryEnabled =
+                "FSharp.openTelemetry.enabled" |> Configuration.get false
+
             let enableProjectGraph =
                 "FSharp.enableMSBuildProjectGraph" |> Configuration.get false
 
@@ -809,6 +812,8 @@ Consider:
                               yield "--project-graph-enabled"
                           if enableAdaptiveLspServer then
                               yield "--adaptive-lsp-server-enabled"
+                          if openTelemetryEnabled then
+                              yield "--otel-exporter-enabled"
                           if verbose then
                               yield "--verbose"
                           if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0 then
