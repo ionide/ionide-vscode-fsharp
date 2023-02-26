@@ -5,11 +5,8 @@
     "publisherId": "6841d314-11e9-4ec1-a088-08558c6effee"
   },
   "activationEvents": [
-    "onCommand:fsharp.NewProject",
-    "onCommand:fsi.Start",
     "onCommand:workbench.action.tasks.runTask",
     "onDebugDynamicConfigurations:coreclr",
-    "onLanguage:fsharp",
     "workspaceContains:**/*.fs",
     "workspaceContains:**/*.fsproj",
     "workspaceContains:**/*.fsx",
@@ -514,10 +511,10 @@
           "description": "Appends the \u0027--attachdebugger\u0027 argument to fsac, this will allow you to attach a debugger.",
           "type": "boolean"
         },
-        "FSharp.fsac.conserveMemory" : {
-          "default" : false,
+        "FSharp.fsac.conserveMemory": {
+          "default": false,
           "description": "Configures FsAutoComplete with settings intended to reduce memory consumption. Requires restart.",
-          "type" : "boolean"
+          "type": "boolean"
         },
         "FSharp.fsac.dotnetArgs": {
           "default": [],
@@ -619,6 +616,16 @@
           "default": true,
           "description": "Controls if type-annotation inlay hints will be displayed for bindings.",
           "type": "boolean"
+        },
+        "FSharp.inlineValues.enabled": {
+          "default": false,
+          "description": "Enables rendering all kinds of hints inline with your code. Currently supports pipelineHints, which are like LineLenses that appear along each step of a chain of piped expressions",
+          "type": "boolean"
+        },
+        "FSharp.inlineValues.prefix": {
+          "default": "  // ",
+          "description": "The prefix used when rendering inline values.",
+          "type": "string"
         },
         "FSharp.interfaceStubGeneration": {
           "default": true,
@@ -1625,5 +1632,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.4.2"
+  "version": "7.5.0"
 }

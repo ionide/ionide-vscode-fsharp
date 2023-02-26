@@ -29,8 +29,8 @@ module Notifications =
     let private tooltipRequestedEmitter = vscode.EventEmitter.Create<Position>()
     let tooltipRequested = tooltipRequestedEmitter.event
 
-    let mutable notifyWorkspaceHandler: Option<Choice<ProjectResult, ProjectLoadingResult, (string * ErrorData), string>
-        -> unit> =
+    let mutable notifyWorkspaceHandler
+        : Option<Choice<ProjectResult, ProjectLoadingResult, (string * ErrorData), string> -> unit> =
         None
 
     let testDetectedEmitter = vscode.EventEmitter.Create<TestForFile>()
@@ -94,6 +94,21 @@ module LanguageService =
         member uri.ToDocumentUri = uri.ToString()
 
     let mutable client: LanguageClient option = None
+
+    let selector: DocumentSelector =
+        let fileSchemeFilter: DocumentFilter =
+            jsOptions<TextDocumentFilter> (fun f ->
+                f.language <- Some "fsharp"
+                f.scheme <- Some "file")
+            |> U2.Case1
+
+        let untitledSchemeFilter: DocumentFilter =
+            jsOptions<TextDocumentFilter> (fun f ->
+                f.language <- Some "fsharp"
+                f.scheme <- Some "untitled")
+            |> U2.Case1
+
+        [| U2.Case2 fileSchemeFilter; U2.Case2 untitledSchemeFilter |]
 
     //TODO: remove (-> use URI instead)
     let private handleUntitled (fn: string) =
@@ -634,20 +649,7 @@ Consider:
         let clientOpts =
             let opts = createEmpty<Client.LanguageClientOptions>
 
-            let selector: DocumentSelector =
-                let fileSchemeFilter: DocumentFilter =
-                    jsOptions<TextDocumentFilter> (fun f ->
-                        f.language <- Some "fsharp"
-                        f.scheme <- Some "file")
-                    |> U2.Case1
 
-                let untitledSchemeFilter: DocumentFilter =
-                    jsOptions<TextDocumentFilter> (fun f ->
-                        f.language <- Some "fsharp"
-                        f.scheme <- Some "untitled")
-                    |> U2.Case1
-
-                [| U2.Case2 fileSchemeFilter; U2.Case2 untitledSchemeFilter |]
 
             let initOpts = createObj [ "AutomaticWorkspaceInit" ==> false ]
 
