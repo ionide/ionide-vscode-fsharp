@@ -2,6 +2,11 @@
 
 * Update FSAC to 0.59.1 to get support for F# 7 and other fixes
 * Introduce new config option `FSharp.inlineValues.[enabled, prefix]` to migrate from `FSharp.pipelineHints.[enabled, prefix]`
+* Add support for OpenTelemetry-based tracing of the LSP and compiler service usages - set `"FSharp.openTelemetry.enabled"` to `true` and start up a collector (setting the `OTEL_EXPORTER_OTLP_ENDPOINT` ahead of time if necessary) and it all should just light up!
+* Add a new flag `FSharp.fsac.conserveMemory` that if set will tell the compiler to be more aggressive about reclaiming memory. Trades off lower memory use for increase CPU use.
+* Fix an error that was uncaught when some configuration settings changed (thanks @vain0x!)
+* Add a new flag `FSharp.fsac.parallelReferenceResolution` to control if FSAC will use the new-in-F# 7 parallel reference resolution features. Should provide a speed up of project load times.
+* For the FSI watcher use Inline Values APIs instead of rolling our own decorations
 
 ### 7.4.2 - 10.02.2023
 
