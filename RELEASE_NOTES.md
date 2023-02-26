@@ -1,6 +1,6 @@
 ### 7.5.0 - 20.02.2023
 
-* Update FSAC to 0.59.0 to get support for F# 7
+* Update FSAC to 0.59.1 to get support for F# 7 and other fixes
 * Introduce new config option `FSharp.inlineValues.[enabled, prefix]` to migrate from `FSharp.pipelineHints.[enabled, prefix]`
 
 ### 7.4.2 - 10.02.2023
