@@ -677,8 +677,7 @@ Consider:
             let enableAdaptiveLspServer =
                 "FSharp.enableAdaptiveLspServer" |> Configuration.get false
 
-            let openTelemetryEnabled =
-                "FSharp.openTelemetry.enabled" |> Configuration.get false
+            let openTelemetryEnabled = "FSharp.openTelemetry.enabled" |> Configuration.get false
 
             let enableProjectGraph =
                 "FSharp.enableMSBuildProjectGraph" |> Configuration.get false

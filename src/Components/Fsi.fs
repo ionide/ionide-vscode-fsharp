@@ -280,19 +280,26 @@ module Fsi =
                             symbols
                             |> Seq.choose (fun s ->
                                 match values |> List.tryFind (fun (name, _) -> name = s.name) with
-                                | Some (_, value) -> Some (s, value)
+                                | Some(_, value) -> Some(s, value)
                                 | None -> None)
 
                         let hints =
                             symbolsWithValues
                             |> Seq.map (fun (s, value) ->
                                 let line = document.lineAt s.range.``start``.line
-                                let hint = vscode.InlayHint.Create (line.range.``end``, !!(" == " + value), InlayHintKind.Parameter)
+
+                                let hint =
+                                    vscode.InlayHint.Create(
+                                        line.range.``end``,
+                                        !!(" == " + value),
+                                        InlayHintKind.Parameter
+                                    )
+
                                 hint.paddingLeft <- Some true
                                 hint)
                             |> ResizeArray
 
-                        logger.Debug ("Hints", hints)
+                        logger.Debug("Hints", hints)
                         return hints
                     }
                     |> unbox
