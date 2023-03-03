@@ -208,16 +208,18 @@ module DotnetTest =
                                   Timing = timing }
                             | Some testCaseName ->
                                 let ti =
-                                    tc.createTestItem (
-                                        t.Test.uri.Value.ToString() + " -- " + trxTestName,
-                                        testCaseName,
-                                        t.Test.uri.Value
-                                    )
+                                    t.Test.children.get (t.Test.uri.Value.ToString() + " -- " + trxTestName)
+                                    |> Option.defaultWith (fun () ->
+                                        tc.createTestItem (
+                                            t.Test.uri.Value.ToString() + " -- " + trxTestName,
+                                            trxTestName,
+                                            t.Test.uri.Value
+                                        ))
 
                                 t.Test.children.add ti
 
                                 { Test = ti
-                                  FullTestName = trxTestName
+                                  FullTestName = testCaseName
                                   Outcome = !!outcome
                                   ErrorMessage = errorInfoMessage
                                   ErrorStackTrace = errorStackTrace
