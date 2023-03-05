@@ -121,16 +121,6 @@ module LanguageService =
         else
             (fn + ".fsx")
 
-
-    let compilerLocation () =
-        match client with
-        | None -> Promise.empty
-        | Some cl ->
-            cl.sendRequest ("fsharp/compilerLocation", null)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
-                let r = res.content |> ofJson<CompilerLocationResult>
-                r)
-
     let tryFindDotnet () =
         let reportError (msg: string) =
             promise {
@@ -594,43 +584,6 @@ Consider:
 
             cl.sendRequest ("fsharp/pipelineHint", req)
             |> Promise.map checkNotificationAndCast<PipelineHintsResult>
-
-    let private fsacConfig () =
-        compilerLocation () |> Promise.map (fun c -> c.Data)
-
-    let fsi () =
-        let fileExists (path: string) : JS.Promise<bool> =
-            Promise.create (fun success _failure ->
-                node.fs.access (!^path, node.fs.constants.F_OK, (fun err -> success (err.IsNone))))
-
-        let getAnyCpuFsiPathFromCompilerLocation (location: CompilerLocation) =
-            promise {
-                match location.Fsi with
-                | Some fsi ->
-                    // Only rewrite if FSAC returned 'fsi.exe' (For future-proofing)
-                    if node.path.basename fsi = "fsi.exe" then
-                        // If there is an anyCpu variant in the same dir we do the rewrite
-                        let anyCpuFile = node.path.join [| node.path.dirname fsi; "fsiAnyCpu.exe" |]
-
-                        let! anyCpuExists = fileExists anyCpuFile
-
-                        if anyCpuExists then
-                            return Some anyCpuFile
-                        else
-                            return Some fsi
-                    else
-                        return Some fsi
-                | None -> return None
-            }
-
-        promise {
-            match Environment.configFsiFilePath () with
-            | Some path -> return Some path
-            | None ->
-                let! fsacPaths = fsacConfig ()
-                let! fsiPath = getAnyCpuFsiPathFromCompilerLocation fsacPaths
-                return fsiPath
-        }
 
     let fsiSdk () =
         promise { return Environment.configFsiSdkFilePath () }

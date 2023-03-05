@@ -143,12 +143,6 @@ module DTO =
           CurrentParameter: int
           Overloads: Overload[] }
 
-    type CompilerLocation =
-        { Fsc: string option
-          Fsi: string option
-          MSBuild: string option
-          SdkRoot: string option }
-
     type Range =
         { StartColumn: int
           StartLine: int
@@ -375,7 +369,6 @@ module DTO =
 
     type Result<'T> = { Kind: string; Data: 'T }
 
-    type CompilerLocationResult = Result<CompilerLocation>
     type HelptextResult = Result<Helptext>
     type CompletionResult = Result<Completion[]>
     type SymbolUseResult = Result<SymbolUses>
