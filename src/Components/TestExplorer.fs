@@ -159,7 +159,7 @@ module DotnetTest =
 
             let tests =
                 mappedTests
-                |> Array.map (fun (t, testCases) ->
+                |> Array.collect (fun (t, testCases) ->
                     testCases
                     |> Array.map (fun (fullName, testName, executionId) ->
                         let outcome =
@@ -215,7 +215,6 @@ module DotnetTest =
                           Expected = expected
                           Actual = actual
                           Timing = timing }))
-                |> Array.concat
 
             return
                 { Project = projectWithTests.Project
