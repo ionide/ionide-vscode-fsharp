@@ -135,97 +135,89 @@ module DotnetTest =
                     let test =
                         xpathSelector.SelectString $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx}]/t:TestMethod/@name"
 
-                    let testName, testCaseFullName =
-                        let split = test.Split '('
-
-                        if split.Length = 2 then
-                            split.[0], Some($"{className}.{test}".Replace("(", @"\(").Replace(")", @"\)"))
-                        else
-                            test, None
-
-                    $"{className}.{testName}", testCaseFullName, test, executionId)
-                |> Array.groupBy (fun (fullName, _, _, _) -> fullName)
-                |> Array.map (fun (fullName, unitTests) ->
-                    fullName,
-                    unitTests
-                    |> Array.map (fun (_, testCaseFullName, trxTestName, executionId) ->
-                        testCaseFullName, trxTestName, executionId))
-                |> Map.ofArray
+                    className, test, executionId)
 
             let tests =
                 projectWithTests.Tests
-                |> Array.choose (fun t ->
-                    // If the test contains a single quote, xpath expressions cannot escape this and it leads to a world of pain.
-                    let testCaseMap = Map.tryFind t.FullName testDefinitions
+                |> Array.sortByDescending (fun t -> t.FullName)
+                |> Array.fold
+                    (fun (tests, mappedTests) (t) ->
+                        let linkedTests, remainingTests =
+                            tests
+                            |> Array.partition (fun (className, test, _) ->
+                                $"{className}.{test}".StartsWith t.FullName)
 
+                        if Array.isEmpty linkedTests then
+                            remainingTests, mappedTests
+                        else
+                            remainingTests, ([| yield! mappedTests; (t, linkedTests) |]))
+                    (testDefinitions, [||])
+                |> snd
+                |> Array.map (fun (t, testCaseMap) ->
                     testCaseMap
-                    |> Option.map (fun x ->
-                        x
-                        |> Array.map (fun (testCaseFullName, trxTestName, executionId) ->
+                    |> Array.map (fun (className, testName, executionId) ->
+                        let outcome =
+                            xpathSelector.SelectString
+                                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@outcome"
 
-                            let outcome =
+                        let errorInfoMessage =
+                            xpathSelector.TrySelectString
+                                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:Message"
+
+                        let errorStackTrace =
+                            xpathSelector.TrySelectString
+                                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:StackTrace"
+
+                        let timing =
+                            let duration =
                                 xpathSelector.SelectString
-                                    $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@outcome"
+                                    $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@duration"
 
-                            let errorInfoMessage =
-                                xpathSelector.TrySelectString
-                                    $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:Message"
+                            TimeSpan.Parse(duration).TotalMilliseconds
 
-                            let errorStackTrace =
-                                xpathSelector.TrySelectString
-                                    $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:StackTrace"
+                        let expected, actual =
+                            match errorInfoMessage with
+                            | None -> None, None
+                            | Some message ->
+                                let lines =
+                                    message.Split([| "\r\n"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
+                                    |> Array.map (fun n -> n.TrimStart())
 
-                            let timing =
-                                let duration =
-                                    xpathSelector.SelectString
-                                        $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@duration"
+                                let tryFind (startsWith: string) =
+                                    Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
+                                    |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
 
-                                TimeSpan.Parse(duration).TotalMilliseconds
+                                tryFind "Expected:", tryFind "But was:"
 
-                            let expected, actual =
-                                match errorInfoMessage with
-                                | None -> None, None
-                                | Some message ->
-                                    let lines =
-                                        message.Split([| "\r\n"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
-                                        |> Array.map (fun n -> n.TrimStart())
+                        if Seq.length testCaseMap > 1 then
+                            let ti =
+                                t.Test.children.get (t.Test.uri.Value.ToString() + " -- " + testName)
+                                |> Option.defaultWith (fun () ->
+                                    tc.createTestItem (
+                                        t.Test.uri.Value.ToString() + " -- " + testName,
+                                        testName,
+                                        t.Test.uri.Value
+                                    ))
 
-                                    let tryFind (startsWith: string) =
-                                        Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
-                                        |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
+                            t.Test.children.add ti
 
-                                    tryFind "Expected:", tryFind "But was:"
-
-                            match testCaseFullName with
-                            | None ->
-                                { Test = t.Test
-                                  FullTestName = t.FullName
-                                  Outcome = !!outcome
-                                  ErrorMessage = errorInfoMessage
-                                  ErrorStackTrace = errorStackTrace
-                                  Expected = expected
-                                  Actual = actual
-                                  Timing = timing }
-                            | Some testCaseName ->
-                                let ti =
-                                    t.Test.children.get (t.Test.uri.Value.ToString() + " -- " + trxTestName)
-                                    |> Option.defaultWith (fun () ->
-                                        tc.createTestItem (
-                                            t.Test.uri.Value.ToString() + " -- " + trxTestName,
-                                            trxTestName,
-                                            t.Test.uri.Value
-                                        ))
-
-                                t.Test.children.add ti
-
-                                { Test = ti
-                                  FullTestName = testCaseName
-                                  Outcome = !!outcome
-                                  ErrorMessage = errorInfoMessage
-                                  ErrorStackTrace = errorStackTrace
-                                  Expected = expected
-                                  Actual = actual
-                                  Timing = timing })))
+                            { Test = ti
+                              FullTestName = $"{className}.{testName}"
+                              Outcome = !!outcome
+                              ErrorMessage = errorInfoMessage
+                              ErrorStackTrace = errorStackTrace
+                              Expected = expected
+                              Actual = actual
+                              Timing = timing }
+                        else
+                            { Test = t.Test
+                              FullTestName = t.FullName
+                              Outcome = !!outcome
+                              ErrorMessage = errorInfoMessage
+                              ErrorStackTrace = errorStackTrace
+                              Expected = expected
+                              Actual = actual
+                              Timing = timing }))
                 |> Array.concat
 
             return
