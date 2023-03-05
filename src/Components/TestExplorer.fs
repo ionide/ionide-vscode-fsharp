@@ -135,27 +135,33 @@ module DotnetTest =
                     let test =
                         xpathSelector.SelectString $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx}]/t:TestMethod/@name"
 
-                    className, test, executionId)
+                    $"{className}.{test}", test, executionId)
 
-            let tests =
+            let unmappedTests, mappedTests =
                 projectWithTests.Tests
                 |> Array.sortByDescending (fun t -> t.FullName)
                 |> Array.fold
                     (fun (tests, mappedTests) (t) ->
                         let linkedTests, remainingTests =
                             tests
-                            |> Array.partition (fun (className, test, _) ->
-                                $"{className}.{test}".StartsWith t.FullName)
+                            |> Array.partition (fun (fullName: string, _, _) -> fullName.StartsWith t.FullName)
 
                         if Array.isEmpty linkedTests then
                             remainingTests, mappedTests
                         else
                             remainingTests, ([| yield! mappedTests; (t, linkedTests) |]))
                     (testDefinitions, [||])
-                |> snd
-                |> Array.map (fun (t, testCaseMap) ->
-                    testCaseMap
-                    |> Array.map (fun (className, testName, executionId) ->
+
+            let unmappedTestNames =
+                unmappedTests |> Array.map (fun (fullName, _, _) -> fullName)
+
+            logger.Debug("Unmapped tests", unmappedTestNames)
+
+            let tests =
+                mappedTests
+                |> Array.map (fun (t, testCases) ->
+                    testCases
+                    |> Array.map (fun (fullName, testName, executionId) ->
                         let outcome =
                             xpathSelector.SelectString
                                 $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@outcome"
@@ -189,7 +195,7 @@ module DotnetTest =
 
                                 tryFind "Expected:", tryFind "But was:"
 
-                        if Seq.length testCaseMap > 1 then
+                        if Seq.length testCases > 1 then
                             let ti =
                                 t.Test.children.get (t.Test.uri.Value.ToString() + " -- " + testName)
                                 |> Option.defaultWith (fun () ->
@@ -201,23 +207,14 @@ module DotnetTest =
 
                             t.Test.children.add ti
 
-                            { Test = ti
-                              FullTestName = $"{className}.{testName}"
-                              Outcome = !!outcome
-                              ErrorMessage = errorInfoMessage
-                              ErrorStackTrace = errorStackTrace
-                              Expected = expected
-                              Actual = actual
-                              Timing = timing }
-                        else
-                            { Test = t.Test
-                              FullTestName = t.FullName
-                              Outcome = !!outcome
-                              ErrorMessage = errorInfoMessage
-                              ErrorStackTrace = errorStackTrace
-                              Expected = expected
-                              Actual = actual
-                              Timing = timing }))
+                        { Test = t.Test
+                          FullTestName = fullName
+                          Outcome = !!outcome
+                          ErrorMessage = errorInfoMessage
+                          ErrorStackTrace = errorStackTrace
+                          Expected = expected
+                          Actual = actual
+                          Timing = timing }))
                 |> Array.concat
 
             return
