@@ -1,4 +1,4 @@
-module Ionide.VSCode.FSharp.TestExploer
+module Ionide.VSCode.FSharp.TestExplorer
 
 open System
 open Fable.Core
