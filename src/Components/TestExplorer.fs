@@ -152,11 +152,6 @@ module DotnetTest =
                             remainingTests, ([| yield! mappedTests; (t, linkedTests) |]))
                     (testDefinitions, [||])
 
-            let unmappedTestNames =
-                unmappedTests |> Array.map (fun (fullName, _, _) -> fullName)
-
-            logger.Debug("Unmapped tests", unmappedTestNames)
-
             let tests =
                 mappedTests
                 |> Array.collect (fun (t, testCases) ->
