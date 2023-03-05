@@ -1,4 +1,4 @@
-module Ionide.VSCode.FSharp.TestExploer
+module Ionide.VSCode.FSharp.TestExplorer
 
 open System
 open Fable.Core
@@ -67,7 +67,7 @@ type ProjectWithTestResults =
       Tests: TestResult array }
 
 module DotnetTest =
-    let runProject (projectWithTests: ProjectWithTests) : JS.Promise<ProjectWithTestResults> =
+    let runProject (tc: TestController) (projectWithTests: ProjectWithTests) : JS.Promise<ProjectWithTestResults> =
         logger.Debug("Nunit project", projectWithTests)
 
         promise {
@@ -131,59 +131,85 @@ module DotnetTest =
                         xpathSelector.SelectString
                             $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx}]/t:TestMethod/@className"
 
+                    // This code assumes there will only
                     let test =
                         xpathSelector.SelectString $"/t:TestRun/t:TestDefinitions/t:UnitTest[{idx}]/t:TestMethod/@name"
 
-                    $"{className}.{test}", executionId)
-                |> Map.ofArray
+                    $"{className}.{test}", test, executionId)
+
+            let unmappedTests, mappedTests =
+                projectWithTests.Tests
+                |> Array.sortByDescending (fun t -> t.FullName)
+                |> Array.fold
+                    (fun (tests, mappedTests) (t) ->
+                        let linkedTests, remainingTests =
+                            tests
+                            |> Array.partition (fun (fullName: string, _, _) -> fullName.StartsWith t.FullName)
+
+                        if Array.isEmpty linkedTests then
+                            remainingTests, mappedTests
+                        else
+                            remainingTests, ([| yield! mappedTests; (t, linkedTests) |]))
+                    (testDefinitions, [||])
 
             let tests =
-                projectWithTests.Tests
-                |> Array.map (fun t ->
-                    // If the test contains a single quote, xpath expressions cannot escape this and it leads to a world of pain.
-                    let executionId = Map.find t.FullName testDefinitions
-
-                    let outcome =
-                        xpathSelector.SelectString
-                            $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@outcome"
-
-                    let errorInfoMessage =
-                        xpathSelector.TrySelectString
-                            $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:Message"
-
-                    let errorStackTrace =
-                        xpathSelector.TrySelectString
-                            $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:StackTrace"
-
-                    let timing =
-                        let duration =
+                mappedTests
+                |> Array.collect (fun (t, testCases) ->
+                    testCases
+                    |> Array.map (fun (fullName, testName, executionId) ->
+                        let outcome =
                             xpathSelector.SelectString
-                                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@duration"
+                                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@outcome"
 
-                        TimeSpan.Parse(duration).TotalMilliseconds
+                        let errorInfoMessage =
+                            xpathSelector.TrySelectString
+                                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:Message"
 
-                    let expected, actual =
-                        match errorInfoMessage with
-                        | None -> None, None
-                        | Some message ->
-                            let lines =
-                                message.Split([| "\r\n"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
-                                |> Array.map (fun n -> n.TrimStart())
+                        let errorStackTrace =
+                            xpathSelector.TrySelectString
+                                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:StackTrace"
 
-                            let tryFind (startsWith: string) =
-                                Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
-                                |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
+                        let timing =
+                            let duration =
+                                xpathSelector.SelectString
+                                    $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@duration"
 
-                            tryFind "Expected:", tryFind "But was:"
+                            TimeSpan.Parse(duration).TotalMilliseconds
 
-                    { Test = t.Test
-                      FullTestName = t.FullName
-                      Outcome = !!outcome
-                      ErrorMessage = errorInfoMessage
-                      ErrorStackTrace = errorStackTrace
-                      Expected = expected
-                      Actual = actual
-                      Timing = timing })
+                        let expected, actual =
+                            match errorInfoMessage with
+                            | None -> None, None
+                            | Some message ->
+                                let lines =
+                                    message.Split([| "\r\n"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
+                                    |> Array.map (fun n -> n.TrimStart())
+
+                                let tryFind (startsWith: string) =
+                                    Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
+                                    |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
+
+                                tryFind "Expected:", tryFind "But was:"
+
+                        if Seq.length testCases > 1 then
+                            let ti =
+                                t.Test.children.get (t.Test.uri.Value.ToString() + " -- " + testName)
+                                |> Option.defaultWith (fun () ->
+                                    tc.createTestItem (
+                                        t.Test.uri.Value.ToString() + " -- " + testName,
+                                        testName,
+                                        t.Test.uri.Value
+                                    ))
+
+                            t.Test.children.add ti
+
+                        { Test = t.Test
+                          FullTestName = fullName
+                          Outcome = !!outcome
+                          ErrorMessage = errorInfoMessage
+                          ErrorStackTrace = errorStackTrace
+                          Expected = expected
+                          Actual = actual
+                          Timing = timing }))
 
             return
                 { Project = projectWithTests.Project
@@ -278,7 +304,11 @@ let buildProjects (projects: ProjectWithTests array) : Thenable<ProjectWithTests
             |> Promise.toThenable)
     )
 
-let runTests (testRun: TestRun) (projects: ProjectWithTests array) : Thenable<ProjectWithTestResults array> =
+let runTests
+    (testRun: TestRun)
+    (tc: TestController)
+    (projects: ProjectWithTests array)
+    : Thenable<ProjectWithTestResults array> =
     // Indicate in the UI that all the tests are running.
     Array.iter
         (fun (project: ProjectWithTests) ->
@@ -297,7 +327,7 @@ let runTests (testRun: TestRun) (projects: ProjectWithTests array) : Thenable<Pr
                     {| message = Some $"Running tests for {project.Project.Project}"
                        increment = None |}
 
-                DotnetTest.runProject project)
+                DotnetTest.runProject tc project)
             |> Promise.all
             |> Promise.toThenable)
     )
@@ -326,7 +356,7 @@ let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToke
                 project.Tests
                 |> Array.iter (fun t -> tr.errored (t.Test, !^ vscode.TestMessage.Create(!^ "Project build failed"))))
 
-            let! completedTestProjects = runTests tr successfulProjects
+            let! completedTestProjects = runTests tr tc successfulProjects
 
             completedTestProjects
             |> Array.iter (fun (project: ProjectWithTestResults) ->

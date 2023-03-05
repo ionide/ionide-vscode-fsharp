@@ -87,7 +87,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
         tryActivate "codelens" CodeLensHelpers.activate context
         tryActivate "gitignore" Gitignore.activate context
         tryActivate "pipelinehints" PipelineHints.activate context
-        tryActivate "testExplorer" TestExploer.activate context
+        tryActivate "testExplorer" TestExplorer.activate context
         tryActivate "inlayhints" InlayHints.activate context
 
         let buildProject project =
