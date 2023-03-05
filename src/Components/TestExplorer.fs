@@ -16,7 +16,7 @@ let private lastOutput = Collections.Generic.Dictionary<string, string>()
 let private outputChannel = window.createOutputChannel "F# - Test Adapter"
 
 let private logger =
-    ConsoleAndOutputChannelLogger(Some "TestExplorer", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
+    ConsoleAndOutputChannelLogger(Some "TestExplorer", Level.DEBUG, None, Some Level.DEBUG)
 
 type TestItemCollection with
 
