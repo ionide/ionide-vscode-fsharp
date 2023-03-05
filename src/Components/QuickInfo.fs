@@ -113,8 +113,7 @@ module QuickInfo =
                     let doc = textEditor.document
                     let pos = selections.[0].active
                     let! o = LanguageService.signature (doc.uri) (int pos.line) (int pos.character)
-
-                    if isNotNull o then return Some o.Data else return None
+                    return o |> Option.map (fun o -> o.Data)
                 else
                     return None
             }

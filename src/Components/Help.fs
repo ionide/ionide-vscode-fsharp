@@ -14,12 +14,15 @@ module Help =
 
         promise {
             let! res = LanguageService.f1Help (doc.uri) (int pos.line) (int pos.character)
-            let api = res.Data.Replace("#ctor", "-ctor")
+            match res with
+            | None -> return ()
+            | Some res ->
+                let api = res.Data.Replace("#ctor", "-ctor")
 
-            let uri =
-                vscode.Uri.parse (sprintf "https://docs.microsoft.com/en-us/dotnet/api/%s" api)
+                let uri =
+                    vscode.Uri.parse (sprintf "https://docs.microsoft.com/en-us/dotnet/api/%s" api)
 
-            return! commands.executeCommand ("vscode.open", Some(box uri))
+                return! commands.executeCommand ("vscode.open", Some(box uri))
         }
         |> ignore
 

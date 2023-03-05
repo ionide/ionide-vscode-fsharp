@@ -195,16 +195,9 @@ module DecorationUpdate =
         textLine.range
 
     let private getSignature (uri: Uri) (range: DTO.Range) =
-        async {
+        promise {
             let! signaturesResult =
                 LanguageService.signatureData uri range.StartLine (range.StartColumn - 1)
-                |> Async.AwaitPromise
-
-            let signaturesResult =
-                if isNotNull signaturesResult then
-                    Some signaturesResult
-                else
-                    None
 
             return signaturesResult |> Option.map (fun r -> range, formatSignature r.Data)
         }
@@ -229,10 +222,10 @@ module DecorationUpdate =
             let! signatures =
                 interesting
                 |> Array.map (getSignature uri)
-                |> Async.Sequential
-                |> Async.StartAsPromise
+                |> Promise.allSettled
+                |> Promise.map (fun s -> s |> Array.choose (fun sv -> match sv.value with  | Some (Some v) -> Some v | _ -> None))
 
-            return signatures |> Seq.choose id
+            return signatures
         }
 
     /// Update the decorations stored for the document.
@@ -250,24 +243,28 @@ module DecorationUpdate =
                 let text = document.getText ()
                 let! declarationsResult = LanguageService.lineLenses uri
 
-                if document.version = version && isNotNull declarationsResult then
-                    let! signatures = declarationsResultToSignatures declarationsResult uri
-                    let info = state.documents |> Documents.getOrAdd uri
+                match declarationsResult with
+                | None -> return None
+                | Some declarationsResult ->
 
-                    if
-                        document.version = version && info.cache.IsNone
-                        || info.cache.Value.version <> version
-                    then
-                        let decorations =
-                            signatures |> Seq.map (signatureToDecoration document) |> ResizeArray
+                    if document.version = version then
+                        let! signatures = declarationsResultToSignatures declarationsResult uri
+                        let info = state.documents |> Documents.getOrAdd uri
 
-                        logger.Debug("New decorations generated for '%s' @%d", uri, version)
+                        if
+                            document.version = version && info.cache.IsNone
+                            || info.cache.Value.version <> version
+                        then
+                            let decorations =
+                                signatures |> Seq.map (signatureToDecoration document) |> ResizeArray
 
-                        return Some(state.documents |> Documents.update info decorations version)
+                            logger.Debug("New decorations generated for '%s' @%d", uri, version)
+
+                            return Some(state.documents |> Documents.update info decorations version)
+                        else
+                            return None
                     else
                         return None
-                else
-                    return None
             | _ -> return None
         }
 
