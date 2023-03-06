@@ -320,9 +320,6 @@ module Fsi =
     let mutable lastCd: string option = None
     let mutable lastCurrentFile: string option = None
 
-    let isSdk () =
-        Configuration.get false "FSharp.useSdkScripts"
-
     let private sendCd (terminal: Terminal) (textEditor: TextEditor option) =
         let file, dir =
             match textEditor with
@@ -381,21 +378,14 @@ module Fsi =
             |> Array.ofList
 
         promise {
-            if isSdk () then
-                let! dotnet = LanguageService.tryFindDotnet ()
+            let! dotnet = LanguageService.tryFindDotnet ()
 
-                match dotnet with
-                | Ok dotnet ->
-                    let! fsiSetting = LanguageService.fsiSdk ()
-                    let fsiArg = defaultArg fsiSetting "fsi"
-                    return dotnet, [| yield fsiArg; yield! parms |]
-                | Error msg -> return failwith msg
-            else
-                let! fsi = LanguageService.fsi ()
-
-                match fsi with
-                | Some fsi -> return fsi, parms
-                | None -> return failwith ".Net Framework FSI was requested but not found"
+            match dotnet with
+            | Ok dotnet ->
+                let! fsiSetting = LanguageService.fsiSdk ()
+                let fsiArg = defaultArg fsiSetting "fsi"
+                return dotnet, [| yield fsiArg; yield! parms |]
+            | Error msg -> return failwith msg
         }
 
     let fsiNetCoreName = "F# Interactive (.Net Core)"
@@ -409,7 +399,7 @@ module Fsi =
                         let! (fsiBinary, fsiArguments) = fsiBinaryAndParameters ()
                         let fsiArguments = U2.Case1(ResizeArray fsiArguments)
 
-                        let name = if isSdk () then fsiNetCoreName else fsiNetFrameworkName
+                        let name = fsiNetCoreName
 
                         let options: TerminalOptions = createEmpty<_>
                         options.name <- Some name

@@ -95,6 +95,10 @@ module LanguageService =
 
     let mutable client: LanguageClient option = None
 
+    let inline checkNotificationAndCast<'t> (response: Types.PlainNotification): 't option =
+        if isNullOrUndefined response then None
+        else Some (ofJson<'t> response.content)
+
     let selector: DocumentSelector =
         let fileSchemeFilter: DocumentFilter =
             jsOptions<TextDocumentFilter> (fun f ->
@@ -116,16 +120,6 @@ module LanguageService =
             fn
         else
             (fn + ".fsx")
-
-
-    let compilerLocation () =
-        match client with
-        | None -> Promise.empty
-        | Some cl ->
-            cl.sendRequest ("fsharp/compilerLocation", null)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
-                let r = res.content |> ofJson<CompilerLocationResult>
-                r)
 
     let tryFindDotnet () =
         let reportError (msg: string) =
@@ -232,7 +226,7 @@ Consider:
         }
 
 
-    let f1Help (uri: Uri) line col : JS.Promise<Result<string>> =
+    let f1Help (uri: Uri) line col =
         match client with
         | None -> Promise.empty
         | Some cl ->
@@ -241,7 +235,7 @@ Consider:
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/f1Help", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<Result<string>>)
+            |> Promise.map checkNotificationAndCast<Result<string>>
 
     let documentation (uri: Uri) line col =
         match client with
@@ -252,8 +246,7 @@ Consider:
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/documentation", req)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
-                res.content |> ofJson<Result<DocumentationDescription[][]>>)
+            |> Promise.map checkNotificationAndCast<Result<DocumentationDescription[][]>>
 
     let documentationForSymbol xmlSig assembly =
         match client with
@@ -264,8 +257,7 @@ Consider:
                   XmlSig = xmlSig }
 
             cl.sendRequest ("fsharp/documentationSymbol", req)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
-                res.content |> ofJson<Result<DocumentationDescription[][]>>)
+            |> Promise.map checkNotificationAndCast<Result<DocumentationDescription[][]>>
 
     let signature (uri: Uri) line col =
         match client with
@@ -276,7 +268,7 @@ Consider:
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/signature", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<Result<string>>)
+            |> Promise.map checkNotificationAndCast<Result<string>>
 
     let signatureData (uri: Uri) line col =
         match client with
@@ -287,7 +279,7 @@ Consider:
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/signatureData", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<SignatureDataResult>)
+            |> Promise.map checkNotificationAndCast<SignatureDataResult>
 
     let generateDocumentation (fileUri: Uri, version) (line, col) =
         match client with
@@ -309,7 +301,7 @@ Consider:
             let req: Types.FileParams = { Project = { Uri = uri.ToDocumentUri } }
 
             cl.sendRequest ("fsharp/lineLens", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<Result<Symbols[]>>)
+            |> Promise.map checkNotificationAndCast<Result<Symbols[]>>
 
     let compile s =
         match client with
@@ -341,10 +333,7 @@ Consider:
             let req: DotnetNew.DotnetNewListRequest = { Query = "" }
 
             cl.sendRequest ("fsharp/dotnetnewlist", req)
-            |> Promise.map (fun (res: Types.PlainNotification) ->
-                let x = res.content |> ofJson<DotnetNew.DotnetNewListResponse>
-
-                x.Data)
+            |> Promise.map checkNotificationAndCast<DotnetNew.DotnetNewListResponse>
 
     let dotnetNewRun (template: string) (name: string option) (output: string option) =
         match client with
@@ -356,7 +345,7 @@ Consider:
                   Name = name }
 
             cl.sendRequest ("fsharp/dotnetnewrun", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let dotnetAddProject (target: string) (reference: string) =
         match client with
@@ -367,7 +356,7 @@ Consider:
                   Reference = reference }
 
             cl.sendRequest ("fsharp/dotnetaddproject", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let dotnetRemoveProject (target: string) (reference: string) =
         match client with
@@ -378,7 +367,7 @@ Consider:
                   Reference = reference }
 
             cl.sendRequest ("fsharp/dotnetremoveproject", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let dotnetAddSln (target: string) (reference: string) =
         match client with
@@ -389,7 +378,7 @@ Consider:
                   Reference = reference }
 
             cl.sendRequest ("fsharp/dotnetaddsln", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let fsprojMoveFileUp (fsproj: string) (file: string) =
         match client with
@@ -399,12 +388,8 @@ Consider:
                 { FsProj = fsproj
                   FileVirtualPath = file }
 
-            printfn "TEST8 %A" req
-
             cl.sendRequest ("fsproj/moveFileUp", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ()
-
-            )
+            |> Promise.map ignore
 
     let fsprojMoveFileDown (fsproj: string) (file: string) =
         match client with
@@ -415,7 +400,7 @@ Consider:
                   FileVirtualPath = file }
 
             cl.sendRequest ("fsproj/moveFileDown", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let fsprojAddFileAbove (fsproj: string) (file: string) (newFile: string) =
         match client with
@@ -427,7 +412,7 @@ Consider:
                   NewFile = newFile }
 
             cl.sendRequest ("fsproj/addFileAbove", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let fsprojAddFileBelow (fsproj: string) (file: string) (newFile: string) =
         match client with
@@ -439,7 +424,7 @@ Consider:
                   NewFile = newFile }
 
             cl.sendRequest ("fsproj/addFileBelow", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let fsprojAddFile (fsproj: string) (file: string) =
         match client with
@@ -450,7 +435,7 @@ Consider:
                   FileVirtualPath = file }
 
             cl.sendRequest ("fsproj/addFile", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let fsprojAddExistingFile (fsproj: string) (file: string) =
         match client with
@@ -461,7 +446,7 @@ Consider:
                   FileVirtualPath = file }
 
             cl.sendRequest ("fsproj/addExistingFile", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let fsprojRemoveFile (fsproj: string) (file: string) =
         match client with
@@ -472,7 +457,7 @@ Consider:
                   FileVirtualPath = file }
 
             cl.sendRequest ("fsproj/removeFile", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> ())
+            |> Promise.map ignore
 
     let parseError (err: obj) =
         let data =
@@ -598,44 +583,7 @@ Consider:
                 { TextDocument = { Uri = uri.ToDocumentUri } }
 
             cl.sendRequest ("fsharp/pipelineHint", req)
-            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<PipelineHintsResult>)
-
-    let private fsacConfig () =
-        compilerLocation () |> Promise.map (fun c -> c.Data)
-
-    let fsi () =
-        let fileExists (path: string) : JS.Promise<bool> =
-            Promise.create (fun success _failure ->
-                node.fs.access (!^path, node.fs.constants.F_OK, (fun err -> success (err.IsNone))))
-
-        let getAnyCpuFsiPathFromCompilerLocation (location: CompilerLocation) =
-            promise {
-                match location.Fsi with
-                | Some fsi ->
-                    // Only rewrite if FSAC returned 'fsi.exe' (For future-proofing)
-                    if node.path.basename fsi = "fsi.exe" then
-                        // If there is an anyCpu variant in the same dir we do the rewrite
-                        let anyCpuFile = node.path.join [| node.path.dirname fsi; "fsiAnyCpu.exe" |]
-
-                        let! anyCpuExists = fileExists anyCpuFile
-
-                        if anyCpuExists then
-                            return Some anyCpuFile
-                        else
-                            return Some fsi
-                    else
-                        return Some fsi
-                | None -> return None
-            }
-
-        promise {
-            match Environment.configFsiFilePath () with
-            | Some path -> return Some path
-            | None ->
-                let! fsacPaths = fsacConfig ()
-                let! fsiPath = getAnyCpuFsiPathFromCompilerLocation fsacPaths
-                return fsiPath
-        }
+            |> Promise.map checkNotificationAndCast<PipelineHintsResult>
 
     let fsiSdk () =
         promise { return Environment.configFsiSdkFilePath () }

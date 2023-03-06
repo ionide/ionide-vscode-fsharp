@@ -169,28 +169,30 @@ module DecorationUpdate =
                 return Some info
             | None when document.version = version ->
                 let! hintsResults = LanguageService.pipelineHints uri
+                match hintsResults with
+                | None -> return None
+                | Some hintsResults ->
+                    if document.version = version then
 
-                if document.version = version && isNotNull hintsResults then
+                        let! signatures = declarationsResultToSignatures document hintsResults uri
+                        let info = state.documents |> Documents.getOrAdd uri
 
-                    let! signatures = declarationsResultToSignatures document hintsResults uri
-                    let info = state.documents |> Documents.getOrAdd uri
+                        if
+                            document.version = version && info.cache.IsNone
+                            || info.cache.Value.version <> version
+                        then
+                            let decorations =
+                                signatures
+                                |> Seq.map (fun (r, s) -> PipelineHintsDecorations.create r (config.prefix + s))
+                                |> ResizeArray
 
-                    if
-                        document.version = version && info.cache.IsNone
-                        || info.cache.Value.version <> version
-                    then
-                        let decorations =
-                            signatures
-                            |> Seq.map (fun (r, s) -> PipelineHintsDecorations.create r (config.prefix + s))
-                            |> ResizeArray
+                            logger.Debug("New decorations generated for '%s' @%d", uri, version)
 
-                        logger.Debug("New decorations generated for '%s' @%d", uri, version)
-
-                        return Some(state.documents |> Documents.update info decorations version)
+                            return Some(state.documents |> Documents.update info decorations version)
+                        else
+                            return None
                     else
                         return None
-                else
-                    return None
             | _ -> return None
         }
 

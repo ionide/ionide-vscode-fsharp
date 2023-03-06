@@ -17,9 +17,6 @@ module Environment =
     let private (</>) a b =
         if isWin then a + @"\" + b else a + "/" + b
 
-    let configFsiFilePath () =
-        Configuration.tryGet "FSharp.fsiFilePath"
-
     let configFsiSdkFilePath () =
         Configuration.tryGet "FSharp.fsiSdkFilePath"
 
