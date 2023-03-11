@@ -38,6 +38,13 @@
         "language": "fsharp"
       }
     ],
+    "configurationDefaults": {
+      "explorer.fileNesting.patterns": {
+        "*.fs": "${basename}.fsi, ${basename}.fs.js, ${basename}.fs.js.map",
+        "*.fsl": "${basename}.fsi, ${basename}.fs",
+        "*.fsy": "${basename}.fsi, ${basename}.fs"
+      }
+    },
     "colors": [
       {
         "defaults": {
