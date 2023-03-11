@@ -219,15 +219,10 @@ module DotnetTest =
 let rec mapTest
     (tc: TestController)
     (uri: Uri)
-    (moduleTypes: ResizeArray<string * string>)
+    (moduleTypes: System.Collections.Generic.Dictionary<string, string>)
     (t: TestAdapterEntry)
     : TestItem =
-    let ti =
-        tc.createTestItem (
-            uri.ToString() + " -- " + string t.id,
-            t.name,
-            uri
-        )
+    let ti = tc.createTestItem (uri.ToString() + " -- " + string t.id, t.name, uri)
 
     ti.range <-
         Some(
@@ -248,7 +243,7 @@ let rec mapTest
 /// Get a flat list with all tests for each project
 let getProjectsForTests
     (tc: TestController)
-    (moduleTypes: ResizeArray<string * string>)
+    (moduleTypes: System.Collections.Generic.Dictionary<string, string>)
     (req: TestRunRequest)
     : ProjectWithTests array =
     let testsWithProject =
@@ -269,17 +264,19 @@ let getProjectsForTests
         match ti.parent with
         | Some p ->
             let parentModuleType =
-                moduleTypes
-                |> Seq.tryFind (fun (tid, moduleType) -> p.id = tid)
-                |> Option.map snd
+                if moduleTypes.ContainsKey p.id then
+                    Some moduleTypes[p.id]
+                else
+                    None
 
             let tiModuleType =
-                moduleTypes
-                |> Seq.tryFind (fun (tid, moduleType) -> ti.id = tid)
-                |> Option.map snd
+                if moduleTypes.ContainsKey ti.id then
+                    Some moduleTypes[ti.id]
+                else
+                    None
 
-            match parentModuleType, tiModuleType with
-            | Some pModuleType, Some tModuleType ->
+            match moduleTypes.TryGetValue p.id, moduleTypes.TryGetValue ti.id with
+            | (true, pModuleType), (true, tModuleType) ->
                 let segment =
                     if tModuleType = "ModuleWithSuffix" then
                         $"{ti.label}Module"
@@ -379,7 +376,7 @@ let runTests
 
 let runHandler
     (tc: TestController)
-    (moduleTypes: ResizeArray<string * string>)
+    (moduleTypes: System.Collections.Generic.Dictionary<string, string>)
     (req: TestRunRequest)
     (_ct: CancellationToken)
     : U2<Thenable<unit>, unit> =
@@ -439,7 +436,7 @@ let activate (context: ExtensionContext) =
     let testController =
         tests.createTestController ("fsharp-test-controller", "F# Test Controller")
 
-    let moduleTypes = ResizeArray<(string * string)>()
+    let moduleTypes = System.Collections.Generic.Dictionary<string, string>()
 
     testController.createRunProfile (
         "Run F# Tests",
