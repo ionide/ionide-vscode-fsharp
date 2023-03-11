@@ -219,7 +219,7 @@ module DotnetTest =
 let rec mapTest
     (tc: TestController)
     (uri: Uri)
-    (moduleTypes: System.Collections.Generic.Dictionary<string, string>)
+    (moduleTypes: Collections.Generic.Dictionary<string, string>)
     (t: TestAdapterEntry)
     : TestItem =
     let ti = tc.createTestItem (uri.ToString() + " -- " + string t.id, t.name, uri)
@@ -243,7 +243,7 @@ let rec mapTest
 /// Get a flat list with all tests for each project
 let getProjectsForTests
     (tc: TestController)
-    (moduleTypes: System.Collections.Generic.Dictionary<string, string>)
+    (moduleTypes: Collections.Generic.Dictionary<string, string>)
     (req: TestRunRequest)
     : ProjectWithTests array =
     let testsWithProject =
@@ -376,7 +376,7 @@ let runTests
 
 let runHandler
     (tc: TestController)
-    (moduleTypes: System.Collections.Generic.Dictionary<string, string>)
+    (moduleTypes: Collections.Generic.Dictionary<string, string>)
     (req: TestRunRequest)
     (_ct: CancellationToken)
     : U2<Thenable<unit>, unit> =
@@ -436,7 +436,7 @@ let activate (context: ExtensionContext) =
     let testController =
         tests.createTestController ("fsharp-test-controller", "F# Test Controller")
 
-    let moduleTypes = System.Collections.Generic.Dictionary<string, string>()
+    let moduleTypes = Collections.Generic.Dictionary<string, string>()
 
     testController.createRunProfile (
         "Run F# Tests",
