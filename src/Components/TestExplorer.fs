@@ -216,8 +216,18 @@ module DotnetTest =
                   Tests = tests }
         }
 
-let rec mapTest (tc: TestController) (uri: Uri) (t: TestAdapterEntry) : TestItem =
-    let ti = tc.createTestItem (uri.ToString() + " -- " + string t.id, t.name, uri)
+let rec mapTest
+    (tc: TestController)
+    (uri: Uri)
+    (moduleTypes: ResizeArray<string * string>)
+    (t: TestAdapterEntry)
+    : TestItem =
+    let ti =
+        tc.createTestItem (
+            uri.ToString() + " -- " + string t.id,
+            t.name,
+            uri
+        )
 
     ti.range <-
         Some(
@@ -227,13 +237,20 @@ let rec mapTest (tc: TestController) (uri: Uri) (t: TestAdapterEntry) : TestItem
             )
         )
 
-    t.childs |> Array.iter (fun n -> mapTest tc uri n |> ti.children.add)
+    moduleTypes.Add(ti.id, t.moduleType)
+
+    t.childs
+    |> Array.iter (fun n -> mapTest tc uri moduleTypes n |> ti.children.add)
 
     ti?``type`` <- t.``type``
     ti
 
 /// Get a flat list with all tests for each project
-let getProjectsForTests (tc: TestController) (req: TestRunRequest) : ProjectWithTests array =
+let getProjectsForTests
+    (tc: TestController)
+    (moduleTypes: ResizeArray<string * string>)
+    (req: TestRunRequest)
+    : ProjectWithTests array =
     let testsWithProject =
         let items =
             match req.``include`` with
@@ -246,9 +263,37 @@ let getProjectsForTests (tc: TestController) (req: TestRunRequest) : ProjectWith
             |> Option.bind (fun uri -> Project.tryFindLoadedProjectByFile uri.fsPath)
             |> Option.map (fun (project: Project) -> { TestItem = t; Project = project }))
 
+    logger.Debug("Module types", moduleTypes)
+
     let rec getFullName (ti: TestItem) =
         match ti.parent with
-        | Some p -> getFullName p + "." + ti.label
+        | Some p ->
+            let parentModuleType =
+                moduleTypes
+                |> Seq.tryFind (fun (tid, moduleType) -> p.id = tid)
+                |> Option.map snd
+
+            let tiModuleType =
+                moduleTypes
+                |> Seq.tryFind (fun (tid, moduleType) -> ti.id = tid)
+                |> Option.map snd
+
+            match parentModuleType, tiModuleType with
+            | Some pModuleType, Some tModuleType ->
+                let segment =
+                    if tModuleType = "ModuleWithSuffix" then
+                        $"{ti.label}Module"
+                    else
+                        ti.label
+
+                let separator =
+                    if pModuleType = "NoneModule" || tModuleType = "NoneModule" then
+                        "."
+                    else
+                        "+"
+
+                getFullName p + separator + segment
+            | _, _ -> getFullName p + "." + ti.label
         | None -> ti.label
 
     let collectTests (testItem: TestItemAndProject) : TestWithFullName array =
@@ -332,14 +377,19 @@ let runTests
             |> Promise.toThenable)
     )
 
-let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToken) : U2<Thenable<unit>, unit> =
+let runHandler
+    (tc: TestController)
+    (moduleTypes: ResizeArray<string * string>)
+    (req: TestRunRequest)
+    (_ct: CancellationToken)
+    : U2<Thenable<unit>, unit> =
     logger.Debug("Test run request", req)
     let tr = tc.createTestRun req
 
     if tc.items.size < 1. then
         !! tr.``end`` ()
     else
-        let projectsWithTests = getProjectsForTests tc req
+        let projectsWithTests = getProjectsForTests tc moduleTypes req
         logger.Debug("Found projects", projectsWithTests)
 
         projectsWithTests
@@ -389,7 +439,14 @@ let activate (context: ExtensionContext) =
     let testController =
         tests.createTestController ("fsharp-test-controller", "F# Test Controller")
 
-    testController.createRunProfile ("Run F# Tests", TestRunProfileKind.Run, runHandler testController, true)
+    let moduleTypes = ResizeArray<(string * string)>()
+
+    testController.createRunProfile (
+        "Run F# Tests",
+        TestRunProfileKind.Run,
+        runHandler testController moduleTypes,
+        true
+    )
     |> unbox
     |> context.subscriptions.Add
 
@@ -402,7 +459,7 @@ let activate (context: ExtensionContext) =
 
         let res =
             res.tests
-            |> Array.map (mapTest testController (vscode.Uri.parse (res.file, true)))
+            |> Array.map (mapTest testController (vscode.Uri.parse (res.file, true)) moduleTypes)
 
         res
         |> Array.iter (fun testItem ->

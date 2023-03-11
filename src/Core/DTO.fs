@@ -361,7 +361,8 @@ module DTO =
           childs: TestAdapterEntry[]
           id: int
           list: bool
-          ``type``: string }
+          ``type``: string
+          moduleType: string }
 
     type TestForFile =
         { file: string
