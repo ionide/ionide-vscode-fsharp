@@ -630,6 +630,14 @@ module SolutionExplorer =
 
         opts.validateInput <-
             fun userInput ->
+                // Add .fs extension if not present
+                // This is to mirror the logic from the command as we don't force
+                // user to provide the extension and auto add it if needed
+                // Maxime Mangel:
+                // I am not sure if this is the best way to do it because an fsproj
+                // can have other file extensions than .fs
+                let userInput = handleUntitled userInput
+
                 let fileExist =
                     existingFiles
                     |> List.tryFind (fun file ->
