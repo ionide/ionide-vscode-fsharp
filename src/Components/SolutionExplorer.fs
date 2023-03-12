@@ -769,6 +769,15 @@ module SolutionExplorer =
             | None -> window.showErrorMessage ("No open folder.") |> ignore
         }
 
+    let private cleanTextEditorsDecorations (filePath : string) =
+
+        // VSCode seems to used Unix style paths
+        let normalizedPath = filePath.Replace("\\", "/")
+        let fileUri = vscode.Uri.parse $"file:///%s{normalizedPath}"
+
+        LineLens.removeDocument fileUri
+        PipelineHints.removeDocument fileUri
+
     let activate (context: ExtensionContext) =
         let emiter = vscode.EventEmitter.Create<_>()
         let rootChanged = vscode.EventEmitter.Create<Model>()
@@ -836,18 +845,46 @@ module SolutionExplorer =
                         // Need to compute the relative path from the project in order to match the user input
                         let relativeFilePathFromProject = node.path.relative (projDir, filePath)
 
-                        // Step 1. Remove file from the fsproj
                         do! FsProjEdit.removeFilePath proj relativeFilePathFromProject
 
-                        // Step 2. Clean text editor decorations
-
-                        // VSCode seems to used Unix style paths
-                        let normalizedPath = filePath.Replace("\\", "/")
-                        let fileUri = vscode.Uri.parse $"file:///%s{normalizedPath}"
-
-                        LineLens.removeDocument fileUri
-                        PipelineHints.removeDocument fileUri
+                        cleanTextEditorsDecorations filePath
                     }
+                | _ -> undefined
+                |> ignore
+
+                None)
+        )
+        |> context.Subscribe
+
+        commands.registerCommand (
+            "fsharp.explorer.renameFile",
+            objfy2 (fun m ->
+                match unbox m with
+                | File(parent, filePath, _, Some virtualPath, _) ->
+                    match parent.Value with
+                    | Some model ->
+                        match tryFindParentProject model with
+                        | Some(Project(_, proj, _, files, _, _, _, _)) ->
+                            createNewFileDialg proj files "Enter a new name"
+                            |> Promise.ofThenable
+                            |> Promise.bind (fun newFileNameOpt ->
+                                promise {
+                                    match newFileNameOpt with
+                                    | Some newFileName ->
+                                        let newFileName = handleUntitled newFileName
+
+                                        do! FsProjEdit.renameFile proj virtualPath newFileName
+
+                                        cleanTextEditorsDecorations filePath
+                                    | None -> ()
+
+                                    return null
+                                }
+                            )
+                            |> unbox
+                        | _ -> undefined
+                    | _ ->
+                        undefined
                 | _ -> undefined
                 |> ignore
 

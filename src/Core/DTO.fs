@@ -425,3 +425,8 @@ module DTO =
             { FsProj: string
               FileVirtualPath: string
               NewFile: string }
+
+        type DotnetRenameFileRequest =
+            { FsProj: string
+              OldFileVirtualPath: string
+              NewFileName: string }

@@ -448,6 +448,18 @@ Consider:
             cl.sendRequest ("fsproj/addExistingFile", req)
             |> Promise.map ignore
 
+    let fsprojRenameFile (fsproj: string) (file: string) (newFile: string) =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            let req: FsProj.DotnetRenameFileRequest =
+                { FsProj = fsproj
+                  OldFileVirtualPath = file
+                  NewFileName = newFile }
+
+            cl.sendRequest ("fsproj/renameFile", req)
+            |> Promise.map ignore
+
     let fsprojRemoveFile (fsproj: string) (file: string) =
         match client with
         | None -> Promise.empty
