@@ -271,18 +271,6 @@ let getProjectsForTests
     let rec getFullName (ti: TestItem) =
         match ti.parent with
         | Some p ->
-            let parentModuleType =
-                if moduleTypes.ContainsKey p.id then
-                    Some moduleTypes[p.id]
-                else
-                    None
-
-            let tiModuleType =
-                if moduleTypes.ContainsKey ti.id then
-                    Some moduleTypes[ti.id]
-                else
-                    None
-
             match moduleTypes.TryGetValue p.id, moduleTypes.TryGetValue ti.id with
             | (true, pModuleType), (true, tModuleType) ->
                 let segment =
