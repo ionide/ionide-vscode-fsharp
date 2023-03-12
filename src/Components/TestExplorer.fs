@@ -225,11 +225,12 @@ let rec mapTest
     (tc: TestController)
     (uri: Uri)
     (moduleTypes: Collections.Generic.Dictionary<string, string>)
+    (parentNameId: string)
     (t: TestAdapterEntry)
     : TestItem =
     let ti =
         tc.createTestItem (
-            uri.ToString() + " -- " + Convert.ToBase64String(Encoding.UTF8.GetBytes(t.name)),
+            $"{uri.ToString()} -- {parentNameId} -- {Convert.ToBase64String(Encoding.UTF8.GetBytes(t.name))}",
             t.name,
             uri
         )
@@ -245,7 +246,7 @@ let rec mapTest
     moduleTypes.Add(ti.id, t.moduleType)
 
     t.childs
-    |> Array.iter (fun n -> mapTest tc uri moduleTypes n |> ti.children.add)
+    |> Array.iter (fun n -> mapTest tc uri moduleTypes $"{parentNameId}.{t.name}" n |> ti.children.add)
 
     ti?``type`` <- t.``type``
     ti
@@ -452,7 +453,7 @@ let activate (context: ExtensionContext) =
 
         let res =
             res.tests
-            |> Array.map (mapTest testController (vscode.Uri.parse (res.file, true)) moduleTypes)
+            |> Array.map (mapTest testController (vscode.Uri.parse (res.file, true)) moduleTypes "")
 
         res
         |> Array.iter (fun testItem ->
