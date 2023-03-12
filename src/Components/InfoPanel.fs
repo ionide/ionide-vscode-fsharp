@@ -196,9 +196,7 @@ module InfoPanel =
                     let doc = textEditor.document
                     let pos = selections.[0].active
                     let! res = LanguageService.documentation doc.uri (int pos.line) (int pos.character)
-                    res
-                    |> Option.bind mapContent
-                    |> Option.iter setContent
+                    res |> Option.bind mapContent |> Option.iter setContent
                 else
                     return ()
             }
@@ -209,9 +207,7 @@ module InfoPanel =
                 if isFsharpTextEditor textEditor && panel.IsSome then
                     let doc = textEditor.document
                     let! res = LanguageService.documentation doc.uri (int pos.line) (int pos.character)
-                    res
-                    |> Option.bind mapContent
-                    |> Option.iter setContent
+                    res |> Option.bind mapContent |> Option.iter setContent
                 else
                     return ()
             }
@@ -220,9 +216,7 @@ module InfoPanel =
         let updateOnLink xmlSig assemblyName =
             promise {
                 let! res = LanguageService.documentationForSymbol xmlSig assemblyName
-                res
-                |> Option.bind mapContent
-                |> Option.iter setContent
+                res |> Option.bind mapContent |> Option.iter setContent
             }
 
     let mutable private timer = None

@@ -95,9 +95,11 @@ module LanguageService =
 
     let mutable client: LanguageClient option = None
 
-    let inline checkNotificationAndCast<'t> (response: Types.PlainNotification): 't option =
-        if isNullOrUndefined response then None
-        else Some (ofJson<'t> response.content)
+    let inline checkNotificationAndCast<'t> (response: Types.PlainNotification) : 't option =
+        if isNullOrUndefined response then
+            None
+        else
+            Some(ofJson<'t> response.content)
 
     let selector: DocumentSelector =
         let fileSchemeFilter: DocumentFilter =
@@ -344,8 +346,7 @@ Consider:
                   Output = output
                   Name = name }
 
-            cl.sendRequest ("fsharp/dotnetnewrun", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsharp/dotnetnewrun", req) |> Promise.map ignore
 
     let dotnetAddProject (target: string) (reference: string) =
         match client with
@@ -355,8 +356,7 @@ Consider:
                 { Target = target
                   Reference = reference }
 
-            cl.sendRequest ("fsharp/dotnetaddproject", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsharp/dotnetaddproject", req) |> Promise.map ignore
 
     let dotnetRemoveProject (target: string) (reference: string) =
         match client with
@@ -366,8 +366,7 @@ Consider:
                 { Target = target
                   Reference = reference }
 
-            cl.sendRequest ("fsharp/dotnetremoveproject", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsharp/dotnetremoveproject", req) |> Promise.map ignore
 
     let dotnetAddSln (target: string) (reference: string) =
         match client with
@@ -377,8 +376,7 @@ Consider:
                 { Target = target
                   Reference = reference }
 
-            cl.sendRequest ("fsharp/dotnetaddsln", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsharp/dotnetaddsln", req) |> Promise.map ignore
 
     let fsprojMoveFileUp (fsproj: string) (file: string) =
         match client with
@@ -388,8 +386,7 @@ Consider:
                 { FsProj = fsproj
                   FileVirtualPath = file }
 
-            cl.sendRequest ("fsproj/moveFileUp", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsproj/moveFileUp", req) |> Promise.map ignore
 
     let fsprojMoveFileDown (fsproj: string) (file: string) =
         match client with
@@ -399,8 +396,7 @@ Consider:
                 { FsProj = fsproj
                   FileVirtualPath = file }
 
-            cl.sendRequest ("fsproj/moveFileDown", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsproj/moveFileDown", req) |> Promise.map ignore
 
     let fsprojAddFileAbove (fsproj: string) (file: string) (newFile: string) =
         match client with
@@ -411,8 +407,7 @@ Consider:
                   FileVirtualPath = file
                   NewFile = newFile }
 
-            cl.sendRequest ("fsproj/addFileAbove", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsproj/addFileAbove", req) |> Promise.map ignore
 
     let fsprojAddFileBelow (fsproj: string) (file: string) (newFile: string) =
         match client with
@@ -423,8 +418,7 @@ Consider:
                   FileVirtualPath = file
                   NewFile = newFile }
 
-            cl.sendRequest ("fsproj/addFileBelow", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsproj/addFileBelow", req) |> Promise.map ignore
 
     let fsprojAddFile (fsproj: string) (file: string) =
         match client with
@@ -434,8 +428,7 @@ Consider:
                 { FsProj = fsproj
                   FileVirtualPath = file }
 
-            cl.sendRequest ("fsproj/addFile", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsproj/addFile", req) |> Promise.map ignore
 
     let fsprojAddExistingFile (fsproj: string) (file: string) =
         match client with
@@ -445,8 +438,7 @@ Consider:
                 { FsProj = fsproj
                   FileVirtualPath = file }
 
-            cl.sendRequest ("fsproj/addExistingFile", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsproj/addExistingFile", req) |> Promise.map ignore
 
     let fsprojRemoveFile (fsproj: string) (file: string) =
         match client with
@@ -456,8 +448,7 @@ Consider:
                 { FsProj = fsproj
                   FileVirtualPath = file }
 
-            cl.sendRequest ("fsproj/removeFile", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsproj/removeFile", req) |> Promise.map ignore
 
     let parseError (err: obj) =
         let data =
@@ -650,19 +641,25 @@ Consider:
             let findBestTFM (availableTFMs: string seq) (tfm: string) =
                 let tfmToSemVer (t: string) =
                     t.Replace("netcoreapp", "").Replace("net", "").Split([| '.' |], 2)
-                    |> fun ver -> semver.parse(!! $"{ver[0]}.{ver[1]}.0")
+                    |> fun ver -> semver.parse (!! $"{ver[0]}.{ver[1]}.0")
+
                 let tfmMap =
                     availableTFMs
-                    |> Seq.choose (fun tfm -> match tfmToSemVer tfm with Some v -> Some(tfm, v) | None -> None)
+                    |> Seq.choose (fun tfm ->
+                        match tfmToSemVer tfm with
+                        | Some v -> Some(tfm, v)
+                        | None -> None)
                     |> Seq.sortBy (fun (_, v) -> v.major, v.minor)
+
                 printfn $"choosing from among %A{tfmMap}"
+
                 match tfmToSemVer tfm with
                 | None ->
                     printfn "unable to parse target tfm, using latest"
                     Seq.last availableTFMs
                 | Some ver ->
                     tfmMap
-                    |> Seq.skipWhile (fun (_, v) -> (semver.compare(!! v, !!ver)) = enum -1) // skip while fsac tfm is less than target tfm
+                    |> Seq.skipWhile (fun (_, v) -> (semver.compare (!!v, !!ver)) = enum -1) // skip while fsac tfm is less than target tfm
                     |> Seq.tryHead // get first fsac tfm that is greater than or equal to target tfm
                     |> Option.map fst
                     |> Option.defaultWith (fun () -> Seq.last availableTFMs)
@@ -670,11 +667,14 @@ Consider:
             let fsacPathForTfm (tfm: string) =
                 if String.IsNullOrEmpty fsacNetcorePath then
                     let binPath = node.path.join (VSCodeExtension.ionidePluginPath (), "bin")
+
                     let availableTFMs =
-                        node.fs.readdirSync(!! binPath)
-                        |> Seq.filter (fun p -> p.StartsWith "net")  // there are loose files in the binpath, ignore those
+                        node.fs.readdirSync (!!binPath)
+                        |> Seq.filter (fun p -> p.StartsWith "net") // there are loose files in the binpath, ignore those
                         |> Seq.map node.path.basename
+
                     printfn $"Available FSAC TFMs: %A{availableTFMs}"
+
                     if availableTFMs |> Seq.contains tfm then
                         printfn "TFM match found"
                         node.path.join (binPath, tfm, "fsautocomplete.dll")

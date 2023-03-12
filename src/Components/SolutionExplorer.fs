@@ -665,10 +665,12 @@ module SolutionExplorer =
     let newProject () =
         promise {
             let! templates = LanguageService.dotnetNewList ()
+
             let templates =
                 match templates with
                 | None -> []
                 | Some templates -> templates.Data
+
             let n =
                 templates
                 |> List.map (fun t ->

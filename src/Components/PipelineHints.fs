@@ -169,6 +169,7 @@ module DecorationUpdate =
                 return Some info
             | None when document.version = version ->
                 let! hintsResults = LanguageService.pipelineHints uri
+
                 match hintsResults with
                 | None -> return None
                 | Some hintsResults ->

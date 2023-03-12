@@ -14,6 +14,7 @@ module Help =
 
         promise {
             let! res = LanguageService.f1Help (doc.uri) (int pos.line) (int pos.character)
+
             match res with
             | None -> return ()
             | Some res ->
