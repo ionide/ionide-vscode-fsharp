@@ -268,8 +268,6 @@ let getProjectsForTests
             |> Option.bind (fun uri -> Project.tryFindLoadedProjectByFile uri.fsPath)
             |> Option.map (fun (project: Project) -> { TestItem = t; Project = project }))
 
-    logger.Debug("Module types", moduleTypes)
-
     let rec getFullName (ti: TestItem) =
         match ti.parent with
         | Some p ->
