@@ -643,9 +643,45 @@ Consider:
 
             let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
+            /// given a set of tfms and a target tfm, find the first of the set that satisfies the target.
+            /// if no target is found, use the 'latest' tfm
+            /// e.g. [net6.0, net7.0] + net8.0 -> net7.0
+            /// e.g. [net6.0, net7.0] + net7.0 -> net7.0
+            let findBestTFM (availableTFMs: string seq) (tfm: string) =
+                let tfmToSemVer (t: string) =
+                    t.Replace("netcoreapp", "").Replace("net", "").Split([| '.' |], 2)
+                    |> fun ver -> semver.parse(!! $"{ver[0]}.{ver[1]}.0")
+                let tfmMap =
+                    availableTFMs
+                    |> Seq.choose (fun tfm -> match tfmToSemVer tfm with Some v -> Some(tfm, v) | None -> None)
+                    |> Seq.sortBy (fun (_, v) -> v.major, v.minor)
+                printfn $"choosing from among %A{tfmMap}"
+                match tfmToSemVer tfm with
+                | None ->
+                    printfn "unable to parse target tfm, using latest"
+                    Seq.last availableTFMs
+                | Some ver ->
+                    tfmMap
+                    |> Seq.skipWhile (fun (_, v) -> (semver.compare(!! v, !!ver)) = enum -1) // skip while fsac tfm is less than target tfm
+                    |> Seq.tryHead // get first fsac tfm that is greater than or equal to target tfm
+                    |> Option.map fst
+                    |> Option.defaultWith (fun () -> Seq.last availableTFMs)
+
             let fsacPathForTfm (tfm: string) =
                 if String.IsNullOrEmpty fsacNetcorePath then
-                    node.path.join (VSCodeExtension.ionidePluginPath (), "bin", tfm, "fsautocomplete.dll")
+                    let binPath = node.path.join (VSCodeExtension.ionidePluginPath (), "bin")
+                    let availableTFMs =
+                        node.fs.readdirSync(!! binPath)
+                        |> Seq.filter (fun p -> p.StartsWith "net")  // there are loose files in the binpath, ignore those
+                        |> Seq.map node.path.basename
+                    printfn $"Available FSAC TFMs: %A{availableTFMs}"
+                    if availableTFMs |> Seq.contains tfm then
+                        printfn "TFM match found"
+                        node.path.join (binPath, tfm, "fsautocomplete.dll")
+                    else
+                        // find best-matching
+                        let tfm = findBestTFM availableTFMs tfm
+                        node.path.join (binPath, tfm, "fsautocomplete.dll")
                 else
                     fsacNetcorePath
 

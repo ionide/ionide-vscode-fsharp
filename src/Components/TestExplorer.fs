@@ -1,6 +1,7 @@
 module Ionide.VSCode.FSharp.TestExplorer
 
 open System
+open System.Text
 open Fable.Core
 open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
@@ -192,7 +193,11 @@ module DotnetTest =
 
                         if Seq.length testCases > 1 then
                             let ti =
-                                t.Test.children.get (t.Test.uri.Value.ToString() + " -- " + testName)
+                                t.Test.children.get (
+                                    t.Test.uri.Value.ToString()
+                                    + " -- "
+                                    + Convert.ToBase64String(Encoding.UTF8.GetBytes(testName))
+                                )
                                 |> Option.defaultWith (fun () ->
                                     tc.createTestItem (
                                         t.Test.uri.Value.ToString() + " -- " + testName,
@@ -222,7 +227,12 @@ let rec mapTest
     (moduleTypes: Collections.Generic.Dictionary<string, string>)
     (t: TestAdapterEntry)
     : TestItem =
-    let ti = tc.createTestItem (uri.ToString() + " -- " + string t.id, t.name, uri)
+    let ti =
+        tc.createTestItem (
+            uri.ToString() + " -- " + Convert.ToBase64String(Encoding.UTF8.GetBytes(t.name)),
+            t.name,
+            uri
+        )
 
     ti.range <-
         Some(
