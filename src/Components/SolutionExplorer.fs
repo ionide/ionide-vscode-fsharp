@@ -872,7 +872,10 @@ module SolutionExplorer =
                                     let file' = handleUntitled file
                                     FsProjEdit.addFileAbove proj virtPath file'
                                 | None -> Promise.empty)
-                            |> unbox
+                            |> Promise.catchEnd (fun error ->
+                                window.showErrorMessage error.Message
+                                |> ignore
+                            )
                         | _ -> undefined
                     | _ ->
                         undefined
@@ -898,7 +901,10 @@ module SolutionExplorer =
                                     let file' = handleUntitled file
                                     FsProjEdit.addFileBelow proj virtPath file'
                                 | None -> Promise.empty)
-                            |> unbox
+                            |> Promise.catchEnd (fun error ->
+                                window.showErrorMessage error.Message
+                                |> ignore
+                            )
                         | _ -> undefined
                     | _ -> undefined
 
@@ -918,8 +924,12 @@ module SolutionExplorer =
                         | Some file ->
                             let file' = handleUntitled file
                             FsProjEdit.addFile proj file'
-                        | None -> Promise.empty)
-                    |> unbox
+                        | None -> Promise.empty
+                    )
+                    |> Promise.catchEnd (fun error ->
+                        window.showErrorMessage error.Message
+                        |> ignore
+                    )
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -950,7 +960,10 @@ module SolutionExplorer =
                             else
                                 Promise.empty
                         | None -> Promise.empty)
-                    |> unbox
+                    |> Promise.catchEnd (fun error ->
+                        window.showErrorMessage error.Message
+                        |> ignore
+                    )
                 | _ -> undefined)
         )
         |> context.Subscribe
