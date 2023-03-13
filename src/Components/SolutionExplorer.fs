@@ -662,6 +662,42 @@ module SolutionExplorer =
 
         window.showInputBox opts
 
+    /// <summary>
+    /// Try to find the parent project of a given model.
+    ///
+    /// Important: If the given model is a project, it will return the model itself.
+    /// </summary>
+    /// <param name="model">The model for which we want to retrieve the Parent project</param>
+    /// <returns>
+    /// <c>Some project</c> if a project is found.
+    ///
+    /// <c>None</c> otherwise.
+    /// </returns>
+    let rec private tryFindParentProject (model : Model) =
+        match model with
+        | Project _ -> Some model
+        | File(parent, _, _, _, _) ->
+            match parent.Value with
+            | Some parent -> tryFindParentProject parent
+            | None -> None
+        | Folder(parent, _, _, _, _) ->
+            match parent.Value with
+            | Some parent -> tryFindParentProject parent
+            | None -> None
+
+        | Workspace _
+        | Solution _
+        | WorkspaceFolder _
+        | PackageReferenceList _
+        | ProjectReferencesList _
+        | ProjectNotLoaded _
+        | ProjectLoading _
+        | ProjectFailedToLoad _
+        | ProjectNotRestored _
+        | ProjectLanguageNotSupported _
+        | PackageReference _
+        | ProjectReference _ -> None
+
     let newProject () =
         promise {
             let! templates = LanguageService.dotnetNewList ()
@@ -819,25 +855,32 @@ module SolutionExplorer =
         )
         |> context.Subscribe
 
-
         commands.registerCommand (
             "fsharp.explorer.addAbove",
             objfy2 (fun m ->
                 match unbox m with
-                | File(parent, _, name, Some virtPath, proj) ->
+                | File(parent, _, _, Some virtPath, _) ->
                     match parent.Value with
-                    | Some(Project(_, proj, _, files, _, _, _, _)) ->
-                        createNewFileDialg proj files "New file name, relative to selected file"
-                        |> Promise.ofThenable
-                        |> Promise.bind (fun file ->
-                            match file with
-                            | Some file ->
-                                let file' = handleUntitled file
-                                FsProjEdit.addFileAbove proj virtPath file'
-                            | None -> Promise.empty)
-                        |> unbox
-                    | _ -> undefined
-                | _ -> undefined)
+                    | Some model ->
+                        match tryFindParentProject model with
+                        | Some(Project(_, proj, _, files, _, _, _, _)) ->
+                            createNewFileDialg proj files "New file name, relative to selected file"
+                            |> Promise.ofThenable
+                            |> Promise.bind (fun file ->
+                                match file with
+                                | Some file ->
+                                    let file' = handleUntitled file
+                                    FsProjEdit.addFileAbove proj virtPath file'
+                                | None -> Promise.empty)
+                            |> Promise.catchEnd (fun error ->
+                                window.showErrorMessage error.Message
+                                |> ignore
+                            )
+                        | _ -> undefined
+                    | _ ->
+                        undefined
+                | _ ->
+                    undefined)
         )
         |> context.Subscribe
 
@@ -845,18 +888,24 @@ module SolutionExplorer =
             "fsharp.explorer.addBelow",
             objfy2 (fun m ->
                 match unbox m with
-                | File(parent, fr_om, name, Some virtPath, proj) ->
+                | File(parent, _, _, Some virtPath, _) ->
                     match parent.Value with
-                    | Some(Project(_, proj, _, files, _, _, _, _)) ->
-                        createNewFileDialg proj files "New file name, relative to selected file"
-                        |> Promise.ofThenable
-                        |> Promise.map (fun file ->
-                            match file with
-                            | Some file ->
-                                let file' = handleUntitled file
-                                FsProjEdit.addFileBelow proj virtPath file'
-                            | None -> Promise.empty)
-                        |> unbox
+                    | Some model ->
+                        match tryFindParentProject model with
+                        | Some(Project(_, proj, _, files, _, _, _, _)) ->
+                            createNewFileDialg proj files "New file name, relative to selected file"
+                            |> Promise.ofThenable
+                            |> Promise.map (fun file ->
+                                match file with
+                                | Some file ->
+                                    let file' = handleUntitled file
+                                    FsProjEdit.addFileBelow proj virtPath file'
+                                | None -> Promise.empty)
+                            |> Promise.catchEnd (fun error ->
+                                window.showErrorMessage error.Message
+                                |> ignore
+                            )
+                        | _ -> undefined
                     | _ -> undefined
 
                 | _ -> undefined)
@@ -875,8 +924,12 @@ module SolutionExplorer =
                         | Some file ->
                             let file' = handleUntitled file
                             FsProjEdit.addFile proj file'
-                        | None -> Promise.empty)
-                    |> unbox
+                        | None -> Promise.empty
+                    )
+                    |> Promise.catchEnd (fun error ->
+                        window.showErrorMessage error.Message
+                        |> ignore
+                    )
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -907,7 +960,10 @@ module SolutionExplorer =
                             else
                                 Promise.empty
                         | None -> Promise.empty)
-                    |> unbox
+                    |> Promise.catchEnd (fun error ->
+                        window.showErrorMessage error.Message
+                        |> ignore
+                    )
                 | _ -> undefined)
         )
         |> context.Subscribe
