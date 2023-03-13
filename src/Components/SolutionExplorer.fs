@@ -889,7 +889,10 @@ module SolutionExplorer =
                                     return null
                                 }
                             )
-                            |> unbox
+                            |> Promise.catchEnd (fun error ->
+                                window.showErrorMessage error.Message
+                                |> ignore
+                            )
                         | _ -> undefined
                     | _ ->
                         undefined
