@@ -683,6 +683,9 @@
           ],
           "description": "The set of System.Diagnostics.Activity names to watch.",
           "type": "array",
+          "items": {
+            "type": "string"
+          },
           "required": [
             "FSharp.notifications.trace"
           ]
