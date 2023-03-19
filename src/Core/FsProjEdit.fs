@@ -14,6 +14,9 @@ module FsProjEdit =
     let moveFileDownPath project file =
         LanguageService.fsprojMoveFileDown project file
 
+    let renameFile project file newFileName =
+        LanguageService.fsprojRenameFile project file newFileName
+
     let removeFilePath project file =
         LanguageService.fsprojRemoveFile project file
 

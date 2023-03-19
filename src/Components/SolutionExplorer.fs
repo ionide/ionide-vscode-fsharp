@@ -630,6 +630,14 @@ module SolutionExplorer =
 
         opts.validateInput <-
             fun userInput ->
+                // Add .fs extension if not present
+                // This is to mirror the logic from the command as we don't force
+                // user to provide the extension and auto add it if needed
+                // Maxime Mangel:
+                // I am not sure if this is the best way to do it because an fsproj
+                // can have other file extensions than .fs
+                let userInput = handleUntitled userInput
+
                 let fileExist =
                     existingFiles
                     |> List.tryFind (fun file ->
@@ -769,6 +777,15 @@ module SolutionExplorer =
             | None -> window.showErrorMessage ("No open folder.") |> ignore
         }
 
+    let private cleanTextEditorsDecorations (filePath : string) =
+
+        // VSCode seems to used Unix style paths
+        let normalizedPath = filePath.Replace("\\", "/")
+        let fileUri = vscode.Uri.parse $"file:///%s{normalizedPath}"
+
+        LineLens.removeDocument fileUri
+        PipelineHints.removeDocument fileUri
+
     let activate (context: ExtensionContext) =
         let emiter = vscode.EventEmitter.Create<_>()
         let rootChanged = vscode.EventEmitter.Create<Model>()
@@ -836,18 +853,49 @@ module SolutionExplorer =
                         // Need to compute the relative path from the project in order to match the user input
                         let relativeFilePathFromProject = node.path.relative (projDir, filePath)
 
-                        // Step 1. Remove file from the fsproj
                         do! FsProjEdit.removeFilePath proj relativeFilePathFromProject
 
-                        // Step 2. Clean text editor decorations
-
-                        // VSCode seems to used Unix style paths
-                        let normalizedPath = filePath.Replace("\\", "/")
-                        let fileUri = vscode.Uri.parse $"file:///%s{normalizedPath}"
-
-                        LineLens.removeDocument fileUri
-                        PipelineHints.removeDocument fileUri
+                        cleanTextEditorsDecorations filePath
                     }
+                | _ -> undefined
+                |> ignore
+
+                None)
+        )
+        |> context.Subscribe
+
+        commands.registerCommand (
+            "fsharp.explorer.renameFile",
+            objfy2 (fun m ->
+                match unbox m with
+                | File(parent, filePath, _, Some virtualPath, _) ->
+                    match parent.Value with
+                    | Some model ->
+                        match tryFindParentProject model with
+                        | Some(Project(_, proj, _, files, _, _, _, _)) ->
+                            createNewFileDialg proj files "Enter a new name"
+                            |> Promise.ofThenable
+                            |> Promise.bind (fun newFileNameOpt ->
+                                promise {
+                                    match newFileNameOpt with
+                                    | Some newFileName ->
+                                        let newFileName = handleUntitled newFileName
+
+                                        do! FsProjEdit.renameFile proj virtualPath newFileName
+
+                                        cleanTextEditorsDecorations filePath
+                                    | None -> ()
+
+                                    return null
+                                }
+                            )
+                            |> Promise.catchEnd (fun error ->
+                                window.showErrorMessage error.Message
+                                |> ignore
+                            )
+                        | _ -> undefined
+                    | _ ->
+                        undefined
                 | _ -> undefined
                 |> ignore
 
