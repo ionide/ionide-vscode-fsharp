@@ -196,8 +196,7 @@ module DecorationUpdate =
 
     let private getSignature (uri: Uri) (range: DTO.Range) =
         promise {
-            let! signaturesResult =
-                LanguageService.signatureData uri range.StartLine (range.StartColumn - 1)
+            let! signaturesResult = LanguageService.signatureData uri range.StartLine (range.StartColumn - 1)
 
             return signaturesResult |> Option.map (fun r -> range, formatSignature r.Data)
         }
@@ -223,7 +222,12 @@ module DecorationUpdate =
                 interesting
                 |> Array.map (getSignature uri)
                 |> Promise.allSettled
-                |> Promise.map (fun s -> s |> Array.choose (fun sv -> match sv.value with  | Some (Some v) -> Some v | _ -> None))
+                |> Promise.map (fun s ->
+                    s
+                    |> Array.choose (fun sv ->
+                        match sv.value with
+                        | Some(Some v) -> Some v
+                        | _ -> None))
 
             return signatures
         }
