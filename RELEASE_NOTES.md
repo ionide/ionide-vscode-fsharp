@@ -1,3 +1,13 @@
+### 7.5.2 - 19.03.2023
+
+* Update to FSAC 0.59.4 to get all the delightful new features and fixes. You can check the release notes for [0.59.2](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.59.2), [0.59.3](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.59.3) and [0.59.4](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.59.4) for more details.
+* Update Test Explorer feature to detect more kinds of test cases, and to nest them more reliably. Thanks @kojo12228 for digging into that!
+* Ionide should now support running on the .NET 8 previews, if you have those installed.
+* 'Related files' are now nested underneath their source files. By default this means that .fsi, .fs.js, and .fs.js.map files will be grouped with their matching .fs file in the tree, as will .fsi and .fs files with .fsl files, and .fsi and .fsi files with .fsy files. If you'd like to expand on this, check out the `explorer.fileNesting.patterns` setting! Thanks to @MangelMaxime for the work here!
+* Adding and removing files can now be done on folders, not just files. It can also be done from the Solution Explorer in a more correct way. Thanks again to @MangelMaxime for taking that on!
+* Also relating to file management - if there are errors doing this you'll now see them in a pop up notification, again courtesy of @MangelMaxime. @MangelMaxime for President!
+* @TheAngryByrd added support for for the `FSharp.fsac.cachedTypeCheckCount` property, which you can use to help control how much memory is dedicated to keeping typecheck results around. This defaults to 200, which _should_ be good for small-to-medium sized projects.
+
 ### 7.5.1 - 26.02.2023
 
 Same as 7.5.0, but republished to fix an issue with publishing.

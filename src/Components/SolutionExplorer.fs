@@ -681,7 +681,7 @@ module SolutionExplorer =
     ///
     /// <c>None</c> otherwise.
     /// </returns>
-    let rec private tryFindParentProject (model : Model) =
+    let rec private tryFindParentProject (model: Model) =
         match model with
         | Project _ -> Some model
         | File(parent, _, _, _, _) ->
@@ -777,7 +777,7 @@ module SolutionExplorer =
             | None -> window.showErrorMessage ("No open folder.") |> ignore
         }
 
-    let private cleanTextEditorsDecorations (filePath : string) =
+    let private cleanTextEditorsDecorations (filePath: string) =
 
         // VSCode seems to used Unix style paths
         let normalizedPath = filePath.Replace("\\", "/")
@@ -887,15 +887,10 @@ module SolutionExplorer =
                                     | None -> ()
 
                                     return null
-                                }
-                            )
-                            |> Promise.catchEnd (fun error ->
-                                window.showErrorMessage error.Message
-                                |> ignore
-                            )
+                                })
+                            |> Promise.catchEnd (fun error -> window.showErrorMessage error.Message |> ignore)
                         | _ -> undefined
-                    | _ ->
-                        undefined
+                    | _ -> undefined
                 | _ -> undefined
                 |> ignore
 
@@ -920,15 +915,10 @@ module SolutionExplorer =
                                     let file' = handleUntitled file
                                     FsProjEdit.addFileAbove proj virtPath file'
                                 | None -> Promise.empty)
-                            |> Promise.catchEnd (fun error ->
-                                window.showErrorMessage error.Message
-                                |> ignore
-                            )
+                            |> Promise.catchEnd (fun error -> window.showErrorMessage error.Message |> ignore)
                         | _ -> undefined
-                    | _ ->
-                        undefined
-                | _ ->
-                    undefined)
+                    | _ -> undefined
+                | _ -> undefined)
         )
         |> context.Subscribe
 
@@ -949,10 +939,7 @@ module SolutionExplorer =
                                     let file' = handleUntitled file
                                     FsProjEdit.addFileBelow proj virtPath file'
                                 | None -> Promise.empty)
-                            |> Promise.catchEnd (fun error ->
-                                window.showErrorMessage error.Message
-                                |> ignore
-                            )
+                            |> Promise.catchEnd (fun error -> window.showErrorMessage error.Message |> ignore)
                         | _ -> undefined
                     | _ -> undefined
 
@@ -972,12 +959,8 @@ module SolutionExplorer =
                         | Some file ->
                             let file' = handleUntitled file
                             FsProjEdit.addFile proj file'
-                        | None -> Promise.empty
-                    )
-                    |> Promise.catchEnd (fun error ->
-                        window.showErrorMessage error.Message
-                        |> ignore
-                    )
+                        | None -> Promise.empty)
+                    |> Promise.catchEnd (fun error -> window.showErrorMessage error.Message |> ignore)
                 | _ -> undefined)
         )
         |> context.Subscribe
@@ -1008,10 +991,7 @@ module SolutionExplorer =
                             else
                                 Promise.empty
                         | None -> Promise.empty)
-                    |> Promise.catchEnd (fun error ->
-                        window.showErrorMessage error.Message
-                        |> ignore
-                    )
+                    |> Promise.catchEnd (fun error -> window.showErrorMessage error.Message |> ignore)
                 | _ -> undefined)
         )
         |> context.Subscribe

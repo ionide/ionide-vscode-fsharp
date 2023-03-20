@@ -449,8 +449,7 @@ Consider:
                   OldFileVirtualPath = file
                   NewFileName = newFile }
 
-            cl.sendRequest ("fsproj/renameFile", req)
-            |> Promise.map ignore
+            cl.sendRequest ("fsproj/renameFile", req) |> Promise.map ignore
 
     let fsprojRemoveFile (fsproj: string) (file: string) =
         match client with
