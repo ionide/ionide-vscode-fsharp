@@ -522,7 +522,7 @@
           "description": "Appends the \u0027--attachdebugger\u0027 argument to fsac, this will allow you to attach a debugger.",
           "type": "boolean"
         },
-        "FSharp.fsac.cachedTypeCheckCount":  {
+        "FSharp.fsac.cachedTypeCheckCount": {
           "default": 200,
           "description": "The MemoryCacheOptions.SizeLimit for caching typechecks.",
           "type": "integer"
@@ -1651,5 +1651,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.5.1"
+  "version": "7.5.2"
 }
