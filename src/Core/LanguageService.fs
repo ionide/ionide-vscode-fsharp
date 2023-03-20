@@ -675,26 +675,39 @@ Consider:
                     |> Option.map fst
                     |> Option.defaultWith (fun () -> Seq.last availableTFMs)
 
-            let fsacPathForTfm (tfm: string) =
-                if String.IsNullOrEmpty fsacNetcorePath then
-                    let binPath = node.path.join (VSCodeExtension.ionidePluginPath (), "bin")
+            let probePathForTFMs (basePath: string) (tfm: string) =
+                let availableTFMs =
+                    node.fs.readdirSync (!!basePath)
+                    |> Seq.filter (fun p -> p.StartsWith "net") // there are loose files in the basePath, ignore those
+                    |> Seq.map node.path.basename
 
-                    let availableTFMs =
-                        node.fs.readdirSync (!!binPath)
-                        |> Seq.filter (fun p -> p.StartsWith "net") // there are loose files in the binpath, ignore those
-                        |> Seq.map node.path.basename
+                printfn $"Available FSAC TFMs: %A{availableTFMs}"
 
-                    printfn $"Available FSAC TFMs: %A{availableTFMs}"
-
-                    if availableTFMs |> Seq.contains tfm then
-                        printfn "TFM match found"
-                        node.path.join (binPath, tfm, "fsautocomplete.dll")
-                    else
-                        // find best-matching
-                        let tfm = findBestTFM availableTFMs tfm
-                        node.path.join (binPath, tfm, "fsautocomplete.dll")
+                if availableTFMs |> Seq.contains tfm then
+                    printfn "TFM match found"
+                    node.path.join (basePath, tfm, "fsautocomplete.dll")
                 else
-                    fsacNetcorePath
+                    // find best-matching
+                    let tfm = findBestTFM availableTFMs tfm
+                    node.path.join (basePath, tfm, "fsautocomplete.dll")
+
+            let fsacPathForTfm (tfm: string) =
+                match fsacNetcorePath with
+                | null | "" ->
+                    // user didn't specify a path, so use FSAC from our extension
+                    let binPath = node.path.join (VSCodeExtension.ionidePluginPath (), "bin")
+                    probePathForTFMs binPath tfm
+                | userSpecified ->
+                    if userSpecified.EndsWith ".dll" then userSpecified else
+                    // if dir has tfm folders, probe
+                    let filesAndFolders = node.fs.readdirSync (!!userSpecified)
+                    if filesAndFolders |> Seq.exists (fun f -> (node.path.basename f).StartsWith("net") && node.fs.statSync(!!f).isDirectory())
+                    then
+                        // tfm directories found, probe this directory like we would our own bin path
+                        probePathForTFMs userSpecified tfm
+                    else
+                        // no tfm paths, try to use `fsautocomplete.dll` from this directory
+                        node.path.join (userSpecified, "fsautocomplete.dll")
 
             let tfmForSdkVersion (v: SemVer) =
                 match int v.major, int v.minor with
