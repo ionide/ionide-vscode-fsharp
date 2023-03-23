@@ -679,7 +679,6 @@ Consider:
                 let availableTFMs =
                     node.fs.readdirSync (!!basePath)
                     |> Seq.filter (fun p -> p.StartsWith "net") // there are loose files in the basePath, ignore those
-                    |> Seq.map node.path.basename
 
                 printfn $"Available FSAC TFMs: %A{availableTFMs}"
 
@@ -691,6 +690,14 @@ Consider:
                     let tfm = findBestTFM availableTFMs tfm
                     node.path.join (basePath, tfm, "fsautocomplete.dll")
 
+            let isNetFolder (folder: string) =
+                printfn $"checking folder %s{folder}"
+                let baseName = node.path.basename folder
+                baseName.StartsWith("net")
+                &&
+                    let stat = node.fs.statSync(!!folder)
+                    stat.isDirectory()
+
             let fsacPathForTfm (tfm: string) =
                 match fsacNetcorePath with
                 | null | "" ->
@@ -700,8 +707,12 @@ Consider:
                 | userSpecified ->
                     if userSpecified.EndsWith ".dll" then userSpecified else
                     // if dir has tfm folders, probe
-                    let filesAndFolders = node.fs.readdirSync (!!userSpecified)
-                    if filesAndFolders |> Seq.exists (fun f -> (node.path.basename f).StartsWith("net") && node.fs.statSync(!!f).isDirectory())
+                    let filesAndFolders =
+                        node.fs.readdirSync (!!userSpecified)
+                        |> Seq.map (fun child -> node.path.join( [| userSpecified; child |]))
+
+                    printfn $"candidates: %A{filesAndFolders}"
+                    if filesAndFolders |> Seq.exists isNetFolder
                     then
                         // tfm directories found, probe this directory like we would our own bin path
                         probePathForTFMs userSpecified tfm
