@@ -248,7 +248,7 @@ Consider:
                   Position = { Line = line; Character = col } }
 
             cl.sendRequest ("fsharp/documentation", req)
-            |> Promise.map checkNotificationAndCast<Result<DocumentationDescription[][]>>
+            |> Promise.map checkNotificationAndCast<Result<DocumentationDescription>>
 
     let documentationForSymbol xmlSig assembly =
         match client with
@@ -259,7 +259,7 @@ Consider:
                   XmlSig = xmlSig }
 
             cl.sendRequest ("fsharp/documentationSymbol", req)
-            |> Promise.map checkNotificationAndCast<Result<DocumentationDescription[][]>>
+            |> Promise.map checkNotificationAndCast<Result<DocumentationDescription>>
 
     let signature (uri: Uri) line col =
         match client with
@@ -614,7 +614,10 @@ Consider:
             opts.revealOutputChannelOn <- Some Client.RevealOutputChannelOn.Never
 
             opts.initializationOptions <- Some !^(Some initOpts)
-            opts?markdown <- createObj [ "isTrusted" ==> true ]
+            opts?markdown <- createObj [
+                "isTrusted" ==> true
+                "supportHtml" ==> true
+            ]
 
             opts
 
