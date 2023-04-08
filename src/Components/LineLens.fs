@@ -195,8 +195,10 @@ module DecorationUpdate =
         textLine.range
 
     let private getSignature (uri: Uri) (range: DTO.Range) =
-        promise {
-            let! signaturesResult = LanguageService.signatureData uri range.StartLine (range.StartColumn - 1)
+        async {
+            let! signaturesResult =
+                LanguageService.signatureData uri range.StartLine (range.StartColumn - 1)
+                |> Async.AwaitPromise
 
             return signaturesResult |> Option.map (fun r -> range, formatSignature r.Data)
         }
@@ -221,13 +223,9 @@ module DecorationUpdate =
             let! signatures =
                 interesting
                 |> Array.map (getSignature uri)
-                |> Promise.allSettled
-                |> Promise.map (fun s ->
-                    s
-                    |> Array.choose (fun sv ->
-                        match sv.value with
-                        | Some(Some v) -> Some v
-                        | _ -> None))
+                |> Async.Sequential // Need to be sequential otherwise we'll flood the server with requests causing threapool exhaustion
+                |> Async.StartAsPromise
+                |> Promise.map (fun s -> s |> Array.choose (id))
 
             return signatures
         }
