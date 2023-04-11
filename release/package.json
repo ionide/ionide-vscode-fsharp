@@ -797,6 +797,11 @@
           "description": "Enables detection of unused declarations",
           "type": "boolean"
         },
+        "FSharp.addPrivateAccessModifier": {
+          "default": false,
+          "description": "Enables a codefix that adds a private access modifier",
+          "type": "boolean"
+        },
         "FSharp.unusedOpensAnalyzer": {
           "default": true,
           "description": "Enables detection of unused opens",
