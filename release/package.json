@@ -1584,6 +1584,12 @@
         }
       }
     ],
+    "snippets": [
+      {
+        "language": "fsharp",
+        "path": "./snippets.json"
+      }
+    ],
     "taskDefinitions": [
       {
         "properties": {},

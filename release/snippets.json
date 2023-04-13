@@ -1,0 +1,172 @@
+{
+    // Place your snippets for fsharp here. Each snippet is defined under a snippet name and has a prefix, body and 
+    // description. The prefix is what is used to trigger the snippet and the body will be expanded and inserted. Possible variables are:
+    // $1, $2 for tab stops, $0 for the final cursor position, and ${1:label}, ${2:another} for placeholders. Placeholders with the 
+    // same ids are connected.
+    // Example:
+    // "Print to console": {
+    // 	"prefix": "log",
+    // 	"body": [
+    // 		"console.log('$1');",
+    // 		"$2"
+    // 	],
+    // 	"description": "Log output to console"
+    // }
+    // Literals 
+    "Literal": {
+        "prefix": "literal",
+        "description": "value to be compiled as a constant",
+        "body": [
+            "let [<Literal>] ${1:identifier} = ${2:body-expression}"
+        ]
+    },
+    // Loops and conditionals
+    "For to loop": {
+        "prefix": [
+            "for-to"
+        ],
+        "description": "The for...to expression is used to iterate in a loop over a range of values of a loop variable.",
+        "body": [
+            "for ${1:identifier} = ${2:start} to ${3:finish} do",
+            "\t${4:body-expression}"
+        ]
+    },
+    "For in loop": {
+        "prefix": [
+            "for-in"
+        ],
+        "description": "This looping construct is used to iterate over the matches of a pattern in an enumerable collection such as a range expression, sequence, list, array, or other construct that supports enumeration.",
+        "body": [
+            "for ${1:identifier} in ${2:enumerable} do",
+            "\t${3:body-expression}"
+        ]
+    },
+    "While": {
+        "prefix": "while-do",
+        "description": "The while...do expression is used to perform iterative execution (looping) while a specified test condition is true.",
+        "body": [
+            "while ${1:test-expression} do",
+            "\t${2:body-expression}"
+        ]
+    },
+    // Pattern matching
+    "Active Pattern": {
+        "prefix": "active-pattern",
+        "description": "Active patterns enable you to define named partitions that subdivide input data, so that you can use these names in a pattern matching expression just as you would for a discriminated union. You can use active patterns to decompose data in a customized manner for each partition.",
+        "body": [
+            "let (|${1:identifier1}|${2:identifier2}|) ${3:valueToMatch} = ${4:expression}"
+        ]
+    },
+    "Partial Active Pattern": {
+        "prefix": "partial-active-pattern",
+        "description": "Sometimes, you need to partition only part of the input space. In that case, you write a set of partial patterns each of which match some inputs but fail to match other inputs. Active patterns that do not always produce a value are called partial active patterns; they have a return value that is an option type. To define a partial active pattern, you use a wildcard character (_) at the end of the list of patterns inside the banana clips. The following code illustrates the use of a partial active pattern.",
+        "body": [
+            "let (|${1:identifier1}|_|) ${2:valueToMatch} = ${3:expression}"
+        ]
+    },
+    // exception handling
+    "Try With": {
+        "prefix": "try-with",
+        "description": "The try...with expression is used to handle exceptions in a functional manner.",
+        "body": [
+            "try",
+            "\t${1:body-expression}",
+            "with",
+            "\t| ${2:exception-pattern} -> ${3:body-expression}"
+        ]
+    },
+    "Try Finally": {
+        "prefix": "try-finally",
+        "description": "The try...finally expression is used to execute a block of code regardless of whether an exception is thrown.",
+        "body": [
+            "try",
+            "\t${1:body-expression}",
+            "finally",
+            "\t${2:body-expression}"
+        ]
+    },
+
+    // records, discriminated unions, classes, structs
+    "record": {
+        "prefix": "record",
+        "description": "A record type is a reference type that encapsulates data in named fields. The fields of a record type can be mutable or immutable. The fields of a record type are accessed through properties that are generated automatically by the compiler.",
+        "body": [
+            "type ${1:type-name} =",
+            "\t{ ${2:field1} : ${3:type1}",
+            "\t  ${4:field2} : ${5:type2} }"
+        ]
+    },
+    "record-members": {
+        "prefix": "record-members",
+        "description": "A record type is a reference type that encapsulates data in named fields. The fields of a record type can be mutable or immutable. The fields of a record type are accessed through properties that are generated automatically by the compiler.",
+        "body": [
+            "type ${1:type-name} =",
+            "\t{ ${2:field1} : ${3:type1}",
+            "\t  ${4:field2} : ${5:type2} }",
+            "    member this.${6:member1} = ${7:body-expression}",
+            "    member this.${8:member2} = ${9:body-expression}"
+        ]
+    },
+    "record-struct": {
+        "prefix": "struct-record",
+        "description": "A record type is a reference type that encapsulates data in named fields. The fields of a record type can be mutable or immutable. The fields of a record type are accessed through properties that are generated automatically by the compiler.",
+        "body": [
+            "[<Struct>]",
+            "type ${1:type-name} =",
+            "\t{ ${2:field1} : ${3:type1}",
+            "\t  ${4:field2} : ${5:type2} }"
+        ]
+    },
+    "union-discriminated": {
+        "prefix": "discriminated-union",
+        "description": "A discriminated union type is a data type that can be one of a number of named cases, each with possibly different values and types. The cases of a discriminated union type are accessed through constructors that are generated automatically by the compiler.",
+        "body": [
+            "type ${1:type-name} =",
+            "\t| ${2:case1} of ${3:type1}",
+            "\t| ${4:case2} of ${5:type2}"
+        ]
+    },
+    "union-single-case": {
+        "prefix": "single-case-union",
+        "description": "A single case union is a discriminated union with only one case. This is useful when you want to give a name to a type that is otherwise ambiguous such as FirstName instead of string or Age instead of int.",
+        "body": [
+            "type ${1:type-name} =",
+            "\t| ${2:case1} of ${3:type1}"
+        ]
+    },
+    "unit-of-measure": {
+        "prefix": "unit-of-measure",
+        "description": "Floating point and signed integer values in F# can have associated units of measure, which are typically used to indicate length, volume, mass, and so on. By using quantities with units, you enable the compiler to verify that arithmetic relationships have the correct units, which helps prevent programming errors.",
+        "body" : [
+            "[<Measure>] type ${1:unit-name} = ${2:unit-symbol}"
+        ]
+    },
+    "class" : {
+        "prefix": "class",
+        "description": "Classes represent the fundamental description of .NET object types; the class is the primary type concept that supports object-oriented programming in F#",
+        "body": [
+            "type ${1:type-name} (${2:constructor-arguments}) =",
+            "\tmember this.${3:member-name1} = ${4:member-expression1}",
+            "\tmember this.${5:member-name2} = ${6:member-expression2}"
+        ]
+    },
+    "class-abstract" : {
+        "prefix": "abstract-class",
+        "description": "Classes represent the fundamental description of .NET object types; the class is the primary type concept that supports object-oriented programming in F#",
+        "body": [
+            "[<AbstractClass>]",
+            "type ${1:type-name} (${2:constructor-arguments}) =",
+            "\tabstract member this.${3:member-name1} : ${4:member-type1}",
+            "\tabstract member this.${5:member-name2} : ${6:member-type2}"
+        ]
+    },
+    "interface" : {
+        "prefix": "interface",
+        "description": "Interfaces are a way to define a set of operations that a type must implement. An interface is a type that is completely abstract, containing only signatures of operations that must be implemented by a type that implements the interface.",
+        "body": [
+            "type ${1:interface-name} =",
+            "\tabstract ${2:member-name1} : ${3:member-type2}",
+            "\tabstract ${4:member-name1} : ${5:member-type2}"
+        ]
+    }
+}
