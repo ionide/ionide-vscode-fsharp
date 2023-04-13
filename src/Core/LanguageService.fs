@@ -625,7 +625,7 @@ Consider:
     let getOptions (c: ExtensionContext) : JS.Promise<Executable> =
         promise {
             let enableAdaptiveLspServer =
-                "FSharp.enableAdaptiveLspServer" |> Configuration.get false
+                "FSharp.enableAdaptiveLspServer" |> Configuration.get true
 
             let openTelemetryEnabled = "FSharp.openTelemetry.enabled" |> Configuration.get false
 
