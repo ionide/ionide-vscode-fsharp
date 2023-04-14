@@ -20,8 +20,10 @@ github ionide/ionide-vscode-helpers:7da920c71e4f94240a55aabb555327ebef4b653d src
 
 group fsac
   source https://api.nuget.org/v3/index.json
+  source https://nuget.pkg.github.com/fsharp/index.json username: "%GITHUB_USERNAME%" password: "%GITHUB_PACKAGE_FSHARP_TOKEN%"
   storage: packages
   framework: netstandard2.0
+
   nuget fsautocomplete
 
 group build
