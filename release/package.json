@@ -1646,7 +1646,7 @@
   "description": "F# Language Support, powered by FsAutoComplete",
   "displayName": "Ionide for F#",
   "engines": {
-    "vscode": "^0.10.0"
+    "vscode": "^1.63.0"
   },
   "extensionDependencies": [
     "ms-dotnettools.csharp"

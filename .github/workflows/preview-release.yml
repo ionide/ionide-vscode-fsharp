@@ -6,13 +6,13 @@ on:
       - nightly
 
 jobs:
-  release:
+  preview-release:
     # this workflow is the same as the build workflow, up until artifact upload + publish
     runs-on: windows-latest # can be any, just picked windows
     env:
       GITHUB_USERNAME: "baronfel"
       GITHUB_PACKAGE_FSHARP_TOKEN: ${{ secrets.PACKAGE_FEED_FSHARP_TOKEN }}
-      
+
     steps:
     # manual triggers are detached HEADs, so we need to checkout the branch
     # to actually create + push a commit later on in the workflow
