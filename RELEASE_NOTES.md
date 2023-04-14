@@ -1,4 +1,4 @@
-### 7.6.0 - 14.04.2023
+### 7.6.1 - 14.04.2023
 
 Placeholder for nightly builds to use a preview version
 
