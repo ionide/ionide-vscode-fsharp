@@ -24,7 +24,7 @@ group fsac
   storage: packages
   framework: netstandard2.0
 
-  nuget fsautocomplete
+  nuget fsautocomplete prerelease
 
 group build
   source https://api.nuget.org/v3/index.json

@@ -241,5 +241,5 @@ GROUP fsac
 STORAGE: PACKAGES
 RESTRICTION: == netstandard2.0
 NUGET
-  remote: https://api.nuget.org/v3/index.json
-    fsautocomplete (0.59.4)
+  remote: https://nuget.pkg.github.com/fsharp/index.json
+    fsautocomplete (0.59.5-beta202304141501)
