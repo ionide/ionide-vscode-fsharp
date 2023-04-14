@@ -1,0 +1,52 @@
+name: Release
+
+on: 
+  push:
+    branches:
+      - nightly
+
+jobs:
+  release:
+    # this workflow is the same as the build workflow, up until artifact upload + publish
+    runs-on: windows-latest # can be any, just picked windows
+    env:
+      GITHUB_USERNAME: "baronfel"
+      GITHUB_PACKAGE_FSHARP_TOKEN: ${{ secrets.PACKAGE_FEED_FSHARP_TOKEN }}
+      
+    steps:
+    # manual triggers are detached HEADs, so we need to checkout the branch
+    # to actually create + push a commit later on in the workflow
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ github.head_ref }}
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v2
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+        cache: 'yarn'
+    - name: Restore tools
+      run: dotnet tool restore
+    - name: Run Test
+      run: dotnet run --project build -- -t BuildPackage
+    - name: upload artifact package
+      uses: actions/upload-artifact@v2
+      with:
+        name: ionide-fsharp-vscode-ext
+        path: release/
+    - name: Publish Release
+      env:
+        nuget-key: ${{ secrets.NUGET_KEY }}
+        github-pw: ${{ secrets.USER_TOKEN }}
+        vsce-token: ${{ secrets.VSCE_TOKEN }}
+        prerelease: true
+      run: dotnet run --project build -- -t Release
+    - name: Build OpenVsix package
+      run: dotnet run --project build -- -t BuildPackageOpenVsix
+    - name: Publish to Open VSX Registry
+      uses: HaaLeo/publish-vscode-extension@v1
+      id: publishToOpenVSX
+      with:
+        packagePath: "./release"
+        pat: ${{ secrets.OPEN_VSX_TOKEN }}
+        preRelease: true

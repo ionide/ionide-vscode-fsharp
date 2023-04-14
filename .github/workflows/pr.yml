@@ -2,8 +2,8 @@ name: Build Pull Requests
 
 on:
   push:
-   branches:
-     - '*'
+   branches-ignore:
+    - nightly
 
 jobs:
   build:

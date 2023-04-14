@@ -10,6 +10,7 @@ open Fake.Core.TargetOperators
 open Fake.Tools.Git
 open Fake.Api
 open System.Text.Json
+open Fake.Core
 
 // --------------------------------------------------------------------------------------
 // Configuration
@@ -180,9 +181,11 @@ let copyLib libDir releaseDir =
     Shell.copyFile releaseDir (libDir </> "libe_sqlite3.so")
     Shell.copyFile releaseDir (libDir </> "libe_sqlite3.dylib")
 
-let buildPackage dir =
+let buildPackage dir prerelease =
     Process.killAllByName "npx"
-    run npxTool.Value "@vscode/vsce package" dir
+    let args = "@vscode/vsce package"
+    let args = if prerelease then args + " --pre-release" else args
+    run npxTool.Value args dir
 
     !!(sprintf "%s/*.vsix" dir) |> Seq.iter (Shell.moveFile "./temp/")
 
@@ -200,14 +203,16 @@ let setVersion (release: ReleaseNotes.ReleaseNotes) releaseDir =
     let versionString = $"%O{release.NugetVersion}"
     setPackageJsonField "version" versionString releaseDir
 
-let publishToGallery releaseDir =
+let publishToGallery releaseDir prerelease =
     let token =
         match Environment.environVarOrDefault "vsce-token" "" with
         | s when not (String.IsNullOrWhiteSpace s) -> s
         | _ -> UserInput.getUserPassword "VSCE Token: "
 
     Process.killAllByName "npx"
-    run npxTool.Value (sprintf "@vscode/vsce publish --pat %s" token) releaseDir
+    let args = sprintf "@vscode/vsce publish --pat %s" token
+    let args = if prerelease then args + " --pre-release" else args
+    run npxTool.Value args releaseDir
 
 let ensureGitUser user email =
     match Fake.Tools.Git.CommandHelper.runGitCommand "." "config user.name" with
@@ -267,7 +272,7 @@ let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
 // --------------------------------------------------------------------------------------
 // Target definitions
 // --------------------------------------------------------------------------------------
-let initTargets () =
+let initTargets isPrerelease =
     Target.create "Clean" (fun _ ->
         Shell.cleanDir "./temp"
         Shell.cleanDir "./out" // used for fable output -> then bundled with webpack into release folder
@@ -335,7 +340,7 @@ let initTargets () =
 
         copyLib libDir releaseDir)
 
-    Target.create "BuildPackage" (fun _ -> buildPackage "release")
+    Target.create "BuildPackage" (fun _ -> buildPackage "release" isPrerelease)
 
     Target.create "BuildPackageOpenVsix" (fun _ ->
         let packageJsonPath = "release" </> "package.json"
@@ -348,7 +353,7 @@ let initTargets () =
 
     Target.create "SetVersion" (fun _ -> setVersion release "release")
 
-    Target.create "PublishToGallery" (fun _ -> publishToGallery "release")
+    Target.create "PublishToGallery" (fun _ -> publishToGallery "release" isPrerelease)
 
     Target.create "ReleaseGitHub" (fun _ -> releaseGithub release)
 
@@ -366,7 +371,7 @@ let initTargets () =
     Target.create "BuildDev" ignore
     Target.create "Release" ignore
 
-let buildTargetTree () =
+let buildTargetTree isPrerelease  =
     let (==>!) x y = x ==> y |> ignore
 
     "YarnInstall" ==>! "RunScript"
@@ -392,7 +397,7 @@ let buildTargetTree () =
     ==> "Build"
     ==> "SetVersion"
     ==> "BuildPackage"
-    ==> "ReleaseGitHub"
+    =?> ("ReleaseGitHub", not isPrerelease)
     ==> "PublishToGallery"
     ==>! "Release"
 
@@ -413,8 +418,10 @@ let main argv =
     |> Context.RuntimeContext.Fake
     |> Context.setExecutionContext
 
-    initTargets ()
-    buildTargetTree ()
+    let isPrerelease = Environment.environVarAsBoolOrDefault "prerelease" false
+
+    initTargets isPrerelease
+    buildTargetTree isPrerelease
 
     Target.runOrDefaultWithArguments "Default"
     0

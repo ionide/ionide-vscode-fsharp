@@ -1,3 +1,7 @@
+### 7.6.0 - 14.04.2023
+
+Placeholder for nightly builds to use a preview version
+
 ### 7.5.2 - 19.03.2023
 
 * Update to FSAC 0.59.4 to get all the delightful new features and fixes. You can check the release notes for [0.59.2](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.59.2), [0.59.3](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.59.3) and [0.59.4](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.59.4) for more details.
