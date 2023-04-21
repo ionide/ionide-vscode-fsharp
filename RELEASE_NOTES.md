@@ -1,3 +1,12 @@
+### 7.5.3 - 21.04.2023
+
+* Update to FSAC 0.59.6 to get all the delightful new features and fixes. You can check the release notes for [0.59.6](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.59.5).
+* Default to Adaptive LSP server!
+* Support using locally-built FSAC binaries more easily.
+* Don't overload FSAC with signature request. (thanks @TheAngryByrd)
+* Add a bunch of code snippets for F# (thanks @TheAngryByrd!)
+* Enhance how examples are shown in tooltips, and include command links that open Info Panel (thanks @MaximeMangel!)
+
 ### 7.5.2 - 19.03.2023
 
 * Update to FSAC 0.59.4 to get all the delightful new features and fixes. You can check the release notes for [0.59.2](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.59.2), [0.59.3](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.59.3) and [0.59.4](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.59.4) for more details.

@@ -614,10 +614,7 @@ Consider:
             opts.revealOutputChannelOn <- Some Client.RevealOutputChannelOn.Never
 
             opts.initializationOptions <- Some !^(Some initOpts)
-            opts?markdown <- createObj [
-                "isTrusted" ==> true
-                "supportHtml" ==> true
-            ]
+            opts?markdown <- createObj [ "isTrusted" ==> true; "supportHtml" ==> true ]
 
             opts
 
@@ -680,8 +677,7 @@ Consider:
 
             let probePathForTFMs (basePath: string) (tfm: string) =
                 let availableTFMs =
-                    node.fs.readdirSync (!!basePath)
-                    |> Seq.filter (fun p -> p.StartsWith "net") // there are loose files in the basePath, ignore those
+                    node.fs.readdirSync (!!basePath) |> Seq.filter (fun p -> p.StartsWith "net") // there are loose files in the basePath, ignore those
 
                 printfn $"Available FSAC TFMs: %A{availableTFMs}"
 
@@ -696,32 +692,35 @@ Consider:
             let isNetFolder (folder: string) =
                 printfn $"checking folder %s{folder}"
                 let baseName = node.path.basename folder
+
                 baseName.StartsWith("net")
-                &&
-                    let stat = node.fs.statSync(!!folder)
-                    stat.isDirectory()
+                && let stat = node.fs.statSync (!!folder) in
+                   stat.isDirectory ()
 
             let fsacPathForTfm (tfm: string) =
                 match fsacNetcorePath with
-                | null | "" ->
+                | null
+                | "" ->
                     // user didn't specify a path, so use FSAC from our extension
                     let binPath = node.path.join (VSCodeExtension.ionidePluginPath (), "bin")
                     probePathForTFMs binPath tfm
                 | userSpecified ->
-                    if userSpecified.EndsWith ".dll" then userSpecified else
-                    // if dir has tfm folders, probe
-                    let filesAndFolders =
-                        node.fs.readdirSync (!!userSpecified)
-                        |> Seq.map (fun child -> node.path.join( [| userSpecified; child |]))
-
-                    printfn $"candidates: %A{filesAndFolders}"
-                    if filesAndFolders |> Seq.exists isNetFolder
-                    then
-                        // tfm directories found, probe this directory like we would our own bin path
-                        probePathForTFMs userSpecified tfm
+                    if userSpecified.EndsWith ".dll" then
+                        userSpecified
                     else
-                        // no tfm paths, try to use `fsautocomplete.dll` from this directory
-                        node.path.join (userSpecified, "fsautocomplete.dll")
+                        // if dir has tfm folders, probe
+                        let filesAndFolders =
+                            node.fs.readdirSync (!!userSpecified)
+                            |> Seq.map (fun child -> node.path.join ([| userSpecified; child |]))
+
+                        printfn $"candidates: %A{filesAndFolders}"
+
+                        if filesAndFolders |> Seq.exists isNetFolder then
+                            // tfm directories found, probe this directory like we would our own bin path
+                            probePathForTFMs userSpecified tfm
+                        else
+                            // no tfm paths, try to use `fsautocomplete.dll` from this directory
+                            node.path.join (userSpecified, "fsautocomplete.dll")
 
             let tfmForSdkVersion (v: SemVer) =
                 match int v.major, int v.minor with

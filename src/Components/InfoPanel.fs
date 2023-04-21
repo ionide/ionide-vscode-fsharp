@@ -92,9 +92,7 @@ module InfoPanel =
 
                 let commentContent = res.Comment
 
-                let footerContent =
-                    res.FooterLines
-                    |> String.concat "\n\n"
+                let footerContent = res.FooterLines |> String.concat "\n\n"
 
                 let ctors =
                     res.Constructors
@@ -268,8 +266,7 @@ module InfoPanel =
         promise {
             match Panel.panel with
             | Some _ -> ()
-            | None ->
-                do! openPanel ()
+            | None -> do! openPanel ()
 
             do! Panel.updateOnLink !!o?XmlDocSig !!o?AssemblyName
         }
