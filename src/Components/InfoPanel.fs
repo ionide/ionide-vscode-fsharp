@@ -74,7 +74,7 @@ module InfoPanel =
 
         let mapContent res =
             if isNotNull res then
-                let res: DocumentationDescription = (res.Data |> Array.concat).[0]
+                let res: DocumentationDescription = res.Data
 
                 let fsharpBlock lines =
                     let cnt = (lines |> String.concat "\n")
@@ -85,24 +85,15 @@ module InfoPanel =
                         sprintf "<pre>\n%s\n</pre>" cnt
 
                 let sigContent =
-                    let lines =
-                        res.Signature
-                        |> String.split [| '\n' |]
-                        |> Array.filter (not << String.IsNullOrWhiteSpace)
-
-                    match lines |> Array.splitAt (lines.Length - 1) with
-                    | (h, [| StartsWith "Full name:" fullName |]) ->
-                        [| yield fsharpBlock h; yield "*" + fullName + "*" |]
-                    | _ -> [| fsharpBlock lines |]
-                    |> String.concat "\n"
+                    res.Signature
+                    |> String.split [| '\n' |]
+                    |> Array.filter (not << String.IsNullOrWhiteSpace)
+                    |> fsharpBlock
 
                 let commentContent = res.Comment
 
                 let footerContent =
-                    res.Footer
-                    |> String.split [| '\n' |]
-                    |> Array.filter (not << String.IsNullOrWhiteSpace)
-                    |> Array.map (fun n -> "*" + n + "*")
+                    res.FooterLines
                     |> String.concat "\n\n"
 
                 let ctors =
@@ -138,7 +129,7 @@ module InfoPanel =
                     |> fsharpBlock
 
                 let types =
-                    res.Types
+                    res.DeclaredTypes
                     |> List.filter (not << String.IsNullOrWhiteSpace)
                     |> List.distinct
                     |> fsharpBlock
@@ -271,8 +262,17 @@ module InfoPanel =
         | None -> openPanel () |> ignore
 
     let private showDocumentation o =
-        Panel.updateOnLink !!o?XmlDocSig !!o?AssemblyName
+        // If the panel doesn't exist, open it
+        // This happens when using click on "Open documentation" from inside
+        // the tooltip
+        promise {
+            match Panel.panel with
+            | Some _ -> ()
+            | None ->
+                do! openPanel ()
 
+            do! Panel.updateOnLink !!o?XmlDocSig !!o?AssemblyName
+        }
 
     let private selectionChanged (event: TextEditorSelectionChangeEvent) =
         let updateMode = "FSharp.infoPanelUpdate" |> Configuration.get "onCursorMove"

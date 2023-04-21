@@ -63,10 +63,10 @@ module DTO =
           Functions: string list
           Interfaces: string list
           Attributes: string list
-          Types: string list
+          DeclaredTypes: string list
           Signature: string
           Comment: string
-          Footer: string }
+          FooterLines: string list }
 
     type Error =
         {
