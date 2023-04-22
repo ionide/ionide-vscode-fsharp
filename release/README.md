@@ -23,7 +23,7 @@ The library that powers project and script loading is [proj-info](https://github
 
 # Requirements
 
-* .NET 6.0/7.0 SDK - https://dotnet.microsoft.com/download/dotnet/5.0
+* .NET 6.0/7.0 SDK - https://dotnet.microsoft.com/download/dotnet/7.0
 
 * VS Code C# plugin - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. 
 

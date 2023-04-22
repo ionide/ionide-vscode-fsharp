@@ -542,7 +542,7 @@
         },
         "FSharp.fsac.netCoreDllPath": {
           "default": "",
-          "description": "The path to the \u0027fsautocomplete.dll\u0027, a directory containing TFM-specific versions of fsautocomplete.dll, or a directory containing fsautocomplete.dll. Useful for debugging a self-built FSAC. If a DLL is specified, uses it directly. If a directory is specified and it contains TFM-specific folders (net6.0, net7.0, etc) then that directory will be probed for the best TFM to use for the current runtime. This is useful when working with a local copy of FSAC, you can point directly to the bin/Debug or bin/Release folder and it'll Just Work. Finally, if a directory is specified and there are no TFM paths, then fsautocomplete.dll from that directory is used. Requires restart.",
+          "description": "The path to the \u0027fsautocomplete.dll\u0027, a directory containing TFM-specific versions of fsautocomplete.dll, or a directory containing fsautocomplete.dll. Useful for debugging a self-built FSAC. If a DLL is specified, uses it directly. If a directory is specified and it contains TFM-specific folders (net6.0, net7.0, etc) then that directory will be probed for the best TFM to use for the current runtime. This is useful when working with a local copy of FSAC, you can point directly to the bin/Debug or bin/Release folder and it\u0027ll Just Work. Finally, if a directory is specified and there are no TFM paths, then fsautocomplete.dll from that directory is used. Requires restart.",
           "scope": "machine-overridable",
           "type": "string"
         },
@@ -1662,5 +1662,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.5.2"
+  "version": "7.5.3"
 }
