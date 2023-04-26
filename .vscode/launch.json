@@ -15,6 +15,7 @@
 			"sourceMaps": true,
 			"outFiles": [
 				"${workspaceFolder}/release/*.js",
+				"${workspaceFolder}/out/**/*.js",
 				"!**/node_modules/**"
 			],
 		},
@@ -34,6 +35,7 @@
 			"trace": true,
 			"outFiles": [
 				"${workspaceFolder}/release/*.js",
+				"${workspaceFolder}/out/**/*.js",
 				"!**/node_modules/**"
 			],
 		},
@@ -53,6 +55,7 @@
 			"trace": true,
 			"outFiles": [
 				"${workspaceFolder}/release/*.js",
+				"${workspaceFolder}/out/**/*.js",
 				"!**/node_modules/**"
 			],
 		},
@@ -65,7 +68,12 @@
 			],
 			"stopOnEntry": false,
 			"request": "launch",
-			"sourceMaps": true
+			"sourceMaps": true,
+			"outFiles": [
+				"${workspaceFolder}/release/*.js",
+				"${workspaceFolder}/out/**/*.js",
+				"!**/node_modules/**"
+			],
 		},
 	]
 }
