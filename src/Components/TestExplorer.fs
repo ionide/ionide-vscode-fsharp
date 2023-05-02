@@ -175,7 +175,12 @@ module DotnetTest =
                                 xpathSelector.SelectString
                                     $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@duration"
 
-                            TimeSpan.Parse(duration).TotalMilliseconds
+                            let success, ts = TimeSpan.TryParse(duration)
+
+                            if success then
+                                ts.TotalMilliseconds
+                            else
+                                Unchecked.defaultof<float>
 
                         let expected, actual =
                             match errorInfoMessage with
