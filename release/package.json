@@ -826,12 +826,6 @@
       "title": "F#",
       "type": "object"
     },
-    "debuggers": [
-      {
-        "label": "Ionide LaunchSettings",
-        "type": "coreclr"
-      }
-    ],
     "grammars": [
       {
         "language": "fsharp",

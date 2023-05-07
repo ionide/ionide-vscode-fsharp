@@ -1,3 +1,8 @@
+### 7.5.4 - 07.05.2023
+
+* Fix debug settings to not override coreclr from omnisharp.
+* Update Ionide TextMate grammar to pick up some fixes (Thanks @jkillingsworth!)
+
 ### 7.5.3 - 21.04.2023
 
 * Update to FSAC 0.59.6 to get all the delightful new features and fixes. You can check the release notes for [0.59.6](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.59.5).
