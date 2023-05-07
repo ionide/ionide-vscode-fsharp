@@ -26,8 +26,8 @@ module PipelineHintsConfig =
           // we can only enable the feature overall if it's explicitly enabled and
           // inline values are disabled (because inline values deliver the same functionality)
           enabled =
-              cfg.get ("FSharp.pipelineHints.enabled", defaultConfig.enabled)
-              && not (cfg.get ("FSharp.inlineValues.enabled", false))
+            cfg.get ("FSharp.pipelineHints.enabled", defaultConfig.enabled)
+            && not (cfg.get ("FSharp.inlineValues.enabled", false))
           prefix = cfg.get ("FSharp.pipelineHints.prefix", defaultConfig.prefix) }
 
 
