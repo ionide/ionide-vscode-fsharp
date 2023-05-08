@@ -344,23 +344,21 @@ module Debugger =
                         let tasks =
                             projects
                             |> List.collect (fun (p: Project) ->
-                                [
-                                    let projectFile = node.path.basename p.Project
+                                [ let projectFile = node.path.basename p.Project
 
-                                    let buildTaskForProject =
-                                        msbuildTasks
-                                        |> Seq.tryFind (fun t ->
-                                            t.group = Some vscode.TaskGroup.Build && t.name = projectFile)
-                                    // emit configurations for any launchsettings for this project
-                                    match readSettingsForProject p with
-                                    | Some launchSettings ->
-                                        yield! configsForProject (p, launchSettings, buildTaskForProject)
-                                    | None -> ()
-                                    // emit a default configuration for this project if it is an executable
-                                    match defaultConfigForProject (p, buildTaskForProject) with
-                                    | Some p -> yield p
-                                    | None -> ()
-                                ])
+                                  let buildTaskForProject =
+                                      msbuildTasks
+                                      |> Seq.tryFind (fun t ->
+                                          t.group = Some vscode.TaskGroup.Build && t.name = projectFile)
+                                  // emit configurations for any launchsettings for this project
+                                  match readSettingsForProject p with
+                                  | Some launchSettings ->
+                                      yield! configsForProject (p, launchSettings, buildTaskForProject)
+                                  | None -> ()
+                                  // emit a default configuration for this project if it is an executable
+                                  match defaultConfigForProject (p, buildTaskForProject) with
+                                  | Some p -> yield p
+                                  | None -> () ])
 
                         return ResizeArray tasks
                     }
