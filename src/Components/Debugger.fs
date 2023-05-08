@@ -337,14 +337,14 @@ module Debugger =
             override x.provideDebugConfigurations(folder: option<WorkspaceFolder>, token: option<CancellationToken>) =
                 let generate () =
                     promise {
-                        logger.Info $"Evaluating launch settings configurations for workspace '%A{folder}'"
+                        logger.Info("Evaluating launch settings configurations for %O", folder)
                         let projects = Project.getLoaded ()
                         let! msbuildTasks = tasks.fetchTasks (msbuildTasksFilter)
 
                         let tasks =
                             projects
-                            |> Seq.collect (fun (p: Project) ->
-                                seq {
+                            |> List.collect (fun (p: Project) ->
+                                [
                                     let projectFile = node.path.basename p.Project
 
                                     let buildTaskForProject =
@@ -360,16 +360,14 @@ module Debugger =
                                     match defaultConfigForProject (p, buildTaskForProject) with
                                     | Some p -> yield p
                                     | None -> ()
-                                })
+                                ])
 
                         return ResizeArray tasks
                     }
 
-                generate ()
-                |> Promise.map Some
-                |> Promise.toThenable
-                |> U2.Case2
-                |> ProviderResult.Some
+                generate () // this bix/unbox is a hack because JS types
+                |> box
+                |> unbox
 
             override x.resolveDebugConfiguration
                 (
@@ -377,7 +375,7 @@ module Debugger =
                     debugConfiguration: DebugConfiguration,
                     token: option<CancellationToken>
                 ) =
-                logger.Info $"Evaluating launch settings configurations for workspace2 '{folder}'"
+                logger.Info("Resolving launch settings configuration %O for %O", debugConfiguration, folder)
                 ProviderResult.Some(U2.Case1 debugConfiguration)
 
             override x.resolveDebugConfigurationWithSubstitutedVariables
@@ -386,7 +384,7 @@ module Debugger =
                     debugConfiguration: DebugConfiguration,
                     token: option<CancellationToken>
                 ) =
-                logger.Info $"Evaluating launch settings configurations for workspace3 '{folder}'"
+                logger.Info("Resolving subsituted launch settings configuration %O for %O", debugConfiguration, folder)
                 ProviderResult.Some(U2.Case1 debugConfiguration) }
 
     let activate (c: ExtensionContext) =
