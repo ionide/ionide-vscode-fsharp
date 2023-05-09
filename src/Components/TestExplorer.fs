@@ -19,6 +19,35 @@ let private outputChannel = window.createOutputChannel "F# - Test Adapter"
 let private logger =
     ConsoleAndOutputChannelLogger(Some "TestExplorer", Level.DEBUG, None, Some Level.DEBUG)
 
+module ArrayExt =
+    let intersectBy
+        (leftIdf: 'Left -> 'Id)
+        (rightIdf: 'Right -> 'Id)
+        (left: 'Left array)
+        (right: 'Right array)
+        : ('Left * 'Right) array =
+        let leftIdMap =
+            left
+            |> Array.map (fun l -> (leftIdf l, l))
+            |> dict
+            |> Collections.Generic.Dictionary
+
+        let rightIdMap =
+            right
+            |> Array.map (fun r -> (rightIdf r, r))
+            |> dict
+            |> Collections.Generic.Dictionary
+
+        let leftIds = set leftIdMap.Keys
+        let rightIds = set rightIdMap.Keys
+
+        let idToTuple id = (leftIdMap.[id], rightIdMap.[id])
+
+        let intersection = Set.intersect leftIds rightIds
+
+        intersection |> Array.ofSeq |> Array.map idToTuple
+
+
 type TestItemCollection with
 
     member x.TestItems() : TestItem array =
@@ -73,7 +102,11 @@ type TrxTestDef =
       TestName: string
       ClassName: string }
 
-    member self.FullName = $"{self.ClassName}.{self.TestName}"
+    member self.FullName =
+        if self.ClassName = "" then
+            self.TestName
+        else
+            $"{self.ClassName}.{self.TestName}"
 
 type TrxTestResult =
     { ExecutionId: string
@@ -139,7 +172,11 @@ module TrxParser =
           TestDef: TrxTestDef option
           Children: TrxTestDefHierarchy array }
 
-        member self.FullName = $"{self.Path}.{self.Name}"
+        member self.FullName =
+            if self.Path = "" then
+                self.Name
+            else
+                $"{self.Path}.{self.Name}"
 
 
     module TrxTestDefHierarchy =
@@ -218,21 +255,6 @@ module TrxParser =
           Timing = timing }
 
 
-
-module internal TestExplorerState =
-
-    module ProjectMap =
-        let mutable private _testToProjectMap =
-            new System.Collections.Generic.Dictionary<string, string>()
-
-        let mutable private _allProjects = Collections.Generic.HashSet<string>()
-        let addTests (projectPath: string) (testIds: string array) : unit = _allProjects.Add(projectPath) |> ignore
-        // Q: what info will I have for looking up. Just testItem id or could I use the trx test id?
-        let allProjects () = _allProjects |> Array.ofSeq
-
-        let ensureProject projectPath = _allProjects.Add(projectPath) |> ignore
-
-
 module DotnetTest =
 
     let private buildFilterFromTests (tests: TestWithFullName array) =
@@ -269,6 +291,7 @@ module DotnetTest =
                            projectWithTests.ProjectPath
                            // Project should already be built, perhaps we can point to the dll instead?
                            "--no-restore"
+                           "--no-build"
                            "--logger:\"trx;LogFileName=Ionide.trx\""
                            "--noLogo"
                            yield! filter |]
@@ -309,6 +332,13 @@ module DotnetTest =
               Actual = actual
               Timing = trxResult.Timing.Milliseconds }
 
+        let matchTrxWithTreeItems (treeItems: TestWithFullName array) (trxDefs: TrxTestDef array) =
+            let getTestId (t: TestWithFullName) = t.FullName
+            let getTrxId (t: TrxTestDef) = t.FullName
+
+            ArrayExt.intersectBy getTestId getTrxId treeItems trxDefs
+
+
         logger.Debug("Nunit project", projectWithTests)
 
         promise {
@@ -322,59 +352,11 @@ module DotnetTest =
 
             let testDefinitions = TrxParser.extractTestDefinitionsFromSelector xpathSelector
 
-            // I don't think I need the fold anymore since the hierarchy is based on the trx in the first place
-            // The tree should already account for testCases
 
-            let matchTrxWithTreeItems (treeItems: TestWithFullName array) (trxDefs: TrxTestDef array) =
-
-                let treeItemMap =
-                    treeItems
-                    |> Array.map (fun ti -> (ti.FullName, ti))
-                    |> dict
-                    |> Collections.Generic.Dictionary
-
-                let trxDefMap =
-                    trxDefs
-                    |> Array.map (fun trxDef -> (trxDef.FullName, trxDef))
-                    |> dict
-                    |> Collections.Generic.Dictionary
-
-                let treeItemKeys = set treeItemMap.Keys
-                let trxDefKeys = set trxDefMap.Keys
-
-                let idToTuple id = (treeItemMap.[id], trxDefMap.[id])
-
-                let intersection = Set.intersect treeItemKeys trxDefKeys
-
-                logger.Debug("Result Intersection")
-
-                intersection |> Array.ofSeq |> Array.map idToTuple
-
-            // logger.Debug("Test Definitions", testDefinitions)
-            // logger.Debug("Test Definitions", testDefinitions)
-
-            // let unmappedTests, mappedTests =
-            //     projectWithTests.Tests
-            //     |> Array.sortByDescending (fun t -> t.FullName)
-            //     |> Array.fold
-            //         (fun (trxDefs, mappedTests) (t) ->
-            //             let linkedTests, remainingTests =
-            //                 trxDefs
-            //                 |> Array.partition (fun (trxDef: TrxTestDef) -> trxDef.FullName.StartsWith t.FullName)
-
-            //             if Array.isEmpty linkedTests then
-            //                 remainingTests, mappedTests
-            //             else
-            //                 remainingTests, ([| yield! mappedTests; (t, linkedTests) |]))
-            //         (testDefinitions, [||])
-
-
-            // PICKUP: No tests are showing as mapped, why? Or can I just get around it?
             let matchedTests = matchTrxWithTreeItems projectWithTests.Tests testDefinitions
             logger.Debug("Mapped Tests", matchedTests)
 
-
-            let tests =
+            let testResults =
                 matchedTests
                 |> Array.map (fun (t, trxDef) -> trxDef |> trxDefToTrxResult xpathSelector |> trxResultToTestResult t)
 
@@ -383,99 +365,9 @@ module DotnetTest =
 
             return
                 { ProjectPath = projectWithTests.ProjectPath
-                  TestResults = tests }
+                  TestResults = testResults }
         }
 
-let rec mapTest
-    (tc: TestController)
-    (uri: Uri)
-    (moduleTypes: Collections.Generic.Dictionary<string, string>)
-    (parentNameId: string)
-    (t: TestAdapterEntry)
-    : TestItem =
-    let ti =
-        tc.createTestItem (
-            $"{uri.ToString()} -- {parentNameId} -- {Convert.ToBase64String(Encoding.UTF8.GetBytes(t.name))}",
-            t.name,
-            uri
-        )
-
-    ti.range <-
-        Some(
-            vscode.Range.Create(
-                vscode.Position.Create(t.range.start.line, t.range.start.character),
-                vscode.Position.Create(t.range.``end``.line, t.range.``end``.character)
-            )
-        )
-
-    moduleTypes.Add(ti.id, t.moduleType)
-
-    t.childs
-    |> Array.iter (fun n -> mapTest tc uri moduleTypes $"{parentNameId}.{t.name}" n |> ti.children.add)
-
-    ti?``type`` <- t.``type``
-    ti
-
-
-
-/// Build test projects and return the succeeded and failed projects
-let buildProjects (projects: ProjectWithTests array) : Thenable<ProjectWithTests array * ProjectWithTests array> =
-    let progressOpts = createEmpty<ProgressOptions>
-    progressOpts.location <- U2.Case1 ProgressLocation.Notification
-
-    window.withProgress (
-        progressOpts,
-        (fun progress _ctok ->
-            projects
-            |> Array.map (fun p ->
-                progress.report
-                    {| message = Some $"Building {p.ProjectPath}"
-                       increment = None |}
-
-                MSBuild.invokeMSBuild p.ProjectPath "Build" |> Promise.map (fun cpe -> p, cpe))
-            |> Promise.all
-            |> Promise.map (fun projects ->
-                let successfulBuilds =
-                    projects
-                    |> Array.choose (fun (project, { Code = code }) ->
-                        match code with
-                        | Some 0 -> Some project
-                        | _ -> None)
-
-                let failedBuilds =
-                    projects
-                    |> Array.choose (fun (project, { Code = code }) ->
-                        match code with
-                        | Some 0 -> None
-                        | _ -> Some project)
-
-                successfulBuilds, failedBuilds)
-            |> Promise.toThenable)
-    )
-
-let runTests (testRun: TestRun) (projects: ProjectWithTests array) : Thenable<ProjectWithTestResults array> =
-    // Indicate in the UI that all the tests are running.
-    Array.iter
-        (fun (project: ProjectWithTests) ->
-            Array.iter (fun (t: TestWithFullName) -> testRun.started t.Test) project.Tests)
-        projects
-
-    let progressOpts = createEmpty<ProgressOptions>
-    progressOpts.location <- U2.Case1 ProgressLocation.Notification
-
-    window.withProgress (
-        progressOpts,
-        (fun progress _ctok ->
-            projects
-            |> Array.map (fun project ->
-                progress.report
-                    {| message = Some $"Running tests for {project.ProjectPath}"
-                       increment = None |}
-
-                DotnetTest.runProject project)
-            |> Promise.all
-            |> Promise.toThenable)
-    )
 
 module TestRun =
     let showEnqueued (testRun: TestRun) (tests: TestItem array) =
@@ -510,126 +402,268 @@ module TestItem =
 
         visit root
 
-    let fromTrxDef
-        (testController: TestController)
-        projectPath
-        (node: TrxParser.TrxTestDefHierarchy)
-        children
+    type TestItemBuilder =
+        { id: string
+          label: string
+          uri: Uri option }
+
+    type TestItemFactory = TestItemBuilder -> TestItem
+
+    let itemFactoryForController (testController: TestController) =
+        (fun builder ->
+            match builder.uri with
+            | Some uri -> testController.createTestItem (builder.id, builder.label, uri)
+            | None -> testController.createTestItem (builder.id, builder.label))
+
+    let fromTrxDef (itemFactory: TestItemFactory) projectPath (trxDef: TrxParser.TrxTestDefHierarchy) : TestItem =
+        let rec recurse (trxDef: TrxParser.TrxTestDefHierarchy) =
+            let ti =
+                itemFactory
+                    { id = constructId projectPath trxDef.FullName
+                      label = trxDef.Name
+                      uri = None }
+
+            trxDef.Children |> Array.map recurse |> Array.iter ti.children.add
+
+            ti
+
+        recurse trxDef
+
+
+    let fromTestAdapter
+        (itemFactory: TestItemFactory)
+        (uri: Uri)
+        (projectPath: string)
+        (t: TestAdapterEntry)
         : TestItem =
-        let ti =
-            testController.createTestItem (constructId projectPath node.FullName, node.Name)
+        let rec recurse (parentFullName: string) (t: TestAdapterEntry) =
+            let fullName =
+                if parentFullName = "" then
+                    t.name
+                else
+                    $"{parentFullName}.{t.name}"
 
-        children |> Array.iter ti.children.add
+            let ti =
+                itemFactory
+                    { id = constructId projectPath fullName
+                      label = t.name
+                      uri = Some uri }
 
-        // ti.range <-
-        //     Some(
-        //         vscode.Range.Create(
-        //             vscode.Position.Create(t.range.start.line, t.range.start.character),
-        //             vscode.Position.Create(t.range.``end``.line, t.range.``end``.character)
-        //         )
-        //     )
+            ti.range <-
+                Some(
+                    vscode.Range.Create(
+                        vscode.Position.Create(t.range.start.line, t.range.start.character),
+                        vscode.Position.Create(t.range.``end``.line, t.range.``end``.character)
+                    )
+                )
 
-        // moduleTypes.Add(ti.id, t.moduleType)
+            t.childs |> Array.iter (fun n -> recurse fullName n |> ti.children.add)
 
-        // t.childs
-        // |> Array.iter (fun n -> mapTest testController uri moduleTypes $"{parentNameId}.{t.name}" n |> ti.children.add)
+            ti?``type`` <- t.``type``
+            ti
 
-        // ti?``type`` <- t.``type``
-        ti
-
-
-
-
-let runHandler
-    (tc: TestController)
-    (moduleTypes: Collections.Generic.Dictionary<string, string>)
-    (req: TestRunRequest)
-    (_ct: CancellationToken)
-    : U2<Thenable<unit>, unit> =
-
-    let displayTestResultInExplorer (testRun: TestRun) (testResult: TestResult) =
-        match testResult.Outcome with
-        | TestResultOutcome.NotExecuted -> testRun.skipped testResult.Test
-        | TestResultOutcome.Passed -> testRun.passed (testResult.Test, testResult.Timing)
-        | TestResultOutcome.Failed ->
-            let fullErrorMessage =
-                match testResult.ErrorMessage with
-                | Some em ->
-                    testResult.ErrorStackTrace
-                    |> Option.map (fun stackTrace -> sprintf "%s\n%s" em stackTrace)
-                    |> Option.defaultValue em
-                | None -> "No error reported"
-
-            let ti = testResult.Test
-            let msg = vscode.TestMessage.Create(!^fullErrorMessage)
-
-            match ti.uri, ti.range with
-            | Some uri, Some range -> msg.location <- Some(vscode.Location.Create(uri, !^range))
-            | _ -> ()
-
-            msg.expectedOutput <- testResult.Expected
-            msg.actualOutput <- testResult.Actual
-            testRun.failed (ti, !^msg, testResult.Timing)
+        recurse "" t
 
 
-    logger.Debug("Test run request", req)
-    let tr = tc.createTestRun req
-
-    if tc.items.size < 1. then
-        !! tr.``end`` ()
-    else
-
-        let getTestsToRun (includeFilter: ResizeArray<TestItem> option) =
-            let treeItemsToRun =
-                match includeFilter with
-                | Some includedTests -> includedTests |> Array.ofSeq
-                | None -> tc.TestItems()
-
-            treeItemsToRun
-            |> Array.collect TestItem.runnableItems
-            |> Array.map (fun (t) ->
-                { FullName = TestItem.getFullName t.id
-                  Test = t })
 
 
-        let projectsWithTests =
-            getTestsToRun req.``include``
-            |> Array.groupBy (fun twn -> TestItem.getProjectPath twn.Test.id)
-            |> Array.map (fun (projPath: string, tests) ->
-                { ProjectPath = projPath
-                  HasIncludeFilter = false
-                  Tests = tests })
+module Interactions =
+    /// Build test projects and return the succeeded and failed projects
+    let buildProjects (projects: ProjectWithTests array) : Thenable<ProjectWithTests array * ProjectWithTests array> =
+        let progressOpts = createEmpty<ProgressOptions>
+        progressOpts.location <- U2.Case1 ProgressLocation.Notification
 
-        logger.Debug("Found projects", projectsWithTests)
+        window.withProgress (
+            progressOpts,
+            (fun progress _ctok ->
+                projects
+                |> Array.map (fun p ->
+                    progress.report
+                        {| message = Some $"Building {p.ProjectPath}"
+                           increment = None |}
 
-        //TODO: need to actually set test states
-        projectsWithTests
-        |> Array.collect (fun pwt -> pwt.Tests |> Array.map (fun twn -> twn.Test))
-        |> TestRun.showEnqueued tr
+                    MSBuild.invokeMSBuild p.ProjectPath "Build" |> Promise.map (fun cpe -> p, cpe))
+                |> Promise.all
+                |> Promise.map (fun projects ->
+                    let successfulBuilds =
+                        projects
+                        |> Array.choose (fun (project, { Code = code }) ->
+                            match code with
+                            | Some 0 -> Some project
+                            | _ -> None)
 
-        logger.Debug("Test run list in projects", projectsWithTests)
+                    let failedBuilds =
+                        projects
+                        |> Array.choose (fun (project, { Code = code }) ->
+                            match code with
+                            | Some 0 -> None
+                            | _ -> Some project)
 
-        promise {
-            let! successfulProjects, failedProjects = buildProjects projectsWithTests
+                    successfulBuilds, failedBuilds)
+                |> Promise.toThenable)
+        )
 
-            // for projects that failed to build, mark their tests as failed
-            failedProjects
-            |> Array.iter (fun project ->
-                project.Tests
-                |> Array.iter (fun t -> tr.errored (t.Test, !^ vscode.TestMessage.Create(!^ "Project build failed"))))
+    let runTests (testRun: TestRun) (projects: ProjectWithTests array) : Thenable<ProjectWithTestResults array> =
+        // Indicate in the UI that all the tests are running.
+        Array.iter
+            (fun (project: ProjectWithTests) ->
+                Array.iter (fun (t: TestWithFullName) -> testRun.started t.Test) project.Tests)
+            projects
 
-            let! completedTestProjects = runTests tr successfulProjects
+        let progressOpts = createEmpty<ProgressOptions>
+        progressOpts.location <- U2.Case1 ProgressLocation.Notification
 
-            logger.Debug("Completed Test Projects", completedTestProjects)
+        window.withProgress (
+            progressOpts,
+            (fun progress _ctok ->
+                projects
+                |> Array.map (fun project ->
+                    progress.report
+                        {| message = Some $"Running tests for {project.ProjectPath}"
+                           increment = None |}
 
-            completedTestProjects
-            |> Array.iter (fun (project: ProjectWithTestResults) ->
-                project.TestResults |> Array.iter (displayTestResultInExplorer tr))
+                    DotnetTest.runProject project)
+                |> Promise.all
+                |> Promise.toThenable)
+        )
 
-            tr.``end`` ()
-        }
-        |> unbox
 
+    let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToken) : U2<Thenable<unit>, unit> =
+
+        let displayTestResultInExplorer (testRun: TestRun) (testResult: TestResult) =
+            match testResult.Outcome with
+            | TestResultOutcome.NotExecuted -> testRun.skipped testResult.Test
+            | TestResultOutcome.Passed -> testRun.passed (testResult.Test, testResult.Timing)
+            | TestResultOutcome.Failed ->
+                let fullErrorMessage =
+                    match testResult.ErrorMessage with
+                    | Some em ->
+                        testResult.ErrorStackTrace
+                        |> Option.map (fun stackTrace -> sprintf "%s\n%s" em stackTrace)
+                        |> Option.defaultValue em
+                    | None -> "No error reported"
+
+                let ti = testResult.Test
+                let msg = vscode.TestMessage.Create(!^fullErrorMessage)
+
+                match ti.uri, ti.range with
+                | Some uri, Some range -> msg.location <- Some(vscode.Location.Create(uri, !^range))
+                | _ -> ()
+
+                msg.expectedOutput <- testResult.Expected
+                msg.actualOutput <- testResult.Actual
+                testRun.failed (ti, !^msg, testResult.Timing)
+
+
+        logger.Debug("Test run request", req)
+        let tr = tc.createTestRun req
+
+        if tc.items.size < 1. then
+            !! tr.``end`` ()
+        else
+
+            let testsFromRunFilters (includeFilter: ResizeArray<TestItem> option) =
+                let treeItemsToRun =
+                    match includeFilter with
+                    | Some includedTests -> includedTests |> Array.ofSeq
+                    | None -> tc.TestItems()
+
+                treeItemsToRun |> Array.collect TestItem.runnableItems
+
+            let projectsWithTests =
+                testsFromRunFilters req.``include``
+                |> Array.map (fun (t) ->
+                    { FullName = TestItem.getFullName t.id
+                      Test = t })
+                |> Array.groupBy (fun twn -> TestItem.getProjectPath twn.Test.id)
+                |> Array.map (fun (projPath: string, tests) ->
+                    { ProjectPath = projPath
+                      HasIncludeFilter = false
+                      Tests = tests })
+
+            logger.Debug("Found projects", projectsWithTests)
+
+            projectsWithTests
+            |> Array.collect (fun pwt -> pwt.Tests |> Array.map (fun twn -> twn.Test))
+            |> TestRun.showEnqueued tr
+
+            logger.Debug("Test run list in projects", projectsWithTests)
+
+            promise {
+                let! successfulProjects, failedProjects = buildProjects projectsWithTests
+
+                // for projects that failed to build, mark their tests as failed
+                failedProjects
+                |> Array.iter (fun project ->
+                    project.Tests
+                    |> Array.iter (fun t ->
+                        tr.errored (t.Test, !^ vscode.TestMessage.Create(!^ "Project build failed"))))
+
+                let! completedTestProjects = runTests tr successfulProjects
+
+                logger.Debug("Completed Test Projects", completedTestProjects)
+
+                completedTestProjects
+                |> Array.iter (fun (project: ProjectWithTestResults) ->
+                    project.TestResults |> Array.iter (displayTestResultInExplorer tr))
+
+                tr.``end`` ()
+            }
+            |> unbox
+
+    let tryMergeCodeDiscoveredTests
+        (testItemFactory: TestItem.TestItemFactory)
+        (rootTestCollection: TestItemCollection)
+        (testsInFile: TestForFile)
+        =
+        let mergeLocations (targetCollection: TestItemCollection) (modified: TestItem array) : unit =
+            let getTestItemKey (t: TestItem) = t.id
+
+            let replaceItem (parentCollection: TestItemCollection) (testItem: TestItem) =
+                parentCollection.delete (testItem.id)
+                parentCollection.add (testItem)
+
+            let copyUri (target: TestItem, withUri: TestItem) =
+                let replacementItem =
+                    testItemFactory
+                        { id = target.id
+                          label = target.label
+                          uri = withUri.uri }
+
+                replacementItem.range <- withUri.range
+                replacementItem?``type`` <- withUri?``type``
+                target.children.forEach (fun ti _ -> replacementItem.children.add ti)
+                (replacementItem, withUri)
+
+            let rec recurse (target: TestItemCollection) (withUri: TestItem array) : unit =
+
+                let matches =
+                    ArrayExt.intersectBy getTestItemKey getTestItemKey (target.TestItems()) withUri
+
+                let updatedItems = matches |> Array.map copyUri
+
+                updatedItems
+                |> Array.iter (fun (replacement, _) -> replaceItem target replacement)
+
+                updatedItems
+                |> Array.iter (fun (target, withUri) -> recurse target.children (withUri.children.TestItems()))
+
+            recurse targetCollection modified
+
+        logger.Debug("Res", testsInFile)
+        let fileUri = vscode.Uri.parse (testsInFile.file, true)
+
+
+        match Project.tryFindLoadedProjectByFile fileUri.fsPath with
+        | None -> ()
+        | Some project ->
+            let treeItemsFromCode =
+                testsInFile.tests
+                |> Array.map (TestItem.fromTestAdapter testItemFactory fileUri project.Project)
+
+            logger.Debug("Res Mapped", treeItemsFromCode)
+            mergeLocations rootTestCollection (treeItemsFromCode)
+            logger.Debug("Merged tree items", (rootTestCollection.TestItems()))
 
 let activate (context: ExtensionContext) =
 
@@ -637,12 +671,12 @@ let activate (context: ExtensionContext) =
     let testController =
         tests.createTestController ("fsharp-test-controller", "F# Test Controller")
 
-    let moduleTypes = Collections.Generic.Dictionary<string, string>()
+    let testItemFactory = TestItem.itemFactoryForController testController
 
     testController.createRunProfile (
         "Run F# Tests",
         TestRunProfileKind.Run,
-        runHandler testController moduleTypes,
+        Interactions.runHandler testController,
         true
     )
     |> unbox
@@ -664,42 +698,19 @@ let activate (context: ExtensionContext) =
         testProjects
         |> Array.map (fun p -> (p, TrxParser.extractProjectTestDefinitions p))
 
-    let registerProjectTestsPairings ((projPath, tests): (string * TrxTestDef array)) =
-        tests
-        |> Array.map (fun t -> t.FullName)
-        |> (TestExplorerState.ProjectMap.addTests projPath)
-
-    trxTestsPerProject |> Array.iter registerProjectTestsPairings
-
     let treeItems =
         trxTestsPerProject
         |> Array.collect (fun (projPath, trxDefs) ->
-            TrxParser.inferHierarchy trxDefs
-            |> Array.map (TrxParser.TrxTestDefHierarchy.mapFoldBack (TestItem.fromTrxDef testController projPath)))
+            let heirarchy = TrxParser.inferHierarchy trxDefs
+            logger.Debug("Hierarchy", heirarchy)
+            heirarchy |> Array.map (TestItem.fromTrxDef testItemFactory projPath))
 
     logger.Debug("Tests", treeItems)
 
     treeItems |> Array.iter testController.items.add
 
-// Notifications.testDetected.Invoke(fun res ->
-
-//     logger.Debug("Res", res)
-
-//     let res =
-//         res.tests
-//         |> Array.map (mapTest testController (vscode.Uri.parse (res.file, true)) moduleTypes "")
-
-//     logger.Debug("Res Mapped", res)
-
-//     // res
-//     // |> Array.iter (fun testItem ->
-//     //     let parentOpt =
-//     //         testController.TestItems() |> Array.tryFind (fun i -> i.label = testItem.label)
-
-//     //     match parentOpt with
-//     //     | None -> testController.items.add testItem
-//     //     | Some parent -> testItem.children.forEach (fun childTestItem _ -> parent.children.add childTestItem))
-
-//     None)
-// |> unbox
-// |> context.subscriptions.Add
+    Notifications.testDetected.Invoke(fun testsForFile ->
+        Interactions.tryMergeCodeDiscoveredTests testItemFactory testController.items testsForFile
+        None)
+    |> unbox
+    |> context.subscriptions.Add
