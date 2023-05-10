@@ -257,6 +257,18 @@ module TrxParser =
 
 module DotnetTest =
 
+    let internal dotnetTest (projectPath: string) (additionalArgs: string array) =
+        Process.exec
+            "dotnet"
+            (ResizeArray(
+                [| "test"
+                   projectPath
+                   // Project should already be built, perhaps we can point to the dll instead?
+                   "--logger:\"trx;LogFileName=Ionide.trx\""
+                   "--noLogo"
+                   yield! additionalArgs |]
+            ))
+
     let private buildFilterFromTests (tests: TestWithFullName array) =
         let filterValue =
             tests
@@ -283,19 +295,7 @@ module DotnetTest =
             if filter.Length > 0 then
                 logger.Debug("Filter", filter)
 
-            let! _, _, exitCode =
-                Process.exec
-                    "dotnet"
-                    (ResizeArray(
-                        [| "test"
-                           projectWithTests.ProjectPath
-                           // Project should already be built, perhaps we can point to the dll instead?
-                           "--no-restore"
-                           "--no-build"
-                           "--logger:\"trx;LogFileName=Ionide.trx\""
-                           "--noLogo"
-                           yield! filter |]
-                    ))
+            let! _, _, exitCode = dotnetTest projectWithTests.ProjectPath [| "--no-build"; yield! filter |]
 
             logger.Debug("Test run exitCode", exitCode)
 
@@ -685,32 +685,54 @@ let activate (context: ExtensionContext) =
     //    testController.createRunProfile ("Debug F# Tests", TestRunProfileKind.Debug, runHandler testController, true)
     //    |> unbox
     //    |> context.subscriptions.Add
+    let discoverTests () =
+        let allProjects = Project.getAll () |> Array.ofList
 
-    let allProjects = Project.getAll () |> Array.ofList
+        let testProjects =
+            allProjects |> Array.filter (TrxParser.tryGetTrxPath >> Option.isSome)
 
-    let testProjects =
-        allProjects |> Array.filter (TrxParser.tryGetTrxPath >> Option.isSome)
+        logger.Debug("Projects", allProjects)
+        logger.Debug("Test Projects", testProjects)
 
-    logger.Debug("Projects", allProjects)
-    logger.Debug("Test Projects", testProjects)
+        let trxTestsPerProject =
+            testProjects
+            |> Array.map (fun p -> (p, TrxParser.extractProjectTestDefinitions p))
 
-    let trxTestsPerProject =
-        testProjects
-        |> Array.map (fun p -> (p, TrxParser.extractProjectTestDefinitions p))
+        let treeItems =
+            trxTestsPerProject
+            |> Array.collect (fun (projPath, trxDefs) ->
+                let heirarchy = TrxParser.inferHierarchy trxDefs
+                logger.Debug("Hierarchy", heirarchy)
+                heirarchy |> Array.map (TestItem.fromTrxDef testItemFactory projPath))
 
-    let treeItems =
-        trxTestsPerProject
-        |> Array.collect (fun (projPath, trxDefs) ->
-            let heirarchy = TrxParser.inferHierarchy trxDefs
-            logger.Debug("Hierarchy", heirarchy)
-            heirarchy |> Array.map (TestItem.fromTrxDef testItemFactory projPath))
+        logger.Debug("Tests", treeItems)
 
-    logger.Debug("Tests", treeItems)
+        treeItems
 
-    treeItems |> Array.iter testController.items.add
+    let initialTests = discoverTests ()
+    initialTests |> Array.iter testController.items.add
 
     Notifications.testDetected.Invoke(fun testsForFile ->
         Interactions.tryMergeCodeDiscoveredTests testItemFactory testController.items testsForFile
         None)
     |> unbox
     |> context.subscriptions.Add
+
+    let refreshTestList (testController: TestController) =
+        promise {
+            let! _ =
+                Project.getAll ()
+                |> List.map (fun p -> DotnetTest.dotnetTest p [||])
+                |> Promise.Parallel
+            // I could really split this by project
+            let newTests = discoverTests () |> ResizeArray
+            testController.items.replace newTests
+        }
+
+    let refreshHandler cancellationToken =
+        refreshTestList testController |> Promise.toThenable |> (!^)
+
+    testController.refreshHandler <- Some refreshHandler
+
+    if Array.isEmpty initialTests then
+        refreshTestList testController |> Promise.start
