@@ -373,20 +373,40 @@ module TestRun =
     let showEnqueued (testRun: TestRun) (tests: TestItem array) =
         tests |> Array.iter (fun (test) -> testRun.enqueued test)
 
+
+type TestId = string
+
+type LocationRecord = { Uri: Uri; Range: Range option }
+
+type CodeLocationCache() =
+    let locationCache = Collections.Generic.Dictionary<TestId, LocationRecord>()
+
+    member _.Save(testId: TestId, location: LocationRecord) = locationCache.Add(testId, location)
+
+    member _.GetById(testId: TestId) = locationCache.TryGet testId
+
+    member _.DeleteByFile(uri) =
+        for kvp in locationCache do
+            if kvp.Value.Uri = uri then
+                locationCache.Remove(kvp.Key) |> ignore
+
+
+
+
 module TestItem =
 
     let private idSeparator = " -- "
 
-    let constructId (projectPath: string) (fullName: string) =
+    let constructId (projectPath: string) (fullName: string) : TestId =
         String.Join(idSeparator, [| projectPath; fullName |])
 
-    let getFullName (testId: string) =
+    let getFullName (testId: TestId) =
         let split =
             testId.Split(separator = [| idSeparator |], options = StringSplitOptions.None)
 
         split.[1]
 
-    let getProjectPath (testId: string) =
+    let getProjectPath (testId: TestId) =
         let split =
             testId.Split(separator = [| idSeparator |], options = StringSplitOptions.None)
 
@@ -402,8 +422,16 @@ module TestItem =
 
         visit root
 
+    let preWalk f (root: TestItem) =
+        let rec recurse (t: TestItem) =
+            let mapped = f t
+            let mappedChildren = t.children.TestItems() |> Array.collect recurse
+            Array.concat [ [| mapped |]; mappedChildren ]
+
+        recurse root
+
     type TestItemBuilder =
-        { id: string
+        { id: TestId
           label: string
           uri: Uri option }
 
@@ -415,15 +443,24 @@ module TestItem =
             | Some uri -> testController.createTestItem (builder.id, builder.label, uri)
             | None -> testController.createTestItem (builder.id, builder.label))
 
-    let fromTrxDef (itemFactory: TestItemFactory) projectPath (trxDef: TrxParser.TrxTestDefHierarchy) : TestItem =
+    let fromTrxDef
+        (itemFactory: TestItemFactory)
+        (tryGetLocation: TestId -> LocationRecord option)
+        projectPath
+        (trxDef: TrxParser.TrxTestDefHierarchy)
+        : TestItem =
         let rec recurse (trxDef: TrxParser.TrxTestDefHierarchy) =
+            let id = constructId projectPath trxDef.FullName
+            let location = tryGetLocation id
+
             let ti =
                 itemFactory
-                    { id = constructId projectPath trxDef.FullName
+                    { id = id
                       label = trxDef.Name
-                      uri = None }
+                      uri = location |> Option.map (fun l -> l.Uri) }
 
             trxDef.Children |> Array.map recurse |> Array.iter ti.children.add
+            ti.range <- location |> Option.map (fun l -> !!l.Range)
 
             ti
 
@@ -464,7 +501,30 @@ module TestItem =
 
         recurse "" t
 
+    let tryFromTestForFile (testItemFactory: TestItemFactory) (testsForFile: TestForFile) =
+        let fileUri = vscode.Uri.parse (testsForFile.file, true)
 
+        Project.tryFindLoadedProjectByFile fileUri.fsPath
+        |> Option.map (fun project ->
+            testsForFile.tests
+            |> Array.map (fromTestAdapter testItemFactory fileUri project.Project))
+
+
+module CodeLocationCache =
+    let cacheTestLocations (locationCache: CodeLocationCache) (filePath: string) (testItems: TestItem array) =
+        let fileUri = vscode.Uri.parse (filePath, true)
+        locationCache.DeleteByFile(fileUri)
+
+        let testToLocation (testItem: TestItem) =
+            match testItem.uri with
+            | None -> None
+            | Some uri -> Some { Uri = uri; Range = !!testItem.range }
+
+        let saveTestItem (testItem: TestItem) =
+            testToLocation testItem
+            |> Option.iter (fun l -> locationCache.Save(testItem.id, l))
+
+        testItems |> Array.map (TestItem.preWalk saveTestItem) |> ignore
 
 
 module Interactions =
@@ -614,7 +674,7 @@ module Interactions =
     let tryMergeCodeDiscoveredTests
         (testItemFactory: TestItem.TestItemFactory)
         (rootTestCollection: TestItemCollection)
-        (testsInFile: TestForFile)
+        (testsFromCode: TestItem array)
         =
         let mergeLocations (targetCollection: TestItemCollection) (modified: TestItem array) : unit =
             let getTestItemKey (t: TestItem) = t.id
@@ -650,20 +710,8 @@ module Interactions =
 
             recurse targetCollection modified
 
-        logger.Debug("Res", testsInFile)
-        let fileUri = vscode.Uri.parse (testsInFile.file, true)
-
-
-        match Project.tryFindLoadedProjectByFile fileUri.fsPath with
-        | None -> ()
-        | Some project ->
-            let treeItemsFromCode =
-                testsInFile.tests
-                |> Array.map (TestItem.fromTestAdapter testItemFactory fileUri project.Project)
-
-            logger.Debug("Res Mapped", treeItemsFromCode)
-            mergeLocations rootTestCollection (treeItemsFromCode)
-            logger.Debug("Merged tree items", (rootTestCollection.TestItems()))
+        logger.Debug("Res", testsFromCode)
+        mergeLocations rootTestCollection testsFromCode
 
 let activate (context: ExtensionContext) =
 
@@ -672,6 +720,7 @@ let activate (context: ExtensionContext) =
         tests.createTestController ("fsharp-test-controller", "F# Test Controller")
 
     let testItemFactory = TestItem.itemFactoryForController testController
+    let locationCache = CodeLocationCache()
 
     testController.createRunProfile (
         "Run F# Tests",
@@ -703,7 +752,9 @@ let activate (context: ExtensionContext) =
             |> Array.collect (fun (projPath, trxDefs) ->
                 let heirarchy = TrxParser.inferHierarchy trxDefs
                 logger.Debug("Hierarchy", heirarchy)
-                heirarchy |> Array.map (TestItem.fromTrxDef testItemFactory projPath))
+
+                heirarchy
+                |> Array.map (TestItem.fromTrxDef testItemFactory locationCache.GetById projPath))
 
         logger.Debug("Tests", treeItems)
 
@@ -713,7 +764,14 @@ let activate (context: ExtensionContext) =
     initialTests |> Array.iter testController.items.add
 
     Notifications.testDetected.Invoke(fun testsForFile ->
-        Interactions.tryMergeCodeDiscoveredTests testItemFactory testController.items testsForFile
+
+        let onTestCodeMapped (testsFromCode: TestItem array) =
+            Interactions.tryMergeCodeDiscoveredTests testItemFactory testController.items testsFromCode
+            CodeLocationCache.cacheTestLocations locationCache testsForFile.file testsFromCode
+
+        TestItem.tryFromTestForFile testItemFactory testsForFile
+        |> Option.iter onTestCodeMapped
+
         None)
     |> unbox
     |> context.subscriptions.Add
