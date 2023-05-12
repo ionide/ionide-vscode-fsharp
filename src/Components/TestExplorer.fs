@@ -376,7 +376,8 @@ module TestRun =
 
 type TestId = string
 
-type LocationRecord = { Uri: Uri; Range: Range option }
+type LocationRecord =
+    { Uri: Uri; Range: Vscode.Range option }
 
 type CodeLocationCache() =
     let locationCache = Collections.Generic.Dictionary<TestId, LocationRecord>()
@@ -433,15 +434,26 @@ module TestItem =
     type TestItemBuilder =
         { id: TestId
           label: string
-          uri: Uri option }
+          uri: Uri option
+          range: Vscode.Range option
+          children: TestItem array }
 
     type TestItemFactory = TestItemBuilder -> TestItem
 
     let itemFactoryForController (testController: TestController) =
-        (fun builder ->
-            match builder.uri with
-            | Some uri -> testController.createTestItem (builder.id, builder.label, uri)
-            | None -> testController.createTestItem (builder.id, builder.label))
+        let factory builder =
+            let testItem =
+                match builder.uri with
+                | Some uri -> testController.createTestItem (builder.id, builder.label, uri)
+                | None -> testController.createTestItem (builder.id, builder.label)
+
+            builder.children |> Array.iter testItem.children.add
+            testItem.range <- builder.range
+
+            testItem
+
+        factory
+
 
     let fromTrxDef
         (itemFactory: TestItemFactory)
@@ -453,16 +465,12 @@ module TestItem =
             let id = constructId projectPath trxDef.FullName
             let location = tryGetLocation id
 
-            let ti =
-                itemFactory
-                    { id = id
-                      label = trxDef.Name
-                      uri = location |> Option.map (fun l -> l.Uri) }
-
-            trxDef.Children |> Array.map recurse |> Array.iter ti.children.add
-            ti.range <- location |> Option.map (fun l -> !!l.Range)
-
-            ti
+            itemFactory
+                { id = id
+                  label = trxDef.Name
+                  uri = location |> Option.map (fun l -> l.Uri)
+                  range = location |> Option.bind (fun l -> l.Range)
+                  children = trxDef.Children |> Array.map recurse }
 
         recurse trxDef
 
@@ -480,13 +488,7 @@ module TestItem =
                 else
                     $"{parentFullName}.{t.name}"
 
-            let ti =
-                itemFactory
-                    { id = constructId projectPath fullName
-                      label = t.name
-                      uri = Some uri }
-
-            ti.range <-
+            let range =
                 Some(
                     vscode.Range.Create(
                         vscode.Position.Create(t.range.start.line, t.range.start.character),
@@ -494,7 +496,13 @@ module TestItem =
                     )
                 )
 
-            t.childs |> Array.iter (fun n -> recurse fullName n |> ti.children.add)
+            let ti =
+                itemFactory
+                    { id = constructId projectPath fullName
+                      label = t.name
+                      uri = Some uri
+                      range = range
+                      children = t.childs |> Array.map (fun n -> recurse fullName n) }
 
             ti?``type`` <- t.``type``
             ti
@@ -688,11 +696,11 @@ module Interactions =
                     testItemFactory
                         { id = target.id
                           label = target.label
-                          uri = withUri.uri }
+                          uri = withUri.uri
+                          range = withUri.range
+                          children = target.children.TestItems() }
 
-                replacementItem.range <- withUri.range
                 replacementItem?``type`` <- withUri?``type``
-                target.children.forEach (fun ti _ -> replacementItem.children.add ti)
                 (replacementItem, withUri)
 
             let rec recurse (target: TestItemCollection) (withUri: TestItem array) : unit =
@@ -713,28 +721,7 @@ module Interactions =
         logger.Debug("Res", testsFromCode)
         mergeLocations rootTestCollection testsFromCode
 
-let activate (context: ExtensionContext) =
-
-
-    let testController =
-        tests.createTestController ("fsharp-test-controller", "F# Test Controller")
-
-    let testItemFactory = TestItem.itemFactoryForController testController
-    let locationCache = CodeLocationCache()
-
-    testController.createRunProfile (
-        "Run F# Tests",
-        TestRunProfileKind.Run,
-        Interactions.runHandler testController,
-        true
-    )
-    |> unbox
-    |> context.subscriptions.Add
-
-    //    testController.createRunProfile ("Debug F# Tests", TestRunProfileKind.Debug, runHandler testController, true)
-    //    |> unbox
-    //    |> context.subscriptions.Add
-    let discoverTests () =
+    let discoverTests testItemFactory (locationCache: CodeLocationCache) () =
         let allProjects = Project.getAll () |> Array.ofList
 
         let testProjects =
@@ -760,6 +747,42 @@ let activate (context: ExtensionContext) =
 
         treeItems
 
+    let refreshTestList (testController: TestController) locationCache =
+        let testItemFactory = TestItem.itemFactoryForController testController
+
+        promise {
+            let! _ =
+                Project.getAll ()
+                |> List.map (fun p -> DotnetTest.dotnetTest p [||])
+                |> Promise.Parallel
+            // I could really split this by project
+            let newTests = discoverTests testItemFactory locationCache () |> ResizeArray
+            testController.items.replace newTests
+        }
+
+let activate (context: ExtensionContext) =
+
+
+    let testController =
+        tests.createTestController ("fsharp-test-controller", "F# Test Controller")
+
+    let testItemFactory = TestItem.itemFactoryForController testController
+    let locationCache = CodeLocationCache()
+
+    testController.createRunProfile (
+        "Run F# Tests",
+        TestRunProfileKind.Run,
+        Interactions.runHandler testController,
+        true
+    )
+    |> unbox
+    |> context.subscriptions.Add
+
+    //    testController.createRunProfile ("Debug F# Tests", TestRunProfileKind.Debug, runHandler testController, true)
+    //    |> unbox
+    //    |> context.subscriptions.Add
+
+    let discoverTests = Interactions.discoverTests testItemFactory locationCache
     let initialTests = discoverTests ()
     initialTests |> Array.iter testController.items.add
 
@@ -776,21 +799,13 @@ let activate (context: ExtensionContext) =
     |> unbox
     |> context.subscriptions.Add
 
-    let refreshTestList (testController: TestController) =
-        promise {
-            let! _ =
-                Project.getAll ()
-                |> List.map (fun p -> DotnetTest.dotnetTest p [||])
-                |> Promise.Parallel
-            // I could really split this by project
-            let newTests = discoverTests () |> ResizeArray
-            testController.items.replace newTests
-        }
 
     let refreshHandler cancellationToken =
-        refreshTestList testController |> Promise.toThenable |> (!^)
+        Interactions.refreshTestList testController locationCache
+        |> Promise.toThenable
+        |> (!^)
 
     testController.refreshHandler <- Some refreshHandler
 
     if Array.isEmpty initialTests then
-        refreshTestList testController |> Promise.start
+        Interactions.refreshTestList testController locationCache |> Promise.start
