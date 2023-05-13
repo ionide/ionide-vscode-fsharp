@@ -20,12 +20,13 @@ let private logger =
     ConsoleAndOutputChannelLogger(Some "TestExplorer", Level.DEBUG, None, Some Level.DEBUG)
 
 module ArrayExt =
-    let intersectBy
+
+    let venn
         (leftIdf: 'Left -> 'Id)
         (rightIdf: 'Right -> 'Id)
         (left: 'Left array)
         (right: 'Right array)
-        : ('Left * 'Right) array =
+        : ('Left array * ('Left * 'Right) array * 'Right array) =
         let leftIdMap =
             left
             |> Array.map (fun l -> (leftIdf l, l))
@@ -41,11 +42,40 @@ module ArrayExt =
         let leftIds = set leftIdMap.Keys
         let rightIds = set rightIdMap.Keys
 
-        let idToTuple id = (leftIdMap.[id], rightIdMap.[id])
 
         let intersection = Set.intersect leftIds rightIds
 
-        intersection |> Array.ofSeq |> Array.map idToTuple
+        let idToTuple id = (leftIdMap.[id], rightIdMap.[id])
+        let intersectionPairs = intersection |> Array.ofSeq |> Array.map idToTuple
+
+        let leftExclusiveIds = Set.difference leftIds intersection
+        let rightExclusiveIds = Set.difference rightIds intersection
+
+        let dictGet (dict: Collections.Generic.Dictionary<'Id, 'T>) id = dict.[id]
+        let leftExclusive = leftExclusiveIds |> Array.ofSeq |> Array.map (dictGet leftIdMap)
+
+        let rightExclusive =
+            rightExclusiveIds |> Array.ofSeq |> Array.map (dictGet rightIdMap)
+
+        (leftExclusive, intersectionPairs, rightExclusive)
+
+    let intersectBy
+        (leftIdf: 'Left -> 'Id)
+        (rightIdf: 'Right -> 'Id)
+        (left: 'Left array)
+        (right: 'Right array)
+        : ('Left * 'Right) array =
+        let _, intersection, _ = venn leftIdf rightIdf left right
+        intersection
+
+    let mutalExclusion
+        (leftIdf: 'Left -> 'Id)
+        (rightIdf: 'Right -> 'Id)
+        (left: 'Left array)
+        (right: 'Right array)
+        : ('Left array * 'Right array) =
+        let (leftExclusive, _, rightExclusive) = venn leftIdf rightIdf left right
+        (leftExclusive, rightExclusive)
 
 
 type TestItemCollection with
@@ -54,6 +84,12 @@ type TestItemCollection with
         let arr = ResizeArray<TestItem>()
         x.forEach (fun t _ -> !! arr.Add(t))
         arr.ToArray()
+
+module TestItemCollection =
+    /// Replace an item in a TestItemCollection. Works only at depth 1 and will not consider nested test items.
+    let replaceItem (parentCollection: TestItemCollection) (testItem: TestItem) =
+        parentCollection.delete (testItem.id)
+        parentCollection.add (testItem)
 
 type TestController with
 
@@ -382,13 +418,13 @@ type LocationRecord =
 type CodeLocationCache() =
     let locationCache = Collections.Generic.Dictionary<TestId, LocationRecord>()
 
-    member _.Save(testId: TestId, location: LocationRecord) = locationCache.Add(testId, location)
+    member _.Save(testId: TestId, location: LocationRecord) = locationCache[testId] <- location
 
     member _.GetById(testId: TestId) = locationCache.TryGet testId
 
-    member _.DeleteByFile(uri) =
+    member _.DeleteByFile(uri: Uri) =
         for kvp in locationCache do
-            if kvp.Value.Uri = uri then
+            if kvp.Value.Uri.fsPath = uri.fsPath then
                 locationCache.Remove(kvp.Key) |> ignore
 
 
@@ -412,6 +448,8 @@ module TestItem =
             testId.Split(separator = [| idSeparator |], options = StringSplitOptions.None)
 
         split.[0]
+
+    let getId (t: TestItem) = t.id
 
     let runnableItems (root: TestItem) : TestItem array =
         // The goal is to collect here the actual runnable tests, they might be nested under a tree structure.
@@ -526,7 +564,7 @@ module CodeLocationCache =
         let testToLocation (testItem: TestItem) =
             match testItem.uri with
             | None -> None
-            | Some uri -> Some { Uri = uri; Range = !!testItem.range }
+            | Some uri -> Some { Uri = uri; Range = testItem.range }
 
         let saveTestItem (testItem: TestItem) =
             testToLocation testItem
@@ -534,6 +572,103 @@ module CodeLocationCache =
 
         testItems |> Array.map (TestItem.preWalk saveTestItem) |> ignore
 
+
+module TestDiscovery =
+
+    let mergeCodeLocations
+        (testItemFactory: TestItem.TestItemFactory)
+        (rootTestCollection: TestItemCollection)
+        (testsFromCode: TestItem array)
+        =
+        let copyUri (target: TestItem, withUri: TestItem) =
+            let replacementItem =
+                testItemFactory
+                    { id = target.id
+                      label = target.label
+                      uri = withUri.uri
+                      range = withUri.range
+                      children = target.children.TestItems() }
+
+            replacementItem?``type`` <- withUri?``type``
+            (replacementItem, withUri)
+
+        let rec recurse (target: TestItemCollection) (withUri: TestItem array) : unit =
+
+            let matches =
+                ArrayExt.intersectBy TestItem.getId TestItem.getId (target.TestItems()) withUri
+
+            let updatedItems = matches |> Array.map copyUri
+
+            updatedItems
+            |> Array.iter (fun (replacement, _) -> TestItemCollection.replaceItem target replacement)
+
+            updatedItems
+            |> Array.iter (fun (target, withUri) -> recurse target.children (withUri.children.TestItems()))
+
+        recurse rootTestCollection testsFromCode
+
+    let mergeCodeUpdates
+        (targetCollection: TestItemCollection)
+        (previousCodeTests: TestItem array)
+        (newCodeTests: TestItem array)
+        =
+        let rangeComparable (maybeRange: Vscode.Range option) =
+            let positionComparable (p: Vscode.Position) = $"{p.line}:{p.character}"
+
+            match maybeRange with
+            | None -> "none"
+            | Some range -> $"({positionComparable range.start},{positionComparable range.``end``})"
+
+        let rec recurse
+            (targetCollection: TestItemCollection)
+            (previousCodeTests: TestItem array)
+            (newCodeTests: TestItem array)
+            =
+            let comparef (t: TestItem) = (t.id, rangeComparable t.range)
+
+            let removed, unchanged, added =
+                ArrayExt.venn comparef comparef previousCodeTests newCodeTests
+
+            removed |> Array.map TestItem.getId |> Array.iter targetCollection.delete
+            added |> Array.iter targetCollection.add
+
+            unchanged
+            |> Array.iter (fun (previousCodeTest, newCodeTest) ->
+                match targetCollection.get newCodeTest.id with
+                | None -> ()
+                | Some targetItem ->
+                    recurse
+                        targetItem.children
+                        (previousCodeTest.children.TestItems())
+                        (newCodeTest.children.TestItems()))
+
+        recurse targetCollection previousCodeTests newCodeTests
+
+    let discoverFromTrx testItemFactory (locationCache: CodeLocationCache) () =
+        let allProjects = Project.getAll () |> Array.ofList
+
+        let testProjects =
+            allProjects |> Array.filter (TrxParser.tryGetTrxPath >> Option.isSome)
+
+        logger.Debug("Projects", allProjects)
+        logger.Debug("Test Projects", testProjects)
+
+        let trxTestsPerProject =
+            testProjects
+            |> Array.map (fun p -> (p, TrxParser.extractProjectTestDefinitions p))
+
+        let treeItems =
+            trxTestsPerProject
+            |> Array.collect (fun (projPath, trxDefs) ->
+                let heirarchy = TrxParser.inferHierarchy trxDefs
+                logger.Debug("Hierarchy", heirarchy)
+
+                heirarchy
+                |> Array.map (TestItem.fromTrxDef testItemFactory locationCache.GetById projPath))
+
+        logger.Debug("Tests", treeItems)
+
+        treeItems
 
 module Interactions =
     /// Build test projects and return the succeeded and failed projects
@@ -679,73 +814,6 @@ module Interactions =
             }
             |> unbox
 
-    let tryMergeCodeDiscoveredTests
-        (testItemFactory: TestItem.TestItemFactory)
-        (rootTestCollection: TestItemCollection)
-        (testsFromCode: TestItem array)
-        =
-        let mergeLocations (targetCollection: TestItemCollection) (modified: TestItem array) : unit =
-            let getTestItemKey (t: TestItem) = t.id
-
-            let replaceItem (parentCollection: TestItemCollection) (testItem: TestItem) =
-                parentCollection.delete (testItem.id)
-                parentCollection.add (testItem)
-
-            let copyUri (target: TestItem, withUri: TestItem) =
-                let replacementItem =
-                    testItemFactory
-                        { id = target.id
-                          label = target.label
-                          uri = withUri.uri
-                          range = withUri.range
-                          children = target.children.TestItems() }
-
-                replacementItem?``type`` <- withUri?``type``
-                (replacementItem, withUri)
-
-            let rec recurse (target: TestItemCollection) (withUri: TestItem array) : unit =
-
-                let matches =
-                    ArrayExt.intersectBy getTestItemKey getTestItemKey (target.TestItems()) withUri
-
-                let updatedItems = matches |> Array.map copyUri
-
-                updatedItems
-                |> Array.iter (fun (replacement, _) -> replaceItem target replacement)
-
-                updatedItems
-                |> Array.iter (fun (target, withUri) -> recurse target.children (withUri.children.TestItems()))
-
-            recurse targetCollection modified
-
-        logger.Debug("Res", testsFromCode)
-        mergeLocations rootTestCollection testsFromCode
-
-    let discoverTests testItemFactory (locationCache: CodeLocationCache) () =
-        let allProjects = Project.getAll () |> Array.ofList
-
-        let testProjects =
-            allProjects |> Array.filter (TrxParser.tryGetTrxPath >> Option.isSome)
-
-        logger.Debug("Projects", allProjects)
-        logger.Debug("Test Projects", testProjects)
-
-        let trxTestsPerProject =
-            testProjects
-            |> Array.map (fun p -> (p, TrxParser.extractProjectTestDefinitions p))
-
-        let treeItems =
-            trxTestsPerProject
-            |> Array.collect (fun (projPath, trxDefs) ->
-                let heirarchy = TrxParser.inferHierarchy trxDefs
-                logger.Debug("Hierarchy", heirarchy)
-
-                heirarchy
-                |> Array.map (TestItem.fromTrxDef testItemFactory locationCache.GetById projPath))
-
-        logger.Debug("Tests", treeItems)
-
-        treeItems
 
     let refreshTestList (testController: TestController) locationCache =
         let testItemFactory = TestItem.itemFactoryForController testController
@@ -756,9 +824,13 @@ module Interactions =
                 |> List.map (fun p -> DotnetTest.dotnetTest p [||])
                 |> Promise.Parallel
             // I could really split this by project
-            let newTests = discoverTests testItemFactory locationCache () |> ResizeArray
+            let newTests =
+                TestDiscovery.discoverFromTrx testItemFactory locationCache () |> ResizeArray
+
             testController.items.replace newTests
         }
+
+
 
 let activate (context: ExtensionContext) =
 
@@ -768,6 +840,9 @@ let activate (context: ExtensionContext) =
 
     let testItemFactory = TestItem.itemFactoryForController testController
     let locationCache = CodeLocationCache()
+
+    let testsPerFileCache =
+        System.Collections.Generic.Dictionary<string, TestItem array>()
 
     testController.createRunProfile (
         "Run F# Tests",
@@ -782,18 +857,29 @@ let activate (context: ExtensionContext) =
     //    |> unbox
     //    |> context.subscriptions.Add
 
-    let discoverTests = Interactions.discoverTests testItemFactory locationCache
+    let discoverTests = TestDiscovery.discoverFromTrx testItemFactory locationCache
     let initialTests = discoverTests ()
     initialTests |> Array.iter testController.items.add
 
     Notifications.testDetected.Invoke(fun testsForFile ->
 
-        let onTestCodeMapped (testsFromCode: TestItem array) =
-            Interactions.tryMergeCodeDiscoveredTests testItemFactory testController.items testsFromCode
-            CodeLocationCache.cacheTestLocations locationCache testsForFile.file testsFromCode
+        logger.Debug("TestsForFile", testsForFile)
+
+        let onTestCodeMapped (filePath: string) (testsFromCode: TestItem array) =
+            TestDiscovery.mergeCodeLocations testItemFactory testController.items testsFromCode
+            CodeLocationCache.cacheTestLocations locationCache filePath testsFromCode
+
+            let cached = testsPerFileCache.TryGet(filePath)
+
+            match cached with
+            | None -> ()
+            | Some previousTestsFromSameCode ->
+                TestDiscovery.mergeCodeUpdates testController.items previousTestsFromSameCode testsFromCode
+
+            testsPerFileCache[filePath] <- testsFromCode
 
         TestItem.tryFromTestForFile testItemFactory testsForFile
-        |> Option.iter onTestCodeMapped
+        |> Option.iter (onTestCodeMapped testsForFile.file)
 
         None)
     |> unbox
