@@ -366,12 +366,6 @@ module DotnetTest =
             return testResults
         }
 
-
-module TestRun =
-    let showEnqueued (testRun: TestRun) (tests: TestItem array) =
-        tests |> Array.iter (fun (test) -> testRun.enqueued test)
-
-
 type TestId = string
 
 type LocationRecord =
@@ -673,104 +667,149 @@ module TestDiscovery =
         treeItems
 
 module Interactions =
-    type TestWithFullName = { FullName: string; Test: TestItem }
-
     type ProjectWithTests =
         {
             ProjectPath: string
-            Tests: TestWithFullName array
+            Tests: TestItem array
             /// The Tests are listed due to a include filter, so when running the tests the --filter should be added
             HasIncludeFilter: bool
         }
 
-    type ProjectWithTestResults =
-        { ProjectPath: string
-          TestResults: TestResult array }
+    module TestRun =
+        let showEnqueued (testRun: TestRun) (testItems: TestItem array) =
+            testItems |> Array.iter testRun.enqueued
 
-    /// Build test projects and return the succeeded and failed projects
-    let buildProjects (projects: ProjectWithTests array) : Thenable<ProjectWithTests array * ProjectWithTests array> =
+        let showStarted (testRun: TestRun) (testItems: TestItem array) = testItems |> Array.iter testRun.started
+
+        let showError (testRun: TestRun) message (testItems: TestItem array) =
+            let showSingle testItem =
+                testRun.errored (testItem, !^ vscode.TestMessage.Create(!^message))
+
+            testItems |> Array.iter showSingle
+
+    let withProgress f =
         let progressOpts = createEmpty<ProgressOptions>
         progressOpts.location <- U2.Case1 ProgressLocation.Notification
 
         window.withProgress (
             progressOpts,
-            (fun progress _ctok ->
-                projects
-                |> Array.map (fun p ->
-                    progress.report
-                        {| message = Some $"Building {p.ProjectPath}"
-                           increment = None |}
-
-                    MSBuild.invokeMSBuild p.ProjectPath "Build" |> Promise.map (fun cpe -> p, cpe))
-                |> Promise.all
-                |> Promise.map (fun projects ->
-                    let successfulBuilds =
-                        projects
-                        |> Array.choose (fun (project, { Code = code }) ->
-                            match code with
-                            | Some 0 -> Some project
-                            | _ -> None)
-
-                    let failedBuilds =
-                        projects
-                        |> Array.choose (fun (project, { Code = code }) ->
-                            match code with
-                            | Some 0 -> None
-                            | _ -> Some project)
-
-                    successfulBuilds, failedBuilds)
-                |> Promise.toThenable)
+            (fun progress cancellationToken -> f progress cancellationToken |> Promise.toThenable)
         )
+        |> Promise.ofThenable
 
-    let private buildFilterExpression (tests: TestWithFullName array) =
+
+    let private buildFilterExpression (tests: TestItem array) =
         let filterValue =
             tests
             |> Array.map (fun t ->
-                if t.FullName.Contains(" ") && t.Test.Type = "NUnit" then
+                let fullName = TestItem.getFullName t.id
+
+                if fullName.Contains(" ") && t.Type = "NUnit" then
                     // workaround for https://github.com/nunit/nunit3-vs-adapter/issues/876
                     // Potentially we are going to run multiple tests that match this filter
-                    let testPart = t.FullName.Split(' ').[0]
+                    let testPart = fullName.Split(' ').[0]
                     $"(FullyQualifiedName~{testPart})"
                 else
-                    $"(FullyQualifiedName={t.FullName})")
+                    $"(FullyQualifiedName={fullName})")
             |> String.concat "|"
 
         filterValue
 
-    let runTests (testRun: TestRun) (projects: ProjectWithTests array) : Thenable<ProjectWithTestResults array> =
-        // Indicate in the UI that all the tests are running.
-        Array.iter
-            (fun (project: ProjectWithTests) ->
-                Array.iter (fun (t: TestWithFullName) -> testRun.started t.Test) project.Tests)
-            projects
+    let private displayTestResultInExplorer (testRun: TestRun) (testItem: TestItem, testResult: TestResult) =
 
-        let progressOpts = createEmpty<ProgressOptions>
-        progressOpts.location <- U2.Case1 ProgressLocation.Notification
+        match testResult.Outcome with
+        | TestResultOutcome.NotExecuted -> testRun.skipped testItem
+        | TestResultOutcome.Passed -> testRun.passed (testItem, testResult.Timing)
+        | TestResultOutcome.Failed ->
+            let fullErrorMessage =
+                match testResult.ErrorMessage with
+                | Some em ->
+                    testResult.ErrorStackTrace
+                    |> Option.map (fun stackTrace -> sprintf "%s\n%s" em stackTrace)
+                    |> Option.defaultValue em
+                | None -> "No error reported"
 
-        window.withProgress (
-            progressOpts,
-            (fun progress _ctok ->
-                projects
-                |> Array.map (fun project ->
-                    progress.report
-                        {| message = Some $"Running tests for {project.ProjectPath}"
-                           increment = None |}
+            let msg = vscode.TestMessage.Create(!^fullErrorMessage)
 
-                    let pairWithProjectPath testResults : ProjectWithTestResults =
-                        { ProjectPath = project.ProjectPath
-                          TestResults = testResults }
+            match testItem.uri, testItem.range with
+            | Some uri, Some range -> msg.location <- Some(vscode.Location.Create(uri, !^range))
+            | _ -> ()
 
-                    let filterExpression =
-                        if project.HasIncludeFilter then
-                            Some(buildFilterExpression project.Tests)
-                        else
-                            None
+            msg.expectedOutput <- testResult.Expected
+            msg.actualOutput <- testResult.Actual
+            testRun.failed (testItem, !^msg, testResult.Timing)
 
-                    DotnetTest.runTests project.ProjectPath filterExpression
-                    |> Promise.map pairWithProjectPath)
-                |> Promise.all
-                |> Promise.toThenable)
-        )
+    let mergeTestResultsToExplorer
+        (rootTestCollection: TestItemCollection)
+        (testItemFactory: TestItem.TestItemFactory)
+        (tryGetLocation: TestId -> LocationRecord option)
+        (testRun: TestRun)
+        (projectPath: string)
+        (expectedToRun: TestItem array)
+        (testResults: TestResult array)
+        =
+        let tryRemove (testWithoutResult: TestItem) =
+            let parentCollection =
+                match testWithoutResult.parent with
+                | Some parent -> parent.children
+                | None -> rootTestCollection
+
+            parentCollection.delete testWithoutResult.id
+
+        let getOrMakeHierarchyPath =
+            TestItem.getOrMakeHierarchyPath rootTestCollection testItemFactory tryGetLocation projectPath
+
+        let treeItemComparable (t: TestItem) = TestItem.getFullName t.id
+        let resultComparable (r: TestResult) = r.FullTestName
+
+        let missing, expected, added =
+            ArrayExt.venn treeItemComparable resultComparable expectedToRun testResults
+
+        expected |> Array.iter (displayTestResultInExplorer testRun)
+        missing |> Array.iter tryRemove
+
+        added
+        |> Array.iter (fun additionalResult ->
+            let treeItem = getOrMakeHierarchyPath additionalResult.FullTestName
+            displayTestResultInExplorer testRun (treeItem, additionalResult))
+
+    type MergeTestResultsToExplorer = TestRun -> string -> TestItem array -> TestResult array -> unit
+
+    let runTestProject
+        (mergeResultsToExplorer: MergeTestResultsToExplorer)
+        (testRun: TestRun)
+        (projectRunRequest: ProjectWithTests)
+        =
+        promise {
+            let projectPath = projectRunRequest.ProjectPath
+            let runnableTests = projectRunRequest.Tests
+
+            TestRun.showEnqueued testRun runnableTests
+
+            let! buildStatus = MSBuild.invokeMSBuild projectPath "Build"
+
+            if buildStatus.Code <> Some 0 then
+                TestRun.showError testRun "Project build failed" runnableTests
+            else
+                TestRun.showStarted testRun runnableTests
+
+                let filterExpression =
+                    if projectRunRequest.HasIncludeFilter then
+                        Some(buildFilterExpression projectRunRequest.Tests)
+                    else
+                        None
+
+                let! testResults = DotnetTest.runTests projectPath filterExpression
+
+                if Array.isEmpty testResults then
+                    let message =
+                        $"No tests run for project \"{projectPath}\". \nThe test explorer might be out of sync. Try running a higher test or refreshing the test explorer"
+
+                    window.showWarningMessage (message) |> ignore
+                else
+                    mergeResultsToExplorer testRun projectPath runnableTests testResults
+        }
+
 
 
     let runHandler
@@ -780,32 +819,9 @@ module Interactions =
         (_ct: CancellationToken)
         : U2<Thenable<unit>, unit> =
 
-        let displayTestResultInExplorer (testRun: TestRun) (testItem: TestWithFullName, testResult: TestResult) =
-            let testItem = testItem.Test
-
-            match testResult.Outcome with
-            | TestResultOutcome.NotExecuted -> testRun.skipped testItem
-            | TestResultOutcome.Passed -> testRun.passed (testItem, testResult.Timing)
-            | TestResultOutcome.Failed ->
-                let fullErrorMessage =
-                    match testResult.ErrorMessage with
-                    | Some em ->
-                        testResult.ErrorStackTrace
-                        |> Option.map (fun stackTrace -> sprintf "%s\n%s" em stackTrace)
-                        |> Option.defaultValue em
-                    | None -> "No error reported"
-
-                let msg = vscode.TestMessage.Create(!^fullErrorMessage)
-
-                match testItem.uri, testItem.range with
-                | Some uri, Some range -> msg.location <- Some(vscode.Location.Create(uri, !^range))
-                | _ -> ()
-
-                msg.expectedOutput <- testResult.Expected
-                msg.actualOutput <- testResult.Actual
-                testRun.failed (testItem, !^msg, testResult.Timing)
-
         let testRun = testController.createTestRun req
+
+        logger.Debug("TestRunRequest", req)
 
         if testController.items.size < 1. then
             !! testRun.``end`` ()
@@ -820,101 +836,29 @@ module Interactions =
 
             let filtersToProjectRunRequests (runRequest: TestRunRequest) =
                 getRunnableTests runRequest.``include``
-                |> Array.map (fun (t) ->
-                    { FullName = TestItem.getFullName t.id
-                      Test = t })
-                |> Array.groupBy (fun twn -> TestItem.getProjectPath twn.Test.id)
+                |> Array.groupBy (fun t -> TestItem.getProjectPath t.id)
                 |> Array.map (fun (projPath: string, tests) ->
                     { ProjectPath = projPath
-                      HasIncludeFilter = false //(not << Array.isEmpty) tests
+                      //IMPORTANT: don't actually filter until test discovery can handle partial result files
+                      HasIncludeFilter = false
                       Tests = tests })
 
-            let projectsWithTestsToRun = filtersToProjectRunRequests req
+            let projectRunRequests = filtersToProjectRunRequests req
 
+            logger.Debug("Project run requests", projectRunRequests)
 
+            let testItemFactory = TestItem.itemFactoryForController testController
 
+            let mergeTestResultsToExplorer =
+                mergeTestResultsToExplorer testController.items testItemFactory tryGetLocation
 
-            logger.Debug("Found projects", projectsWithTestsToRun)
-
-            // let runTestsForProject (testRun: TestRun) (projectRunRequest: ProjectWithTests) =
-            //     promise {
-            //         // TestRun.showEnqueued testRun projectRunRequest.Tests
-            //         ()
-            //     }
-
-            projectsWithTestsToRun
-            |> Array.collect (fun pwt -> pwt.Tests |> Array.map (fun twn -> twn.Test))
-            |> TestRun.showEnqueued testRun
-
-            logger.Debug("Test run list in projects", projectsWithTestsToRun)
+            let runTestProject = runTestProject mergeTestResultsToExplorer testRun
 
             promise {
-                let! successfulProjects, failedProjects = buildProjects projectsWithTestsToRun
-
-                // for projects that failed to build, mark their tests as failed
-                failedProjects
-                |> Array.iter (fun project ->
-                    project.Tests
-                    |> Array.iter (fun t ->
-                        testRun.errored (t.Test, !^ vscode.TestMessage.Create(!^ "Project build failed"))))
-
-                let! completedTestProjects = runTests testRun successfulProjects
-
-                logger.Debug("Completed Test Projects", completedTestProjects)
-
-                completedTestProjects
-                |> Array.iter (fun (project: ProjectWithTestResults) ->
-                    if Array.isEmpty project.TestResults then
-                        let message =
-                            $"No tests run for project \"{project.ProjectPath}\". \nThe test explorer might be out of sync. Try running a higher test or refreshing the test explorer"
-
-                        window.showWarningMessage (message) |> ignore
-
-                    let projectRunRequest =
-                        projectsWithTestsToRun
-                        |> Array.find (fun p -> p.ProjectPath = project.ProjectPath)
-
-                    let expectedToRun = projectRunRequest.Tests
-                    let treeItemComparable (t: TestWithFullName) = TestItem.getFullName t.Test.id
-                    let resultComparable (r: TestResult) = r.FullTestName
-
-                    let missing, expected, added =
-                        ArrayExt.venn treeItemComparable resultComparable expectedToRun project.TestResults
-
-                    let tryRemove (testWithoutResult: TestWithFullName) =
-                        let parentCollection =
-                            match testWithoutResult.Test.parent with
-                            | Some parent -> parent.children
-                            | None -> testController.items
-
-                        parentCollection.delete testWithoutResult.Test.id
-
-
-                    expected |> Array.iter (displayTestResultInExplorer testRun)
-                    missing |> Array.iter tryRemove
-                    let testItemFactory = TestItem.itemFactoryForController testController
-
-                    let getOrMakeHierarchyPath =
-                        TestItem.getOrMakeHierarchyPath
-                            testController.items
-                            testItemFactory
-                            tryGetLocation
-                            project.ProjectPath
-
-                    added
-                    |> Array.iter (fun additionalResult ->
-                        let treeItem = getOrMakeHierarchyPath additionalResult.FullTestName
-
-                        let testWithFullName: TestWithFullName =
-                            { FullName = additionalResult.FullTestName
-                              Test = treeItem }
-
-                        displayTestResultInExplorer testRun (testWithFullName, additionalResult)))
-
-
+                let! _ = projectRunRequests |> Array.map runTestProject |> Promise.all
                 testRun.``end`` ()
             }
-            |> unbox
+            |> (Promise.toThenable >> (!^))
 
 
     let refreshTestList (testController: TestController) locationCache =
