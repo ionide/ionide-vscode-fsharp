@@ -111,20 +111,6 @@ type TestItem with
 
     member this.Type: string = this?``type``
 
-type TestItemAndProject =
-    { TestItem: TestItem
-      ProjectPath: string }
-
-type TestWithFullName = { FullName: string; Test: TestItem }
-
-type ProjectWithTests =
-    {
-        ProjectPath: string
-        Tests: TestWithFullName array
-        /// The Tests are listed due to a include filter, so when running the tests the --filter should be added
-        HasIncludeFilter: bool
-    }
-
 [<RequireQualifiedAccess; StringEnum(CaseRules.None)>]
 type TestResultOutcome =
     | NotExecuted
@@ -139,10 +125,6 @@ type TestResult =
       Expected: string option
       Actual: string option
       Timing: float }
-
-type ProjectWithTestResults =
-    { ProjectPath: string
-      TestResults: TestResult array }
 
 type TrxTestDef =
     { ExecutionId: string
@@ -209,9 +191,6 @@ module TrxParser =
             let selector = trxSelector trxPath
             extractTestDefinitionsFromSelector selector
 
-
-
-
     type TrxTestDefHierarchy =
         { Name: string
           Path: string
@@ -232,8 +211,6 @@ module TrxParser =
     type private TrxTestDefWithSplitPath =
         { tdef: TrxTestDef
           relativePath: string list }
-
-
 
     let inferHierarchy (testDefs: TrxTestDef array) : TrxTestDefHierarchy array =
 
@@ -320,41 +297,25 @@ module DotnetTest =
                    yield! additionalArgs |]
             ))
 
-    let private buildFilterFromTests (tests: TestWithFullName array) =
-        let filterValue =
-            tests
-            |> Array.map (fun t ->
-                if t.FullName.Contains(" ") && t.Test.Type = "NUnit" then
-                    // workaround for https://github.com/nunit/nunit3-vs-adapter/issues/876
-                    // Potentially we are going to run multiple tests that match this filter
-                    let testPart = t.FullName.Split(' ').[0]
-                    $"(FullyQualifiedName~{testPart})"
-                else
-                    $"(FullyQualifiedName={t.FullName})")
-            |> String.concat "|"
-
-        [| "--filter"; filterValue |]
-
-    let private runTestProject (projectWithTests: ProjectWithTests) =
+    let private runTestProject (projectPath: string) (filterExpression: string option) =
         promise {
             let filter =
-                if not projectWithTests.HasIncludeFilter then
-                    Array.empty
-                else
-                    buildFilterFromTests projectWithTests.Tests
+                match filterExpression with
+                | None -> Array.empty
+                | Some filterExpression -> [| "--filter"; filterExpression |]
 
             if filter.Length > 0 then
                 logger.Debug("Filter", filter)
 
-            let! _, _, exitCode = dotnetTest projectWithTests.ProjectPath [| "--no-build"; yield! filter |]
+            let! _, _, exitCode = dotnetTest projectPath [| "--no-build"; yield! filter |]
 
             logger.Debug("Test run exitCode", exitCode)
 
-            let trxPath = TrxParser.guessTrxPath projectWithTests.ProjectPath
+            let trxPath = TrxParser.guessTrxPath projectPath
             return trxPath
         }
 
-    let runTests (projectWithTests: ProjectWithTests) : JS.Promise<TestResult array> =
+    let runTests (projectPath: string) (filterExpression: string option) : JS.Promise<TestResult array> =
         let trxDefToTrxResult xpathSelector (trxDef: TrxTestDef) =
             TrxParser.extractTestResult xpathSelector trxDef.ExecutionId
 
@@ -382,12 +343,12 @@ module DotnetTest =
               Actual = actual
               Timing = trxResult.Timing.Milliseconds }
 
-        logger.Debug("Nunit project", projectWithTests)
+        logger.Debug("Nunit project", projectPath)
 
         promise {
             // https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test#filter-option-details
 
-            let! trxPath = runTestProject projectWithTests
+            let! trxPath = runTestProject projectPath filterExpression
 
             logger.Debug("Trx file at", trxPath)
 
@@ -712,6 +673,20 @@ module TestDiscovery =
         treeItems
 
 module Interactions =
+    type TestWithFullName = { FullName: string; Test: TestItem }
+
+    type ProjectWithTests =
+        {
+            ProjectPath: string
+            Tests: TestWithFullName array
+            /// The Tests are listed due to a include filter, so when running the tests the --filter should be added
+            HasIncludeFilter: bool
+        }
+
+    type ProjectWithTestResults =
+        { ProjectPath: string
+          TestResults: TestResult array }
+
     /// Build test projects and return the succeeded and failed projects
     let buildProjects (projects: ProjectWithTests array) : Thenable<ProjectWithTests array * ProjectWithTests array> =
         let progressOpts = createEmpty<ProgressOptions>
@@ -747,6 +722,21 @@ module Interactions =
                 |> Promise.toThenable)
         )
 
+    let private buildFilterExpression (tests: TestWithFullName array) =
+        let filterValue =
+            tests
+            |> Array.map (fun t ->
+                if t.FullName.Contains(" ") && t.Test.Type = "NUnit" then
+                    // workaround for https://github.com/nunit/nunit3-vs-adapter/issues/876
+                    // Potentially we are going to run multiple tests that match this filter
+                    let testPart = t.FullName.Split(' ').[0]
+                    $"(FullyQualifiedName~{testPart})"
+                else
+                    $"(FullyQualifiedName={t.FullName})")
+            |> String.concat "|"
+
+        filterValue
+
     let runTests (testRun: TestRun) (projects: ProjectWithTests array) : Thenable<ProjectWithTestResults array> =
         // Indicate in the UI that all the tests are running.
         Array.iter
@@ -770,7 +760,14 @@ module Interactions =
                         { ProjectPath = project.ProjectPath
                           TestResults = testResults }
 
-                    DotnetTest.runTests project |> Promise.map pairWithProjectPath)
+                    let filterExpression =
+                        if project.HasIncludeFilter then
+                            Some(buildFilterExpression project.Tests)
+                        else
+                            None
+
+                    DotnetTest.runTests project.ProjectPath filterExpression
+                    |> Promise.map pairWithProjectPath)
                 |> Promise.all
                 |> Promise.toThenable)
         )
@@ -835,11 +832,14 @@ module Interactions =
             let projectsWithTestsToRun = filtersToProjectRunRequests req
 
 
+
+
             logger.Debug("Found projects", projectsWithTestsToRun)
 
-            // let runTestsForProject (testRun: TestRun) (projectRunRequest : ProjectWithTests) =
+            // let runTestsForProject (testRun: TestRun) (projectRunRequest: ProjectWithTests) =
             //     promise {
-
+            //         // TestRun.showEnqueued testRun projectRunRequest.Tests
+            //         ()
             //     }
 
             projectsWithTestsToRun
@@ -905,7 +905,7 @@ module Interactions =
                     |> Array.iter (fun additionalResult ->
                         let treeItem = getOrMakeHierarchyPath additionalResult.FullTestName
 
-                        let testWithFullName =
+                        let testWithFullName: TestWithFullName =
                             { FullName = additionalResult.FullTestName
                               Test = treeItem }
 
