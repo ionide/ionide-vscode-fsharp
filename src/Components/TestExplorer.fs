@@ -120,8 +120,7 @@ type TestResultOutcome =
     | Passed
 
 type TestResult =
-    { Test: TestItem
-      FullTestName: string
+    { FullTestName: string
       Outcome: TestResultOutcome
       ErrorMessage: string option
       ErrorStackTrace: string option
@@ -146,6 +145,7 @@ type TrxTestDef =
 
 type TrxTestResult =
     { ExecutionId: string
+      FullTestName: string
       Outcome: string
       ErrorMessage: string option
       ErrorStackTrace: string option
@@ -264,6 +264,9 @@ module TrxParser =
         testDefs |> Array.map withRelativePath |> recurse []
 
     let extractTestResult (xpathSelector: XPath.XPathSelector) (executionId: string) : TrxTestResult =
+        let testName =
+            xpathSelector.SelectString $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@testName"
+
         let outcome =
             xpathSelector.SelectString $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@outcome"
 
@@ -285,6 +288,7 @@ module TrxParser =
             if success then ts else TimeSpan.Zero
 
         { ExecutionId = executionId
+          FullTestName = testName
           Outcome = outcome
           ErrorMessage = errorInfoMessage
           ErrorStackTrace = errorStackTrace
@@ -339,11 +343,11 @@ module DotnetTest =
             return trxPath
         }
 
-    let runProject (projectWithTests: ProjectWithTests) : JS.Promise<ProjectWithTestResults> =
+    let runTests (projectWithTests: ProjectWithTests) : JS.Promise<TestResult array> =
         let trxDefToTrxResult xpathSelector (trxDef: TrxTestDef) =
             TrxParser.extractTestResult xpathSelector trxDef.ExecutionId
 
-        let trxResultToTestResult (testWithName: TestWithFullName) (trxResult: TrxTestResult) =
+        let trxResultToTestResult (trxResult: TrxTestResult) =
             // Q: can I get these parameters down to just trxResult?
             let expected, actual =
                 match trxResult.ErrorMessage with
@@ -359,8 +363,7 @@ module DotnetTest =
 
                     tryFind "Expected:", tryFind "But was:"
 
-            { Test = testWithName.Test
-              FullTestName = testWithName.FullName
+            { FullTestName = trxResult.FullTestName
               Outcome = !!trxResult.Outcome
               ErrorMessage = trxResult.ErrorMessage
               ErrorStackTrace = trxResult.ErrorStackTrace
@@ -388,20 +391,14 @@ module DotnetTest =
 
             let testDefinitions = TrxParser.extractTestDefinitionsFromSelector xpathSelector
 
-
-            let matchedTests = matchTrxWithTreeItems projectWithTests.Tests testDefinitions
-            logger.Debug("Mapped Tests", matchedTests)
-
             let testResults =
-                matchedTests
-                |> Array.map (fun (t, trxDef) -> trxDef |> trxDefToTrxResult xpathSelector |> trxResultToTestResult t)
+                testDefinitions
+                |> Array.map (trxDefToTrxResult xpathSelector >> trxResultToTestResult)
 
-            logger.Debug("Project Test Results", matchedTests)
+            logger.Debug("Project Test Results", testResults)
 
 
-            return
-                { ProjectPath = projectWithTests.ProjectPath
-                  TestResults = testResults }
+            return testResults
         }
 
 
@@ -725,7 +722,11 @@ module Interactions =
                         {| message = Some $"Running tests for {project.ProjectPath}"
                            increment = None |}
 
-                    DotnetTest.runProject project)
+                    let pairWithProjectPath testResults : ProjectWithTestResults =
+                        { ProjectPath = project.ProjectPath
+                          TestResults = testResults }
+
+                    DotnetTest.runTests project |> Promise.map pairWithProjectPath)
                 |> Promise.all
                 |> Promise.toThenable)
         )
@@ -733,10 +734,12 @@ module Interactions =
 
     let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToken) : U2<Thenable<unit>, unit> =
 
-        let displayTestResultInExplorer (testRun: TestRun) (testResult: TestResult) =
+        let displayTestResultInExplorer (testRun: TestRun) (testItem: TestWithFullName, testResult: TestResult) =
+            let testItem = testItem.Test
+
             match testResult.Outcome with
-            | TestResultOutcome.NotExecuted -> testRun.skipped testResult.Test
-            | TestResultOutcome.Passed -> testRun.passed (testResult.Test, testResult.Timing)
+            | TestResultOutcome.NotExecuted -> testRun.skipped testItem
+            | TestResultOutcome.Passed -> testRun.passed (testItem, testResult.Timing)
             | TestResultOutcome.Failed ->
                 let fullErrorMessage =
                     match testResult.ErrorMessage with
@@ -746,26 +749,22 @@ module Interactions =
                         |> Option.defaultValue em
                     | None -> "No error reported"
 
-                let ti = testResult.Test
                 let msg = vscode.TestMessage.Create(!^fullErrorMessage)
 
-                match ti.uri, ti.range with
+                match testItem.uri, testItem.range with
                 | Some uri, Some range -> msg.location <- Some(vscode.Location.Create(uri, !^range))
                 | _ -> ()
 
                 msg.expectedOutput <- testResult.Expected
                 msg.actualOutput <- testResult.Actual
-                testRun.failed (ti, !^msg, testResult.Timing)
+                testRun.failed (testItem, !^msg, testResult.Timing)
 
-
-        logger.Debug("Test run request", req)
         let tr = tc.createTestRun req
 
         if tc.items.size < 1. then
             !! tr.``end`` ()
         else
-
-            let testsFromRunFilters (includeFilter: ResizeArray<TestItem> option) =
+            let getRunnableTests (includeFilter: ResizeArray<TestItem> option) =
                 let treeItemsToRun =
                     match includeFilter with
                     | Some includedTests -> includedTests |> Array.ofSeq
@@ -773,27 +772,38 @@ module Interactions =
 
                 treeItemsToRun |> Array.collect TestItem.runnableItems
 
-            let projectsWithTests =
-                testsFromRunFilters req.``include``
+            let filtersToProjectRunRequests (runRequest: TestRunRequest) =
+                getRunnableTests runRequest.``include``
                 |> Array.map (fun (t) ->
                     { FullName = TestItem.getFullName t.id
                       Test = t })
                 |> Array.groupBy (fun twn -> TestItem.getProjectPath twn.Test.id)
                 |> Array.map (fun (projPath: string, tests) ->
                     { ProjectPath = projPath
-                      HasIncludeFilter = false
+                      HasIncludeFilter = false //(not << Array.isEmpty) tests
                       Tests = tests })
 
-            logger.Debug("Found projects", projectsWithTests)
+            let mergeTestResults (expectedToRun: TestItem array) (resultsByProject: ProjectWithTestResults) =
+                ArrayExt.venn
 
-            projectsWithTests
+            let projectsWithTestsToRun = filtersToProjectRunRequests req
+
+
+            logger.Debug("Found projects", projectsWithTestsToRun)
+
+            // let runTestsForProject (testRun: TestRun) (projectRunRequest : ProjectWithTests) =
+            //     promise {
+
+            //     }
+
+            projectsWithTestsToRun
             |> Array.collect (fun pwt -> pwt.Tests |> Array.map (fun twn -> twn.Test))
             |> TestRun.showEnqueued tr
 
-            logger.Debug("Test run list in projects", projectsWithTests)
+            logger.Debug("Test run list in projects", projectsWithTestsToRun)
 
             promise {
-                let! successfulProjects, failedProjects = buildProjects projectsWithTests
+                let! successfulProjects, failedProjects = buildProjects projectsWithTestsToRun
 
                 // for projects that failed to build, mark their tests as failed
                 failedProjects
@@ -808,7 +818,18 @@ module Interactions =
 
                 completedTestProjects
                 |> Array.iter (fun (project: ProjectWithTestResults) ->
-                    project.TestResults |> Array.iter (displayTestResultInExplorer tr))
+                    let projectRunRequest =
+                        projectsWithTestsToRun
+                        |> Array.find (fun p -> p.ProjectPath = project.ProjectPath)
+
+                    let expectedToRun = projectRunRequest.Tests
+                    let treeItemComparable (t: TestWithFullName) = TestItem.getFullName t.Test.id
+                    let resultComparable (r: TestResult) = r.FullTestName
+
+                    let missing, expected, added =
+                        ArrayExt.venn treeItemComparable resultComparable expectedToRun project.TestResults
+
+                    expected |> Array.iter (displayTestResultInExplorer tr))
 
                 tr.``end`` ()
             }
@@ -823,7 +844,7 @@ module Interactions =
                 Project.getAll ()
                 |> List.map (fun p -> DotnetTest.dotnetTest p [||])
                 |> Promise.Parallel
-            // I could really split this by project
+
             let newTests =
                 TestDiscovery.discoverFromTrx testItemFactory locationCache () |> ResizeArray
 
