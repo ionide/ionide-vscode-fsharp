@@ -78,6 +78,18 @@ module ArrayExt =
         (leftExclusive, rightExclusive)
 
 
+module TestName =
+    let pathSeparator = '.'
+
+    let joinSegments (pathSegments: string list) =
+        String.Join(string pathSeparator, pathSegments)
+
+    let splitSegments (fullTestName: string) =
+        fullTestName.Split(pathSeparator) |> List.ofSeq
+
+    let fromPathAndLabel (parentPath: string) (label: string) =
+        if parentPath = "" then label else $"{parentPath}.{label}"
+
 type TestItemCollection with
 
     member x.TestItems() : TestItem array =
@@ -137,11 +149,8 @@ type TrxTestDef =
       TestName: string
       ClassName: string }
 
-    member self.FullName =
-        if self.ClassName = "" then
-            self.TestName
-        else
-            $"{self.ClassName}.{self.TestName}"
+    member self.FullName = TestName.fromPathAndLabel self.ClassName self.TestName
+
 
 type TrxTestResult =
     { ExecutionId: string
@@ -150,6 +159,7 @@ type TrxTestResult =
       ErrorMessage: string option
       ErrorStackTrace: string option
       Timing: TimeSpan }
+
 
 module TrxParser =
     let guessTrxPath (projectPath: string) =
@@ -208,11 +218,7 @@ module TrxParser =
           TestDef: TrxTestDef option
           Children: TrxTestDefHierarchy array }
 
-        member self.FullName =
-            if self.Path = "" then
-                self.Name
-            else
-                $"{self.Path}.{self.Name}"
+        member self.FullName = TestName.fromPathAndLabel self.Path self.Name
 
 
     module TrxTestDefHierarchy =
@@ -227,15 +233,13 @@ module TrxParser =
         { tdef: TrxTestDef
           relativePath: string list }
 
-    let inferHierarchy (testDefs: TrxTestDef array) : TrxTestDefHierarchy array =
-        let pathSeparator = '.'
 
-        let joinPath (pathSegments: string list) =
-            String.Join(string pathSeparator, pathSegments)
+
+    let inferHierarchy (testDefs: TrxTestDef array) : TrxTestDefHierarchy array =
 
         let withRelativePath tdef =
             { tdef = tdef
-              relativePath = tdef.ClassName.Split(pathSeparator) |> List.ofSeq }
+              relativePath = TestName.splitSegments tdef.ClassName }
 
         let popTopPath tdefWithPath =
             { tdefWithPath with
@@ -251,7 +255,7 @@ module TrxParser =
                 | Some groupName ->
                     [| { Name = groupName
                          TestDef = None
-                         Path = traversed |> List.rev |> joinPath
+                         Path = traversed |> List.rev |> TestName.joinSegments
                          Children = recurse (groupName :: traversed) (tdefs |> Array.map popTopPath) } |]
                 | None ->
                     tdefs
@@ -264,8 +268,15 @@ module TrxParser =
         testDefs |> Array.map withRelativePath |> recurse []
 
     let extractTestResult (xpathSelector: XPath.XPathSelector) (executionId: string) : TrxTestResult =
+        // NOTE: The test result's `testName` isn't always the full name. Some libraries handle it differently
+        // Thus, it must be extracted from the test deff
+        let className =
+            xpathSelector.SelectString
+                $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@className"
+
         let testName =
-            xpathSelector.SelectString $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@testName"
+            xpathSelector.SelectString
+                $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@name"
 
         let outcome =
             xpathSelector.SelectString $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@outcome"
@@ -288,7 +299,7 @@ module TrxParser =
             if success then ts else TimeSpan.Zero
 
         { ExecutionId = executionId
-          FullTestName = testName
+          FullTestName = TestName.fromPathAndLabel className testName
           Outcome = outcome
           ErrorMessage = errorInfoMessage
           ErrorStackTrace = errorStackTrace
@@ -371,13 +382,6 @@ module DotnetTest =
               Actual = actual
               Timing = trxResult.Timing.Milliseconds }
 
-        let matchTrxWithTreeItems (treeItems: TestWithFullName array) (trxDefs: TrxTestDef array) =
-            let getTestId (t: TestWithFullName) = t.FullName
-            let getTrxId (t: TrxTestDef) = t.FullName
-
-            ArrayExt.intersectBy getTestId getTrxId treeItems trxDefs
-
-
         logger.Debug("Nunit project", projectWithTests)
 
         promise {
@@ -411,6 +415,10 @@ type TestId = string
 
 type LocationRecord =
     { Uri: Uri; Range: Vscode.Range option }
+
+module LocationRecord =
+    let tryGetUri (l: LocationRecord option) = l |> Option.map (fun l -> l.Uri)
+    let tryGetRange (l: LocationRecord option) = l |> Option.bind (fun l -> l.Range)
 
 type CodeLocationCache() =
     let locationCache = Collections.Generic.Dictionary<TestId, LocationRecord>()
@@ -503,8 +511,8 @@ module TestItem =
             itemFactory
                 { id = id
                   label = trxDef.Name
-                  uri = location |> Option.map (fun l -> l.Uri)
-                  range = location |> Option.bind (fun l -> l.Range)
+                  uri = location |> LocationRecord.tryGetUri
+                  range = location |> LocationRecord.tryGetRange
                   children = trxDef.Children |> Array.map recurse }
 
         recurse trxDef
@@ -517,11 +525,7 @@ module TestItem =
         (t: TestAdapterEntry)
         : TestItem =
         let rec recurse (parentFullName: string) (t: TestAdapterEntry) =
-            let fullName =
-                if parentFullName = "" then
-                    t.name
-                else
-                    $"{parentFullName}.{t.name}"
+            let fullName = TestName.fromPathAndLabel parentFullName t.name
 
             let range =
                 Some(
@@ -551,6 +555,46 @@ module TestItem =
         |> Option.map (fun project ->
             testsForFile.tests
             |> Array.map (fromTestAdapter testItemFactory fileUri project.Project))
+
+    let getOrMakeHierarchyPath
+        (rootCollection: TestItemCollection)
+        (itemFactory: TestItemFactory)
+        (tryGetLocation: TestId -> LocationRecord option)
+        (projectPath: string)
+        (fullTestName: string)
+        =
+        let rec recurse (collection: TestItemCollection) (parentPath: string) (remainingPath: string list) =
+
+            let currentLabel, remainingPath =
+                match remainingPath with
+                | currentLabel :: remainingPath -> (currentLabel, remainingPath)
+                | [] -> "", []
+
+            let fullName = TestName.fromPathAndLabel parentPath currentLabel
+            let id = constructId projectPath fullName
+            let maybeLocation = tryGetLocation id
+            let existingItem = collection.get (id)
+
+            let testItem =
+                match existingItem with
+                | Some existing -> existing
+                | None ->
+                    itemFactory
+                        { id = id
+                          label = currentLabel
+                          uri = maybeLocation |> LocationRecord.tryGetUri
+                          range = maybeLocation |> LocationRecord.tryGetRange
+                          children = [||] }
+
+            collection.add (testItem)
+
+            if remainingPath <> [] then
+                recurse testItem.children fullName remainingPath
+            else
+                testItem
+
+        let pathSegments = TestName.splitSegments fullTestName
+        recurse rootCollection "" pathSegments
 
 
 module CodeLocationCache =
@@ -732,7 +776,12 @@ module Interactions =
         )
 
 
-    let runHandler (tc: TestController) (req: TestRunRequest) (_ct: CancellationToken) : U2<Thenable<unit>, unit> =
+    let runHandler
+        (testController: TestController)
+        (tryGetLocation: TestId -> LocationRecord option)
+        (req: TestRunRequest)
+        (_ct: CancellationToken)
+        : U2<Thenable<unit>, unit> =
 
         let displayTestResultInExplorer (testRun: TestRun) (testItem: TestWithFullName, testResult: TestResult) =
             let testItem = testItem.Test
@@ -759,16 +808,16 @@ module Interactions =
                 msg.actualOutput <- testResult.Actual
                 testRun.failed (testItem, !^msg, testResult.Timing)
 
-        let tr = tc.createTestRun req
+        let testRun = testController.createTestRun req
 
-        if tc.items.size < 1. then
-            !! tr.``end`` ()
+        if testController.items.size < 1. then
+            !! testRun.``end`` ()
         else
             let getRunnableTests (includeFilter: ResizeArray<TestItem> option) =
                 let treeItemsToRun =
                     match includeFilter with
                     | Some includedTests -> includedTests |> Array.ofSeq
-                    | None -> tc.TestItems()
+                    | None -> testController.TestItems()
 
                 treeItemsToRun |> Array.collect TestItem.runnableItems
 
@@ -783,9 +832,6 @@ module Interactions =
                       HasIncludeFilter = false //(not << Array.isEmpty) tests
                       Tests = tests })
 
-            let mergeTestResults (expectedToRun: TestItem array) (resultsByProject: ProjectWithTestResults) =
-                ArrayExt.venn
-
             let projectsWithTestsToRun = filtersToProjectRunRequests req
 
 
@@ -798,7 +844,7 @@ module Interactions =
 
             projectsWithTestsToRun
             |> Array.collect (fun pwt -> pwt.Tests |> Array.map (fun twn -> twn.Test))
-            |> TestRun.showEnqueued tr
+            |> TestRun.showEnqueued testRun
 
             logger.Debug("Test run list in projects", projectsWithTestsToRun)
 
@@ -810,14 +856,20 @@ module Interactions =
                 |> Array.iter (fun project ->
                     project.Tests
                     |> Array.iter (fun t ->
-                        tr.errored (t.Test, !^ vscode.TestMessage.Create(!^ "Project build failed"))))
+                        testRun.errored (t.Test, !^ vscode.TestMessage.Create(!^ "Project build failed"))))
 
-                let! completedTestProjects = runTests tr successfulProjects
+                let! completedTestProjects = runTests testRun successfulProjects
 
                 logger.Debug("Completed Test Projects", completedTestProjects)
 
                 completedTestProjects
                 |> Array.iter (fun (project: ProjectWithTestResults) ->
+                    if Array.isEmpty project.TestResults then
+                        let message =
+                            $"No tests run for project \"{project.ProjectPath}\". \nThe test explorer might be out of sync. Try running a higher test or refreshing the test explorer"
+
+                        window.showWarningMessage (message) |> ignore
+
                     let projectRunRequest =
                         projectsWithTestsToRun
                         |> Array.find (fun p -> p.ProjectPath = project.ProjectPath)
@@ -829,9 +881,38 @@ module Interactions =
                     let missing, expected, added =
                         ArrayExt.venn treeItemComparable resultComparable expectedToRun project.TestResults
 
-                    expected |> Array.iter (displayTestResultInExplorer tr))
+                    let tryRemove (testWithoutResult: TestWithFullName) =
+                        let parentCollection =
+                            match testWithoutResult.Test.parent with
+                            | Some parent -> parent.children
+                            | None -> testController.items
 
-                tr.``end`` ()
+                        parentCollection.delete testWithoutResult.Test.id
+
+
+                    expected |> Array.iter (displayTestResultInExplorer testRun)
+                    missing |> Array.iter tryRemove
+                    let testItemFactory = TestItem.itemFactoryForController testController
+
+                    let getOrMakeHierarchyPath =
+                        TestItem.getOrMakeHierarchyPath
+                            testController.items
+                            testItemFactory
+                            tryGetLocation
+                            project.ProjectPath
+
+                    added
+                    |> Array.iter (fun additionalResult ->
+                        let treeItem = getOrMakeHierarchyPath additionalResult.FullTestName
+
+                        let testWithFullName =
+                            { FullName = additionalResult.FullTestName
+                              Test = treeItem }
+
+                        displayTestResultInExplorer testRun (testWithFullName, additionalResult)))
+
+
+                testRun.``end`` ()
             }
             |> unbox
 
@@ -868,7 +949,7 @@ let activate (context: ExtensionContext) =
     testController.createRunProfile (
         "Run F# Tests",
         TestRunProfileKind.Run,
-        Interactions.runHandler testController,
+        Interactions.runHandler testController locationCache.GetById,
         true
     )
     |> unbox
