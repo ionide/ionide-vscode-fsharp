@@ -59,24 +59,6 @@ module ArrayExt =
 
         (leftExclusive, intersectionPairs, rightExclusive)
 
-    let intersectBy
-        (leftIdf: 'Left -> 'Id)
-        (rightIdf: 'Right -> 'Id)
-        (left: 'Left array)
-        (right: 'Right array)
-        : ('Left * 'Right) array =
-        let _, intersection, _ = venn leftIdf rightIdf left right
-        intersection
-
-    let mutalExclusion
-        (leftIdf: 'Left -> 'Id)
-        (rightIdf: 'Right -> 'Id)
-        (left: 'Left array)
-        (right: 'Right array)
-        : ('Left array * 'Right array) =
-        let (leftExclusive, _, rightExclusive) = venn leftIdf rightIdf left right
-        (leftExclusive, rightExclusive)
-
 
 module TestName =
     let pathSeparator = '.'
@@ -96,12 +78,6 @@ type TestItemCollection with
         let arr = ResizeArray<TestItem>()
         x.forEach (fun t _ -> !! arr.Add(t))
         arr.ToArray()
-
-module TestItemCollection =
-    /// Replace an item in a TestItemCollection. Works only at depth 1 and will not consider nested test items.
-    let replaceItem (parentCollection: TestItemCollection) (testItem: TestItem) =
-        parentCollection.delete (testItem.id)
-        parentCollection.add (testItem)
 
 type TestController with
 
@@ -191,6 +167,44 @@ module TrxParser =
             let selector = trxSelector trxPath
             extractTestDefinitionsFromSelector selector
 
+    let extractTestResult (xpathSelector: XPath.XPathSelector) (executionId: string) : TrxTestResult =
+        // NOTE: The test result's `testName` isn't always the full name. Some libraries handle it differently
+        // Thus, it must be extracted from the test deff
+        let className =
+            xpathSelector.SelectString
+                $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@className"
+
+        let testName =
+            xpathSelector.SelectString
+                $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@name"
+
+        let outcome =
+            xpathSelector.SelectString $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@outcome"
+
+        let errorInfoMessage =
+            xpathSelector.TrySelectString
+                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:Message"
+
+        let errorStackTrace =
+            xpathSelector.TrySelectString
+                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:StackTrace"
+
+        let timing =
+            let duration =
+                xpathSelector.SelectString
+                    $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@duration"
+
+            let success, ts = TimeSpan.TryParse(duration)
+
+            if success then ts else TimeSpan.Zero
+
+        { ExecutionId = executionId
+          FullTestName = TestName.fromPathAndLabel className testName
+          Outcome = outcome
+          ErrorMessage = errorInfoMessage
+          ErrorStackTrace = errorStackTrace
+          Timing = timing }
+
     type TrxTestDefHierarchy =
         { Name: string
           Path: string
@@ -244,43 +258,7 @@ module TrxParser =
 
         testDefs |> Array.map withRelativePath |> recurse []
 
-    let extractTestResult (xpathSelector: XPath.XPathSelector) (executionId: string) : TrxTestResult =
-        // NOTE: The test result's `testName` isn't always the full name. Some libraries handle it differently
-        // Thus, it must be extracted from the test deff
-        let className =
-            xpathSelector.SelectString
-                $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@className"
 
-        let testName =
-            xpathSelector.SelectString
-                $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@name"
-
-        let outcome =
-            xpathSelector.SelectString $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@outcome"
-
-        let errorInfoMessage =
-            xpathSelector.TrySelectString
-                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:Message"
-
-        let errorStackTrace =
-            xpathSelector.TrySelectString
-                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:StackTrace"
-
-        let timing =
-            let duration =
-                xpathSelector.SelectString
-                    $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@duration"
-
-            let success, ts = TimeSpan.TryParse(duration)
-
-            if success then ts else TimeSpan.Zero
-
-        { ExecutionId = executionId
-          FullTestName = TestName.fromPathAndLabel className testName
-          Outcome = outcome
-          ErrorMessage = errorInfoMessage
-          ErrorStackTrace = errorStackTrace
-          Timing = timing }
 
 
 module DotnetTest =
@@ -576,7 +554,7 @@ module TestDiscovery =
         (rootTestCollection: TestItemCollection)
         (testsFromCode: TestItem array)
         =
-        let copyUri (target: TestItem, withUri: TestItem) =
+        let cloneWithUri (target: TestItem, withUri: TestItem) =
             let replacementItem =
                 testItemFactory
                     { id = target.id
@@ -590,15 +568,16 @@ module TestDiscovery =
 
         let rec recurse (target: TestItemCollection) (withUri: TestItem array) : unit =
 
-            let matches =
-                ArrayExt.intersectBy TestItem.getId TestItem.getId (target.TestItems()) withUri
+            let treeOnly, matched, _codeOnly =
+                ArrayExt.venn TestItem.getId TestItem.getId (target.TestItems()) withUri
 
-            let updatedItems = matches |> Array.map copyUri
+            let updatePairs = matched |> Array.map cloneWithUri
 
-            updatedItems
-            |> Array.iter (fun (replacement, _) -> TestItemCollection.replaceItem target replacement)
+            let newTestCollection = Array.concat [ treeOnly; updatePairs |> Array.map fst ]
 
-            updatedItems
+            target.replace (ResizeArray newTestCollection)
+
+            updatePairs
             |> Array.iter (fun (target, withUri) -> recurse target.children (withUri.children.TestItems()))
 
         recurse rootTestCollection testsFromCode
@@ -876,7 +855,43 @@ module Interactions =
             testController.items.replace newTests
         }
 
+    let onTestsDiscoveredInCode
+        (testItemFactory: TestItem.TestItemFactory)
+        (rootTestCollection: TestItemCollection)
+        (locationCache: CodeLocationCache)
+        (testsPerFileCache: Collections.Generic.Dictionary<string, TestItem array>)
+        (testsForFile: TestForFile)
+        =
+        logger.Debug("TestsForFile", testsForFile)
 
+        let onTestCodeMapped (filePath: string) (testsFromCode: TestItem array) =
+            TestDiscovery.mergeCodeLocations testItemFactory rootTestCollection testsFromCode
+            CodeLocationCache.cacheTestLocations locationCache filePath testsFromCode
+
+            let cached = testsPerFileCache.TryGet(filePath)
+
+            match cached with
+            | None -> ()
+            | Some previousTestsFromSameCode ->
+                TestDiscovery.mergeCodeUpdates rootTestCollection previousTestsFromSameCode testsFromCode
+
+            testsPerFileCache[filePath] <- testsFromCode
+
+        TestItem.tryFromTestForFile testItemFactory testsForFile
+        |> Option.iter (onTestCodeMapped testsForFile.file)
+
+
+module Mailbox =
+    let continuousLoop f (mailbox: MailboxProcessor<'t>) =
+        let rec idleLoop () =
+            async {
+                let! message = mailbox.Receive()
+                f message
+
+                return! idleLoop ()
+            }
+
+        idleLoop ()
 
 let activate (context: ExtensionContext) =
 
@@ -887,8 +902,7 @@ let activate (context: ExtensionContext) =
     let testItemFactory = TestItem.itemFactoryForController testController
     let locationCache = CodeLocationCache()
 
-    let testsPerFileCache =
-        System.Collections.Generic.Dictionary<string, TestItem array>()
+
 
     testController.createRunProfile (
         "Run F# Tests",
@@ -907,26 +921,17 @@ let activate (context: ExtensionContext) =
     let initialTests = discoverTests ()
     initialTests |> Array.iter testController.items.add
 
+    let testsPerFileCache = Collections.Generic.Dictionary<string, TestItem array>()
+
+    let onTestsDiscoveredInCode =
+        Interactions.onTestsDiscoveredInCode testItemFactory testController.items locationCache testsPerFileCache
+
+    let codeTestsDiscoveredMailbox =
+        MailboxProcessor<TestForFile>
+            .Start(Mailbox.continuousLoop onTestsDiscoveredInCode)
+
     Notifications.testDetected.Invoke(fun testsForFile ->
-
-        logger.Debug("TestsForFile", testsForFile)
-
-        let onTestCodeMapped (filePath: string) (testsFromCode: TestItem array) =
-            TestDiscovery.mergeCodeLocations testItemFactory testController.items testsFromCode
-            CodeLocationCache.cacheTestLocations locationCache filePath testsFromCode
-
-            let cached = testsPerFileCache.TryGet(filePath)
-
-            match cached with
-            | None -> ()
-            | Some previousTestsFromSameCode ->
-                TestDiscovery.mergeCodeUpdates testController.items previousTestsFromSameCode testsFromCode
-
-            testsPerFileCache[filePath] <- testsFromCode
-
-        TestItem.tryFromTestForFile testItemFactory testsForFile
-        |> Option.iter (onTestCodeMapped testsForFile.file)
-
+        codeTestsDiscoveredMailbox.Post(testsForFile)
         None)
     |> unbox
     |> context.subscriptions.Add
