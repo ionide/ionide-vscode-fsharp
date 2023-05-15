@@ -63,24 +63,42 @@ module ArrayExt =
 module TestName =
     let pathSeparator = '.'
 
-    let joinSegments (pathSegments: string list) =
-        String.Join(string pathSeparator, pathSegments)
+    type Segment =
+        { Text: string
+          SeparatorBefore: string }
+
+    module Segment =
+        let empty = { Text = ""; SeparatorBefore = "" }
+
+    let private segmentRegex = RegularExpressions.Regex(@"([+\.]?)([^+\.]+)")
 
     let splitSegments (fullTestName: string) =
-        fullTestName.Split(pathSeparator) |> List.ofSeq
+        let matches =
+            [ for x in segmentRegex.Matches(fullTestName) do
+                  x ]
 
-    let fromPathAndLabel (parentPath: string) (label: string) =
-        if parentPath = "" then label else $"{parentPath}.{label}"
+        matches
+        |> List.map (fun m ->
+            { Text = m.Groups[2].Value
+              SeparatorBefore = m.Groups[1].Value })
 
-    type private DataWithRelativePath<'t> = { data: 't; relativePath: string list }
+    let appendSegment (parentPath: string) (segment: Segment) =
+        $"{parentPath}{segment.SeparatorBefore}{segment.Text}"
+
+    let fromPathAndTestName (classPath: string) (testName: string) =
+        if classPath = "" then
+            testName
+        else
+            $"{classPath}.{testName}"
+
+    type private DataWithRelativePath<'t> =
+        { data: 't; relativePath: Segment list }
 
     type NameHierarchy<'t> =
         { Data: 't option
-          Path: string
+          FullName: string
           Name: string
           Children: NameHierarchy<'t> array }
-
-        member self.FullName = fromPathAndLabel self.Path self.Name
 
     let inferHierarchy (namedData: {| FullName: string; Data: 't |} array) : NameHierarchy<'t> array =
 
@@ -99,19 +117,23 @@ module TestName =
             let mappedTerminals =
                 terminalNodes
                 |> Array.map (fun terminal ->
-                    { Name = terminal.relativePath.Head
-                      Path = parentPath
+                    let segment = terminal.relativePath.Head
+
+                    { Name = segment.Text
+                      FullName = appendSegment parentPath segment
                       Data = Some terminal.data
                       Children = [||] })
 
             let mappedIntermediate =
                 intermediateNodes
                 |> Array.groupBy (fun d -> d.relativePath.Head)
-                |> Array.map (fun (groupName, children) ->
-                    { Name = groupName
+                |> Array.map (fun (groupSegment, children) ->
+                    let fullName = appendSegment parentPath groupSegment
+
+                    { Name = groupSegment.Text
                       Data = None
-                      Path = parentPath
-                      Children = recurse (fromPathAndLabel parentPath groupName) (children |> Array.map popTopPath) })
+                      FullName = appendSegment parentPath groupSegment
+                      Children = recurse fullName (children |> Array.map popTopPath) })
 
             Array.concat [ mappedTerminals; mappedIntermediate ]
 
@@ -153,7 +175,7 @@ type TrxTestDef =
       TestName: string
       ClassName: string }
 
-    member self.FullName = TestName.fromPathAndLabel self.ClassName self.TestName
+    member self.FullName = TestName.fromPathAndTestName self.ClassName self.TestName
 
 
 type TrxTestResult =
@@ -245,7 +267,7 @@ module TrxParser =
             if success then ts else TimeSpan.Zero
 
         { ExecutionId = executionId
-          FullTestName = TestName.fromPathAndLabel className testName
+          FullTestName = TestName.fromPathAndTestName className testName
           Outcome = outcome
           ErrorMessage = errorInfoMessage
           ErrorStackTrace = errorStackTrace
@@ -449,15 +471,22 @@ module TestItem =
 
         recurse trxDef
 
-
     let fromTestAdapter
         (itemFactory: TestItemFactory)
         (uri: Uri)
         (projectPath: string)
         (t: TestAdapterEntry)
         : TestItem =
-        let rec recurse (parentFullName: string) (t: TestAdapterEntry) =
-            let fullName = TestName.fromPathAndLabel parentFullName t.name
+        let getNameSeparator parentModuleType moduleType =
+            match parentModuleType, moduleType with
+            | None, _ -> ""
+            | Some "NoneModule", _
+            | Some _, "NoneModule" -> "."
+            | _ -> "+"
+
+        let rec recurse (parentFullName: string) (parentModuleType: string option) (t: TestAdapterEntry) =
+            let fullName =
+                parentFullName + (getNameSeparator parentModuleType t.moduleType) + t.name
 
             let range =
                 Some(
@@ -473,12 +502,12 @@ module TestItem =
                       label = t.name
                       uri = Some uri
                       range = range
-                      children = t.childs |> Array.map (fun n -> recurse fullName n) }
+                      children = t.childs |> Array.map (fun n -> recurse fullName (Some t.moduleType) n) }
 
             ti?``type`` <- t.``type``
             ti
 
-        recurse "" t
+        recurse "" None t
 
     let tryFromTestForFile (testItemFactory: TestItemFactory) (testsForFile: TestForFile) =
         let fileUri = vscode.Uri.parse (testsForFile.file, true)
@@ -495,14 +524,14 @@ module TestItem =
         (projectPath: string)
         (fullTestName: string)
         =
-        let rec recurse (collection: TestItemCollection) (parentPath: string) (remainingPath: string list) =
+        let rec recurse (collection: TestItemCollection) (parentPath: string) (remainingPath: TestName.Segment list) =
 
             let currentLabel, remainingPath =
                 match remainingPath with
                 | currentLabel :: remainingPath -> (currentLabel, remainingPath)
-                | [] -> "", []
+                | [] -> TestName.Segment.empty, []
 
-            let fullName = TestName.fromPathAndLabel parentPath currentLabel
+            let fullName = TestName.appendSegment parentPath currentLabel
             let id = constructId projectPath fullName
             let maybeLocation = tryGetLocation id
             let existingItem = collection.get (id)
@@ -513,7 +542,7 @@ module TestItem =
                 | None ->
                     itemFactory
                         { id = id
-                          label = currentLabel
+                          label = currentLabel.Text
                           uri = maybeLocation |> LocationRecord.tryGetUri
                           range = maybeLocation |> LocationRecord.tryGetRange
                           children = [||] }
