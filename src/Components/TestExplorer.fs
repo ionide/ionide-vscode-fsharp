@@ -72,6 +72,52 @@ module TestName =
     let fromPathAndLabel (parentPath: string) (label: string) =
         if parentPath = "" then label else $"{parentPath}.{label}"
 
+    type private DataWithRelativePath<'t> = { data: 't; relativePath: string list }
+
+    type NameHierarchy<'t> =
+        { Data: 't option
+          Path: string
+          Name: string
+          Children: NameHierarchy<'t> array }
+
+        member self.FullName = fromPathAndLabel self.Path self.Name
+
+    let inferHierarchy (namedData: {| FullName: string; Data: 't |} array) : NameHierarchy<'t> array =
+
+        let withRelativePath (named: {| FullName: string; Data: 't |}) =
+            { data = named.Data
+              relativePath = splitSegments named.FullName }
+
+        let popTopPath data =
+            { data with
+                relativePath = data.relativePath.Tail }
+
+        let rec recurse (parentPath: string) defsWithRelativePath : NameHierarchy<'t> array =
+            let terminalNodes, intermediateNodes =
+                defsWithRelativePath |> Array.partition (fun d -> d.relativePath.Length = 1)
+
+            let mappedTerminals =
+                terminalNodes
+                |> Array.map (fun terminal ->
+                    { Name = terminal.relativePath.Head
+                      Path = parentPath
+                      Data = Some terminal.data
+                      Children = [||] })
+
+            let mappedIntermediate =
+                intermediateNodes
+                |> Array.groupBy (fun d -> d.relativePath.Head)
+                |> Array.map (fun (groupName, children) ->
+                    { Name = groupName
+                      Data = None
+                      Path = parentPath
+                      Children = recurse (fromPathAndLabel parentPath groupName) (children |> Array.map popTopPath) })
+
+            Array.concat [ mappedTerminals; mappedIntermediate ]
+
+
+        namedData |> Array.map withRelativePath |> recurse ""
+
 type TestItemCollection with
 
     member x.TestItems() : TestItem array =
@@ -205,58 +251,11 @@ module TrxParser =
           ErrorStackTrace = errorStackTrace
           Timing = timing }
 
-    type TrxTestDefHierarchy =
-        { Name: string
-          Path: string
-          TestDef: TrxTestDef option
-          Children: TrxTestDefHierarchy array }
 
-        member self.FullName = TestName.fromPathAndLabel self.Path self.Name
-
-
-    module TrxTestDefHierarchy =
-        let mapFoldBack (f: TrxTestDefHierarchy -> 'a array -> 'a) (root: TrxTestDefHierarchy) : 'a =
-            let rec recurse (trxDef: TrxTestDefHierarchy) =
-                let mappedChildren = trxDef.Children |> Array.map recurse
-                f trxDef mappedChildren
-
-            recurse root
-
-    type private TrxTestDefWithSplitPath =
-        { tdef: TrxTestDef
-          relativePath: string list }
-
-    let inferHierarchy (testDefs: TrxTestDef array) : TrxTestDefHierarchy array =
-
-        let withRelativePath tdef =
-            { tdef = tdef
-              relativePath = TestName.splitSegments tdef.ClassName }
-
-        let popTopPath tdefWithPath =
-            { tdefWithPath with
-                relativePath = tdefWithPath.relativePath.Tail }
-
-        let groupBy trxDef = trxDef.relativePath |> List.tryHead
-
-        let rec recurse (traversed: string list) defsWithRelativePath : TrxTestDefHierarchy array =
-            defsWithRelativePath
-            |> Array.groupBy groupBy
-            |> Array.collect (fun (group, tdefs) ->
-                match group with
-                | Some groupName ->
-                    [| { Name = groupName
-                         TestDef = None
-                         Path = traversed |> List.rev |> TestName.joinSegments
-                         Children = recurse (groupName :: traversed) (tdefs |> Array.map popTopPath) } |]
-                | None ->
-                    tdefs
-                    |> Array.map (fun tdef ->
-                        { Name = tdef.tdef.TestName
-                          Path = tdef.tdef.ClassName
-                          TestDef = Some tdef.tdef
-                          Children = [||] }))
-
-        testDefs |> Array.map withRelativePath |> recurse []
+    let inferHierarchy (testDefs: TrxTestDef array) : TestName.NameHierarchy<TrxTestDef> array =
+        testDefs
+        |> Array.map (fun td -> {| FullName = td.FullName; Data = td |})
+        |> TestName.inferHierarchy
 
 
 
@@ -431,13 +430,13 @@ module TestItem =
         factory
 
 
-    let fromTrxDef
+    let fromNamedHierarchy
         (itemFactory: TestItemFactory)
         (tryGetLocation: TestId -> LocationRecord option)
         projectPath
-        (trxDef: TrxParser.TrxTestDefHierarchy)
+        (trxDef: TestName.NameHierarchy<'t>)
         : TestItem =
-        let rec recurse (trxDef: TrxParser.TrxTestDefHierarchy) =
+        let rec recurse (trxDef: TestName.NameHierarchy<'t>) =
             let id = constructId projectPath trxDef.FullName
             let location = tryGetLocation id
 
@@ -639,7 +638,7 @@ module TestDiscovery =
                 logger.Debug("Hierarchy", heirarchy)
 
                 heirarchy
-                |> Array.map (TestItem.fromTrxDef testItemFactory locationCache.GetById projPath))
+                |> Array.map (TestItem.fromNamedHierarchy testItemFactory locationCache.GetById projPath))
 
         logger.Debug("Tests", treeItems)
 
