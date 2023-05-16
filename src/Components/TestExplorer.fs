@@ -60,6 +60,17 @@ module ArrayExt =
         (leftExclusive, intersectionPairs, rightExclusive)
 
 
+type TestId = string
+type ProjectPath = string
+
+module ProjectPath =
+    let inline ofString str = str
+
+type FullTestName = string
+
+module FullTestName =
+    let inline ofString str = str
+
 module TestName =
     let pathSeparator = '.'
 
@@ -72,7 +83,7 @@ module TestName =
 
     let private segmentRegex = RegularExpressions.Regex(@"([+\.]?)([^+\.]+)")
 
-    let splitSegments (fullTestName: string) =
+    let splitSegments (fullTestName: FullTestName) =
         let matches =
             [ for x in segmentRegex.Matches(fullTestName) do
                   x ]
@@ -82,10 +93,10 @@ module TestName =
             { Text = m.Groups[2].Value
               SeparatorBefore = m.Groups[1].Value })
 
-    let appendSegment (parentPath: string) (segment: Segment) =
+    let appendSegment (parentPath: FullTestName) (segment: Segment) : FullTestName =
         $"{parentPath}{segment.SeparatorBefore}{segment.Text}"
 
-    let fromPathAndTestName (classPath: string) (testName: string) =
+    let fromPathAndTestName (classPath: string) (testName: string) : FullTestName =
         if classPath = "" then
             testName
         else
@@ -96,7 +107,7 @@ module TestName =
 
     type NameHierarchy<'t> =
         { Data: 't option
-          FullName: string
+          FullName: FullTestName
           Name: string
           Children: NameHierarchy<'t> array }
 
@@ -290,7 +301,6 @@ module DotnetTest =
             (ResizeArray(
                 [| "test"
                    projectPath
-                   // Project should already be built, perhaps we can point to the dll instead?
                    "--logger:\"trx;LogFileName=Ionide.trx\""
                    "--noLogo"
                    yield! additionalArgs |]
@@ -365,8 +375,6 @@ module DotnetTest =
             return testResults
         }
 
-type TestId = string
-
 type LocationRecord =
     { Uri: Uri; Range: Vscode.Range option }
 
@@ -393,20 +401,20 @@ module TestItem =
 
     let private idSeparator = " -- "
 
-    let constructId (projectPath: string) (fullName: string) : TestId =
+    let constructId (projectPath: ProjectPath) (fullName: FullTestName) : TestId =
         String.Join(idSeparator, [| projectPath; fullName |])
 
-    let getFullName (testId: TestId) =
+    let getFullName (testId: TestId) : FullTestName =
         let split =
             testId.Split(separator = [| idSeparator |], options = StringSplitOptions.None)
 
-        split.[1]
+        FullTestName.ofString split.[1]
 
-    let getProjectPath (testId: TestId) =
+    let getProjectPath (testId: TestId) : ProjectPath =
         let split =
             testId.Split(separator = [| idSeparator |], options = StringSplitOptions.None)
 
-        split.[0]
+        ProjectPath.ofString split.[0]
 
     let getId (t: TestItem) = t.id
 
@@ -456,25 +464,25 @@ module TestItem =
         (itemFactory: TestItemFactory)
         (tryGetLocation: TestId -> LocationRecord option)
         projectPath
-        (trxDef: TestName.NameHierarchy<'t>)
+        (hierarchy: TestName.NameHierarchy<'t>)
         : TestItem =
-        let rec recurse (trxDef: TestName.NameHierarchy<'t>) =
-            let id = constructId projectPath trxDef.FullName
+        let rec recurse (namedNode: TestName.NameHierarchy<'t>) =
+            let id = constructId projectPath namedNode.FullName
             let location = tryGetLocation id
 
             itemFactory
                 { id = id
-                  label = trxDef.Name
+                  label = namedNode.Name
                   uri = location |> LocationRecord.tryGetUri
                   range = location |> LocationRecord.tryGetRange
-                  children = trxDef.Children |> Array.map recurse }
+                  children = namedNode.Children |> Array.map recurse }
 
-        recurse trxDef
+        recurse hierarchy
 
     let fromTestAdapter
         (itemFactory: TestItemFactory)
         (uri: Uri)
-        (projectPath: string)
+        (projectPath: ProjectPath)
         (t: TestAdapterEntry)
         : TestItem =
         let getNameSeparator parentModuleType moduleType =
@@ -484,7 +492,7 @@ module TestItem =
             | Some _, "NoneModule" -> "."
             | _ -> "+"
 
-        let rec recurse (parentFullName: string) (parentModuleType: string option) (t: TestAdapterEntry) =
+        let rec recurse (parentFullName: FullTestName) (parentModuleType: string option) (t: TestAdapterEntry) =
             let fullName =
                 parentFullName + (getNameSeparator parentModuleType t.moduleType) + t.name
 
@@ -514,17 +522,23 @@ module TestItem =
 
         Project.tryFindLoadedProjectByFile fileUri.fsPath
         |> Option.map (fun project ->
+            let projectPath = ProjectPath.ofString project.Project
+
             testsForFile.tests
-            |> Array.map (fromTestAdapter testItemFactory fileUri project.Project))
+            |> Array.map (fromTestAdapter testItemFactory fileUri projectPath))
 
     let getOrMakeHierarchyPath
         (rootCollection: TestItemCollection)
         (itemFactory: TestItemFactory)
         (tryGetLocation: TestId -> LocationRecord option)
-        (projectPath: string)
-        (fullTestName: string)
+        (projectPath: ProjectPath)
+        (fullTestName: FullTestName)
         =
-        let rec recurse (collection: TestItemCollection) (parentPath: string) (remainingPath: TestName.Segment list) =
+        let rec recurse
+            (collection: TestItemCollection)
+            (parentPath: FullTestName)
+            (remainingPath: TestName.Segment list)
+            =
 
             let currentLabel, remainingPath =
                 match remainingPath with
@@ -647,7 +661,7 @@ module TestDiscovery =
 
         recurse targetCollection previousCodeTests newCodeTests
 
-    let discoverFromTrx testItemFactory (locationCache: CodeLocationCache) () =
+    let discoverFromTrx testItemFactory (tryGetLocation: TestId -> LocationRecord option) () =
         let allProjects = Project.getAll () |> Array.ofList
 
         let testProjects =
@@ -663,11 +677,12 @@ module TestDiscovery =
         let treeItems =
             trxTestsPerProject
             |> Array.collect (fun (projPath, trxDefs) ->
+                let projectUri = ProjectPath.ofString projPath
                 let heirarchy = TrxParser.inferHierarchy trxDefs
                 logger.Debug("Hierarchy", heirarchy)
 
                 heirarchy
-                |> Array.map (TestItem.fromNamedHierarchy testItemFactory locationCache.GetById projPath))
+                |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation projectUri))
 
         logger.Debug("Tests", treeItems)
 
@@ -676,7 +691,7 @@ module TestDiscovery =
 module Interactions =
     type ProjectWithTests =
         {
-            ProjectPath: string
+            ProjectPath: ProjectPath
             Tests: TestItem array
             /// The Tests are listed due to a include filter, so when running the tests the --filter should be added
             HasIncludeFilter: bool
@@ -751,7 +766,7 @@ module Interactions =
         (testItemFactory: TestItem.TestItemFactory)
         (tryGetLocation: TestId -> LocationRecord option)
         (testRun: TestRun)
-        (projectPath: string)
+        (projectPath: ProjectPath)
         (expectedToRun: TestItem array)
         (testResults: TestResult array)
         =
@@ -780,7 +795,7 @@ module Interactions =
             let treeItem = getOrMakeHierarchyPath additionalResult.FullTestName
             displayTestResultInExplorer testRun (treeItem, additionalResult))
 
-    type MergeTestResultsToExplorer = TestRun -> string -> TestItem array -> TestResult array -> unit
+    type MergeTestResultsToExplorer = TestRun -> ProjectPath -> TestItem array -> TestResult array -> unit
 
     let runTestProject
         (mergeResultsToExplorer: MergeTestResultsToExplorer)
@@ -844,7 +859,7 @@ module Interactions =
             let filtersToProjectRunRequests (runRequest: TestRunRequest) =
                 getRunnableTests runRequest.``include``
                 |> Array.groupBy (fun t -> TestItem.getProjectPath t.id)
-                |> Array.map (fun (projPath: string, tests) ->
+                |> Array.map (fun (projPath: ProjectPath, tests) ->
                     { ProjectPath = projPath
                       //IMPORTANT: don't actually filter until test discovery can handle partial result files
                       HasIncludeFilter = false
@@ -868,9 +883,7 @@ module Interactions =
             |> (Promise.toThenable >> (!^))
 
 
-    let refreshTestList (testController: TestController) locationCache =
-        let testItemFactory = TestItem.itemFactoryForController testController
-
+    let refreshTestList testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation =
         promise {
             let! _ =
                 Project.getAll ()
@@ -878,9 +891,9 @@ module Interactions =
                 |> Promise.Parallel
 
             let newTests =
-                TestDiscovery.discoverFromTrx testItemFactory locationCache () |> ResizeArray
+                TestDiscovery.discoverFromTrx testItemFactory tryGetLocation () |> ResizeArray
 
-            testController.items.replace newTests
+            rootTestCollection.replace newTests
         }
 
     let onTestsDiscoveredInCode
@@ -923,14 +936,11 @@ module Mailbox =
 
 let activate (context: ExtensionContext) =
 
-
     let testController =
         tests.createTestController ("fsharp-test-controller", "F# Test Controller")
 
     let testItemFactory = TestItem.itemFactoryForController testController
     let locationCache = CodeLocationCache()
-
-
 
     testController.createRunProfile (
         "Run F# Tests",
@@ -944,10 +954,6 @@ let activate (context: ExtensionContext) =
     //    testController.createRunProfile ("Debug F# Tests", TestRunProfileKind.Debug, runHandler testController, true)
     //    |> unbox
     //    |> context.subscriptions.Add
-
-    let discoverTests = TestDiscovery.discoverFromTrx testItemFactory locationCache
-    let initialTests = discoverTests ()
-    initialTests |> Array.iter testController.items.add
 
     let testsPerFileCache = Collections.Generic.Dictionary<string, TestItem array>()
 
@@ -966,11 +972,18 @@ let activate (context: ExtensionContext) =
 
 
     let refreshHandler cancellationToken =
-        Interactions.refreshTestList testController locationCache
+        Interactions.refreshTestList testItemFactory testController.items locationCache.GetById
         |> Promise.toThenable
         |> (!^)
 
     testController.refreshHandler <- Some refreshHandler
 
-    if Array.isEmpty initialTests then
-        Interactions.refreshTestList testController locationCache |> Promise.start
+    let discoverTests =
+        TestDiscovery.discoverFromTrx testItemFactory locationCache.GetById
+
+    let initialTests = discoverTests ()
+    initialTests |> Array.iter testController.items.add
+
+    // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
+    Interactions.refreshTestList testItemFactory testController.items locationCache.GetById
+    |> Promise.start
