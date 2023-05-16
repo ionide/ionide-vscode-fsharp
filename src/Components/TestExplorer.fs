@@ -689,7 +689,7 @@ module TestDiscovery =
         treeItems
 
 module Interactions =
-    type ProjectWithTests =
+    type ProjectRunRequest =
         {
             ProjectPath: ProjectPath
             Tests: TestItem array
@@ -721,21 +721,23 @@ module Interactions =
 
 
     let private buildFilterExpression (tests: TestItem array) =
-        let filterValue =
-            tests
-            |> Array.map (fun t ->
-                let fullName = TestItem.getFullName t.id
+        let testToFilterExpression (test: TestItem) =
+            let fullName = TestItem.getFullName test.id
 
-                if fullName.Contains(" ") && t.Type = "NUnit" then
-                    // workaround for https://github.com/nunit/nunit3-vs-adapter/issues/876
-                    // Potentially we are going to run multiple tests that match this filter
-                    let testPart = fullName.Split(' ').[0]
-                    $"(FullyQualifiedName~{testPart})"
-                else
-                    $"(FullyQualifiedName={fullName})")
-            |> String.concat "|"
+            if test.children.size > 0 && fullName.Contains(" ") && test.Type = "NUnit" then
+                // workaround for https://github.com/nunit/nunit3-vs-adapter/issues/876
+                // Potentially we are going to run multiple tests that match this filter
+                let testPart = fullName.Split(' ').[0]
+                $"(FullyQualifiedName~{testPart})"
+            else if test.children.size = 0 then
+                $"(FullyQualifiedName={fullName})"
+            else
+                $"(FullyQualifiedName~{fullName})"
 
-        filterValue
+        let filterExpression =
+            tests |> Array.map testToFilterExpression |> String.concat "|"
+
+        filterExpression
 
     let private displayTestResultInExplorer (testRun: TestRun) (testItem: TestItem, testResult: TestResult) =
 
@@ -800,11 +802,11 @@ module Interactions =
     let runTestProject
         (mergeResultsToExplorer: MergeTestResultsToExplorer)
         (testRun: TestRun)
-        (projectRunRequest: ProjectWithTests)
+        (projectRunRequest: ProjectRunRequest)
         =
         promise {
             let projectPath = projectRunRequest.ProjectPath
-            let runnableTests = projectRunRequest.Tests
+            let runnableTests = projectRunRequest.Tests |> Array.collect TestItem.runnableItems
 
             TestRun.showEnqueued testRun runnableTests
 
@@ -833,6 +835,18 @@ module Interactions =
         }
 
 
+    let private filtersToProjectRunRequests (rootTestCollection: TestItemCollection) (runRequest: TestRunRequest) =
+        let testSelection =
+            runRequest.``include``
+            |> Option.map Array.ofSeq
+            |> Option.defaultValue (rootTestCollection.TestItems())
+
+        testSelection
+        |> Array.groupBy (fun t -> TestItem.getProjectPath t.id)
+        |> Array.map (fun (projPath: string, tests) ->
+            { ProjectPath = projPath
+              HasIncludeFilter = Option.isSome runRequest.``include``
+              Tests = tests })
 
     let runHandler
         (testController: TestController)
@@ -848,24 +862,7 @@ module Interactions =
         if testController.items.size < 1. then
             !! testRun.``end`` ()
         else
-            let getRunnableTests (includeFilter: ResizeArray<TestItem> option) =
-                let treeItemsToRun =
-                    match includeFilter with
-                    | Some includedTests -> includedTests |> Array.ofSeq
-                    | None -> testController.TestItems()
-
-                treeItemsToRun |> Array.collect TestItem.runnableItems
-
-            let filtersToProjectRunRequests (runRequest: TestRunRequest) =
-                getRunnableTests runRequest.``include``
-                |> Array.groupBy (fun t -> TestItem.getProjectPath t.id)
-                |> Array.map (fun (projPath: ProjectPath, tests) ->
-                    { ProjectPath = projPath
-                      //IMPORTANT: don't actually filter until test discovery can handle partial result files
-                      HasIncludeFilter = false
-                      Tests = tests })
-
-            let projectRunRequests = filtersToProjectRunRequests req
+            let projectRunRequests = filtersToProjectRunRequests testController.items req
 
             logger.Debug("Project run requests", projectRunRequests)
 
