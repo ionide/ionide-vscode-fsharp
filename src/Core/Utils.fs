@@ -284,6 +284,14 @@ module Promise =
     let ofThenable (t: Thenable<'t>) : JS.Promise<'t> = unbox (box t)
     let toThenable (p: JS.Promise<'t>) : Thenable<'t> = unbox (box p)
 
+    [<Emit("typeof ($0 || {}).then === 'function'")>]
+    let isThenable (x: obj) : bool = jsNative
+
+    let ofMaybeThenable (ifValue: 'T1 -> 'T2) (t: U2<'T1, Thenable<'T2>>) : JS.Promise<'T2> =
+        match box t with
+        | t when isThenable t -> unbox t |> ofThenable
+        | t -> unbox t |> ifValue |> Promise.lift
+
     let onSuccess = Promise.tap
 
     // source: https://github.com/ionide/ionide-vscode-helpers/blob/5e4c28c79ed565497cd481fac2f22ee2d8d28406/src/Helpers.fs#L92

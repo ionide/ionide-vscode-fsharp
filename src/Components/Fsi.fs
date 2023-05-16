@@ -420,8 +420,7 @@ module Fsi =
             let! profile =
                 match provider.provideTerminalProfile (ctok) with
                 | None -> promise.Return None
-                | Some(U2.Case1 options) -> promise.Return(Some options)
-                | Some(U2.Case2 work) -> Promise.ofThenable work
+                | Some work -> work |> Promise.ofMaybeThenable Some
 
             let profile =
                 match profile with
@@ -431,10 +430,7 @@ module Fsi =
 
                     failwith "unable to spawn FSI"
 
-            let terminal =
-                match profile.options with
-                | U2.Case1 opts -> window.createTerminal opts
-                | U2.Case2 opts -> window.createTerminal opts
+            let terminal = window.createTerminal !!profile.options
 
             // Wait for the new terminal to be ready
             let! newTerminal =
