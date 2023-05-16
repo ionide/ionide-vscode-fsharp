@@ -59,7 +59,6 @@ module ArrayExt =
 
         (leftExclusive, intersectionPairs, rightExclusive)
 
-
 type TestId = string
 type ProjectPath = string
 
@@ -285,6 +284,15 @@ module TrxParser =
           Timing = timing }
 
 
+
+    let extractTrxResults (trxPath: string) =
+        let xpathSelector = trxSelector trxPath
+
+        let trxDefToTrxResult (trxDef: TrxTestDef) =
+            extractTestResult xpathSelector trxDef.ExecutionId
+
+        extractTestDefinitionsFromSelector xpathSelector |> Array.map trxDefToTrxResult
+
     let inferHierarchy (testDefs: TrxTestDef array) : TestName.NameHierarchy<TrxTestDef> array =
         testDefs
         |> Array.map (fun td -> {| FullName = td.FullName; Data = td |})
@@ -306,8 +314,13 @@ module DotnetTest =
                    yield! additionalArgs |]
             ))
 
-    let private runTestProject (projectPath: string) (filterExpression: string option) =
+    type TrxPath = string
+    type ConsoleOutput = string
+
+    let runTests (projectPath: string) (filterExpression: string option) : JS.Promise<TrxPath * ConsoleOutput> =
         promise {
+            // https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test#filter-option-details
+
             let filter =
                 match filterExpression with
                 | None -> Array.empty
@@ -316,63 +329,12 @@ module DotnetTest =
             if filter.Length > 0 then
                 logger.Debug("Filter", filter)
 
-            let! _, _, exitCode = dotnetTest projectPath [| "--no-build"; yield! filter |]
+            let! _, stdOutput, stdError = dotnetTest projectPath [| "--no-build"; yield! filter |]
 
-            logger.Debug("Test run exitCode", exitCode)
+            logger.Debug("Test run exitCode", stdError)
 
             let trxPath = TrxParser.guessTrxPath projectPath
-            return trxPath
-        }
-
-    let runTests (projectPath: string) (filterExpression: string option) : JS.Promise<TestResult array> =
-        let trxDefToTrxResult xpathSelector (trxDef: TrxTestDef) =
-            TrxParser.extractTestResult xpathSelector trxDef.ExecutionId
-
-        let trxResultToTestResult (trxResult: TrxTestResult) =
-            // Q: can I get these parameters down to just trxResult?
-            let expected, actual =
-                match trxResult.ErrorMessage with
-                | None -> None, None
-                | Some message ->
-                    let lines =
-                        message.Split([| "\r\n"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
-                        |> Array.map (fun n -> n.TrimStart())
-
-                    let tryFind (startsWith: string) =
-                        Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
-                        |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
-
-                    tryFind "Expected:", tryFind "But was:"
-
-            { FullTestName = trxResult.FullTestName
-              Outcome = !!trxResult.Outcome
-              ErrorMessage = trxResult.ErrorMessage
-              ErrorStackTrace = trxResult.ErrorStackTrace
-              Expected = expected
-              Actual = actual
-              Timing = trxResult.Timing.Milliseconds }
-
-        logger.Debug("Nunit project", projectPath)
-
-        promise {
-            // https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test#filter-option-details
-
-            let! trxPath = runTestProject projectPath filterExpression
-
-            logger.Debug("Trx file at", trxPath)
-
-            let xpathSelector = TrxParser.trxSelector trxPath
-
-            let testDefinitions = TrxParser.extractTestDefinitionsFromSelector xpathSelector
-
-            let testResults =
-                testDefinitions
-                |> Array.map (trxDefToTrxResult xpathSelector >> trxResultToTestResult)
-
-            logger.Debug("Project Test Results", testResults)
-
-
-            return testResults
+            return trxPath, (stdOutput + stdError)
         }
 
 type LocationRecord =
@@ -427,6 +389,11 @@ module TestItem =
                 testItem.children.TestItems() |> Array.collect visit
 
         visit root
+
+    let tryGetLocation (testItem: TestItem) =
+        match testItem.uri, testItem.range with
+        | Some uri, Some range -> Some(vscode.Location.Create(uri, !^range))
+        | _ -> None
 
     let preWalk f (root: TestItem) =
         let rec recurse (t: TestItem) =
@@ -698,10 +665,27 @@ module Interactions =
         }
 
     module TestRun =
+        let normalizeLineEndings str =
+            RegularExpressions.Regex.Replace(str, @"\r\n|\n\r|\n|\r", "\r\n")
+
+        let appendOutputLine (testRun: TestRun) (message: string) =
+            // NOTE: New lines must be crlf https://code.visualstudio.com/api/extension-guides/testing#test-output
+            testRun.appendOutput (sprintf "%s\r\n" (normalizeLineEndings message))
+
+        let appendOutputLineForTest (testRun: TestRun) (testItem) (message: string) =
+            let message = sprintf "%s\r\n" (normalizeLineEndings message)
+
+            match TestItem.tryGetLocation testItem with
+            | Some location -> testRun.appendOutput (message, location, testItem)
+            | None -> testRun.appendOutput (message, test = testItem)
+
         let showEnqueued (testRun: TestRun) (testItems: TestItem array) =
             testItems |> Array.iter testRun.enqueued
 
         let showStarted (testRun: TestRun) (testItems: TestItem array) = testItems |> Array.iter testRun.started
+
+        let showFailure (testRun: TestRun) (testItem: TestItem) (message: TestMessage) (duration: float) =
+            testRun.failed (testItem, !^message, duration)
 
         let showError (testRun: TestRun) message (testItems: TestItem array) =
             let showSingle testItem =
@@ -755,13 +739,10 @@ module Interactions =
 
             let msg = vscode.TestMessage.Create(!^fullErrorMessage)
 
-            match testItem.uri, testItem.range with
-            | Some uri, Some range -> msg.location <- Some(vscode.Location.Create(uri, !^range))
-            | _ -> ()
-
+            msg.location <- TestItem.tryGetLocation testItem
             msg.expectedOutput <- testResult.Expected
             msg.actualOutput <- testResult.Actual
-            testRun.failed (testItem, !^msg, testResult.Timing)
+            TestRun.showFailure testRun testItem msg testResult.Timing
 
     let mergeTestResultsToExplorer
         (rootTestCollection: TestItemCollection)
@@ -797,6 +778,30 @@ module Interactions =
             let treeItem = getOrMakeHierarchyPath additionalResult.FullTestName
             displayTestResultInExplorer testRun (treeItem, additionalResult))
 
+    let private trxResultToTestResult (trxResult: TrxTestResult) =
+        // Q: can I get these parameters down to just trxResult?
+        let expected, actual =
+            match trxResult.ErrorMessage with
+            | None -> None, None
+            | Some message ->
+                let lines =
+                    message.Split([| "\r\n"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
+                    |> Array.map (fun n -> n.TrimStart())
+
+                let tryFind (startsWith: string) =
+                    Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
+                    |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
+
+                tryFind "Expected:", tryFind "But was:"
+
+        { FullTestName = trxResult.FullTestName
+          Outcome = !!trxResult.Outcome
+          ErrorMessage = trxResult.ErrorMessage
+          ErrorStackTrace = trxResult.ErrorStackTrace
+          Expected = expected
+          Actual = actual
+          Timing = trxResult.Timing.Milliseconds }
+
     type MergeTestResultsToExplorer = TestRun -> ProjectPath -> TestItem array -> TestResult array -> unit
 
     let runTestProject
@@ -814,6 +819,7 @@ module Interactions =
 
             if buildStatus.Code <> Some 0 then
                 TestRun.showError testRun "Project build failed" runnableTests
+                TestRun.appendOutputLine testRun $"❌ Failed to build project: {projectPath}"
             else
                 TestRun.showStarted testRun runnableTests
 
@@ -823,13 +829,20 @@ module Interactions =
                     else
                         None
 
-                let! testResults = DotnetTest.runTests projectPath filterExpression
+
+                let! trxPath, output = DotnetTest.runTests projectPath filterExpression
+
+                TestRun.appendOutputLine testRun output
+
+                let testResults =
+                    TrxParser.extractTrxResults trxPath |> Array.map trxResultToTestResult
 
                 if Array.isEmpty testResults then
                     let message =
-                        $"No tests run for project \"{projectPath}\". \nThe test explorer might be out of sync. Try running a higher test or refreshing the test explorer"
+                        $"WARNING: No tests ran for project \"{projectPath}\". \r\nThe test explorer might be out of sync. Try running a higher test or refreshing the test explorer"
 
                     window.showWarningMessage (message) |> ignore
+                    TestRun.appendOutputLine testRun message
                 else
                     mergeResultsToExplorer testRun projectPath runnableTests testResults
         }
