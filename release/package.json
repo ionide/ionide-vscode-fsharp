@@ -70,7 +70,7 @@
         "defaults": {
           "dark": "#FFCC00",
           "highContrast": "#FFFF00",
-          "light": "#FFCC00"
+          "light": "#7c6400"
         },
         "description": "Text colors for warnings shown in the status bar",
         "id": "fsharp.statusBarWarnings"
