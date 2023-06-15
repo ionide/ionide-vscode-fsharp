@@ -301,9 +301,19 @@ module TrxParser =
 
 
 
-module DotnetTest =
+module DotnetCli =
+    type StandardOutput = string
+    type StandardError = string
 
-    let internal dotnetTest (projectPath: string) (additionalArgs: string array) =
+    let restore
+        (projectPath: string)
+        : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
+        Process.exec "dotnet" (ResizeArray([| "restore"; projectPath |]))
+
+    let internal dotnetTest
+        (projectPath: string)
+        (additionalArgs: string array)
+        : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
         Process.exec
             "dotnet"
             (ResizeArray(
@@ -556,6 +566,20 @@ module CodeLocationCache =
         testItems |> Array.map (TestItem.preWalk saveTestItem) |> ignore
 
 
+module ProjectExt =
+    let getAllWorkspaceProjects () =
+        let getPath (status: Project.ProjectLoadingState) =
+            match status with
+            | Project.ProjectLoadingState.Loaded p -> p.Project
+            | Project.ProjectLoadingState.LanguageNotSupported path -> path
+            | Project.ProjectLoadingState.Loading path -> path
+            | Project.ProjectLoadingState.Failed(path, _) -> path
+            | Project.ProjectLoadingState.NotRestored(path, _) -> path
+
+        Project.getInWorkspace () |> List.map getPath
+
+
+
 module TestDiscovery =
 
     let mergeCodeLocations
@@ -629,12 +653,14 @@ module TestDiscovery =
         recurse targetCollection previousCodeTests newCodeTests
 
     let discoverFromTrx testItemFactory (tryGetLocation: TestId -> LocationRecord option) () =
-        let allProjects = Project.getAll () |> Array.ofList
+        let workspaceProjects = ProjectExt.getAllWorkspaceProjects ()
 
         let testProjects =
-            allProjects |> Array.filter (TrxParser.tryGetTrxPath >> Option.isSome)
+            workspaceProjects
+            |> Array.ofList
+            |> Array.filter (TrxParser.tryGetTrxPath >> Option.isSome)
 
-        logger.Debug("Projects", allProjects)
+        logger.Debug("Workspace Projects", testProjects)
         logger.Debug("Test Projects", testProjects)
 
         let trxTestsPerProject =
@@ -815,6 +841,7 @@ module Interactions =
 
             TestRun.showEnqueued testRun runnableTests
 
+            let! _ = DotnetCli.restore projectPath
             let! buildStatus = MSBuild.invokeMSBuild projectPath "Build"
 
             if buildStatus.Code <> Some 0 then
@@ -830,7 +857,7 @@ module Interactions =
                         None
 
 
-                let! trxPath, output = DotnetTest.runTests projectPath filterExpression
+                let! trxPath, output = DotnetCli.runTests projectPath filterExpression
 
                 TestRun.appendOutputLine testRun output
 
@@ -895,9 +922,35 @@ module Interactions =
 
     let refreshTestList testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation =
         promise {
+
             let! _ =
-                Project.getAll ()
-                |> List.map (fun p -> DotnetTest.dotnetTest p [||])
+                ProjectExt.getAllWorkspaceProjects ()
+                |> List.map DotnetCli.restore
+                |> Promise.Parallel
+
+            let testProjectPaths =
+                Project.getInWorkspace ()
+                |> List.choose (fun projectLoadState ->
+                    match projectLoadState with
+                    | Project.ProjectLoadingState.Loaded proj ->
+                        let isTestProject =
+                            proj.PackageReferences
+                            |> Array.exists (fun pr ->
+                                pr.Name = "Microsoft.TestPlatform.TestHost"
+                                || pr.Name = "Microsoft.NET.Test.Sdk")
+
+                        if isTestProject then Some proj.Project else None
+                    | _ -> None)
+
+            logger.Debug("Refresh - Test Projects", testProjectPaths |> Array.ofList)
+
+            let! _ =
+                testProjectPaths
+                |> Promise.executeForAll (fun projectPath -> MSBuild.invokeMSBuild projectPath "Build")
+
+            let! _ =
+                testProjectPaths
+                |> List.map (fun projectPath -> DotnetCli.dotnetTest projectPath [| "--no-build" |])
                 |> Promise.Parallel
 
             let newTests =
@@ -988,12 +1041,17 @@ let activate (context: ExtensionContext) =
 
     testController.refreshHandler <- Some refreshHandler
 
-    let discoverTests =
-        TestDiscovery.discoverFromTrx testItemFactory locationCache.GetById
+    Project.workspaceLoaded.Invoke(fun () ->
+        let discoverTests =
+            TestDiscovery.discoverFromTrx testItemFactory locationCache.GetById
 
-    let initialTests = discoverTests ()
-    initialTests |> Array.iter testController.items.add
+        let initialTests = discoverTests ()
+        initialTests |> Array.iter testController.items.add
 
-    // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
-    Interactions.refreshTestList testItemFactory testController.items locationCache.GetById
-    |> Promise.start
+        // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
+        Interactions.refreshTestList testItemFactory testController.items locationCache.GetById
+        |> Promise.start
+
+        None)
+    |> unbox
+    |> context.subscriptions.Add
