@@ -21,11 +21,13 @@ The LSP that powers language features is [FSAutoComplete](https://github.com/fsh
 
 The library that powers project and script loading is [proj-info](https://github.com/ionide/proj-info)
 
+You find a version of this plugin pre-packaged with the FOSS debugger from Samsung [here](https://open-vsx.org/extension/Ionide/Ionide-fsharp)
+
 # Requirements
 
 * .NET 6.0/7.0 SDK - https://dotnet.microsoft.com/download/dotnet/7.0
 
-* VS Code C# plugin - Ionide's debugging capabilities relies on the debugger provided by Omnisharp team. 
+* VS Code C# plugin - Ionide's debugging capabilities rely on either the [Omnisharp](https://github.com/OmniSharp/omnisharp-vscode) debugger or [netcoredbg](https://github.com/muhammadsammy/free-omnisharp-vscode).
 
 ## Features
 
