@@ -1,6 +1,7 @@
 ### 7.6.0 - 14.06.2023
 
 * Updates FSAC to 0.60.0, which updates the compiler services to match .NET SDK 7.0.300, and includes a helpful XMLDoc generation codefix. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.60.0) for more details.
+* Includes fixes to the syntax highlighting from @jkillingsworth for constructor parens, the `new` keyword, access modifiers, arrow coloration, `:` in abstract member definitions, `()` in unit literals, and more!
 
 ### 7.5.4 - 07.05.2023
 
