@@ -923,7 +923,9 @@ module Interactions =
     let refreshTestList testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation =
         promise {
 
-            let! _ = ProjectExt.getAllWorkspaceProjects () |> Promise.executeForAll DotnetCli.restore
+            let! _ =
+                ProjectExt.getAllWorkspaceProjects ()
+                |> Promise.executeForAll DotnetCli.restore
 
             let testProjectPaths =
                 Project.getInWorkspace ()
@@ -947,8 +949,8 @@ module Interactions =
 
             let! _ =
                 testProjectPaths
-                |> List.map (fun projectPath -> DotnetCli.dotnetTest projectPath [| "--no-build" |])
-                |> Promise.Parallel
+                |> Promise.executeWithMaxParallel 2 (fun projectPath ->
+                    DotnetCli.dotnetTest projectPath [| "--no-build" |])
 
             let newTests =
                 TestDiscovery.discoverFromTrx testItemFactory tryGetLocation () |> ResizeArray

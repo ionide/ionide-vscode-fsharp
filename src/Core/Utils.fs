@@ -310,6 +310,23 @@ module Promise =
         | [ x ] -> f x
         | x :: tail -> tail |> List.fold (fun acc next -> acc |> Promise.bind (fun _ -> f next)) (f x)
 
+    let executeWithMaxParallel maxParallelCount (f: 'a -> JS.Promise<'b>) (items: 'a list) =
+        let initial = items |> List.take maxParallelCount
+
+        let mutable remaining =
+            Collections.Generic.Queue(collection = (items |> List.skip maxParallelCount))
+
+        let rec startNext promise =
+            promise
+            |> Promise.bind (fun _ ->
+                if remaining.Count = 0 then
+                    promise
+                else
+                    let next: 'a = remaining.Dequeue()
+                    startNext (f next))
+
+        initial |> List.map (f >> startNext) |> Promise.all
+
 module Event =
 
     let invoke (listener: 'T -> _) (event: Fable.Import.VSCode.Vscode.Event<'T>) = event.Invoke(listener >> unbox)
