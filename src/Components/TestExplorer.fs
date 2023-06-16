@@ -660,7 +660,7 @@ module TestDiscovery =
             |> Array.ofList
             |> Array.filter (TrxParser.tryGetTrxPath >> Option.isSome)
 
-        logger.Debug("Workspace Projects", testProjects)
+        logger.Debug("Workspace Projects", workspaceProjects)
         logger.Debug("Test Projects", testProjects)
 
         let trxTestsPerProject =
@@ -923,10 +923,7 @@ module Interactions =
     let refreshTestList testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation =
         promise {
 
-            let! _ =
-                ProjectExt.getAllWorkspaceProjects ()
-                |> List.map DotnetCli.restore
-                |> Promise.Parallel
+            let! _ = ProjectExt.getAllWorkspaceProjects () |> Promise.executeForAll DotnetCli.restore
 
             let testProjectPaths =
                 Project.getInWorkspace ()
@@ -1041,16 +1038,20 @@ let activate (context: ExtensionContext) =
 
     testController.refreshHandler <- Some refreshHandler
 
+    let mutable hasInitiatedDiscovery = false
+
     Project.workspaceLoaded.Invoke(fun () ->
-        let discoverTests =
-            TestDiscovery.discoverFromTrx testItemFactory locationCache.GetById
+        if not hasInitiatedDiscovery then
+            hasInitiatedDiscovery <- true
 
-        let initialTests = discoverTests ()
-        initialTests |> Array.iter testController.items.add
+            let trxTests = TestDiscovery.discoverFromTrx testItemFactory locationCache.GetById
 
-        // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
-        Interactions.refreshTestList testItemFactory testController.items locationCache.GetById
-        |> Promise.start
+            let initialTests = trxTests ()
+            initialTests |> Array.iter testController.items.add
+
+            // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
+            Interactions.refreshTestList testItemFactory testController.items locationCache.GetById
+            |> Promise.start
 
         None)
     |> unbox
