@@ -923,9 +923,7 @@ module Interactions =
     let refreshTestList testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation =
         promise {
 
-            let! _ =
-                ProjectExt.getAllWorkspaceProjects ()
-                |> Promise.executeForAll DotnetCli.restore
+            let! _ = ProjectExt.getAllWorkspaceProjects () |> Promise.executeForAll DotnetCli.restore
 
             let testProjectPaths =
                 Project.getInWorkspace ()

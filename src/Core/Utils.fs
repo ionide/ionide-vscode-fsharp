@@ -275,6 +275,18 @@ module Array =
         | _ when n >= xs.Length || n < 0 -> xs, [||]
         | _ -> xs.[0 .. n - 1], xs.[n..]
 
+    let safeSkip n (col: 'a array) =
+        if col.Length = 0 then
+            [||]
+        else
+            col |> Array.skip (min n col.Length)
+
+    let safeTake n (col: 'a array) =
+        if col.Length = 0 then
+            [||]
+        else
+            col |> Array.take (min n col.Length)
+
 module Promise =
     open Fable.Core
 
@@ -311,10 +323,11 @@ module Promise =
         | x :: tail -> tail |> List.fold (fun acc next -> acc |> Promise.bind (fun _ -> f next)) (f x)
 
     let executeWithMaxParallel maxParallelCount (f: 'a -> JS.Promise<'b>) (items: 'a list) =
-        let initial = items |> List.take maxParallelCount
+        let items = items |> Array.ofList
+        let initial = items |> Array.safeTake maxParallelCount
 
         let mutable remaining =
-            Collections.Generic.Queue(collection = (items |> List.skip maxParallelCount))
+            Collections.Generic.Queue(collection = (items |> Array.safeSkip maxParallelCount))
 
         let rec startNext promise =
             promise
@@ -325,7 +338,7 @@ module Promise =
                     let next: 'a = remaining.Dequeue()
                     startNext (f next))
 
-        initial |> List.map (f >> startNext) |> Promise.all
+        initial |> Array.map (f >> startNext) |> Promise.all
 
 module Event =
 
