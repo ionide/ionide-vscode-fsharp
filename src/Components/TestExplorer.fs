@@ -198,14 +198,12 @@ type TrxTestResult =
 
 
 module TrxParser =
-    let guessTrxPath (projectPath: string) =
+    let makeTrxPath (projectPath: string) =
         node.path.resolve (node.path.dirname projectPath, "TestResults", "Ionide.trx")
 
-    let tryGetTrxPath (projectPath: string) =
-        let trxPath = guessTrxPath projectPath
-
-        if node.fs.existsSync (U2.Case1 trxPath) then
-            Some trxPath
+    let tryPath (path: string) =
+        if node.fs.existsSync (U2.Case1 path) then
+            Some path
         else
             None
 
@@ -234,16 +232,9 @@ module TrxParser =
         xpathSelector.Select<obj array> "/t:TestRun/t:TestDefinitions/t:UnitTest"
         |> Array.mapi extractTestDef
 
-    let projectHasTrx projectPath =
-        let trxPath = guessTrxPath projectPath
-        node.fs.existsSync (U2.Case1 trxPath)
-
-    let extractProjectTestDefinitions (projectPath: string) =
-        match tryGetTrxPath projectPath with
-        | None -> Array.empty
-        | Some trxPath ->
-            let selector = trxSelector trxPath
-            extractTestDefinitionsFromSelector selector
+    let extractTestDefinitions (trxPath: string) =
+        let selector = trxSelector trxPath
+        extractTestDefinitionsFromSelector selector
 
     let extractTestResult (xpathSelector: XPath.XPathSelector) (executionId: string) : TrxTestResult =
         // NOTE: The test result's `testName` isn't always the full name. Some libraries handle it differently
@@ -312,6 +303,7 @@ module DotnetCli =
 
     let internal dotnetTest
         (projectPath: string)
+        (trxOutputPath: string)
         (additionalArgs: string array)
         : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
         Process.exec
@@ -319,7 +311,7 @@ module DotnetCli =
             (ResizeArray(
                 [| "test"
                    projectPath
-                   "--logger:\"trx;LogFileName=Ionide.trx\""
+                   $"--logger:\"trx;LogFileName={trxOutputPath}\""
                    "--noLogo"
                    yield! additionalArgs |]
             ))
@@ -327,7 +319,11 @@ module DotnetCli =
     type TrxPath = string
     type ConsoleOutput = string
 
-    let runTests (projectPath: string) (filterExpression: string option) : JS.Promise<TrxPath * ConsoleOutput> =
+    let runTests
+        (projectPath: string)
+        (trxOutputPath: string)
+        (filterExpression: string option)
+        : JS.Promise<ConsoleOutput> =
         promise {
             // https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test#filter-option-details
 
@@ -339,12 +335,11 @@ module DotnetCli =
             if filter.Length > 0 then
                 logger.Debug("Filter", filter)
 
-            let! _, stdOutput, stdError = dotnetTest projectPath [| "--no-build"; yield! filter |]
+            let! _, stdOutput, stdError = dotnetTest projectPath trxOutputPath [| "--no-build"; yield! filter |]
 
             logger.Debug("Test run exitCode", stdError)
 
-            let trxPath = TrxParser.guessTrxPath projectPath
-            return trxPath, (stdOutput + stdError)
+            return (stdOutput + stdError)
         }
 
 type LocationRecord =
@@ -664,11 +659,14 @@ module TestDiscovery =
         let testProjects =
             workspaceProjects
             |> Array.ofList
-            |> Array.filter (TrxParser.tryGetTrxPath >> Option.isSome)
+            |> Array.choose (fun p ->
+                match p |> TrxParser.makeTrxPath |> TrxParser.tryPath with
+                | Some trxPath -> Some(p, trxPath)
+                | None -> None)
 
         let trxTestsPerProject =
             testProjects
-            |> Array.map (fun p -> (p, TrxParser.extractProjectTestDefinitions p))
+            |> Array.map (fun (p, trxPath) -> (p, TrxParser.extractTestDefinitions trxPath))
 
         let treeItems =
             trxTestsPerProject
@@ -856,8 +854,8 @@ module Interactions =
                     else
                         None
 
-
-                let! trxPath, output = DotnetCli.runTests projectPath filterExpression
+                let trxPath = TrxParser.makeTrxPath projectPath
+                let! output = DotnetCli.runTests projectPath trxPath filterExpression
 
                 TestRun.appendOutputLine testRun output
 
@@ -969,7 +967,8 @@ module Interactions =
                     testProjectPaths
                     |> Promise.executeWithMaxParallel 2 (fun projectPath ->
                         report $"Discovering tests for {projectPath}"
-                        DotnetCli.dotnetTest projectPath [| "--no-build" |])
+                        let trxPath = TrxParser.makeTrxPath projectPath
+                        DotnetCli.dotnetTest projectPath trxPath [| "--no-build" |])
 
                 let newTests = TestDiscovery.discoverFromTrx testItemFactory tryGetLocation ()
 
