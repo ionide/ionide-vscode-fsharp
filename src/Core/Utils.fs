@@ -322,6 +322,16 @@ module Promise =
         | [ x ] -> f x
         | x :: tail -> tail |> List.fold (fun acc next -> acc |> Promise.bind (fun _ -> f next)) (f x)
 
+    let executeForAlli f items =
+        let mutable index = 0
+
+        let withIndex a =
+            let res = f index a
+            index <- index + 1
+            res
+
+        executeForAll withIndex items
+
     let executeWithMaxParallel maxParallelCount (f: 'a -> JS.Promise<'b>) (items: 'a list) =
         let items = items |> Array.ofList
         let initial = items |> Array.safeTake maxParallelCount

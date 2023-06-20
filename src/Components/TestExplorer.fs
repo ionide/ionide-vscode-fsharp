@@ -17,7 +17,7 @@ let private lastOutput = Collections.Generic.Dictionary<string, string>()
 let private outputChannel = window.createOutputChannel "F# - Test Adapter"
 
 let private logger =
-    ConsoleAndOutputChannelLogger(Some "TestExplorer", Level.DEBUG, None, Some Level.DEBUG)
+    ConsoleAndOutputChannelLogger(Some "TestExplorer", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
 
 module ArrayExt =
 
@@ -578,6 +578,12 @@ module ProjectExt =
 
         Project.getInWorkspace () |> List.map getPath
 
+    let isTestProject (project: Project) =
+        let testProjectIndicators =
+            set [ "Microsoft.TestPlatform.TestHost"; "Microsoft.NET.Test.Sdk" ]
+
+        project.PackageReferences
+        |> Array.exists (fun pr -> Set.contains pr.Name testProjectIndicators)
 
 
 module TestDiscovery =
@@ -660,9 +666,6 @@ module TestDiscovery =
             |> Array.ofList
             |> Array.filter (TrxParser.tryGetTrxPath >> Option.isSome)
 
-        logger.Debug("Workspace Projects", workspaceProjects)
-        logger.Debug("Test Projects", testProjects)
-
         let trxTestsPerProject =
             testProjects
             |> Array.map (fun p -> (p, TrxParser.extractProjectTestDefinitions p))
@@ -672,12 +675,9 @@ module TestDiscovery =
             |> Array.collect (fun (projPath, trxDefs) ->
                 let projectUri = ProjectPath.ofString projPath
                 let heirarchy = TrxParser.inferHierarchy trxDefs
-                logger.Debug("Hierarchy", heirarchy)
 
                 heirarchy
                 |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation projectUri))
-
-        logger.Debug("Tests", treeItems)
 
         treeItems
 
@@ -721,7 +721,7 @@ module Interactions =
 
     let withProgress f =
         let progressOpts = createEmpty<ProgressOptions>
-        progressOpts.location <- U2.Case1 ProgressLocation.Notification
+        progressOpts.location <- U2.Case1 ProgressLocation.Window
 
         window.withProgress (
             progressOpts,
@@ -904,8 +904,6 @@ module Interactions =
         else
             let projectRunRequests = filtersToProjectRunRequests testController.items req
 
-            logger.Debug("Project run requests", projectRunRequests)
-
             let testItemFactory = TestItem.itemFactoryForController testController
 
             let mergeTestResultsToExplorer =
@@ -919,42 +917,66 @@ module Interactions =
             }
             |> (Promise.toThenable >> (!^))
 
-
     let refreshTestList testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation =
-        promise {
+        withProgress
+        <| fun p _ ->
+            promise {
+                let report message =
+                    logger.Info message
 
-            let! _ = ProjectExt.getAllWorkspaceProjects () |> Promise.executeForAll DotnetCli.restore
+                    p.report
+                        {| message = Some message
+                           increment = None |}
 
-            let testProjectPaths =
-                Project.getInWorkspace ()
-                |> List.choose (fun projectLoadState ->
-                    match projectLoadState with
-                    | Project.ProjectLoadingState.Loaded proj ->
-                        let isTestProject =
-                            proj.PackageReferences
-                            |> Array.exists (fun pr ->
-                                pr.Name = "Microsoft.TestPlatform.TestHost"
-                                || pr.Name = "Microsoft.NET.Test.Sdk")
+                let workspaceProjectPaths = ProjectExt.getAllWorkspaceProjects ()
+                let totalRestoreCount = List.length workspaceProjectPaths
 
-                        if isTestProject then Some proj.Project else None
-                    | _ -> None)
+                let! _ =
+                    workspaceProjectPaths
+                    |> Promise.executeForAlli (fun i projPath ->
+                        report $"Restoring projects ({i + 1} of {totalRestoreCount})"
+                        DotnetCli.restore projPath)
 
-            logger.Debug("Refresh - Test Projects", testProjectPaths |> Array.ofList)
 
-            let! _ =
-                testProjectPaths
-                |> Promise.executeForAll (fun projectPath -> MSBuild.invokeMSBuild projectPath "Build")
 
-            let! _ =
-                testProjectPaths
-                |> Promise.executeWithMaxParallel 2 (fun projectPath ->
-                    DotnetCli.dotnetTest projectPath [| "--no-build" |])
+                let testProjectPaths =
+                    Project.getInWorkspace ()
+                    |> List.choose (fun projectLoadState ->
+                        match projectLoadState with
+                        | Project.ProjectLoadingState.Loaded proj ->
+                            if ProjectExt.isTestProject proj then
+                                Some proj.Project
+                            else
+                                None
+                        | _ -> None)
 
-            let newTests =
-                TestDiscovery.discoverFromTrx testItemFactory tryGetLocation () |> ResizeArray
+                let testProjectCount = List.length testProjectPaths
+                logger.Debug("Refresh - Test Projects", testProjectPaths |> Array.ofList)
 
-            rootTestCollection.replace newTests
-        }
+
+
+                report $"Building {testProjectCount} test projects"
+
+                let! _ =
+                    testProjectPaths
+                    |> Promise.executeForAll (fun projectPath ->
+                        logger.Info($"Building {projectPath}")
+                        MSBuild.invokeMSBuild projectPath "Build")
+
+
+
+                let! _ =
+                    testProjectPaths
+                    |> Promise.executeWithMaxParallel 2 (fun projectPath ->
+                        report $"Discovering tests for {projectPath}"
+                        DotnetCli.dotnetTest projectPath [| "--no-build" |])
+
+                let newTests = TestDiscovery.discoverFromTrx testItemFactory tryGetLocation ()
+
+                report $"Discovered {newTests |> Array.sumBy (TestItem.runnableItems >> Array.length)} tests"
+
+                rootTestCollection.replace (newTests |> ResizeArray)
+            }
 
     let onTestsDiscoveredInCode
         (testItemFactory: TestItem.TestItemFactory)
@@ -963,7 +985,6 @@ module Interactions =
         (testsPerFileCache: Collections.Generic.Dictionary<string, TestItem array>)
         (testsForFile: TestForFile)
         =
-        logger.Debug("TestsForFile", testsForFile)
 
         let onTestCodeMapped (filePath: string) (testsFromCode: TestItem array) =
             TestDiscovery.mergeCodeLocations testItemFactory rootTestCollection testsFromCode
