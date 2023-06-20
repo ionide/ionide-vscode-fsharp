@@ -325,7 +325,7 @@ module DotnetCli =
 
     let internal dotnetTest
         (projectPath: string)
-        (trxOutputPath: string)
+        (trxOutputPath: string option)
         (additionalArgs: string array)
         : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
         Process.exec
@@ -333,7 +333,8 @@ module DotnetCli =
             (ResizeArray(
                 [| "test"
                    projectPath
-                   $"--logger:\"trx;LogFileName={trxOutputPath}\""
+                   if Option.isSome trxOutputPath then
+                       $"--logger:\"trx;LogFileName={trxOutputPath.Value}\""
                    "--noLogo"
                    yield! additionalArgs |]
             ))
@@ -357,11 +358,33 @@ module DotnetCli =
             if filter.Length > 0 then
                 logger.Debug("Filter", filter)
 
-            let! _, stdOutput, stdError = dotnetTest projectPath trxOutputPath [| "--no-build"; yield! filter |]
+            let! _, stdOutput, stdError = dotnetTest projectPath (Some trxOutputPath) [| "--no-build"; yield! filter |]
 
             logger.Debug("Test run exitCode", stdError)
 
             return (stdOutput + stdError)
+        }
+
+    let listTests projectPath (shouldBuild: bool) =
+        let splitLines (str: string) =
+            str.Split([| "\n" |], StringSplitOptions.RemoveEmptyEntries)
+
+        promise {
+            let additionalArgs = if not shouldBuild then [| "--no-build" |] else Array.empty
+            let! _, stdOutput, _ = dotnetTest projectPath None [| "--list-tests"; yield! additionalArgs |]
+
+            let testNames =
+                stdOutput
+                |> splitLines
+                |> Array.map String.trim
+                |> Array.skipWhile ((<>) "The following Tests are available:")
+                |> Array.where (not << String.IsNullOrEmpty)
+                |> Array.safeSkip 1
+                // NOTE: multiple target framework versions will each be listed, but we only handle one.
+                // This condidtion stops once it sees the start of the next framework version list
+                |> Array.takeWhile (not << String.startWith "Test run for")
+
+            return testNames
         }
 
 type LocationRecord =
@@ -675,11 +698,10 @@ module TestDiscovery =
 
         recurse targetCollection previousCodeTests newCodeTests
 
-    let discoverFromTrx testItemFactory (tryGetLocation: TestId -> LocationRecord option) makeTrxPath () =
-        let workspaceProjects = ProjectExt.getAllWorkspaceProjects ()
+    let discoverFromTrx testItemFactory (tryGetLocation: TestId -> LocationRecord option) makeTrxPath projectPaths =
 
         let testProjects =
-            workspaceProjects
+            projectPaths
             |> Array.ofList
             |> Array.choose (fun p ->
                 match p |> makeTrxPath |> Path.tryPath with
@@ -961,18 +983,16 @@ module Interactions =
 
 
 
-                let testProjectPaths =
+                let testProjects =
                     Project.getInWorkspace ()
                     |> List.choose (fun projectLoadState ->
                         match projectLoadState with
                         | Project.ProjectLoadingState.Loaded proj ->
-                            if ProjectExt.isTestProject proj then
-                                Some proj.Project
-                            else
-                                None
+                            if ProjectExt.isTestProject proj then Some proj else None
                         | _ -> None)
 
-                let testProjectCount = List.length testProjectPaths
+                let testProjectCount = List.length testProjects
+                let testProjectPaths = testProjects |> List.map (fun p -> p.Project)
                 logger.Debug("Refresh - Test Projects", testProjectPaths |> Array.ofList)
 
 
@@ -986,16 +1006,49 @@ module Interactions =
                         MSBuild.invokeMSBuild projectPath "Build")
 
 
+                let librariesCapableOfListOnlyDiscovery = set [ "Expecto"; "xunit.abstractions" ]
+
+                let listDiscoveryProjects, trxDiscoveryProjects =
+                    testProjects
+                    |> List.partition (fun project ->
+                        project.PackageReferences
+                        |> Array.exists (fun pr -> librariesCapableOfListOnlyDiscovery |> Set.contains pr.Name))
+
+                let discoverTestsByListOnly (project: Project) =
+                    promise {
+                        report $"Discovering tests for {project.Project}"
+                        let! testNames = DotnetCli.listTests project.Project false
+
+                        let testHierarchy =
+                            testNames
+                            |> Array.map (fun n -> {| FullName = n; Data = () |})
+                            |> TestName.inferHierarchy
+                            |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation project.Project)
+
+                        return testHierarchy
+                    }
+
+                let! listDiscoveredTests =
+                    listDiscoveryProjects
+                    |> List.map discoverTestsByListOnly
+                    |> Promise.all
+                    |> Promise.map Array.concat
+
+                logger.Debug("Refresh - list discovered test count", Array.length listDiscoveredTests)
+
+                let trxDiscoveryProjectPaths = trxDiscoveryProjects |> List.map (fun p -> p.Project)
 
                 let! _ =
-                    testProjectPaths
+                    trxDiscoveryProjectPaths
                     |> Promise.executeWithMaxParallel 2 (fun projectPath ->
                         report $"Discovering tests for {projectPath}"
-                        let trxPath = makeTrxPath projectPath
+                        let trxPath = makeTrxPath projectPath |> Some
                         DotnetCli.dotnetTest projectPath trxPath [| "--no-build" |])
 
-                let newTests =
-                    TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath ()
+                let trxDiscoveredTests =
+                    TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjectPaths
+
+                let newTests = Array.concat [ listDiscoveredTests; trxDiscoveredTests ]
 
                 report $"Discovered {newTests |> Array.sumBy (TestItem.runnableItems >> Array.length)} tests"
                 rootTestCollection.replace (newTests |> ResizeArray)
@@ -1060,6 +1113,7 @@ let activate (context: ExtensionContext) =
         |> Option.map (fun uri -> uri.fsPath)
         |> Option.defaultValue workspaceRoot
 
+    logger.Debug("Extension Storage", storageUri)
     let makeTrxPath = TrxParser.makeTrxPath workspaceRoot storageUri
 
     testController.createRunProfile (
@@ -1107,7 +1161,8 @@ let activate (context: ExtensionContext) =
             let trxTests =
                 TestDiscovery.discoverFromTrx testItemFactory locationCache.GetById makeTrxPath
 
-            let initialTests = trxTests ()
+            let workspaceProjects = ProjectExt.getAllWorkspaceProjects ()
+            let initialTests = trxTests workspaceProjects
             initialTests |> Array.iter testController.items.add
 
             // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
