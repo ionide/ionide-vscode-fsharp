@@ -196,16 +196,38 @@ type TrxTestResult =
       ErrorStackTrace: string option
       Timing: TimeSpan }
 
-
-module TrxParser =
-    let makeTrxPath (projectPath: string) =
-        node.path.resolve (node.path.dirname projectPath, "TestResults", "Ionide.trx")
+module Path =
 
     let tryPath (path: string) =
         if node.fs.existsSync (U2.Case1 path) then
             Some path
         else
             None
+
+    let split (path: string) : string array =
+        path.Split([| node.path.sep |], StringSplitOptions.RemoveEmptyEntries)
+
+    let private join segments = node.path.join (segments)
+
+    let removeSpecialRelativeSegments (path: string) : string =
+        let specialSegments = set [ ".."; "." ]
+        path |> split |> Array.skipWhile specialSegments.Contains |> join
+
+
+
+module TrxParser =
+
+    let makeTrxPath (workspaceRoot: string) (storageFolderPath: string) (projectPath: ProjectFilePath) : string =
+        let relativeProjectPath = node.path.relative (workspaceRoot, projectPath)
+        let projectName = node.path.basename (projectPath, node.path.extname (projectPath))
+
+        let relativeResultsPath =
+            relativeProjectPath |> Path.removeSpecialRelativeSegments |> node.path.dirname
+
+        let trxPath =
+            node.path.resolve (storageFolderPath, "TestResults", relativeResultsPath, $"{projectName}.trx")
+
+        trxPath
 
     let trxSelector (trxPath: string) : XPath.XPathSelector =
         let trxContent = node.fs.readFileSync (trxPath, "utf8")
@@ -653,14 +675,14 @@ module TestDiscovery =
 
         recurse targetCollection previousCodeTests newCodeTests
 
-    let discoverFromTrx testItemFactory (tryGetLocation: TestId -> LocationRecord option) () =
+    let discoverFromTrx testItemFactory (tryGetLocation: TestId -> LocationRecord option) makeTrxPath () =
         let workspaceProjects = ProjectExt.getAllWorkspaceProjects ()
 
         let testProjects =
             workspaceProjects
             |> Array.ofList
             |> Array.choose (fun p ->
-                match p |> TrxParser.makeTrxPath |> TrxParser.tryPath with
+                match p |> makeTrxPath |> Path.tryPath with
                 | Some trxPath -> Some(p, trxPath)
                 | None -> None)
 
@@ -830,6 +852,7 @@ module Interactions =
 
     let runTestProject
         (mergeResultsToExplorer: MergeTestResultsToExplorer)
+        (makeTrxPath: string -> string)
         (testRun: TestRun)
         (projectRunRequest: ProjectRunRequest)
         =
@@ -854,7 +877,7 @@ module Interactions =
                     else
                         None
 
-                let trxPath = TrxParser.makeTrxPath projectPath
+                let trxPath = makeTrxPath projectPath
                 let! output = DotnetCli.runTests projectPath trxPath filterExpression
 
                 TestRun.appendOutputLine testRun output
@@ -889,6 +912,7 @@ module Interactions =
     let runHandler
         (testController: TestController)
         (tryGetLocation: TestId -> LocationRecord option)
+        (makeTrxPath)
         (req: TestRunRequest)
         (_ct: CancellationToken)
         : U2<Thenable<unit>, unit> =
@@ -907,7 +931,7 @@ module Interactions =
             let mergeTestResultsToExplorer =
                 mergeTestResultsToExplorer testController.items testItemFactory tryGetLocation
 
-            let runTestProject = runTestProject mergeTestResultsToExplorer testRun
+            let runTestProject = runTestProject mergeTestResultsToExplorer makeTrxPath testRun
 
             promise {
                 let! _ = projectRunRequests |> Array.map runTestProject |> Promise.all
@@ -915,7 +939,7 @@ module Interactions =
             }
             |> (Promise.toThenable >> (!^))
 
-    let refreshTestList testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation =
+    let refreshTestList testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation makeTrxPath =
         withProgress
         <| fun p _ ->
             promise {
@@ -967,10 +991,11 @@ module Interactions =
                     testProjectPaths
                     |> Promise.executeWithMaxParallel 2 (fun projectPath ->
                         report $"Discovering tests for {projectPath}"
-                        let trxPath = TrxParser.makeTrxPath projectPath
+                        let trxPath = makeTrxPath projectPath
                         DotnetCli.dotnetTest projectPath trxPath [| "--no-build" |])
 
-                let newTests = TestDiscovery.discoverFromTrx testItemFactory tryGetLocation ()
+                let newTests =
+                    TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath ()
 
                 report $"Discovered {newTests |> Array.sumBy (TestItem.runnableItems >> Array.length)} tests"
 
@@ -1021,11 +1046,19 @@ let activate (context: ExtensionContext) =
 
     let testItemFactory = TestItem.itemFactoryForController testController
     let locationCache = CodeLocationCache()
+    let workspaceRoot = workspace.rootPath.Value
+
+    let storageUri =
+        context.storageUri
+        |> Option.map (fun uri -> uri.fsPath)
+        |> Option.defaultValue workspaceRoot
+
+    let makeTrxPath = TrxParser.makeTrxPath workspaceRoot storageUri
 
     testController.createRunProfile (
         "Run F# Tests",
         TestRunProfileKind.Run,
-        Interactions.runHandler testController locationCache.GetById,
+        Interactions.runHandler testController locationCache.GetById makeTrxPath,
         true
     )
     |> unbox
@@ -1052,7 +1085,7 @@ let activate (context: ExtensionContext) =
 
 
     let refreshHandler cancellationToken =
-        Interactions.refreshTestList testItemFactory testController.items locationCache.GetById
+        Interactions.refreshTestList testItemFactory testController.items locationCache.GetById makeTrxPath
         |> Promise.toThenable
         |> (!^)
 
@@ -1064,13 +1097,14 @@ let activate (context: ExtensionContext) =
         if not hasInitiatedDiscovery then
             hasInitiatedDiscovery <- true
 
-            let trxTests = TestDiscovery.discoverFromTrx testItemFactory locationCache.GetById
+            let trxTests =
+                TestDiscovery.discoverFromTrx testItemFactory locationCache.GetById makeTrxPath
 
             let initialTests = trxTests ()
             initialTests |> Array.iter testController.items.add
 
             // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
-            Interactions.refreshTestList testItemFactory testController.items locationCache.GetById
+            Interactions.refreshTestList testItemFactory testController.items locationCache.GetById makeTrxPath
             |> Promise.start
 
         None)
