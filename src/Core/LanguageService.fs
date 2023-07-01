@@ -207,7 +207,7 @@ Consider:
         }
 
     /// runs `dotnet --version` in the current rootPath to determine the resolved sdk version from the global.json file.
-    let runtimeVersion () =
+    let sdkVersion () =
         promise {
             let! dotnet = tryFindDotnet ()
 
@@ -683,11 +683,11 @@ Consider:
 
                 if availableTFMs |> Seq.contains tfm then
                     printfn "TFM match found"
-                    node.path.join (basePath, tfm, "fsautocomplete.dll")
+                    tfm, node.path.join (basePath, tfm, "fsautocomplete.dll")
                 else
                     // find best-matching
                     let tfm = findBestTFM availableTFMs tfm
-                    node.path.join (basePath, tfm, "fsautocomplete.dll")
+                    tfm, node.path.join (basePath, tfm, "fsautocomplete.dll")
 
             let isNetFolder (folder: string) =
                 printfn $"checking folder %s{folder}"
@@ -697,7 +697,8 @@ Consider:
                 && let stat = node.fs.statSync (!!folder) in
                    stat.isDirectory ()
 
-            let fsacPathForTfm (tfm: string) =
+            /// locates the FSAC dll and TFM for that dll given a host TFM
+            let fsacPathForTfm (tfm: string) : string * string =
                 match fsacNetcorePath with
                 | null
                 | "" ->
@@ -706,7 +707,8 @@ Consider:
                     probePathForTFMs binPath tfm
                 | userSpecified ->
                     if userSpecified.EndsWith ".dll" then
-                        userSpecified
+                        let tfm = node.path.basename (node.path.dirname userSpecified)
+                        tfm, userSpecified
                     else
                         // if dir has tfm folders, probe
                         let filesAndFolders =
@@ -720,7 +722,8 @@ Consider:
                             probePathForTFMs userSpecified tfm
                         else
                             // no tfm paths, try to use `fsautocomplete.dll` from this directory
-                            node.path.join (userSpecified, "fsautocomplete.dll")
+                            let tfm = node.path.basename (node.path.dirname userSpecified)
+                            tfm, node.path.join (userSpecified, "fsautocomplete.dll")
 
             let tfmForSdkVersion (v: SemVer) =
                 match int v.major, int v.minor with
@@ -732,64 +735,48 @@ Consider:
 
             let discoverDotnetArgs () =
                 promise {
-                    let! (rollForwardArgs, necessaryEnvVariables, fsacPath) =
-                        promise {
-                            let! sdkVersionAtRootPath = runtimeVersion ()
 
-                            match sdkVersionAtRootPath with
-                            | Error e ->
-                                printfn $"FSAC (NETCORE): {e}"
-                                return [], [], ""
-                            | Ok v ->
-                                printfn "Parsed SDK version at root path: %s" v.raw
-                                let tfm = tfmForSdkVersion v
-                                printfn "Parsed SDK version to tfm: %s" tfm
-                                let fsacPath = fsacPathForTfm tfm
-                                printfn "Parsed TFM to fsac path: %s" fsacPath
-                                return [], [], fsacPath
-                        // if v.major >= 6.0 then
-                        //     // when we run on a sdk higher than 6.x (aka what FSAC is currently built/targeted for),
-                        //     // we have to tell the runtime to allow it to actually run on that runtime (instead of presenting 6.x as 5.x)
-                        //     // in order for msbuild resolution to work
-                        //     let args = [ "--roll-forward"; "LatestMajor" ]
+                    let! sdkVersionAtRootPath = sdkVersion ()
 
-                        //     let envs =
-                        //         if v.prerelease <> null || v.prerelease.Count > 0 then
-                        //             [ "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1 ]
-                        //         else
-                        //             []
+                    match sdkVersionAtRootPath with
+                    | Error e ->
+                        printfn $"Error finding dotnet version: {e}"
+                        return failwith "Error finding dotnet version, do you have dotnet installed and on the PATH?"
+                    | Ok sdkVersion ->
+                        printfn "Parsed SDK version at root path: %s" sdkVersion.raw
+                        let sdkTfm = tfmForSdkVersion sdkVersion
+                        printfn "Parsed SDK version to tfm: %s" sdkTfm
+                        let fsacTfm, fsacPath = fsacPathForTfm sdkTfm
+                        printfn "Parsed TFM to fsac path: %s" fsacPath
 
-                        //     return args, envs, fsacPath
-                        // else
-                        //     return [], [], fsacPath
-                        }
+                        let userDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
 
-                    let userDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
+                        let hasUserRollForward =
+                            userDotnetArgs
+                            |> Array.tryFindIndex (fun a -> a = "--roll-forward")
+                            |> Option.map (fun _ -> true)
+                            |> Option.defaultValue false
 
-                    let hasUserRollForward =
-                        userDotnetArgs
-                        |> Array.tryFindIndex (fun a -> a = "--roll-forward")
-                        |> Option.map (fun _ -> true)
-                        |> Option.defaultValue false
+                        let hasUserFxVersion =
+                            userDotnetArgs
+                            |> Array.tryFindIndex (fun a -> a = "--fx-version")
+                            |> Option.map (fun _ -> true)
+                            |> Option.defaultValue false
 
-                    let hasUserFxVersion =
-                        userDotnetArgs
-                        |> Array.tryFindIndex (fun a -> a = "--fx-version")
-                        |> Option.map (fun _ -> true)
-                        |> Option.defaultValue false
+                        let shouldApplyImplicitRollForward =
+                            not (hasUserFxVersion || hasUserRollForward) && sdkTfm <> fsacTfm // if the SDK doesn't match one of our FSAC TFMs, then we're in compat mode
 
-                    let shouldApplyImplicitRollForward = not (hasUserFxVersion || hasUserRollForward)
+                        let args = userDotnetArgs
 
-                    let args =
-                        [ if shouldApplyImplicitRollForward then
-                              yield! rollForwardArgs
-                          yield! userDotnetArgs ]
+                        let envVariables =
+                            [ if shouldApplyImplicitRollForward then
+                                  "DOTNET_ROLL_FORWARD", box "LatestMajor"
+                              match sdkVersion.prerelease with
+                              | null -> ()
+                              | pres when Seq.length pres > 0 -> "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1
+                              | _ -> () ]
 
-                    let envVariables =
-                        [ if shouldApplyImplicitRollForward then
-                              yield! necessaryEnvVariables ]
-
-                    return args, envVariables, fsacPath
+                        return args, envVariables, fsacPath
                 }
 
             let spawnNetCore dotnet : JS.Promise<Executable> =
@@ -803,7 +790,7 @@ Consider:
                           if parallelReferenceResolution then
                               yield "FCS_ParallelReferenceResolution", box "true" ]
 
-                    printfn $"FSAC (NETCORE): '%s{fsacPath}'"
+                    printfn $"""FSAC (NETCORE): '%s{fsacPath}'"""
 
                     let exeOpts = createEmpty<ExecutableOptions>
 
