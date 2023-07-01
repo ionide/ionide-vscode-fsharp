@@ -645,7 +645,8 @@ Consider:
 
             let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
-            let sourceText = "FSharp.fsac.sourceTextImplementation" |> Configuration.get "NamedText"
+            let sourceText =
+                "FSharp.fsac.sourceTextImplementation" |> Configuration.get "NamedText"
 
             /// given a set of tfms and a target tfm, find the first of the set that satisfies the target.
             /// if no target is found, use the 'latest' tfm
