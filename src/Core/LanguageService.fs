@@ -698,7 +698,7 @@ Consider:
                    stat.isDirectory ()
 
             /// locates the FSAC dll and TFM for that dll given a host TFM
-            let fsacPathForTfm (tfm: string): string * string =
+            let fsacPathForTfm (tfm: string) : string * string =
                 match fsacNetcorePath with
                 | null
                 | "" ->
@@ -707,7 +707,7 @@ Consider:
                     probePathForTFMs binPath tfm
                 | userSpecified ->
                     if userSpecified.EndsWith ".dll" then
-                        let tfm = node.path.basename(node.path.dirname userSpecified)
+                        let tfm = node.path.basename (node.path.dirname userSpecified)
                         tfm, userSpecified
                     else
                         // if dir has tfm folders, probe
@@ -722,7 +722,7 @@ Consider:
                             probePathForTFMs userSpecified tfm
                         else
                             // no tfm paths, try to use `fsautocomplete.dll` from this directory
-                            let tfm = node.path.basename(node.path.dirname userSpecified)
+                            let tfm = node.path.basename (node.path.dirname userSpecified)
                             tfm, node.path.join (userSpecified, "fsautocomplete.dll")
 
             let tfmForSdkVersion (v: SemVer) =
@@ -764,19 +764,16 @@ Consider:
                             |> Option.defaultValue false
 
                         let shouldApplyImplicitRollForward =
-                            not (hasUserFxVersion || hasUserRollForward)
-                            && sdkTfm <> fsacTfm // if the SDK doesn't match one of our FSAC TFMs, then we're in compat mode
+                            not (hasUserFxVersion || hasUserRollForward) && sdkTfm <> fsacTfm // if the SDK doesn't match one of our FSAC TFMs, then we're in compat mode
 
-                        let args =
-                            userDotnetArgs
+                        let args = userDotnetArgs
 
                         let envVariables =
                             [ if shouldApplyImplicitRollForward then
-                                "DOTNET_ROLL_FORWARD", box "LatestMajor"
+                                  "DOTNET_ROLL_FORWARD", box "LatestMajor"
                               match sdkVersion.prerelease with
                               | null -> ()
-                              | pres when pres.Count > 0 ->
-                                  "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box "true"
+                              | pres when Seq.length pres > 0 -> "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1
                               | _ -> () ]
 
                         return args, envVariables, fsacPath
