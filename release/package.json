@@ -548,6 +548,15 @@
           "scope": "machine-overridable",
           "type": "string"
         },
+        
+        "FSharp.fsac.sourceTextImplementation": {
+          "default": "NamedText",
+          "description": "EXPERIMENTAL. Enables the use of a new source text implementation. This may have better memory characteristics. Requires restart.",
+          "enum": [
+            "NamedText",
+            "RoslynSourceText"
+          ]
+        },
         "FSharp.fsac.parallelReferenceResolution": {
           "default": false,
           "description": "EXPERIMENTAL: Speed up analyzing of projects in parallel. Requires restart.",

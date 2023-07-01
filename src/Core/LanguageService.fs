@@ -645,6 +645,8 @@ Consider:
 
             let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
+            let sourceText = "FSharp.fsac.sourceTextImplementation" |> Configuration.get "NamedText"
+
             /// given a set of tfms and a target tfm, find the first of the set that satisfies the target.
             /// if no target is found, use the 'latest' tfm
             /// e.g. [net6.0, net7.0] + net8.0 -> net7.0
@@ -826,6 +828,7 @@ Consider:
                           if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0 then
                               yield "--filter"
                               yield! fsacSilencedLogs
+                          yield $"--source-text-factory={sourceText}"
                           match c.storageUri with
                           | Some uri ->
                               let storageDir = uri.fsPath
