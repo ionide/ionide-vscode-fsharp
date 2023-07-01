@@ -442,8 +442,10 @@ module SolutionExplorer =
                 ti.id <-
                     let label (ti: TreeItem) =
                         match ti.label with
-                        | Some(U2.Case1 l) -> l
-                        | Some(U2.Case2 l) -> l.label
+                        | Some(l) ->
+                            match box l with
+                            | :? string as l -> l
+                            | l -> (l :?> TreeItemLabel).label
                         | None -> ""
 
                     match element with
