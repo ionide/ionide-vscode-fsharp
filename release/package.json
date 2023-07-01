@@ -767,6 +767,20 @@
           "description": "Enables detection of cases when names of functions and values can be simplified",
           "type": "boolean"
         },
+        "FSharp.simplifyNameAnalyzerExclusions": {
+          "default": [
+            ".*\\.g\\.fs",
+            ".*\\.cg\\.fs"
+          ],
+          "description": "A set of regex patterns to exclude from the simplify name analyzer",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "required": [
+            "FSharp.simplifyNameAnalyzer"
+          ]
+        },
         "FSharp.smartIndent": {
           "default": false,
           "description": "Enables smart indent feature",
@@ -808,6 +822,20 @@
           "description": "Enables detection of unused declarations",
           "type": "boolean"
         },
+        "FSharp.unusedDeclarationsAnalyzerExclusions": {
+          "default": [
+            ".*\\.g\\.fs",
+            ".*\\.cg\\.fs"
+          ],
+          "description": "A set of regex patterns to exclude from the unused declarations analyzer",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "required": [
+            "FSharp.unusedDeclarationsAnalyzer"
+          ]
+        },
         "FSharp.addPrivateAccessModifier": {
           "default": false,
           "description": "Enables a codefix that adds a private access modifier",
@@ -817,6 +845,21 @@
           "default": true,
           "description": "Enables detection of unused opens",
           "type": "boolean"
+        },
+        
+        "FSharp.unusedOpensAnalyzerExclusions": {
+          "default": [
+            ".*\\.g\\.fs",
+            ".*\\.cg\\.fs"
+          ],
+          "description": "A set of regex patterns to exclude from the unused opens analyzer",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "required": [
+            "FSharp.unusedOpensAnalyzer"
+          ]
         },
         "FSharp.verboseLogging": {
           "default": false,
