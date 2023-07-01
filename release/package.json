@@ -974,6 +974,17 @@
           ".fsi"
         ],
         "id": "fsharp"
+      },
+      {
+        "id": "msbuild",
+        "extensions": [
+          ".fsproj",
+          ".fsproj.user",
+          "Directory.Build.props",
+          "Directory.Build.targets",
+          "Directory.Solution.props",
+          "Directory.Solution.targets"
+        ]
       }
     ],
     "menus": {
