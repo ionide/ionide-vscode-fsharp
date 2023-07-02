@@ -431,7 +431,7 @@ module Fsi =
                     failwith "unable to spawn FSI"
             // this coercion could be to either type - TerminalOptions _or_ ExtensionTerminalOptions
             // we don't actually care here so I picked the first Case on the U2 here.
-            let terminal = window.createTerminal (!!profile.options : TerminalOptions)
+            let terminal = window.createTerminal (!!profile.options: TerminalOptions)
 
             // Wait for the new terminal to be ready
             let! newTerminal =

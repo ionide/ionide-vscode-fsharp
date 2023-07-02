@@ -1,3 +1,10 @@
+### 7.7.1 - 01.07.2023
+
+* Updates FSAC to 0.60.1, which brings enhancements to the XML Documentation codefix as well as new settings for optimizing the built-in Analyzers and text handling. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.60.1) for more details.
+* Fixes running FSAC on .NET 8 preview SDKs
+* Adds VSCode settings for the new FSAC features listed above.
+* Adds a default association of `msbuild` for project files, which enables discovery of msbuild VSCode extensions to guide users to install them. We highly suggest the [TinToy Project Tools](https://marketplace.visualstudio.com/items?itemName=tintoy.msbuild-project-tools) extension for working with project files.
+
 ### 7.7.0 - 14.06.2023
 
 * Updates FSAC to 0.60.0, which updates the compiler services to match .NET SDK 7.0.300, and includes a helpful XMLDoc generation codefix. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.60.0) for more details.

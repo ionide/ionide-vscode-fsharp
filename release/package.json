@@ -548,7 +548,6 @@
           "scope": "machine-overridable",
           "type": "string"
         },
-        
         "FSharp.fsac.sourceTextImplementation": {
           "default": "NamedText",
           "description": "EXPERIMENTAL. Enables the use of a new source text implementation. This may have better memory characteristics. Requires restart.",
@@ -846,7 +845,6 @@
           "description": "Enables detection of unused opens",
           "type": "boolean"
         },
-        
         "FSharp.unusedOpensAnalyzerExclusions": {
           "default": [
             ".*\\.g\\.fs",
@@ -1721,5 +1719,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.7.0"
+  "version": "7.7.1"
 }
