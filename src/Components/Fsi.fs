@@ -429,8 +429,9 @@ module Fsi =
                     window.showErrorMessage ("Unable to spawn FSI") |> ignore
 
                     failwith "unable to spawn FSI"
-
-            let terminal = window.createTerminal !!profile.options
+            // this coercion could be to either type - TerminalOptions _or_ ExtensionTerminalOptions
+            // we don't actually care here so I picked the first Case on the U2 here.
+            let terminal = window.createTerminal (!!profile.options : TerminalOptions)
 
             // Wait for the new terminal to be ready
             let! newTerminal =
