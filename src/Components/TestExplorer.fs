@@ -998,8 +998,15 @@ module Interactions =
                     TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath ()
 
                 report $"Discovered {newTests |> Array.sumBy (TestItem.runnableItems >> Array.length)} tests"
-
                 rootTestCollection.replace (newTests |> ResizeArray)
+
+                if testProjectCount > 0 && Array.length newTests = 0 then
+                    let message =
+                        "Detected test projects but no tests. Make sure your tests can be run with `dotnet test`"
+
+                    window.showWarningMessage (message) |> ignore
+                    logger.Warn(message)
+
             }
 
     let onTestsDiscoveredInCode
