@@ -61,6 +61,7 @@ module ArrayExt =
 
 type TestId = string
 type ProjectPath = string
+type TargetFramework = string
 
 module ProjectPath =
     let inline ofString str = str
@@ -204,6 +205,9 @@ module Path =
         else
             None
 
+    let getNameOnly (path: string) =
+        node.path.basename (path, node.path.extname (path))
+
     let split (path: string) : string array =
         path.Split([| node.path.sep |], StringSplitOptions.RemoveEmptyEntries)
 
@@ -219,7 +223,7 @@ module TrxParser =
 
     let makeTrxPath (workspaceRoot: string) (storageFolderPath: string) (projectPath: ProjectFilePath) : string =
         let relativeProjectPath = node.path.relative (workspaceRoot, projectPath)
-        let projectName = node.path.basename (projectPath, node.path.extname (projectPath))
+        let projectName = Path.getNameOnly projectPath
 
         let relativeResultsPath =
             relativeProjectPath |> Path.removeSpecialRelativeSegments |> node.path.dirname
@@ -422,6 +426,8 @@ module TestItem =
     let constructId (projectPath: ProjectPath) (fullName: FullTestName) : TestId =
         String.Join(idSeparator, [| projectPath; fullName |])
 
+    let constructProjectRootId (projectPath: ProjectPath) : TestId = constructId projectPath ""
+
     let getFullName (testId: TestId) : FullTestName =
         let split =
             testId.Split(separator = [| idSeparator |], options = StringSplitOptions.None)
@@ -540,6 +546,19 @@ module TestItem =
 
         recurse "" None t
 
+    let fromProject
+        (testItemFactory: TestItemFactory)
+        (projectPath: ProjectPath)
+        (targetFramework: TargetFramework)
+        (children: TestItem array)
+        : TestItem =
+        testItemFactory
+            { id = constructProjectRootId projectPath
+              label = $"{Path.getNameOnly projectPath} ({targetFramework})"
+              uri = None
+              range = None
+              children = children }
+
     let tryFromTestForFile (testItemFactory: TestItemFactory) (testsForFile: TestForFile) =
         let fileUri = vscode.Uri.parse (testsForFile.file, true)
 
@@ -547,14 +566,18 @@ module TestItem =
         |> Option.map (fun project ->
             let projectPath = ProjectPath.ofString project.Project
 
-            testsForFile.tests
-            |> Array.map (fromTestAdapter testItemFactory fileUri projectPath))
+            let fileTests =
+                testsForFile.tests
+                |> Array.map (fromTestAdapter testItemFactory fileUri projectPath)
+
+            [| fromProject testItemFactory projectPath fileTests |])
 
     let getOrMakeHierarchyPath
         (rootCollection: TestItemCollection)
         (itemFactory: TestItemFactory)
         (tryGetLocation: TestId -> LocationRecord option)
         (projectPath: ProjectPath)
+        (targetFramework: TargetFramework)
         (fullTestName: FullTestName)
         =
         let rec recurse
@@ -591,8 +614,15 @@ module TestItem =
             else
                 testItem
 
+        let getOrMakeProjectRoot projectPath targetFramework =
+            match rootCollection.get (constructProjectRootId projectPath) with
+            | None -> fromProject itemFactory projectPath targetFramework [||]
+            | Some projectTestItem -> projectTestItem
+
+        let projectRoot = getOrMakeProjectRoot projectPath targetFramework
+
         let pathSegments = TestName.splitSegments fullTestName
-        recurse rootCollection "" pathSegments
+        recurse projectRoot.children "" pathSegments
 
 
 module CodeLocationCache =
@@ -720,12 +750,16 @@ module TestDiscovery =
 
         let treeItems =
             trxTestsPerProject
-            |> Array.collect (fun (projPath, trxDefs) ->
-                let projectUri = ProjectPath.ofString projPath
+            |> Array.map (fun (projPath, trxDefs) ->
+                let projectPath = ProjectPath.ofString projPath
                 let heirarchy = TrxParser.inferHierarchy trxDefs
 
-                heirarchy
-                |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation projectUri))
+                let projectTests =
+                    heirarchy
+                    |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation projectPath)
+
+                TestItem.fromProject testItemFactory projectPath projectTests)
+
 
         treeItems
 
@@ -734,7 +768,7 @@ module Interactions =
         {
             ProjectPath: ProjectPath
             /// examples: net6.0, net7.0, netcoreapp2.0, etc
-            TargetFramework: string
+            TargetFramework: TargetFramework
             Tests: TestItem array
             /// The Tests are listed due to a include filter, so when running the tests the --filter should be added
             HasIncludeFilter: bool
@@ -826,6 +860,7 @@ module Interactions =
         (tryGetLocation: TestId -> LocationRecord option)
         (testRun: TestRun)
         (projectPath: ProjectPath)
+        (targetFramework: TargetFramework)
         (expectedToRun: TestItem array)
         (testResults: TestResult array)
         =
@@ -837,8 +872,14 @@ module Interactions =
 
             parentCollection.delete testWithoutResult.id
 
+
         let getOrMakeHierarchyPath =
-            TestItem.getOrMakeHierarchyPath rootTestCollection testItemFactory tryGetLocation projectPath
+            TestItem.getOrMakeHierarchyPath
+                rootTestCollection
+                testItemFactory
+                tryGetLocation
+                projectPath
+                targetFramework
 
         let treeItemComparable (t: TestItem) = TestItem.getFullName t.id
         let resultComparable (r: TestResult) = r.FullTestName
@@ -878,7 +919,8 @@ module Interactions =
           Actual = actual
           Timing = trxResult.Timing.Milliseconds }
 
-    type MergeTestResultsToExplorer = TestRun -> ProjectPath -> TestItem array -> TestResult array -> unit
+    type MergeTestResultsToExplorer =
+        TestRun -> ProjectPath -> TargetFramework -> TestItem array -> TestResult array -> unit
 
     let runTestProject
         (mergeResultsToExplorer: MergeTestResultsToExplorer)
@@ -888,7 +930,12 @@ module Interactions =
         =
         promise {
             let projectPath = projectRunRequest.ProjectPath
-            let runnableTests = projectRunRequest.Tests |> Array.collect TestItem.runnableItems
+
+            let runnableTests =
+                projectRunRequest.Tests
+                |> Array.collect TestItem.runnableItems
+                // NOTE: there can be duplicates if a child and parent are both selected in the explorer
+                |> Array.distinctBy TestItem.getId
 
             TestRun.showEnqueued testRun runnableTests
 
@@ -924,7 +971,12 @@ module Interactions =
                     window.showWarningMessage (message) |> ignore
                     TestRun.appendOutputLine testRun message
                 else
-                    mergeResultsToExplorer testRun projectPath runnableTests testResults
+                    mergeResultsToExplorer
+                        testRun
+                        projectPath
+                        projectRunRequest.TargetFramework
+                        runnableTests
+                        testResults
         }
 
 
@@ -935,7 +987,7 @@ module Interactions =
             |> Option.defaultValue (rootTestCollection.TestItems())
 
         testSelection
-        |> Array.groupBy (fun t -> TestItem.getProjectPath t.id)
+        |> Array.groupBy (TestItem.getId >> TestItem.getProjectPath)
         |> Array.map (fun (projectPath: string, tests) ->
             let project =
                 Project.tryFindInWorkspace projectPath
@@ -952,10 +1004,22 @@ module Interactions =
                     logger.Error(message)
                     invalidOp message)
 
+            let replaceProjectRootIfPresent (testItems: TestItem array) =
+                let projectRootItemId = TestItem.constructProjectRootId project.Project
+
+                testItems
+                |> Array.collect (fun testItem ->
+                    if testItem.id = projectRootItemId then
+                        testItem.children.TestItems()
+                    else
+                        [| testItem |])
+                |> Array.distinctBy TestItem.getId
+
+
             { ProjectPath = projectPath
               TargetFramework = project.Info.TargetFramework
               HasIncludeFilter = Option.isSome runRequest.``include``
-              Tests = tests })
+              Tests = replaceProjectRootIfPresent tests })
 
     let runHandler
         (testController: TestController)
@@ -1052,14 +1116,10 @@ module Interactions =
                             |> TestName.inferHierarchy
                             |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation project.Project)
 
-                        return testHierarchy
+                        return TestItem.fromProject testItemFactory project.Project testHierarchy
                     }
 
-                let! listDiscoveredTests =
-                    listDiscoveryProjects
-                    |> List.map discoverTestsByListOnly
-                    |> Promise.all
-                    |> Promise.map Array.concat
+                let! listDiscoveredTests = listDiscoveryProjects |> List.map discoverTestsByListOnly |> Promise.all
 
                 let! _ =
                     trxDiscoveryProjects
