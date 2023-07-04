@@ -323,28 +323,34 @@ module DotnetCli =
         : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
         Process.exec "dotnet" (ResizeArray([| "restore"; projectPath |]))
 
-    let internal dotnetTest
+    let private dotnetTest
         (projectPath: string)
+        (targetFramework: string)
         (trxOutputPath: string option)
         (additionalArgs: string array)
         : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
-        Process.exec
-            "dotnet"
-            (ResizeArray(
-                [| "test"
-                   projectPath
-                   if Option.isSome trxOutputPath then
-                       $"--logger:\"trx;LogFileName={trxOutputPath.Value}\""
-                   "--noLogo"
-                   yield! additionalArgs |]
-            ))
+
+        let args =
+            [| "test"
+               $"\"{projectPath}\""
+               $"--framework:\"{targetFramework}\""
+               if Option.isSome trxOutputPath then
+                   $"--logger:\"trx;LogFileName={trxOutputPath.Value}\""
+               "--noLogo"
+               yield! additionalArgs |]
+
+        let argString = String.Join(" ", args)
+        logger.Debug($"Running `dotnet {argString}`")
+
+        Process.exec "dotnet" (ResizeArray(args))
 
     type TrxPath = string
     type ConsoleOutput = string
 
-    let runTests
+    let test
         (projectPath: string)
-        (trxOutputPath: string)
+        (targetFramework: string)
+        (trxOutputPath: string option)
         (filterExpression: string option)
         : JS.Promise<ConsoleOutput> =
         promise {
@@ -358,20 +364,23 @@ module DotnetCli =
             if filter.Length > 0 then
                 logger.Debug("Filter", filter)
 
-            let! _, stdOutput, stdError = dotnetTest projectPath (Some trxOutputPath) [| "--no-build"; yield! filter |]
+            let! _, stdOutput, stdError =
+                dotnetTest projectPath targetFramework trxOutputPath [| "--no-build"; yield! filter |]
 
             logger.Debug("Test run exitCode", stdError)
 
             return (stdOutput + stdError)
         }
 
-    let listTests projectPath (shouldBuild: bool) =
+    let listTests projectPath targetFramework (shouldBuild: bool) =
         let splitLines (str: string) =
             str.Split([| "\n" |], StringSplitOptions.RemoveEmptyEntries)
 
         promise {
             let additionalArgs = if not shouldBuild then [| "--no-build" |] else Array.empty
-            let! _, stdOutput, _ = dotnetTest projectPath None [| "--list-tests"; yield! additionalArgs |]
+
+            let! _, stdOutput, _ =
+                dotnetTest projectPath targetFramework None [| "--list-tests"; yield! additionalArgs |]
 
             let testNames =
                 stdOutput
@@ -380,9 +389,6 @@ module DotnetCli =
                 |> Array.skipWhile ((<>) "The following Tests are available:")
                 |> Array.where (not << String.IsNullOrEmpty)
                 |> Array.safeSkip 1
-                // NOTE: multiple target framework versions will each be listed, but we only handle one.
-                // This condidtion stops once it sees the start of the next framework version list
-                |> Array.takeWhile (not << String.startWith "Test run for")
 
             return testNames
         }
@@ -727,6 +733,8 @@ module Interactions =
     type ProjectRunRequest =
         {
             ProjectPath: ProjectPath
+            /// examples: net6.0, net7.0, netcoreapp2.0, etc
+            TargetFramework: string
             Tests: TestItem array
             /// The Tests are listed due to a include filter, so when running the tests the --filter should be added
             HasIncludeFilter: bool
@@ -900,7 +908,9 @@ module Interactions =
                         None
 
                 let trxPath = makeTrxPath projectPath
-                let! output = DotnetCli.runTests projectPath trxPath filterExpression
+
+                let! output =
+                    DotnetCli.test projectPath projectRunRequest.TargetFramework (Some trxPath) filterExpression
 
                 TestRun.appendOutputLine testRun output
 
@@ -926,8 +936,24 @@ module Interactions =
 
         testSelection
         |> Array.groupBy (fun t -> TestItem.getProjectPath t.id)
-        |> Array.map (fun (projPath: string, tests) ->
-            { ProjectPath = projPath
+        |> Array.map (fun (projectPath: string, tests) ->
+            let project =
+                Project.tryFindInWorkspace projectPath
+                |> Option.bind (fun loadingState ->
+                    match loadingState with
+                    | Project.ProjectLoadingState.Loaded proj -> Some proj
+                    | _ ->
+                        let message = $"Could not run tests: project not loaded. {projectPath}"
+                        invalidOp message)
+                |> Option.defaultWith (fun () ->
+                    let message =
+                        $"Could not run tests: project does not found in workspace. {projectPath}"
+
+                    logger.Error(message)
+                    invalidOp message)
+
+            { ProjectPath = projectPath
+              TargetFramework = project.Info.TargetFramework
               HasIncludeFilter = Option.isSome runRequest.``include``
               Tests = tests })
 
@@ -1017,7 +1043,8 @@ module Interactions =
                 let discoverTestsByListOnly (project: Project) =
                     promise {
                         report $"Discovering tests for {project.Project}"
-                        let! testNames = DotnetCli.listTests project.Project false
+
+                        let! testNames = DotnetCli.listTests project.Project project.Info.TargetFramework false
 
                         let testHierarchy =
                             testNames
@@ -1034,16 +1061,15 @@ module Interactions =
                     |> Promise.all
                     |> Promise.map Array.concat
 
-                logger.Debug("Refresh - list discovered test count", Array.length listDiscoveredTests)
-
-                let trxDiscoveryProjectPaths = trxDiscoveryProjects |> List.map (fun p -> p.Project)
-
                 let! _ =
-                    trxDiscoveryProjectPaths
-                    |> Promise.executeWithMaxParallel 2 (fun projectPath ->
+                    trxDiscoveryProjects
+                    |> Promise.executeWithMaxParallel 2 (fun project ->
+                        let projectPath = project.Project
                         report $"Discovering tests for {projectPath}"
                         let trxPath = makeTrxPath projectPath |> Some
-                        DotnetCli.dotnetTest projectPath trxPath [| "--no-build" |])
+                        DotnetCli.test projectPath project.Info.TargetFramework trxPath None)
+
+                let trxDiscoveryProjectPaths = trxDiscoveryProjects |> List.map (fun p -> p.Project)
 
                 let trxDiscoveredTests =
                     TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjectPaths
