@@ -570,7 +570,7 @@ module TestItem =
                 testsForFile.tests
                 |> Array.map (fromTestAdapter testItemFactory fileUri projectPath)
 
-            [| fromProject testItemFactory projectPath fileTests |])
+            [| fromProject testItemFactory projectPath project.Info.TargetFramework fileTests |])
 
     let getOrMakeHierarchyPath
         (rootCollection: TestItemCollection)
@@ -734,13 +734,18 @@ module TestDiscovery =
 
         recurse targetCollection previousCodeTests newCodeTests
 
-    let discoverFromTrx testItemFactory (tryGetLocation: TestId -> LocationRecord option) makeTrxPath projectPaths =
+    let discoverFromTrx
+        testItemFactory
+        (tryGetLocation: TestId -> LocationRecord option)
+        makeTrxPath
+        (projectPaths: Project list)
+        =
 
         let testProjects =
             projectPaths
             |> Array.ofList
             |> Array.choose (fun p ->
-                match p |> makeTrxPath |> Path.tryPath with
+                match p.Project |> makeTrxPath |> Path.tryPath with
                 | Some trxPath -> Some(p, trxPath)
                 | None -> None)
 
@@ -750,15 +755,15 @@ module TestDiscovery =
 
         let treeItems =
             trxTestsPerProject
-            |> Array.map (fun (projPath, trxDefs) ->
-                let projectPath = ProjectPath.ofString projPath
+            |> Array.map (fun (project, trxDefs) ->
+                let projectPath = ProjectPath.ofString project.Project
                 let heirarchy = TrxParser.inferHierarchy trxDefs
 
                 let projectTests =
                     heirarchy
                     |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation projectPath)
 
-                TestItem.fromProject testItemFactory projectPath projectTests)
+                TestItem.fromProject testItemFactory projectPath project.Info.TargetFramework projectTests)
 
 
         treeItems
@@ -1073,13 +1078,7 @@ module Interactions =
 
 
 
-                let testProjects =
-                    Project.getInWorkspace ()
-                    |> List.choose (fun projectLoadState ->
-                        match projectLoadState with
-                        | Project.ProjectLoadingState.Loaded proj ->
-                            if ProjectExt.isTestProject proj then Some proj else None
-                        | _ -> None)
+                let testProjects = Project.getLoaded () |> List.filter ProjectExt.isTestProject
 
                 let testProjectCount = List.length testProjects
                 let testProjectPaths = testProjects |> List.map (fun p -> p.Project)
@@ -1116,7 +1115,12 @@ module Interactions =
                             |> TestName.inferHierarchy
                             |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation project.Project)
 
-                        return TestItem.fromProject testItemFactory project.Project testHierarchy
+                        return
+                            TestItem.fromProject
+                                testItemFactory
+                                project.Project
+                                project.Info.TargetFramework
+                                testHierarchy
                     }
 
                 let! listDiscoveredTests = listDiscoveryProjects |> List.map discoverTestsByListOnly |> Promise.all
@@ -1129,10 +1133,8 @@ module Interactions =
                         let trxPath = makeTrxPath projectPath |> Some
                         DotnetCli.test projectPath project.Info.TargetFramework trxPath None)
 
-                let trxDiscoveryProjectPaths = trxDiscoveryProjects |> List.map (fun p -> p.Project)
-
                 let trxDiscoveredTests =
-                    TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjectPaths
+                    TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjects
 
                 let newTests = Array.concat [ listDiscoveredTests; trxDiscoveredTests ]
 
@@ -1247,7 +1249,7 @@ let activate (context: ExtensionContext) =
             let trxTests =
                 TestDiscovery.discoverFromTrx testItemFactory locationCache.GetById makeTrxPath
 
-            let workspaceProjects = ProjectExt.getAllWorkspaceProjects ()
+            let workspaceProjects = Project.getLoaded ()
             let initialTests = trxTests workspaceProjects
             initialTests |> Array.iter testController.items.add
 
