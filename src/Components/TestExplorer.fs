@@ -378,7 +378,7 @@ module DotnetCli =
 
     let listTests projectPath targetFramework (shouldBuild: bool) =
         let splitLines (str: string) =
-            str.Split([| "\n" |], StringSplitOptions.RemoveEmptyEntries)
+            str.Split([| "\r\n"; "\n\r"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
 
         promise {
             let additionalArgs = if not shouldBuild then [| "--no-build" |] else Array.empty
@@ -389,10 +389,15 @@ module DotnetCli =
             let testNames =
                 stdOutput
                 |> splitLines
-                |> Array.map String.trim
-                |> Array.skipWhile ((<>) "The following Tests are available:")
-                |> Array.where (not << String.IsNullOrEmpty)
+                |> Array.skipWhile (((<>) << String.trim) "The following Tests are available:")
                 |> Array.safeSkip 1
+                |> Array.choose (fun line ->
+                    let line = line.TrimStart()
+
+                    if (not << String.IsNullOrEmpty) line then
+                        Some line
+                    else
+                        None)
 
             return testNames
         }
