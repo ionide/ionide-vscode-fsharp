@@ -1072,16 +1072,6 @@ module Interactions =
                         {| message = Some message
                            increment = None |}
 
-                let workspaceProjectPaths = ProjectExt.getAllWorkspaceProjects ()
-                let totalRestoreCount = List.length workspaceProjectPaths
-
-                let! _ =
-                    workspaceProjectPaths
-                    |> Promise.executeForAlli (fun i projPath ->
-                        report $"Restoring projects ({i + 1} of {totalRestoreCount})"
-                        DotnetCli.restore projPath)
-
-
 
                 let testProjects = Project.getLoaded () |> List.filter ProjectExt.isTestProject
 
