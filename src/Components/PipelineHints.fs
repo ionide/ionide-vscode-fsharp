@@ -65,7 +65,7 @@ module PipelineDecorationUpdate =
         }
 
     let signatureToDecoration (config: LineLens2.LineLensConfig) doc (r, s) =
-        LineLens2.LineLensDecorations.create "" r (config.prefix + s)
+        LineLens2.LineLensDecorations.create "fsharp.pipelineHints" r (config.prefix + s)
 
 let private pipelineHintsDecorationUpdate: LineLens2.DecorationUpdate =
     DecorationUpdate.updateDecorationsForDocument
