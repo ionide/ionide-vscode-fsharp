@@ -6,11 +6,9 @@ open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 open Fable.Core.JsInterop
 open Fable.Core.JS
-
+open Logging
 type Number = float
 
-let private logger =
-    ConsoleAndOutputChannelLogger(Some "LineLens2", Level.DEBUG, None, Some Level.DEBUG)
 
 module Documents =
 
@@ -103,10 +101,9 @@ type LineLensState =
       disposables: ResizeArray<Disposable> }
 
 type DecorationUpdate =
-    LineLensConfig -> (TextDocument) -> (float) -> LineLensState -> Promise<option<Documents.DocumentInfo>>
+    ConsoleAndOutputChannelLogger->LineLensConfig -> (TextDocument) -> (float) -> LineLensState -> Promise<option<Documents.DocumentInfo>>
 
 module DecorationUpdate =
-
     /// Update the decorations stored for the document.
     /// * If the info is already in cache, return that
     /// * If it change during the process nothing is done and it return None, if a real change is done it return the new state
@@ -114,6 +111,7 @@ module DecorationUpdate =
         (fetchHintsData: Uri -> Promise<option<'a>>)
         (hintsToSignature: TextDocument -> 'a -> Uri -> Promise<(Range * string) array>)
         (signatureToDecoration: LineLensConfig -> TextDocument -> (Range * string) -> DecorationOptions)
+        (logger:ConsoleAndOutputChannelLogger)
         config
         (document: TextDocument)
         (version: float)
@@ -155,13 +153,33 @@ module DecorationUpdate =
             | _ -> return None
         }
 
+
+
+let inline private isFsharpFile (doc: TextDocument) =
+    match doc with
+    | Document.FSharp when doc.uri.scheme = "file" -> true
+    | Document.FSharpScript when doc.uri.scheme = "file" -> true
+    | _ -> false
+
+///A generic type for a Decoration that is displayed at the end of a line
+/// This is used in LineLens and PipelineHints
+/// The bulk of the logic is the decorationUpdate function you provide
+/// Normally this should be constructed using the `DecorationUpdate.updateDecorationsForDocument` function
+/// which provides caching and filtering of the decorations
+type LineLens(name,  decorationUpdate: DecorationUpdate, getConfig: unit -> LineLensConfig, ?decorationType:DecorationRenderOptions) =
+
+    let logger =
+        ConsoleAndOutputChannelLogger(Some $"LineLensRenderer-{name}", Level.DEBUG, None, Some Level.DEBUG)
+    let decorationType=decorationType|>Option.defaultValue LineLensDecorations.decorationType
+    let mutable config = { enabled = true; prefix = "// " }
+    let mutable state: LineLensState option = None
+
     /// Set the decorations for the editor, filtering lines where the user recently typed
-    let setDecorationsForEditor (textEditor: TextEditor) (info: Documents.DocumentInfo) state =
+    let setDecorationsForEditor  (textEditor: TextEditor) (info: Documents.DocumentInfo) state =
         match info.cache with
         | Some cache when not (cache.textEditors.Contains(textEditor)) ->
             cache.textEditors.Add(textEditor)
             logger.Debug("Setting decorations for '%s' @%d", info.uri, cache.version)
-            logger.Debug("Decorations: %O", cache.decorations)
             textEditor.setDecorations (state.decorationType, U2.Case2(cache.decorations))
         | _ -> ()
 
@@ -179,28 +197,13 @@ module DecorationUpdate =
         // If it's re-opened later versions will start at 1 again.
         state.documents.Remove(uri) |> ignore
 
-let inline private isFsharpFile (doc: TextDocument) =
-    match doc with
-    | Document.FSharp when doc.uri.scheme = "file" -> true
-    | Document.FSharpScript when doc.uri.scheme = "file" -> true
-    | _ -> false
-
-
-///A generic type for a Decoration that is displayed at the end of a line
-/// This is used in LineLens and PipelineHints
-/// The bulk of the logic is the decorationUpdate function you provide
-/// Normally this should be constructed using the `DecorationUpdate.updateDecorationsForDocument` function
-/// which provides caching and filtering of the decorations
-type LineLens(decorationType, decorationUpdate: DecorationUpdate, getConfig: unit -> LineLensConfig) =
-    let mutable config = { enabled = true; prefix = "// " }
-    let mutable state: LineLensState option = None
 
     let textEditorsChangedHandler (textEditors: ResizeArray<TextEditor>) =
         match state with
         | Some state ->
             for textEditor in textEditors do
                 if isFsharpFile textEditor.document then
-                    DecorationUpdate.setDecorationsForEditorIfCurrentVersion textEditor state
+                    setDecorationsForEditorIfCurrentVersion textEditor state
         | None -> ()
 
     let documentParsedHandler (event: Notifications.DocumentParsedEvent) =
@@ -208,20 +211,20 @@ type LineLens(decorationType, decorationUpdate: DecorationUpdate, getConfig: uni
         | None -> ()
         | Some state ->
             promise {
-                let! updatedInfo = decorationUpdate config event.document event.version state
+                let! updatedInfo = decorationUpdate logger config event.document event.version state
 
                 match updatedInfo with
                 | Some info ->
                     // Update all text editors where this document is shown (potentially more than one)
                     window.visibleTextEditors
                     |> Seq.filter (fun editor -> editor.document = event.document)
-                    |> Seq.iter (fun editor -> DecorationUpdate.setDecorationsForEditor editor info state)
+                    |> Seq.iter (fun editor -> setDecorationsForEditor editor info state)
                 | _ -> ()
             }
             |> logger.ErrorOnFailed "Updating after parse failed"
 
     let closedTextDocumentHandler (textDocument: TextDocument) =
-        state |> Option.iter (DecorationUpdate.documentClosed textDocument.uri)
+        state |> Option.iter (documentClosed textDocument.uri)
 
     let install decorationType =
         logger.Debug "Installing"
@@ -278,7 +281,7 @@ type LineLens(decorationType, decorationUpdate: DecorationUpdate, getConfig: uni
 
             match documentExistInCache with
             | Some(KeyValue(uri, _)) ->
-                DecorationUpdate.documentClosed uri state
+                documentClosed uri state
 
                 window.visibleTextEditors
                 // Find the text editor related to the document in cache

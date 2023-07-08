@@ -146,6 +146,6 @@ let private lineLensDecorationUpdate: LineLens2.DecorationUpdate =
 
 
 let createLineLens () =
-    LineLens2.LineLens(LineLensDecorations.decorationType, lineLensDecorationUpdate, LineLensConfig.getConfig)
+    LineLens2.LineLens("LineLens",lineLensDecorationUpdate, LineLensConfig.getConfig)
 
 let Instance = createLineLens ()

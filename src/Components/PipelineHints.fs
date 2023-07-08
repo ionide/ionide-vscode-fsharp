@@ -76,6 +76,6 @@ let private pipelineHintsDecorationUpdate: LineLens2.DecorationUpdate =
 
 
 let createPipeLineHints () =
-    LineLens2.LineLens(LineLensDecorations.decorationType, pipelineHintsDecorationUpdate, PipelineHintsConfig.getConfig)
+    LineLens2.LineLens("PipelineHints", pipelineHintsDecorationUpdate, PipelineHintsConfig.getConfig)
 
 let Instance = createPipeLineHints ()
