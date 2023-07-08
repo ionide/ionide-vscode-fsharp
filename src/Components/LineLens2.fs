@@ -161,6 +161,7 @@ module DecorationUpdate =
         | Some cache when not (cache.textEditors.Contains(textEditor)) ->
             cache.textEditors.Add(textEditor)
             logger.Debug("Setting decorations for '%s' @%d", info.uri, cache.version)
+            logger.Debug("Decorations: %O", cache.decorations)
             textEditor.setDecorations (state.decorationType, U2.Case2(cache.decorations))
         | _ -> ()
 
@@ -191,7 +192,7 @@ let inline private isFsharpFile (doc: TextDocument) =
 /// Normally this should be constructed using the `DecorationUpdate.updateDecorationsForDocument` function
 /// which provides caching and filtering of the decorations
 type LineLens(decorationType, decorationUpdate: DecorationUpdate, getConfig: unit -> LineLensConfig) =
-    let mutable config = { enabled = false; prefix = "// " }
+    let mutable config = { enabled = true; prefix = "// " }
     let mutable state: LineLensState option = None
 
     let textEditorsChangedHandler (textEditors: ResizeArray<TextEditor>) =
@@ -202,7 +203,7 @@ type LineLens(decorationType, decorationUpdate: DecorationUpdate, getConfig: uni
                     DecorationUpdate.setDecorationsForEditorIfCurrentVersion textEditor state
         | None -> ()
 
-    let documentParsedHandler updateDecorationsForDocument (event: Notifications.DocumentParsedEvent) =
+    let documentParsedHandler (event: Notifications.DocumentParsedEvent) =
         match state with
         | None -> ()
         | Some state ->
