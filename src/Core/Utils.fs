@@ -322,6 +322,20 @@ module Promise =
         | [ x ] -> f x
         | x :: tail -> tail |> List.fold (fun acc next -> acc |> Promise.bind (fun _ -> f next)) (f x)
 
+    let mapExecuteForAll (f: 'a -> JS.Promise<'b>) items =
+        let mutable collected = ResizeArray()
+
+        let withSaveResult x =
+            promise {
+                let! result = f x
+                collected.Add(result)
+            }
+
+        promise {
+            let! _ = executeForAll withSaveResult items
+            return List.ofSeq collected
+        }
+
     let executeForAlli f items =
         let mutable index = 0
 

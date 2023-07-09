@@ -59,12 +59,29 @@ module ArrayExt =
 
         (leftExclusive, intersectionPairs, rightExclusive)
 
+    let mapKeepInput f col =
+        col |> Array.map (fun input -> (input, f input))
+
+module ListExt =
+    let mapKeepInputAsync (f: 'a -> JS.Promise<'b>) col =
+        col
+        |> List.map (fun input ->
+            promise {
+                let! res = f input
+                return (input, res)
+            })
+
+    let mapPartitioned f (left, right) =
+        (left |> List.map f), (right |> List.map f)
+
 type TestId = string
 type ProjectPath = string
 type TargetFramework = string
 
 module ProjectPath =
     let inline ofString str = str
+
+    let fromProject (project: Project) = project.Project
 
 type FullTestName = string
 
@@ -204,6 +221,10 @@ module Path =
             Some path
         else
             None
+
+    let deleteIfExists (path: string) =
+        if node.fs.existsSync (U2.Case1 path) then
+            node.fs.unlinkSync (!^path)
 
     let getNameOnly (path: string) =
         node.path.basename (path, node.path.extname (path))
@@ -743,11 +764,11 @@ module TestDiscovery =
         testItemFactory
         (tryGetLocation: TestId -> LocationRecord option)
         makeTrxPath
-        (projectPaths: Project list)
+        (projects: Project list)
         =
 
         let testProjects =
-            projectPaths
+            projects
             |> Array.ofList
             |> Array.choose (fun p ->
                 match p.Project |> makeTrxPath |> Path.tryPath with
@@ -1072,77 +1093,129 @@ module Interactions =
                         {| message = Some message
                            increment = None |}
 
+                let warn (message: string) =
+                    logger.Warn(message)
+                    window.showWarningMessage (message) |> ignore
+
 
                 let testProjects = Project.getLoaded () |> List.filter ProjectExt.isTestProject
 
+                logger.Debug(
+                    "Refresh - Test Projects",
+                    testProjects |> List.map ProjectPath.fromProject |> Array.ofList
+                )
+
                 let testProjectCount = List.length testProjects
-                let testProjectPaths = testProjects |> List.map (fun p -> p.Project)
-                logger.Debug("Refresh - Test Projects", testProjectPaths |> Array.ofList)
-
-
-
                 report $"Building {testProjectCount} test projects"
 
-                let! _ =
-                    testProjectPaths
-                    |> Promise.executeForAll (fun projectPath ->
-                        logger.Info($"Building {projectPath}")
-                        MSBuild.invokeMSBuild projectPath "Build")
 
-
-                let librariesCapableOfListOnlyDiscovery = set [ "Expecto"; "xunit.abstractions" ]
-
-                let listDiscoveryProjects, trxDiscoveryProjects =
+                let! buildOutcomePerProject =
                     testProjects
-                    |> List.partition (fun project ->
-                        project.PackageReferences
-                        |> Array.exists (fun pr -> librariesCapableOfListOnlyDiscovery |> Set.contains pr.Name))
+                    |> Promise.mapExecuteForAll (fun project ->
+                        promise {
+                            let projectPath = project.Project
+                            logger.Info($"Building {projectPath}")
+                            let! processExit = MSBuild.invokeMSBuild projectPath "Build"
+                            return (project, processExit)
+                        })
 
-                let discoverTestsByListOnly (project: Project) =
-                    promise {
-                        report $"Discovering tests for {project.Project}"
 
-                        let! testNames = DotnetCli.listTests project.Project project.Info.TargetFramework false
 
-                        let testHierarchy =
-                            testNames
-                            |> Array.map (fun n -> {| FullName = n; Data = () |})
-                            |> TestName.inferHierarchy
-                            |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation project.Project)
+                let builtTestProjects, buildFailures =
+                    buildOutcomePerProject
+                    |> List.partition (fun (_, processExit) -> processExit.Code = Some 0)
+                    |> ListExt.mapPartitioned fst
 
-                        return
-                            TestItem.fromProject
-                                testItemFactory
-                                project.Project
-                                project.Info.TargetFramework
-                                testHierarchy
-                    }
-
-                let! listDiscoveredTests = listDiscoveryProjects |> List.map discoverTestsByListOnly |> Promise.all
-
-                let! _ =
-                    trxDiscoveryProjects
-                    |> Promise.executeWithMaxParallel 2 (fun project ->
-                        let projectPath = project.Project
-                        report $"Discovering tests for {projectPath}"
-                        let trxPath = makeTrxPath projectPath |> Some
-                        DotnetCli.test projectPath project.Info.TargetFramework trxPath None)
-
-                let trxDiscoveredTests =
-                    TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjects
-
-                let newTests = Array.concat [ listDiscoveredTests; trxDiscoveredTests ]
-
-                report $"Discovered {newTests |> Array.sumBy (TestItem.runnableItems >> Array.length)} tests"
-                rootTestCollection.replace (newTests |> ResizeArray)
-
-                if testProjectCount > 0 && Array.length newTests = 0 then
+                if (not << List.isEmpty) buildFailures then
                     let message =
-                        "Detected test projects but no tests. Make sure your tests can be run with `dotnet test`"
+                        "Couldn't build test projects. Make sure you can build projects with `dotnet build`"
 
-                    window.showWarningMessage (message) |> ignore
-                    logger.Warn(message)
+                    window.showErrorMessage (message) |> ignore
+                    logger.Error(message, buildFailures |> List.map ProjectPath.fromProject)
 
+                else
+                    let librariesCapableOfListOnlyDiscovery = set [ "Expecto"; "xunit.abstractions" ]
+
+                    let listDiscoveryProjects, trxDiscoveryProjects =
+                        builtTestProjects
+                        |> List.partition (fun project ->
+                            project.PackageReferences
+                            |> Array.exists (fun pr -> librariesCapableOfListOnlyDiscovery |> Set.contains pr.Name))
+
+                    let discoverTestsByListOnly (project: Project) =
+                        promise {
+                            report $"Discovering tests for {project.Project}"
+
+                            let! testNames = DotnetCli.listTests project.Project project.Info.TargetFramework false
+
+                            let testHierarchy =
+                                testNames
+                                |> Array.map (fun n -> {| FullName = n; Data = () |})
+                                |> TestName.inferHierarchy
+                                |> Array.map (
+                                    TestItem.fromNamedHierarchy testItemFactory tryGetLocation project.Project
+                                )
+
+                            return
+                                TestItem.fromProject
+                                    testItemFactory
+                                    project.Project
+                                    project.Info.TargetFramework
+                                    testHierarchy
+                        }
+
+
+                    let! listDiscoveredPerProject =
+                        listDiscoveryProjects
+                        |> ListExt.mapKeepInputAsync discoverTestsByListOnly
+                        |> Promise.all
+
+                    trxDiscoveryProjects
+                    |> List.iter (ProjectPath.fromProject >> makeTrxPath >> Path.deleteIfExists)
+
+                    let! _ =
+                        trxDiscoveryProjects
+                        |> Promise.executeWithMaxParallel 2 (fun project ->
+                            let projectPath = project.Project
+                            report $"Discovering tests for {projectPath}"
+                            let trxPath = makeTrxPath projectPath |> Some
+                            DotnetCli.test projectPath project.Info.TargetFramework trxPath None)
+
+                    let trxDiscoveredTests =
+                        TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjects
+
+                    let listDiscoveredTests = listDiscoveredPerProject |> Array.map snd
+                    let newTests = Array.concat [ listDiscoveredTests; trxDiscoveredTests ]
+
+                    report $"Discovered {newTests |> Array.sumBy (TestItem.runnableItems >> Array.length)} tests"
+                    rootTestCollection.replace (newTests |> ResizeArray)
+
+                    if testProjectCount > 0 && Array.length newTests = 0 then
+                        let message =
+                            "Detected test projects but no tests. Make sure your tests can be run with `dotnet test`"
+
+                        window.showWarningMessage (message) |> ignore
+                        logger.Warn(message)
+
+                    else
+                        let possibleDiscoveryFailures =
+                            Array.concat
+                                [ let getProjectTests (ti: TestItem) = ti.children.TestItems()
+
+                                  listDiscoveredPerProject
+                                  |> Array.filter (snd >> getProjectTests >> Array.isEmpty)
+                                  |> Array.map (fst >> ProjectPath.fromProject)
+
+                                  trxDiscoveryProjects
+                                  |> Array.ofList
+                                  |> Array.map ProjectPath.fromProject
+                                  |> Array.filter (makeTrxPath >> Path.tryPath >> Option.isNone) ]
+
+                        if (not << Array.isEmpty) possibleDiscoveryFailures then
+                            let projectList = String.Join("\n", possibleDiscoveryFailures)
+
+                            warn
+                                $"No tests discovered for the following projects. Make sure your tests can be run with `dotnet test` \n {projectList}"
             }
 
     let onTestsDiscoveredInCode
