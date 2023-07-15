@@ -7,7 +7,7 @@ open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 open Fable.Core.JsInterop
 open DTO
-open LineLens2
+open LineLensShared
 
 type Number = float
 
@@ -106,11 +106,11 @@ module DecorationUpdate =
         }
 
     let signatureToDecoration
-        (config: LineLens2.LineLensConfig)
+        (config: LineLensShared.LineLensConfig)
         (doc: TextDocument)
         (range: Vscode.Range, signature: string)
         =
-        LineLens2.LineLensDecorations.create "fsharp.linelens" (lineRange doc range) (config.prefix + signature)
+        LineLensShared.LineLensDecorations.create "fsharp.linelens" (lineRange doc range) (config.prefix + signature)
 
     let private onePerLine (ranges: Range[]) =
         ranges
@@ -137,8 +137,8 @@ module DecorationUpdate =
         }
 
 
-let private lineLensDecorationUpdate: LineLens2.DecorationUpdate =
-    LineLens2.DecorationUpdate.updateDecorationsForDocument
+let private lineLensDecorationUpdate: LineLensShared.DecorationUpdate =
+    LineLensShared.DecorationUpdate.updateDecorationsForDocument
         LanguageService.lineLenses
         DecorationUpdate.declarationsResultToSignatures
         DecorationUpdate.signatureToDecoration
@@ -146,6 +146,6 @@ let private lineLensDecorationUpdate: LineLens2.DecorationUpdate =
 
 
 let createLineLens () =
-    LineLens2.LineLens("LineLens",lineLensDecorationUpdate, LineLensConfig.getConfig)
+    LineLensShared.LineLens("LineLens", lineLensDecorationUpdate, LineLensConfig.getConfig)
 
 let Instance = createLineLens ()

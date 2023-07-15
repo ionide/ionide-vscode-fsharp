@@ -1,4 +1,4 @@
-module Ionide.VSCode.FSharp.LineLens2
+module Ionide.VSCode.FSharp.LineLensShared
 
 open System.Collections.Generic
 open Fable.Core
@@ -7,6 +7,7 @@ open Fable.Import.VSCode.Vscode
 open Fable.Core.JsInterop
 open Fable.Core.JS
 open Logging
+
 type Number = float
 
 
@@ -101,7 +102,12 @@ type LineLensState =
       disposables: ResizeArray<Disposable> }
 
 type DecorationUpdate =
-    ConsoleAndOutputChannelLogger->LineLensConfig -> (TextDocument) -> (float) -> LineLensState -> Promise<option<Documents.DocumentInfo>>
+    ConsoleAndOutputChannelLogger
+        -> LineLensConfig
+        -> (TextDocument)
+        -> (float)
+        -> LineLensState
+        -> Promise<option<Documents.DocumentInfo>>
 
 module DecorationUpdate =
     /// Update the decorations stored for the document.
@@ -111,7 +117,7 @@ module DecorationUpdate =
         (fetchHintsData: Uri -> Promise<option<'a>>)
         (hintsToSignature: TextDocument -> 'a -> Uri -> Promise<(Range * string) array>)
         (signatureToDecoration: LineLensConfig -> TextDocument -> (Range * string) -> DecorationOptions)
-        (logger:ConsoleAndOutputChannelLogger)
+        (logger: ConsoleAndOutputChannelLogger)
         config
         (document: TextDocument)
         (version: float)
@@ -166,16 +172,25 @@ let inline private isFsharpFile (doc: TextDocument) =
 /// The bulk of the logic is the decorationUpdate function you provide
 /// Normally this should be constructed using the `DecorationUpdate.updateDecorationsForDocument` function
 /// which provides caching and filtering of the decorations
-type LineLens(name,  decorationUpdate: DecorationUpdate, getConfig: unit -> LineLensConfig, ?decorationType:DecorationRenderOptions) =
+type LineLens
+    (
+        name,
+        decorationUpdate: DecorationUpdate,
+        getConfig: unit -> LineLensConfig,
+        ?decorationType: DecorationRenderOptions
+    ) =
 
     let logger =
         ConsoleAndOutputChannelLogger(Some $"LineLensRenderer-{name}", Level.DEBUG, None, Some Level.DEBUG)
-    let decorationType=decorationType|>Option.defaultValue LineLensDecorations.decorationType
+
+    let decorationType =
+        decorationType |> Option.defaultValue LineLensDecorations.decorationType
+
     let mutable config = { enabled = true; prefix = "// " }
     let mutable state: LineLensState option = None
 
     /// Set the decorations for the editor, filtering lines where the user recently typed
-    let setDecorationsForEditor  (textEditor: TextEditor) (info: Documents.DocumentInfo) state =
+    let setDecorationsForEditor (textEditor: TextEditor) (info: Documents.DocumentInfo) state =
         match info.cache with
         | Some cache when not (cache.textEditors.Contains(textEditor)) ->
             cache.textEditors.Add(textEditor)

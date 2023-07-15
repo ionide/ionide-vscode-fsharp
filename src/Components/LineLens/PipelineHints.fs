@@ -6,7 +6,7 @@ open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 open Fable.Core.JsInterop
 open DTO
-open LineLens2
+open LineLensShared
 
 type Number = float
 
@@ -64,10 +64,10 @@ module PipelineDecorationUpdate =
             return signatures
         }
 
-    let signatureToDecoration (config: LineLens2.LineLensConfig) doc (r, s) =
-        LineLens2.LineLensDecorations.create "fsharp.pipelineHints" r (config.prefix + s)
+    let signatureToDecoration (config: LineLensShared.LineLensConfig) doc (r, s) =
+        LineLensShared.LineLensDecorations.create "fsharp.pipelineHints" r (config.prefix + s)
 
-let private pipelineHintsDecorationUpdate: LineLens2.DecorationUpdate =
+let private pipelineHintsDecorationUpdate: LineLensShared.DecorationUpdate =
     DecorationUpdate.updateDecorationsForDocument
         LanguageService.pipelineHints
         PipelineDecorationUpdate.declarationsResultToSignatures
@@ -76,6 +76,6 @@ let private pipelineHintsDecorationUpdate: LineLens2.DecorationUpdate =
 
 
 let createPipeLineHints () =
-    LineLens2.LineLens("PipelineHints", pipelineHintsDecorationUpdate, PipelineHintsConfig.getConfig)
+    LineLensShared.LineLens("PipelineHints", pipelineHintsDecorationUpdate, PipelineHintsConfig.getConfig)
 
 let Instance = createPipeLineHints ()
