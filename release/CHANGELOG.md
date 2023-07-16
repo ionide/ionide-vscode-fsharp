@@ -1,3 +1,7 @@
+### 7.8.0 - 16.07.2023
+* Updates FSAC to 0.61.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.61.0) for more details.
+* [Fixed Inline type hints don't update accurately](https://github.com/ionide/ionide-vscode-fsharp/pull/1894) (Thanks @TheAngryByrd!)
+
 ### 7.7.1 - 01.07.2023
 
 * Updates FSAC to 0.60.1, which brings enhancements to the XML Documentation codefix as well as new settings for optimizing the built-in Analyzers and text handling. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.60.1) for more details.
