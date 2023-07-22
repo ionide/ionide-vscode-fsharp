@@ -532,7 +532,8 @@
         "FSharp.fsac.conserveMemory": {
           "default": false,
           "description": "Configures FsAutoComplete with settings intended to reduce memory consumption. Requires restart.",
-          "type": "boolean"
+          "type": "boolean",
+          "deprecationMessage": "This setting is deprecated. Use FSharp.fsac.gc.conserveMemory instead."
         },
         "FSharp.fsac.dotnetArgs": {
           "default": [],
@@ -541,6 +542,26 @@
             "type": "string"
           },
           "type": "array"
+        },
+        "FSharp.fsac.gc.conserveMemory" : {
+          "default": 1,
+          "markdownDescription": "Configures the garbage collector to [conserve memory](https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory) at the expense of more frequent garbage collections and possibly longer pause times. [Large Object Heap](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/large-object-heap) will be compacted automatically if it has too much fragmentation. Requires restart.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9
+        },
+        "FSharp.fsac.gc.heapCount" : {
+          "default": 2,
+          "markdownDescription": "Limits the number of [heaps](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals#the-managed-heap) created by the garbage collector. Applies to server garbage collection only. See [Middle Ground between Server and Workstation GC](https://devblogs.microsoft.com/dotnet/middle-ground-between-server-and-workstation-gc/) for more details. This can allow FSAC to still benefit from Server garbage collection while still limiting the number of heaps. Requires restart.",
+          "type": "integer",
+          "required": [
+            "FSharp.fsac.gc.server"
+          ]
+        },
+        "FSharp.fsac.gc.server": {
+          "default": true,
+          "markdownDescription": "Configures whether the application uses workstation garbage collection or server garbage collection. See [Workstation vs Server Garbage Collection](https://devblogs.microsoft.com/premier-developer/understanding-different-gc-modes-with-concurrency-visualizer/#workstation-gc-vs-server-gc) for more details. Workstation will use less memory but Server will have more throughput. Requires restart.",
+          "type": "boolean"
         },
         "FSharp.fsac.netCoreDllPath": {
           "default": "",
