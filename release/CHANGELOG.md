@@ -1,4 +1,4 @@
-### 7.8.1 - 16.07.2023
+### 7.8.2 - 21.07.2023
 * Updates FSAC to 0.61.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.61.0) for more details.
 * [Fixed Inline type hints don't update accurately](https://github.com/ionide/ionide-vscode-fsharp/pull/1894) (Thanks @TheAngryByrd!)
 
