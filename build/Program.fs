@@ -29,6 +29,8 @@ let releaseNotesData = File.ReadAllLines "RELEASE_NOTES.md" |> ReleaseNotes.pars
 
 let release = List.head releaseNotesData
 
+let githubToken = Environment.environVarOrNone "GITHUB_TOKEN"
+
 // --------------------------------------------------------------------------------------
 // Helper functions
 // --------------------------------------------------------------------------------------
@@ -227,11 +229,6 @@ let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
         | s when not (String.IsNullOrWhiteSpace s) -> s
         | _ -> UserInput.getUserInput "Email: "
 
-    let pw =
-        match Environment.environVarOrDefault "github-pw" "" with
-        | s when not (String.IsNullOrWhiteSpace s) -> s
-        | _ -> UserInput.getUserPassword "Password: "
-
     let remote =
         CommandHelper.getGitResult "" "remote -v"
         |> Seq.filter (fun (s: string) -> s.EndsWith("(push)"))
@@ -249,9 +246,16 @@ let releaseGithub (release: ReleaseNotes.ReleaseNotes) =
 
     let files = !!("./temp" </> "*.vsix")
 
+    let token =
+        match githubToken with
+        | Some s -> s
+        | _ ->
+            failwith
+                "please set the github_token environment variable to a github personal access token with repo access."
+
     // release on github
     let cl =
-        GitHub.createClient user pw
+        GitHub.createClientWithToken token
         |> GitHub.draftNewRelease
             gitOwner
             gitName
@@ -367,6 +371,8 @@ let initTargets () =
     Target.create "Release" ignore
 
 let buildTargetTree () =
+    Option.iter (TraceSecrets.register "<GITHUB_TOKEN>") githubToken
+
     let (==>!) x y = x ==> y |> ignore
 
     "YarnInstall" ==>! "RunScript"

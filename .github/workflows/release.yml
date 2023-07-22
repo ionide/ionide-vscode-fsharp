@@ -42,7 +42,7 @@ jobs:
       env:
         nuget-key: ${{ secrets.NUGET_KEY }}
         github-user: ${{ github.event.inputs.username }}
-        github-pw: ${{ secrets.USER_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         vsce-token: ${{ secrets.VSCE_TOKEN }}
         user-email: ${{ github.event.inputs.email }}
       run: dotnet run --project build -- -t Release
