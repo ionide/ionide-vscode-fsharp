@@ -663,6 +663,8 @@ Consider:
 
             let gcServer = "FSharp.fsac.gc.server" |> Configuration.get true
 
+            let gcNoAffinitize = "Fsharp.fsac.gc.noAffinitize" |> Configuration.get true
+
             let parallelReferenceResolution =
                 "FSharp.fsac.parallelReferenceResolution" |> Configuration.get false
 
@@ -811,15 +813,20 @@ Consider:
                         return args, envVariables, fsacPath
                 }
 
+            /// Converts true to 1 and false to 0
+            /// Useful for environment variables that require this semantic
+            let inline boolToInt b = if b then 1 else 0
+
             let spawnNetCore dotnet : JS.Promise<Executable> =
                 promise {
                     let! (fsacDotnetArgs, fsacEnvVars, fsacPath) = discoverDotnetArgs ()
 
                     let fsacEnvVars =
                         [ yield! fsacEnvVars
-                          yield "DOTNET_GCHeapCount", box (gcHeapCount.ToString("X")) // Requires hexadecimal value
-                          yield "DOTNET_GCConserveMemory", box gcConserveMemory
-                          yield "DOTNET_GCServer", box gcServer
+                          yield "DOTNET_GCHeapCount", box (gcHeapCount.ToString("X")) // Requires hexadecimal value https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#heap-count
+                          yield "DOTNET_GCConserveMemory", box gcConserveMemory //https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory
+                          yield "DOTNET_GCServer", box (boolToInt gcServer) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#workstation-vs-server
+                          yield "DOTNET_GCNoAffinitize", box (boolToInt gcNoAffinitize) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#affinitize
                           if parallelReferenceResolution then
                               yield "FCS_ParallelReferenceResolution", box "true" ]
 
