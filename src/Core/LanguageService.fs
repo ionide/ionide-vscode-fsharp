@@ -632,7 +632,36 @@ Consider:
             let enableProjectGraph =
                 "FSharp.enableMSBuildProjectGraph" |> Configuration.get false
 
-            let conserveMemory = "FSharp.fsac.conserveMemory" |> Configuration.get false
+            let tryBool x =
+                // Boolean.TryParse generates: TypeError: e.match is not a function if we don't call toString first
+                match Boolean.TryParse(x.ToString()) with
+                | (true, v) -> Some v
+                | _ -> None
+
+            let tryInt x =
+                match Int32.TryParse(x.ToString()) with
+                | (true, v) -> Some v
+                | _ -> None
+
+            let oldgcConserveMemory =
+                "FSharp.fsac.conserveMemory"
+                |> Configuration.tryGet
+                |> Option.map string
+                |> Option.bind tryBool
+
+            let gcConserveMemory =
+                "FSharp.fsac.gc.conserveMemory" |> Configuration.tryGet |> Option.bind tryInt
+
+            let gcConserveMemory =
+                // prefer new setting, fallback to old, default is 0
+                match gcConserveMemory, oldgcConserveMemory with
+                | Some x, _ -> x
+                | None, Some true -> 9
+                | None, _ -> 0
+
+            let gcHeapCount = "FSharp.fsac.gc.heapCount" |> Configuration.get 2
+
+            let gcServer = "FSharp.fsac.gc.server" |> Configuration.get true
 
             let parallelReferenceResolution =
                 "FSharp.fsac.parallelReferenceResolution" |> Configuration.get false
@@ -788,8 +817,9 @@ Consider:
 
                     let fsacEnvVars =
                         [ yield! fsacEnvVars
-                          if conserveMemory then
-                              yield "DOTNET_GCConserveMemory", box "9"
+                          yield "DOTNET_GCHeapCount", box (gcHeapCount.ToString("X")) // Requires hexadecimal value
+                          yield "DOTNET_GCConserveMemory", box gcConserveMemory
+                          yield "DOTNET_GCServer", box gcServer
                           if parallelReferenceResolution then
                               yield "FCS_ParallelReferenceResolution", box "true" ]
 
