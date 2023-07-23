@@ -1,3 +1,6 @@
+### 7.8.4 - 22.07.2023
+* [Adds GCNoAffinitize setting](https://github.com/ionide/ionide-vscode-fsharp/pull/1898) (Thanks @TheAngryByrd!)
+
 ### 7.8.3 - 22.07.2023
 * Updates FSAC to 0.61.1. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.61.1) for more details.
 * [Adds Garbage Collector settings](https://github.com/ionide/ionide-vscode-fsharp/pull/1896) (Thanks @TheAngryByrd!)
