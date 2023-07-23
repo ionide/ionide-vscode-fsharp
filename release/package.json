@@ -543,13 +543,13 @@
           },
           "type": "array"
         },
-        "FSharp.fsac.gc.conserveMemory" : {
+        "FSharp.fsac.gc.conserveMemory": {
           "markdownDescription": "Configures the garbage collector to [conserve memory](https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory) at the expense of more frequent garbage collections and possibly longer pause times. Acceptable values are 0-9. Any non-zero value will allow the [Large Object Heap](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/large-object-heap) to be compacted automatically if it has too much fragmentation. Requires restart.",
           "type": "integer",
           "minimum": 0,
           "maximum": 9
         },
-        "FSharp.fsac.gc.heapCount" : {
+        "FSharp.fsac.gc.heapCount": {
           "default": 2,
           "markdownDescription": "Limits the number of [heaps](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals#the-managed-heap) created by the garbage collector. Applies to server garbage collection only. See [Middle Ground between Server and Workstation GC](https://devblogs.microsoft.com/dotnet/middle-ground-between-server-and-workstation-gc/) for more details. This can allow FSAC to still benefit from Server garbage collection while still limiting the number of heaps. Requires restart.",
           "type": "integer",
@@ -1739,5 +1739,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.8.2"
+  "version": "7.8.3"
 }
