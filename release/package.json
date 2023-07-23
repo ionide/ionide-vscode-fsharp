@@ -544,8 +544,7 @@
           "type": "array"
         },
         "FSharp.fsac.gc.conserveMemory" : {
-          "default": 1,
-          "markdownDescription": "Configures the garbage collector to [conserve memory](https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory) at the expense of more frequent garbage collections and possibly longer pause times. [Large Object Heap](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/large-object-heap) will be compacted automatically if it has too much fragmentation. Requires restart.",
+          "markdownDescription": "Configures the garbage collector to [conserve memory](https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory) at the expense of more frequent garbage collections and possibly longer pause times. Acceptable values are 0-9. Any non-zero value will allow the [Large Object Heap](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/large-object-heap) to be compacted automatically if it has too much fragmentation. Requires restart.",
           "type": "integer",
           "minimum": 0,
           "maximum": 9

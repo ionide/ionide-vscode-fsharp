@@ -632,7 +632,32 @@ Consider:
             let enableProjectGraph =
                 "FSharp.enableMSBuildProjectGraph" |> Configuration.get false
 
-            let gcConserveMemory = "FSharp.fsac.gc.conserveMemory" |> Configuration.get 1
+            let tryBool x =
+                // Boolean.TryParse generates: TypeError: e.match is not a function if we don't call toString first
+                match Boolean.TryParse(x.ToString()) with
+                | (true, v) -> Some v
+                | _ -> None
+
+            let tryInt x =
+                match Int32.TryParse(x.ToString()) with
+                | (true, v) -> Some v
+                | _ -> None
+
+            let oldgcConserveMemory =
+                "FSharp.fsac.conserveMemory"
+                |> Configuration.tryGet
+                |> Option.map string
+                |> Option.bind tryBool
+
+            let gcConserveMemory =
+                "FSharp.fsac.gc.conserveMemory" |> Configuration.tryGet |> Option.bind tryInt
+
+            let gcConserveMemory =
+                // prefer new setting, fallback to old, default is 0
+                match gcConserveMemory, oldgcConserveMemory with
+                | Some x, _ -> x
+                | None, Some true -> 9
+                | None, _ -> 0
 
             let gcHeapCount = "FSharp.fsac.gc.heapCount" |> Configuration.get 2
 
