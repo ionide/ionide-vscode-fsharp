@@ -1,3 +1,6 @@
+### 7.8.5 - 26.07.2023
+* [Disable GCHeapCount and GCNoAffinitize for net6.0](https://github.com/ionide/ionide-vscode-fsharp/pull/1900) (Thanks @TheAngryByrd!)
+
 ### 7.8.4 - 22.07.2023
 * [Adds GCNoAffinitize setting](https://github.com/ionide/ionide-vscode-fsharp/pull/1898) (Thanks @TheAngryByrd!)
 
