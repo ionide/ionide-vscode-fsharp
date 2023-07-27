@@ -68,7 +68,7 @@ module Logging =
 
         out.appendLine (formattedLogLine)
 
-    let private writeToFile level source template  args =
+    let private writeToFile level source template args =
         let formattedMessage = Util.format (template, args)
 
         let formattedLogLine =
@@ -94,7 +94,7 @@ module Logging =
         if source = Some "IONIDE-FSAC" then
             try
                 if string args.[0] <> "parse" then
-                    writeToFile level source template  args
+                    writeToFile level source template args
             with _ ->
                 () // Do nothing
 

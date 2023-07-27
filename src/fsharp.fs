@@ -39,6 +39,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
         let progressOpts = createEmpty<ProgressOptions>
         progressOpts.location <- U2.Case1 ProgressLocation.Window
         logger.Debug "Activating features"
+
         window.withProgress (
             progressOpts,
             (fun p ctok ->
