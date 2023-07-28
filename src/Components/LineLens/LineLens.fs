@@ -101,7 +101,7 @@ module DecorationUpdate =
                     LanguageService.signatureData uri range.StartLine (range.StartColumn - 1)
                     |> Async.AwaitPromise
 
-                return signaturesResult |> Option.map (fun r -> range, formatSignature r.Data)
+                return signaturesResult |> Option.map (fun r -> range|>CodeRange.fromDTO, formatSignature r.Data)
             with e ->
                 logger.Error("Error getting signature %o", e)
                 return None
