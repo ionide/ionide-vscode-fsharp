@@ -386,23 +386,27 @@ module Debugger =
                 ProviderResult.Some(U2.Case1 debugConfiguration) }
 
     let activate (c: ExtensionContext) =
-        commands.registerCommand ("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2)
-        |> c.Subscribe
 
-        commands.registerCommand ("fsharp.debugDefaultProject", (buildAndDebugDefault) |> objfy2)
-        |> c.Subscribe
+        match CSharpExtension.tryFindCSharpExtension() with
+        | false -> CSharpExtension.warnAboutMissingCSharpExtension()
+        | true ->
+            commands.registerCommand ("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2)
+            |> c.Subscribe
 
-        commands.registerCommand ("fsharp.chooseDefaultProject", (chooseDefaultProject) |> objfy2)
-        |> c.Subscribe
+            commands.registerCommand ("fsharp.debugDefaultProject", (buildAndDebugDefault) |> objfy2)
+            |> c.Subscribe
 
-        logger.Info "registering debug provider"
+            commands.registerCommand ("fsharp.chooseDefaultProject", (chooseDefaultProject) |> objfy2)
+            |> c.Subscribe
 
-        debug.registerDebugConfigurationProvider (
-            "coreclr",
-            launchSettingProvider,
-            DebugConfigurationProviderTriggerKind.Dynamic
-        )
-        |> c.Subscribe
+            logger.Info "registering debug provider"
 
-        context <- Some c
-        startup <- c.workspaceState.get<Project> "defaultProject"
+            debug.registerDebugConfigurationProvider (
+                "coreclr",
+                launchSettingProvider,
+                DebugConfigurationProviderTriggerKind.Dynamic
+            )
+            |> c.Subscribe
+
+            context <- Some c
+            startup <- c.workspaceState.get<Project> "defaultProject"
