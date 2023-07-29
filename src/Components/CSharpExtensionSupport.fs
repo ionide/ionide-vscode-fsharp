@@ -7,9 +7,13 @@ module CSharpExtension =
     let private msCSharpExtensionName = "ms-vscode.csharp"
     let private openvsixCSharpExtensionName = "ms-vscode.csharp"
 
+    let private resolvedCSharpExtensionName = msCSharpExtensionName
+
     let mutable private hasLookedForCSharp = false
     let mutable private hasCSharp = false
     let mutable private csharpExtension: Extension<obj> = null
+    let mutable private hasWarned = false
+
     let private csharpAvailableContext: bool -> unit =
         let fn = Context.cachedSetter "fsharp.debuggerAvailable"
         fun value ->
@@ -19,16 +23,19 @@ module CSharpExtension =
     let isCSharpAvailable () = hasCSharp
 
     let tryFindCSharpExtension() =
-        if hasLookedForCSharp
-        then hasCSharp
-        else
-            match extensions.getExtension msCSharpExtensionName with
+        if not hasLookedForCSharp
+        then
+            match extensions.getExtension resolvedCSharpExtensionName with
             | None ->
                 csharpAvailableContext false
             | Some e ->
                 csharpExtension <- e
                 csharpAvailableContext true
             hasLookedForCSharp <- true
-            hasCSharp
+        hasCSharp
 
-    let warnAboutMissingCSharpExtension() = ()
+    let warnAboutMissingCSharpExtension() =
+        if not hasWarned then
+            window.showWarningMessage($"The {resolvedCSharpExtensionName} extension isn't installed, so debugging and some build tools will not be available. Consider installing the {resolvedCSharpExtensionName} extension to enable those features.")
+            |> ignore
+            hasWarned <- true
