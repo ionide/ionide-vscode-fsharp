@@ -454,8 +454,8 @@ module MSBuild =
 
         let initWorkspace _n = Project.initWorkspace ()
 
-        match CSharpExtension.tryFindCSharpExtension() with
-        | false -> CSharpExtension.warnAboutMissingCSharpExtension()
+        match CSharpExtension.tryFindCSharpExtension () with
+        | false -> CSharpExtension.warnAboutMissingCSharpExtension ()
         | true ->
 
             let solutionWatcher = workspace.createFileSystemWatcher (U2.Case1 "**/*.sln")

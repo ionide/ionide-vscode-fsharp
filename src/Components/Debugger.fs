@@ -387,8 +387,8 @@ module Debugger =
 
     let activate (c: ExtensionContext) =
 
-        match CSharpExtension.tryFindCSharpExtension() with
-        | false -> CSharpExtension.warnAboutMissingCSharpExtension()
+        match CSharpExtension.tryFindCSharpExtension () with
+        | false -> CSharpExtension.warnAboutMissingCSharpExtension ()
         | true ->
             commands.registerCommand ("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2)
             |> c.Subscribe
