@@ -8,7 +8,7 @@ module CSharpExtension =
     let private openvsixCSharpExtensionName = "ms-vscode.csharp"
 
     let private resolvedCSharpExtensionName =
-        if env.appName = 'VS Code' then msCSharpExtensionName else openvsixCSharpExtensionName
+        if env.appName = "VS Code" then msCSharpExtensionName else openvsixCSharpExtensionName
 
     let mutable private hasLookedForCSharp = false
     let mutable private hasCSharp = false
@@ -40,3 +40,12 @@ module CSharpExtension =
             window.showWarningMessage($"The {resolvedCSharpExtensionName} extension isn't installed, so debugging and some build tools will not be available. Consider installing the {resolvedCSharpExtensionName} extension to enable those features.")
             |> ignore
             hasWarned <- true
+
+    let activate () =
+        // when extensions are installed or removed we need to update our state for the C# extension
+        // so enablement/disablement works correctly
+        extensions.onDidChange.Invoke(fun _ ->
+            tryFindCSharpExtension()
+            |> ignore
+            None
+        )
