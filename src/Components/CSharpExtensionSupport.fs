@@ -7,7 +7,8 @@ module CSharpExtension =
     let private msCSharpExtensionName = "ms-vscode.csharp"
     let private openvsixCSharpExtensionName = "ms-vscode.csharp"
 
-    let private resolvedCSharpExtensionName = msCSharpExtensionName
+    let private resolvedCSharpExtensionName =
+        if env.appName = 'VS Code' then msCSharpExtensionName else openvsixCSharpExtensionName
 
     let mutable private hasLookedForCSharp = false
     let mutable private hasCSharp = false
