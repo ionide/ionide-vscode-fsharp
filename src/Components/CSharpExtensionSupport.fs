@@ -50,9 +50,11 @@ module CSharpExtension =
 
             hasWarned <- true
 
-    let activate () =
+    let activate (context: ExtensionContext) =
         // when extensions are installed or removed we need to update our state for the C# extension
         // so enablement/disablement works correctly
-        extensions.onDidChange.Invoke(fun _ ->
-            tryFindCSharpExtension () |> ignore
-            None)
+        context.Subscribe(
+            extensions.onDidChange.Invoke(fun _ ->
+                tryFindCSharpExtension () |> ignore
+                None)
+        )
