@@ -4,7 +4,7 @@ open Fable.Import.VSCode.Vscode
 
 module CSharpExtension =
 
-    let private msCSharpExtensionName = "ms-vscode.csharp"
+    let private msCSharpExtensionName = "ms-dotnettools.csharp"
     let private openvsixCSharpExtensionName = "muhammad-sammy.csharp"
 
     let private resolvedCSharpExtensionName =
