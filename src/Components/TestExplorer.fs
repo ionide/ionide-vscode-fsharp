@@ -75,6 +75,21 @@ module ListExt =
     let mapPartitioned f (left, right) =
         (left |> List.map f), (right |> List.map f)
 
+module CancellationToken =
+    let mergeTokens (tokens: CancellationToken list) =
+        let tokenSource = vscode.CancellationTokenSource.Create()
+
+        if tokens |> List.exists (fun t -> t.isCancellationRequested) then
+            tokenSource.cancel ()
+        else
+            for t in tokens do
+                t.onCancellationRequested.Invoke(fun _ ->
+                    tokenSource.cancel ()
+                    None)
+                |> ignore
+
+        tokenSource.token
+
 type TestId = string
 type ProjectPath = string
 type TargetFramework = string
@@ -344,12 +359,58 @@ module DotnetCli =
     type StandardOutput = string
     type StandardError = string
 
+    module Process =
+        open Ionide.VSCode.Helpers.CrossSpawn
+        open Ionide.VSCode.Helpers.Process
+        open Node.ChildProcess
+
+        /// <summary>
+        /// Fire off a command and gather the error, if any, and the stdout and stderr streams.
+        /// The command is fired from the workspace's root path.
+        /// </summary>
+        /// <param name="command">the 'base' command to execute</param>
+        /// <param name="args">an array of additional CLI args</param>
+        /// <returns></returns>
+        let execWithCancel
+            command
+            args
+            (cancellationToken: CancellationToken)
+            : JS.Promise<ExecError option * string * string> =
+            let cancelErrorMessage = "SIGINT"
+
+            if not cancellationToken.isCancellationRequested then
+                let options = createEmpty<ExecOptions>
+                options.cwd <- workspace.rootPath
+
+                Promise.create (fun resolve reject ->
+                    let stdout = ResizeArray()
+                    let stderr = ResizeArray()
+                    let mutable error = None
+
+                    let childProcess =
+                        crossSpawn.spawn (command, args, options = options)
+                        |> onOutput (fun e -> stdout.Add(string e))
+                        |> onError (fun e -> error <- Some e)
+                        |> onErrorOutput (fun e -> stderr.Add(string e))
+                        |> onClose (fun code signal ->
+                            resolve (unbox error, String.concat "\n" stdout, String.concat "\n" stderr))
+
+                    cancellationToken.onCancellationRequested.Invoke(fun _ ->
+                        childProcess.kill (cancelErrorMessage)
+                        None)
+                    |> ignore
+
+                )
+            else
+                promise { return (None, "", "") }
+
     let restore
         (projectPath: string)
         : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
         Process.exec "dotnet" (ResizeArray([| "restore"; projectPath |]))
 
     let private dotnetTest
+        (cancellationToken: CancellationToken)
         (projectPath: string)
         (targetFramework: string)
         (trxOutputPath: string option)
@@ -368,7 +429,7 @@ module DotnetCli =
         let argString = String.Join(" ", args)
         logger.Debug($"Running `dotnet {argString}`")
 
-        Process.exec "dotnet" (ResizeArray(args))
+        Process.execWithCancel "dotnet" (ResizeArray(args)) cancellationToken
 
     type TrxPath = string
     type ConsoleOutput = string
@@ -378,6 +439,7 @@ module DotnetCli =
         (targetFramework: string)
         (trxOutputPath: string option)
         (filterExpression: string option)
+        (cancellationToken: CancellationToken)
         : JS.Promise<ConsoleOutput> =
         promise {
             // https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test#filter-option-details
@@ -391,14 +453,14 @@ module DotnetCli =
                 logger.Debug("Filter", filter)
 
             let! _, stdOutput, stdError =
-                dotnetTest projectPath targetFramework trxOutputPath [| "--no-build"; yield! filter |]
+                dotnetTest cancellationToken projectPath targetFramework trxOutputPath [| "--no-build"; yield! filter |]
 
             logger.Debug("Test run exitCode", stdError)
 
             return (stdOutput + stdError)
         }
 
-    let listTests projectPath targetFramework (shouldBuild: bool) =
+    let listTests projectPath targetFramework (shouldBuild: bool) (cancellationToken: CancellationToken) =
         let splitLines (str: string) =
             str.Split([| "\r\n"; "\n\r"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
 
@@ -406,7 +468,12 @@ module DotnetCli =
             let additionalArgs = if not shouldBuild then [| "--no-build" |] else Array.empty
 
             let! _, stdOutput, _ =
-                dotnetTest projectPath targetFramework None [| "--list-tests"; yield! additionalArgs |]
+                dotnetTest
+                    cancellationToken
+                    projectPath
+                    targetFramework
+                    None
+                    [| "--list-tests"; yield! additionalArgs |]
 
             let testNames =
                 stdOutput
@@ -841,9 +908,18 @@ module Interactions =
 
             testItems |> Array.iter showSingle
 
-    let withProgress f =
+    type ProgressCancellable =
+        | WithCancel
+        | NoCancel
+
+    let withProgress isCancellable f =
         let progressOpts = createEmpty<ProgressOptions>
         progressOpts.location <- U2.Case1 ProgressLocation.Window
+
+        progressOpts.cancellable <-
+            match isCancellable with
+            | WithCancel -> Some true
+            | NoCancel -> Some false
 
         window.withProgress (
             progressOpts,
@@ -855,6 +931,7 @@ module Interactions =
     let private buildFilterExpression (tests: TestItem array) =
         let testToFilterExpression (test: TestItem) =
             let fullName = TestItem.getFullName test.id
+
 
             if test.children.size > 0 && fullName.Contains(" ") && test.Type = "NUnit" then
                 // workaround for https://github.com/nunit/nunit3-vs-adapter/issues/876
@@ -964,6 +1041,7 @@ module Interactions =
         (mergeResultsToExplorer: MergeTestResultsToExplorer)
         (makeTrxPath: string -> string)
         (testRun: TestRun)
+        (cancellationToken: CancellationToken)
         (projectRunRequest: ProjectRunRequest)
         =
         promise {
@@ -986,7 +1064,13 @@ module Interactions =
 
             let trxPath = makeTrxPath projectPath
 
-            let! output = DotnetCli.test projectPath projectRunRequest.TargetFramework (Some trxPath) filterExpression
+            let! output =
+                DotnetCli.test
+                    projectPath
+                    projectRunRequest.TargetFramework
+                    (Some trxPath)
+                    filterExpression
+                    cancellationToken
 
             TestRun.appendOutputLine testRun output
 
@@ -1067,7 +1151,8 @@ module Interactions =
             let mergeTestResultsToExplorer =
                 mergeTestResultsToExplorer testController.items testItemFactory tryGetLocation
 
-            let runTestProject = runTestProject mergeTestResultsToExplorer makeTrxPath testRun
+            let runTestProject =
+                runTestProject mergeTestResultsToExplorer makeTrxPath testRun _ct
 
             let buildProject testRun projectRunRequest =
                 promise {
@@ -1076,7 +1161,7 @@ module Interactions =
 
                     let projectPath = projectRunRequest.ProjectPath
                     let! _ = DotnetCli.restore projectPath
-                    let! buildStatus = MSBuild.invokeMSBuild projectPath "Build"
+                    let! buildStatus = MSBuild.invokeMSBuildWithCancel projectPath "Build" _ct
 
                     if buildStatus.Code <> Some 0 then
                         TestRun.showError testRun "Project build failed" runnableTests
@@ -1107,9 +1192,16 @@ module Interactions =
             }
             |> (Promise.toThenable >> (!^))
 
-    let refreshTestList testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation makeTrxPath =
-        withProgress
-        <| fun p _ ->
+    let refreshTestList
+        testItemFactory
+        (rootTestCollection: TestItemCollection)
+        tryGetLocation
+        makeTrxPath
+        (cancellationToken: CancellationToken)
+        =
+
+        withProgress NoCancel
+        <| fun p progressCancelToken ->
             promise {
                 let report message =
                     logger.Info message
@@ -1122,6 +1214,9 @@ module Interactions =
                     logger.Warn(message)
                     window.showWarningMessage (message) |> ignore
 
+
+                let cancellationToken =
+                    CancellationToken.mergeTokens [ cancellationToken; progressCancelToken ]
 
                 let testProjects = Project.getLoaded () |> List.filter ProjectExt.isTestProject
 
@@ -1140,7 +1235,7 @@ module Interactions =
                         promise {
                             let projectPath = project.Project
                             logger.Info($"Building {projectPath}")
-                            let! processExit = MSBuild.invokeMSBuild projectPath "Build"
+                            let! processExit = MSBuild.invokeMSBuildWithCancel projectPath "Build" cancellationToken
                             return (project, processExit)
                         })
 
@@ -1171,7 +1266,8 @@ module Interactions =
                         promise {
                             report $"Discovering tests for {project.Project}"
 
-                            let! testNames = DotnetCli.listTests project.Project project.Info.TargetFramework false
+                            let! testNames =
+                                DotnetCli.listTests project.Project project.Info.TargetFramework false cancellationToken
 
                             let testHierarchy =
                                 testNames
@@ -1204,7 +1300,7 @@ module Interactions =
                             let projectPath = project.Project
                             report $"Discovering tests for {projectPath}"
                             let trxPath = makeTrxPath projectPath |> Some
-                            DotnetCli.test projectPath project.Info.TargetFramework trxPath None)
+                            DotnetCli.test projectPath project.Info.TargetFramework trxPath None cancellationToken)
 
                     let trxDiscoveredTests =
                         TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjects
@@ -1327,7 +1423,12 @@ let activate (context: ExtensionContext) =
 
 
     let refreshHandler cancellationToken =
-        Interactions.refreshTestList testItemFactory testController.items locationCache.GetById makeTrxPath
+        Interactions.refreshTestList
+            testItemFactory
+            testController.items
+            locationCache.GetById
+            makeTrxPath
+            cancellationToken
         |> Promise.toThenable
         |> (!^)
 
@@ -1346,8 +1447,14 @@ let activate (context: ExtensionContext) =
             let initialTests = trxTests workspaceProjects
             initialTests |> Array.iter testController.items.add
 
+            let cancellationTokenSource = vscode.CancellationTokenSource.Create()
             // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
-            Interactions.refreshTestList testItemFactory testController.items locationCache.GetById makeTrxPath
+            Interactions.refreshTestList
+                testItemFactory
+                testController.items
+                locationCache.GetById
+                makeTrxPath
+                cancellationTokenSource.token
             |> Promise.start
 
         None)
