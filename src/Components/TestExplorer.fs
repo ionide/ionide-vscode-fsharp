@@ -15,7 +15,7 @@ module node = Node.Api
 
 let private lastOutput = Collections.Generic.Dictionary<string, string>()
 let private outputChannel = window.createOutputChannel "F# - Test Adapter"
-let private maxParallelTestProjects = 2
+let private maxParallelTestProjects = 3
 
 let private logger =
     ConsoleAndOutputChannelLogger(Some "TestExplorer", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
@@ -469,7 +469,7 @@ module TestItem =
 
     let getId (t: TestItem) = t.id
 
-    let runnableItems (root: TestItem) : TestItem array =
+    let runnableChildren (root: TestItem) : TestItem array =
         // The goal is to collect here the actual runnable tests, they might be nested under a tree structure.
         let rec visit (testItem: TestItem) : TestItem array =
             if testItem.children.size = 0. then
@@ -478,6 +478,12 @@ module TestItem =
                 testItem.children.TestItems() |> Array.collect visit
 
         visit root
+
+    let runnableFromArray (testCollection: TestItem array) : TestItem array =
+        testCollection
+        |> Array.collect runnableChildren
+        // NOTE: there can be duplicates. i.e. if a child and parent are both selected in the explorer
+        |> Array.distinctBy getId
 
     let tryGetLocation (testItem: TestItem) =
         match testItem.uri, testItem.range with
@@ -965,50 +971,36 @@ module Interactions =
 
             let runnableTests =
                 projectRunRequest.Tests
-                |> Array.collect TestItem.runnableItems
+                |> Array.collect TestItem.runnableChildren
                 // NOTE: there can be duplicates if a child and parent are both selected in the explorer
                 |> Array.distinctBy TestItem.getId
 
-            TestRun.showEnqueued testRun runnableTests
 
-            let! _ = DotnetCli.restore projectPath
-            let! buildStatus = MSBuild.invokeMSBuild projectPath "Build"
+            TestRun.showStarted testRun runnableTests
 
-            if buildStatus.Code <> Some 0 then
-                TestRun.showError testRun "Project build failed" runnableTests
-                TestRun.appendOutputLine testRun $"❌ Failed to build project: {projectPath}"
-            else
-                TestRun.showStarted testRun runnableTests
-
-                let filterExpression =
-                    if projectRunRequest.HasIncludeFilter then
-                        Some(buildFilterExpression projectRunRequest.Tests)
-                    else
-                        None
-
-                let trxPath = makeTrxPath projectPath
-
-                let! output =
-                    DotnetCli.test projectPath projectRunRequest.TargetFramework (Some trxPath) filterExpression
-
-                TestRun.appendOutputLine testRun output
-
-                let testResults =
-                    TrxParser.extractTrxResults trxPath |> Array.map trxResultToTestResult
-
-                if Array.isEmpty testResults then
-                    let message =
-                        $"WARNING: No tests ran for project \"{projectPath}\". \r\nThe test explorer might be out of sync. Try running a higher test or refreshing the test explorer"
-
-                    window.showWarningMessage (message) |> ignore
-                    TestRun.appendOutputLine testRun message
+            let filterExpression =
+                if projectRunRequest.HasIncludeFilter then
+                    Some(buildFilterExpression projectRunRequest.Tests)
                 else
-                    mergeResultsToExplorer
-                        testRun
-                        projectPath
-                        projectRunRequest.TargetFramework
-                        runnableTests
-                        testResults
+                    None
+
+            let trxPath = makeTrxPath projectPath
+
+            let! output = DotnetCli.test projectPath projectRunRequest.TargetFramework (Some trxPath) filterExpression
+
+            TestRun.appendOutputLine testRun output
+
+            let testResults =
+                TrxParser.extractTrxResults trxPath |> Array.map trxResultToTestResult
+
+            if Array.isEmpty testResults then
+                let message =
+                    $"WARNING: No tests ran for project \"{projectPath}\". \r\nThe test explorer might be out of sync. Try running a higher test or refreshing the test explorer"
+
+                window.showWarningMessage (message) |> ignore
+                TestRun.appendOutputLine testRun message
+            else
+                mergeResultsToExplorer testRun projectPath projectRunRequest.TargetFramework runnableTests testResults
         }
 
 
@@ -1077,10 +1069,38 @@ module Interactions =
 
             let runTestProject = runTestProject mergeTestResultsToExplorer makeTrxPath testRun
 
+            let buildProject testRun projectRunRequest =
+                promise {
+
+                    let runnableTests = TestItem.runnableFromArray projectRunRequest.Tests
+
+                    let projectPath = projectRunRequest.ProjectPath
+                    let! _ = DotnetCli.restore projectPath
+                    let! buildStatus = MSBuild.invokeMSBuild projectPath "Build"
+
+                    if buildStatus.Code <> Some 0 then
+                        TestRun.showError testRun "Project build failed" runnableTests
+                        TestRun.appendOutputLine testRun $"❌ Failed to build project: {projectPath}"
+                        return None
+                    else
+                        return Some projectRunRequest
+                }
+
             promise {
-                let! _ =
+
+                projectRunRequests
+                |> Array.collect (fun rr -> rr.Tests |> TestItem.runnableFromArray)
+                |> TestRun.showEnqueued testRun
+
+                let! buildResults =
                     projectRunRequests
                     |> List.ofArray
+                    |> Promise.mapExecuteForAll (buildProject testRun)
+
+                let successfullyBuiltRequests = buildResults |> List.choose id
+
+                let! _ =
+                    successfullyBuiltRequests
                     |> (Promise.executeWithMaxParallel maxParallelTestProjects runTestProject)
 
                 testRun.``end`` ()
@@ -1192,7 +1212,7 @@ module Interactions =
                     let listDiscoveredTests = listDiscoveredPerProject |> Array.map snd
                     let newTests = Array.concat [ listDiscoveredTests; trxDiscoveredTests ]
 
-                    report $"Discovered {newTests |> Array.sumBy (TestItem.runnableItems >> Array.length)} tests"
+                    report $"Discovered {newTests |> Array.sumBy (TestItem.runnableChildren >> Array.length)} tests"
                     rootTestCollection.replace (newTests |> ResizeArray)
 
                     if testProjectCount > 0 && Array.length newTests = 0 then
