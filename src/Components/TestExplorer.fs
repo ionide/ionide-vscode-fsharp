@@ -15,6 +15,7 @@ module node = Node.Api
 
 let private lastOutput = Collections.Generic.Dictionary<string, string>()
 let private outputChannel = window.createOutputChannel "F# - Test Adapter"
+let private maxParallelTestProjects = 2
 
 let private logger =
     ConsoleAndOutputChannelLogger(Some "TestExplorer", Level.DEBUG, Some outputChannel, Some Level.DEBUG)
@@ -1077,7 +1078,11 @@ module Interactions =
             let runTestProject = runTestProject mergeTestResultsToExplorer makeTrxPath testRun
 
             promise {
-                let! _ = projectRunRequests |> Array.map runTestProject |> Promise.all
+                let! _ =
+                    projectRunRequests
+                    |> List.ofArray
+                    |> (Promise.executeWithMaxParallel maxParallelTestProjects runTestProject)
+
                 testRun.``end`` ()
             }
             |> (Promise.toThenable >> (!^))
@@ -1175,7 +1180,7 @@ module Interactions =
 
                     let! _ =
                         trxDiscoveryProjects
-                        |> Promise.executeWithMaxParallel 2 (fun project ->
+                        |> Promise.executeWithMaxParallel maxParallelTestProjects (fun project ->
                             let projectPath = project.Project
                             report $"Discovering tests for {projectPath}"
                             let trxPath = makeTrxPath projectPath |> Some
