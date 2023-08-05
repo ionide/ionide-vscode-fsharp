@@ -1,5 +1,6 @@
 namespace Ionide.VSCode.FSharp
 
+open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 
 module CSharpExtension =
@@ -8,12 +9,10 @@ module CSharpExtension =
     let private openvsixCSharpExtensionName = "muhammad-sammy.csharp"
 
     let private resolvedCSharpExtensionName =
-        if env.appName = "VS Code" then
+        if env.appName = "Visual Studio Code" then
             msCSharpExtensionName
         else
             openvsixCSharpExtensionName
-
-    let private extensionLink = $"[C#](vscode:extension/{resolvedCSharpExtensionName})"
 
     let mutable private hasLookedForCSharp = false
     let mutable private hasCSharp = false
@@ -44,9 +43,22 @@ module CSharpExtension =
     let warnAboutMissingCSharpExtension () =
         if not hasWarned then
             window.showWarningMessage (
-                $"The {extensionLink} extension isn't installed, so debugging and some build tools will not be available. Consider installing the {extensionLink} extension to enable those features."
+                $"The C# extension isn't installed, so debugging and some build tools will not be available. Consider installing the C# extension to enable those features.",
+                [| "Install C# Extension" |]
             )
-            |> ignore
+            |> Promise.ofThenable
+            |> Promise.bind (fun c ->
+                if c = Some "Install C# Extension" then
+                    commands.executeCommand("extension.open", [| Some (box resolvedCSharpExtensionName) |])
+                    |> Promise.ofThenable
+                else
+                    Promise.empty
+            )
+            |> Promise.catch (fun e ->
+                printfn $"Error installing C# extension: {Fable.Core.JS.JSON.stringify e}"
+                Promise.empty
+            )
+            |> ignore<Fable.Core.JS.Promise<_>>
 
             hasWarned <- true
 
