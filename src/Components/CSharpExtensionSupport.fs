@@ -62,11 +62,24 @@ module CSharpExtension =
 
             hasWarned <- true
 
+    let private notifyUserThatDebuggingWorks() =
+        window.showInformationMessage ($"The C# extension is installed, so debugging and build tools are now available for F# projects.")
+        |> ignore<Thenable<_>>
+
     let activate (context: ExtensionContext) =
         // when extensions are installed or removed we need to update our state for the C# extension
         // so enablement/disablement works correctly
         context.Subscribe(
             extensions.onDidChange.Invoke(fun _ ->
-                tryFindCSharpExtension () |> ignore
-                None)
+                let previousCSharpValue = hasCSharp
+                hasLookedForCSharp <- false
+                let currentCSharpValue = tryFindCSharpExtension ()
+                match previousCSharpValue, currentCSharpValue with
+                | false, true -> notifyUserThatDebuggingWorks()
+                | true, false ->
+                    hasWarned <- false
+                    warnAboutMissingCSharpExtension()
+                | _ -> ()
+                None
+            )
         )
