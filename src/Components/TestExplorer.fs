@@ -144,6 +144,18 @@ module TestName =
           Name: string
           Children: NameHierarchy<'t> array }
 
+    module NameHierarchy =
+        let tryPick (f: NameHierarchy<'t> -> Option<'u>) root =
+            let rec recurse hierarchy =
+                let searchResult = f hierarchy
+
+                if Option.isSome searchResult then
+                    searchResult
+                else
+                    hierarchy.Children |> Array.tryPick recurse
+
+            recurse root
+
     let inferHierarchy (namedData: {| FullName: string; Data: 't |} array) : NameHierarchy<'t> array =
 
         let withRelativePath (named: {| FullName: string; Data: 't |}) =
@@ -207,6 +219,7 @@ type TestResultOutcome =
 
 
 type TestFrameworkId = string
+
 module TestFrameworkId =
     let NUnit = "NUnit"
 
@@ -217,12 +230,14 @@ type TestResult =
       ErrorStackTrace: string option
       Expected: string option
       Actual: string option
-      Timing: float }
+      Timing: float
+      TestFramework: TestFrameworkId option }
 
 type TrxTestDef =
     { ExecutionId: string
       TestName: string
-      ClassName: string }
+      ClassName: string
+      TestFramework: TestFrameworkId option }
 
     member self.FullName = TestName.fromPathAndTestName self.ClassName self.TestName
 
@@ -233,7 +248,8 @@ type TrxTestResult =
       Outcome: string
       ErrorMessage: string option
       ErrorStackTrace: string option
-      Timing: TimeSpan }
+      Timing: TimeSpan
+      TestFramework: TestFrameworkId option }
 
 module Path =
 
@@ -275,6 +291,12 @@ module TrxParser =
 
         trxPath
 
+    let adapterTypeNameToTestFramework adapterTypeName =
+        if String.startWith "executor://nunit" adapterTypeName then
+            Some TestFrameworkId.NUnit
+        else
+            None
+
     let trxSelector (trxPath: string) : XPath.XPathSelector =
         let trxContent = node.fs.readFileSync (trxPath, "utf8")
         let xmlDoc = mkDoc trxContent
@@ -293,9 +315,14 @@ module TrxParser =
             let testName =
                 xpathSelector.SelectString $"/t:TestRun/t:TestDefinitions/t:UnitTest[{index}]/t:TestMethod/@name"
 
+            let testAdapter =
+                xpathSelector.SelectString
+                    $"/t:TestRun/t:TestDefinitions/t:UnitTest[{index}]/t:TestMethod/@adapterTypeName"
+
             { ExecutionId = executionId
               TestName = testName
-              ClassName = className }
+              ClassName = className
+              TestFramework = adapterTypeNameToTestFramework testAdapter }
 
         xpathSelector.Select<obj array> "/t:TestRun/t:TestDefinitions/t:UnitTest"
         |> Array.mapi extractTestDef
@@ -335,12 +362,18 @@ module TrxParser =
 
             if success then ts else TimeSpan.Zero
 
+        let testAdapter =
+            xpathSelector.SelectString
+                $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@adapterTypeName"
+
+
         { ExecutionId = executionId
           FullTestName = TestName.fromPathAndTestName className testName
           Outcome = outcome
           ErrorMessage = errorInfoMessage
           ErrorStackTrace = errorStackTrace
-          Timing = timing }
+          Timing = timing
+          TestFramework = adapterTypeNameToTestFramework testAdapter }
 
 
 
@@ -877,9 +910,23 @@ module TestDiscovery =
                 let projectPath = ProjectPath.ofString project.Project
                 let heirarchy = TrxParser.inferHierarchy trxDefs
 
-                let projectTests =
-                    heirarchy
-                    |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation projectPath)
+                let fromTrxDef (hierarchy: TestName.NameHierarchy<TrxTestDef>) =
+                    // NOTE: A project could have multiple test frameworks, but we only track NUnit for now to work around a defect
+                    //       The complexity of modifying inferHierarchy and fromNamedHierarchy to distinguish frameworks for individual chains seems excessive for current needs
+                    //       Thus, this just determins if there are *any* Nunit tests in the project and treats all the tests like NUnit tests if there are.
+                    let testFramework =
+                        TestName.NameHierarchy.tryPick
+                            (fun nh -> nh.Data |> Option.bind (fun (trxDef: TrxTestDef) -> trxDef.TestFramework))
+                            hierarchy
+
+                    let testItemFactory (testItemBuilder: TestItem.TestItemBuilder) =
+                        testItemFactory
+                            { testItemBuilder with
+                                testFramework = testFramework }
+
+                    TestItem.fromNamedHierarchy testItemFactory tryGetLocation projectPath hierarchy
+
+                let projectTests = heirarchy |> Array.map fromTrxDef
 
                 TestItem.fromProject testItemFactory projectPath project.Info.TargetFramework projectTests)
 
@@ -1005,7 +1052,12 @@ module Interactions =
             parentCollection.delete testWithoutResult.id
 
 
-        let getOrMakeHierarchyPath =
+        let getOrMakeHierarchyPath testFramework =
+            let testItemFactory (ti: TestItem.TestItemBuilder) =
+                testItemFactory
+                    { ti with
+                        testFramework = testFramework }
+
             TestItem.getOrMakeHierarchyPath
                 rootTestCollection
                 testItemFactory
@@ -1024,7 +1076,9 @@ module Interactions =
 
         added
         |> Array.iter (fun additionalResult ->
-            let treeItem = getOrMakeHierarchyPath additionalResult.FullTestName
+            let treeItem =
+                getOrMakeHierarchyPath additionalResult.TestFramework additionalResult.FullTestName
+
             displayTestResultInExplorer testRun (treeItem, additionalResult))
 
     let private trxResultToTestResult (trxResult: TrxTestResult) =
@@ -1049,7 +1103,8 @@ module Interactions =
           ErrorStackTrace = trxResult.ErrorStackTrace
           Expected = expected
           Actual = actual
-          Timing = trxResult.Timing.Milliseconds }
+          Timing = trxResult.Timing.Milliseconds
+          TestFramework = trxResult.TestFramework }
 
     type MergeTestResultsToExplorer =
         TestRun -> ProjectPath -> TargetFramework -> TestItem array -> TestResult array -> unit
