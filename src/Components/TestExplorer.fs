@@ -197,13 +197,18 @@ type TestController with
 
 type TestItem with
 
-    member this.Type: string = this?``type``
+    member this.TestFramework: string = this?testFramework
 
 [<RequireQualifiedAccess; StringEnum(CaseRules.None)>]
 type TestResultOutcome =
     | NotExecuted
     | Failed
     | Passed
+
+
+type TestFrameworkId = string
+module TestFrameworkId =
+    let NUnit = "NUnit"
 
 type TestResult =
     { FullTestName: string
@@ -570,7 +575,9 @@ module TestItem =
           label: string
           uri: Uri option
           range: Vscode.Range option
-          children: TestItem array }
+          children: TestItem array
+          // i.e. NUnit. Used for an Nunit-specific workaround
+          testFramework: TestFrameworkId option }
 
     type TestItemFactory = TestItemBuilder -> TestItem
 
@@ -583,6 +590,10 @@ module TestItem =
 
             builder.children |> Array.iter testItem.children.add
             testItem.range <- builder.range
+
+            match builder.testFramework with
+            | Some frameworkId -> testItem?testFramework <- frameworkId
+            | None -> ()
 
             testItem
 
@@ -604,7 +615,8 @@ module TestItem =
                   label = namedNode.Name
                   uri = location |> LocationRecord.tryGetUri
                   range = location |> LocationRecord.tryGetRange
-                  children = namedNode.Children |> Array.map recurse }
+                  children = namedNode.Children |> Array.map recurse
+                  testFramework = None }
 
         recurse hierarchy
 
@@ -639,9 +651,9 @@ module TestItem =
                       label = t.name
                       uri = Some uri
                       range = range
-                      children = t.childs |> Array.map (fun n -> recurse fullName (Some t.moduleType) n) }
+                      children = t.childs |> Array.map (fun n -> recurse fullName (Some t.moduleType) n)
+                      testFramework = t?``type`` }
 
-            ti?``type`` <- t.``type``
             ti
 
         recurse "" None t
@@ -657,7 +669,12 @@ module TestItem =
               label = $"{Path.getNameOnly projectPath} ({targetFramework})"
               uri = None
               range = None
-              children = children }
+              children = children
+              testFramework = None }
+
+    let isProjectItem (testId: TestId) =
+        constructProjectRootId (getProjectPath testId) = testId
+
 
     let tryFromTestForFile (testItemFactory: TestItemFactory) (testsForFile: TestForFile) =
         let fileUri = vscode.Uri.parse (testsForFile.file, true)
@@ -705,7 +722,8 @@ module TestItem =
                           label = currentLabel.Text
                           uri = maybeLocation |> LocationRecord.tryGetUri
                           range = maybeLocation |> LocationRecord.tryGetRange
-                          children = [||] }
+                          children = [||]
+                          testFramework = None }
 
             collection.add (testItem)
 
@@ -776,9 +794,9 @@ module TestDiscovery =
                       label = target.label
                       uri = withUri.uri
                       range = withUri.range
-                      children = target.children.TestItems() }
+                      children = target.children.TestItems()
+                      testFramework = withUri?testFramework }
 
-            replacementItem?``type`` <- withUri?``type``
             (replacementItem, withUri)
 
         let rec recurse (target: TestItemCollection) (withUri: TestItem array) : unit =
@@ -932,8 +950,7 @@ module Interactions =
         let testToFilterExpression (test: TestItem) =
             let fullName = TestItem.getFullName test.id
 
-
-            if test.children.size > 0 && fullName.Contains(" ") && test.Type = "NUnit" then
+            if fullName.Contains(" ") && test.TestFramework = TestFrameworkId.NUnit then
                 // workaround for https://github.com/nunit/nunit3-vs-adapter/issues/876
                 // Potentially we are going to run multiple tests that match this filter
                 let testPart = fullName.Split(' ').[0]
