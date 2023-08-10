@@ -131,10 +131,20 @@ Note: Step 1 starts a new "Watch" task that rebuilds Ionide in the background wh
 
 If you're curious what's going on, you can view the log output for this task by running `Tasks: Show Running Tasks` from the command palette.
 
-### Working with FSAC
+### Working with FSAC (FSharpAutoComplete)
+Most Ionide bugs are actually from there. This repo only stores the glue code between FSAC and Visual Studio Code - not the actual implementation of behaviours you would experience when using Ionide in Visual Studio Code.
+1. **Fork the FSAC repo** https://github.com/fsharp/FsAutoComplete on github.
 
-1. Open FSAC from a new instance of VSCode from the directory: `paket-files/github.com/fsharp/FsAutoComplete`
-2. Build the FSAC solution and copy the dll output from the output log, it should be something like: `paket-files/github.com/fsharp/FsAutoComplete/src/FsAutoComplete/bin/Debug/net5.0/fsautocomplete.dll`.
+1. **Clone your fork**:
+    ```bash
+    git clone git@github.com:YOUR_GITHUB_USER/FsAutoComplete.git
+    ```
+    or if you don't use ssh:
+
+    ```bash
+    git clone https://github.com/YOUR_GITHUB_USER/FsAutoComplete.git
+    ```
+2. Follow the [FSAC build instructions](https://github.com/fsharp/FsAutoComplete#building-and-testing) and copy the dll output from the output log, it should be a path inside the FSAC repo: `src/FsAutoComplete/bin/Release/net6.0/fsautocomplete.dll`. Note that `Release` may be substituted with `Debug` if you build with that configuration instead. Also, note that `net6.0` may be replaced with another .NET version like `net7.0` as FsAutoComplete targets a newer .NET version.
 3. In the instance of VSCode that you have Ionide open, open settings (`CMD ,` or `Ctrl ,`), and find the section `FSharp > Fsac: Net Core Dll Path` and paste the output you copied from step 3.
 4. Now find the section `FSharp > Fsac: Attach Debugger` and check the check box.
 5. Close settings
