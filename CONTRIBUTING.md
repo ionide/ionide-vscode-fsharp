@@ -12,7 +12,7 @@ For issue reporting, use [Github Issues](https://github.com/ionide/ionide-vscode
 - [Submitting **Bug Reports**](#bug-reports)
 - [Submitting **Feature Requests**](#feature-requests)
 
-Personal support request should be discussed on [F# Software Foundation Slack](https://fsharp.org/guides/slack/).
+Personal support request (or getting contribution help) should be discussed on [F# Software Foundation Slack](https://fsharp.org/guides/slack/) or [the F# Discord](https://discord.gg/R6n7c54).
 
 ## Getting Started
 
@@ -132,7 +132,7 @@ Note: Step 1 starts a new "Watch" task that rebuilds Ionide in the background wh
 If you're curious what's going on, you can view the log output for this task by running `Tasks: Show Running Tasks` from the command palette.
 
 ### Working with FSAC (FSharpAutoComplete)
-Most Ionide bugs are actually from there. This repo only stores the glue code between FSAC and Visual Studio Code - not the actual implementation of behaviours you would experience when using Ionide in Visual Studio Code.
+Most Ionide bugs are actually from there. This repo only stores the glue code between FSAC and Visual Studio Code - not the actual implementation of behaviours you would experience when using Ionide in Visual Studio Code which are implemented in FSAC.
 1. **Fork the FSAC repo** https://github.com/fsharp/FsAutoComplete on github.
 
 1. **Clone your fork**:
