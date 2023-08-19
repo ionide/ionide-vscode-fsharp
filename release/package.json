@@ -1717,6 +1717,12 @@
         }
       ]
     },
+    "viewsWelcome": [
+      {
+        "view": "testing",
+        "contents": "Build your projects then refresh this explorer to discover F# and .NET tests"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
