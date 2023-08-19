@@ -49,21 +49,21 @@ module CSharpExtension =
             |> Promise.ofThenable
             |> Promise.bind (fun c ->
                 if c = Some "Install C# Extension" then
-                    commands.executeCommand("extension.open", [| Some (box resolvedCSharpExtensionName) |])
+                    commands.executeCommand ("extension.open", [| Some(box resolvedCSharpExtensionName) |])
                     |> Promise.ofThenable
                 else
-                    Promise.empty
-            )
+                    Promise.empty)
             |> Promise.catch (fun e ->
                 printfn $"Error installing C# extension: {Fable.Core.JS.JSON.stringify e}"
-                Promise.empty
-            )
+                Promise.empty)
             |> ignore<Fable.Core.JS.Promise<_>>
 
             hasWarned <- true
 
-    let private notifyUserThatDebuggingWorks() =
-        window.showInformationMessage ($"The C# extension is installed, so debugging and build tools are now available for F# projects.")
+    let private notifyUserThatDebuggingWorks () =
+        window.showInformationMessage (
+            $"The C# extension is installed, so debugging and build tools are now available for F# projects."
+        )
         |> ignore<Thenable<_>>
 
     let activate (context: ExtensionContext) =
@@ -74,12 +74,13 @@ module CSharpExtension =
                 let previousCSharpValue = hasCSharp
                 hasLookedForCSharp <- false
                 let currentCSharpValue = tryFindCSharpExtension ()
+
                 match previousCSharpValue, currentCSharpValue with
-                | false, true -> notifyUserThatDebuggingWorks()
+                | false, true -> notifyUserThatDebuggingWorks ()
                 | true, false ->
                     hasWarned <- false
-                    warnAboutMissingCSharpExtension()
+                    warnAboutMissingCSharpExtension ()
                 | _ -> ()
-                None
-            )
+
+                None)
         )

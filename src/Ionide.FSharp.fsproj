@@ -49,7 +49,6 @@
     <Compile Include="Components/InfoPanel.fs" />
     <Compile Include="Components/CodeLensHelpers.fs" />
     <Compile Include="Components/LineLens/PipelineHints.fs" />
-    <Compile Include="Components/PipelineHints.fs" />
     <Compile Include="Components/SolutionExplorer.fs" />
     <Compile Include="Components/TestExplorer.fs" />
     <Compile Include="Components/InlayHints.fs" />
