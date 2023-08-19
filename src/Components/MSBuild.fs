@@ -527,69 +527,52 @@ module MSBuild =
 
         let initWorkspace _n = Project.initWorkspace ()
 
-        match CSharpExtension.tryFindCSharpExtension () with
-        | false -> CSharpExtension.warnAboutMissingCSharpExtension ()
-        | true ->
+        let solutionWatcher = workspace.createFileSystemWatcher (U2.Case1 "**/*.sln")
 
-            let solutionWatcher = workspace.createFileSystemWatcher (U2.Case1 "**/*.sln")
+        solutionWatcher.onDidCreate.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox)
+        |> ignore
 
-            solutionWatcher.onDidCreate.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox)
-            |> ignore
+        solutionWatcher.onDidChange.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox)
+        |> ignore
 
-            solutionWatcher.onDidChange.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox)
-            |> ignore
+        //Restore any project that returns NotRestored status
+        Project.projectNotRestoredLoaded.Invoke(fun n -> restoreProjectAsync n |> unbox)
+        |> context.Subscribe
 
-            //Restore any project that returns NotRestored status
-            Project.projectNotRestoredLoaded.Invoke(fun n -> restoreProjectAsync n |> unbox)
-            |> context.Subscribe
+        let registerCommand com (action: unit -> _) =
+            commands.registerCommand (com, action |> objfy2) |> context.Subscribe
 
-            let registerCommand com (action: unit -> _) =
-                commands.registerCommand (com, action |> objfy2) |> context.Subscribe
+        tasks.registerTaskProvider ("msbuild", msbuildBuildTaskProvider)
+        |> context.Subscribe
 
-            let registerCommand2 com (action: obj -> obj -> _) =
-                commands.registerCommand (com, action |> objfy3) |> context.Subscribe
+        registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")
+        registerCommand "MSBuild.rebuildCurrent" (fun _ -> buildCurrentProject "Rebuild")
+        registerCommand "MSBuild.cleanCurrent" (fun _ -> buildCurrentProject "Clean")
 
-            /// typed msbuild cmd. Optional project and msbuild host
-            let typedMsbuildCmd f projOpt =
-                let p =
-                    if JS.isDefined projOpt then
-                        Some(unbox<string> (projOpt))
-                    else
-                        None
+        registerCommand "MSBuild.buildCurrentSolution" (fun _ -> buildCurrentSolution "Build")
+        registerCommand "MSBuild.rebuildCurrentSolution" (fun _ -> buildCurrentSolution "Rebuild")
+        registerCommand "MSBuild.cleanCurrentSolution" (fun _ -> buildCurrentSolution "Clean")
 
-                fun _ -> f p
+        commands.registerCommand (
+            "MSBuild.buildSelected",
+            fun _ -> buildProject "Build" |> Promise.map box |> box |> Some
+        )
+        |> context.Subscribe
 
-            tasks.registerTaskProvider ("msbuild", msbuildBuildTaskProvider)
-            |> context.Subscribe
+        commands.registerCommand (
+            "MSBuild.rebuildSelected",
+            fun _ -> buildProject "Rebuild" |> Promise.map box |> box |> Some
+        )
+        |> context.Subscribe
 
-            registerCommand "MSBuild.buildCurrent" (fun _ -> buildCurrentProject "Build")
-            registerCommand "MSBuild.rebuildCurrent" (fun _ -> buildCurrentProject "Rebuild")
-            registerCommand "MSBuild.cleanCurrent" (fun _ -> buildCurrentProject "Clean")
+        commands.registerCommand (
+            "MSBuild.cleanSelected",
+            fun _ -> buildProject "Clean" |> Promise.map box |> box |> Some
+        )
+        |> context.Subscribe
 
-            registerCommand "MSBuild.buildCurrentSolution" (fun _ -> buildCurrentSolution "Build")
-            registerCommand "MSBuild.rebuildCurrentSolution" (fun _ -> buildCurrentSolution "Rebuild")
-            registerCommand "MSBuild.cleanCurrentSolution" (fun _ -> buildCurrentSolution "Clean")
-
-            commands.registerCommand (
-                "MSBuild.buildSelected",
-                fun _ -> buildProject "Build" |> Promise.map box |> box |> Some
-            )
-            |> context.Subscribe
-
-            commands.registerCommand (
-                "MSBuild.rebuildSelected",
-                fun _ -> buildProject "Rebuild" |> Promise.map box |> box |> Some
-            )
-            |> context.Subscribe
-
-            commands.registerCommand (
-                "MSBuild.cleanSelected",
-                fun _ -> buildProject "Clean" |> Promise.map box |> box |> Some
-            )
-            |> context.Subscribe
-
-            commands.registerCommand (
-                "MSBuild.restoreSelected",
-                fun _ -> restoreProjectCmd () |> Promise.map box |> box |> Some
-            )
-            |> context.Subscribe
+        commands.registerCommand (
+            "MSBuild.restoreSelected",
+            fun _ -> restoreProjectCmd () |> Promise.map box |> box |> Some
+        )
+        |> context.Subscribe

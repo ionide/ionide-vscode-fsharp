@@ -155,53 +155,43 @@
       },
       {
         "command": "MSBuild.buildCurrent",
-        "title": "MSBuild: Build current project",
-        "when": "fsharp.debugger.available"
+        "title": "MSBuild: Build current project"
       },
       {
         "command": "MSBuild.buildSelected",
-        "title": "MSBuild: Build project",
-        "when": "fsharp.debugger.available"
+        "title": "MSBuild: Build project"
       },
       {
         "command": "MSBuild.rebuildCurrent",
-        "title": "MSBuild: Rebuild current project",
-        "when": "fsharp.debugger.available"
+        "title": "MSBuild: Rebuild current project"
       },
       {
         "command": "MSBuild.rebuildSelected",
-        "title": "MSBuild: Rebuild project",
-        "when": "fsharp.debugger.available"
+        "title": "MSBuild: Rebuild project"
       },
       {
         "command": "MSBuild.cleanCurrent",
-        "title": "MSBuild: Clean current project",
-        "when": "fsharp.debugger.available"
+        "title": "MSBuild: Clean current project"
       },
       {
         "command": "MSBuild.cleanSelected",
-        "title": "MSBuild: Clean project",
-        "when": "fsharp.debugger.available"
+        "title": "MSBuild: Clean project"
       },
       {
         "command": "MSBuild.restoreSelected",
-        "title": "MSBuild: Restore project",
-        "when": "fsharp.debugger.available"
+        "title": "MSBuild: Restore project"
       },
       {
         "command": "MSBuild.buildCurrentSolution",
-        "title": "MSBuild: Build current solution",
-        "when": "fsharp.debugger.available"
+        "title": "MSBuild: Build current solution"
       },
       {
         "command": "MSBuild.rebuildCurrentSolution",
-        "title": "MSBuild: Rebuild current solution",
-        "when": "fsharp.debugger.available"
+        "title": "MSBuild: Rebuild current solution"
       },
       {
         "command": "MSBuild.cleanCurrentSolution",
-        "title": "MSBuild: Clean current solution",
-        "when": "fsharp.debugger.available"
+        "title": "MSBuild: Clean current solution"
       },
       {
         "command": "fsharp.explorer.moveUp",
@@ -294,43 +284,35 @@
       },
       {
         "command": "fsharp.explorer.msbuild.build",
-        "title": "Build",
-        "enablement": "fsharp.debugger.available"
+        "title": "Build"
       },
       {
         "command": "fsharp.explorer.msbuild.rebuild",
-        "title": "Rebuild",
-        "enablement": "fsharp.debugger.available"
+        "title": "Rebuild"
       },
       {
         "command": "fsharp.explorer.msbuild.clean",
-        "title": "Clean",
-        "enablement": "fsharp.debugger.available"
+        "title": "Clean"
       },
       {
         "command": "fsharp.explorer.msbuild.restore",
-        "title": "Restore",
-        "enablement": "fsharp.debugger.available"
+        "title": "Restore"
       },
       {
         "command": "fsharp.explorer.solution.build",
-        "title": "Build",
-        "enablement": "fsharp.debugger.available"
+        "title": "Build"
       },
       {
         "command": "fsharp.explorer.solution.rebuild",
-        "title": "Rebuild",
-        "enablement": "fsharp.debugger.available"
+        "title": "Rebuild"
       },
       {
         "command": "fsharp.explorer.solution.clean",
-        "title": "Clean",
-        "enablement": "fsharp.debugger.available"
+        "title": "Clean"
       },
       {
         "command": "fsharp.explorer.solution.restore",
-        "title": "Restore",
-        "enablement": "fsharp.debugger.available"
+        "title": "Restore"
       },
       {
         "command": "fsharp.explorer.project.run",
@@ -988,12 +970,12 @@
       {
         "command": "MSBuild.buildCurrent",
         "key": "ctrl\u002Balt\u002Bb",
-        "when": "fsharp.project.any \u0026\u0026 editorFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027 \u0026\u0026 fsharp.debugger.available"
+        "when": "fsharp.project.any \u0026\u0026 editorFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027"
       },
       {
         "command": "MSBuild.buildCurrentSolution",
         "key": "ctrl\u002Balt\u002Bshift\u002Bb",
-        "when": "fsharp.project.any \u0026\u0026 fsharp.debugger.available"
+        "when": "fsharp.project.any"
       },
       {
         "command": "fsharp.openInfoPanel",
@@ -1185,15 +1167,15 @@
         },
         {
           "command": "MSBuild.buildCurrent",
-          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027 \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027"
         },
         {
           "command": "MSBuild.rebuildCurrent",
-          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027 \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027"
         },
         {
           "command": "MSBuild.cleanCurrent",
-          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027 \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any \u0026\u0026 editorLangId == \u0027fsharp\u0027"
         },
         {
           "command": "fsharp.clearCache",
@@ -1201,35 +1183,35 @@
         },
         {
           "command": "MSBuild.buildSelected",
-          "when": "fsharp.project.any \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any"
         },
         {
           "command": "MSBuild.rebuildSelected",
-          "when": "fsharp.project.any \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any"
         },
         {
           "command": "MSBuild.cleanSelected",
-          "when": "fsharp.project.any \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any"
         },
         {
           "command": "MSBuild.restoreSelected",
-          "when": "fsharp.project.any \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any"
         },
         {
           "command": "MSBuild.buildCurrentSolution",
-          "when": "fsharp.project.any \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any"
         },
         {
           "command": "MSBuild.rebuildCurrentSolution",
-          "when": "fsharp.project.any \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any"
         },
         {
           "command": "MSBuild.cleanCurrentSolution",
-          "when": "fsharp.project.any \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any"
         },
         {
           "command": "fsharp.runDefaultProject",
-          "when": "fsharp.project.any \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any"
         },
         {
           "command": "fsharp.debugDefaultProject",
@@ -1237,7 +1219,7 @@
         },
         {
           "command": "fsharp.chooseDefaultProject",
-          "when": "fsharp.project.any \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any"
         },
         {
           "command": "fsharp.NewProject",
@@ -1286,7 +1268,7 @@
         {
           "command": "fsharp.runDefaultProject",
           "group": "fsharp",
-          "when": "fsharp.project.any \u0026\u0026 config.FSharp.enableTouchBar \u0026\u0026 fsharp.debugger.available"
+          "when": "fsharp.project.any \u0026\u0026 config.FSharp.enableTouchBar"
         },
         {
           "command": "fsharp.NewProject",
