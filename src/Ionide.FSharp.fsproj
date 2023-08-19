@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -37,7 +37,8 @@
     <Compile Include="Components/Webview.fs" />
     <Compile Include="Components/Fsi.fs" />
     <Compile Include="Components/ScriptRunner.fs" />
-    <Compile Include="Components/LineLens.fs" />
+    <Compile Include="Components/LineLens/LineLensShared.fs" />
+    <Compile Include="Components/LineLens/LineLens.fs" />
     <Compile Include="Components/QuickInfo.fs" />
     <Compile Include="Components/QuickInfoProject.fs" />
     <Compile Include="Components/MSBuild.fs" />
@@ -46,7 +47,7 @@
     <Compile Include="Components/HtmlConverter.fs" />
     <Compile Include="Components/InfoPanel.fs" />
     <Compile Include="Components/CodeLensHelpers.fs" />
-    <Compile Include="Components/PipelineHints.fs" />
+    <Compile Include="Components/LineLens/PipelineHints.fs" />
     <Compile Include="Components/SolutionExplorer.fs" />
     <Compile Include="Components/TestExplorer.fs" />
     <Compile Include="Components/InlayHints.fs" />

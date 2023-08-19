@@ -76,7 +76,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
 
         tryActivate "fsprojedit" FsProjEdit.activate context
         tryActivate "diagnostics" Diagnostics.activate context
-        tryActivate "linelens" LineLens.activate context
+        tryActivate "linelens" LineLens.Instance.activate context
         tryActivate "quickinfo" QuickInfo.activate context
         tryActivate "help" Help.activate context
         tryActivate "msbuild" MSBuild.activate context
@@ -90,7 +90,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
         tryActivate "infopanel" InfoPanel.activate context
         tryActivate "codelens" CodeLensHelpers.activate context
         tryActivate "gitignore" Gitignore.activate context
-        tryActivate "pipelinehints" PipelineHints.activate context
+        tryActivate "pipelinehints" PipelineHints.Instance.activate context
         tryActivate "testExplorer" TestExplorer.activate context
         tryActivate "inlayhints" InlayHints.activate context
 
