@@ -64,15 +64,15 @@ module Logging =
         let formattedMessage = Util.format (template, args)
 
         let formattedLogLine =
-            String.Format("[{0:HH:mm:ss} {1,-5}] {2}", DateTime.Now, string level, formattedMessage)
+            String.Format("[{0:HH:mm:ss} {1,-5}] [{2}] {3}", DateTime.Now, string level, source, formattedMessage)
 
         out.appendLine (formattedLogLine)
 
-    let private writeToFile level template args =
+    let private writeToFile level source template args =
         let formattedMessage = Util.format (template, args)
 
         let formattedLogLine =
-            String.Format("[{0:HH:mm:ss} {1,-5}] {2}\n", DateTime.Now, string level, formattedMessage)
+            String.Format("[{0:HH:mm:ss} {1,-5}] [{2}] {3}\n", DateTime.Now, string level, source, formattedMessage)
         // Only store the 200 last logs
         if ionideLogsMemory.Length >= 200 then
             ionideLogsMemory <- ionideLogsMemory.Tail @ [ formattedLogLine ]
@@ -94,7 +94,7 @@ module Logging =
         if source = Some "IONIDE-FSAC" then
             try
                 if string args.[0] <> "parse" then
-                    writeToFile level template args
+                    writeToFile level source template args
             with _ ->
                 () // Do nothing
 
@@ -165,3 +165,6 @@ module Logging =
         /// https://nodejs.org/api/util.html#util_util_format_format
         member this.ErrorOnFailed text (p: JS.Promise<_>) =
             p |> Promise.catchEnd (fun err -> this.Error(text + ": %O", err))
+
+
+    let defaultOutputChannel = window.createOutputChannel "Ionide"

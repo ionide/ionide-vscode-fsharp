@@ -543,16 +543,24 @@
           },
           "type": "array"
         },
-        "FSharp.fsac.gc.conserveMemory" : {
+        "FSharp.fsac.gc.conserveMemory": {
           "markdownDescription": "Configures the garbage collector to [conserve memory](https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory) at the expense of more frequent garbage collections and possibly longer pause times. Acceptable values are 0-9. Any non-zero value will allow the [Large Object Heap](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/large-object-heap) to be compacted automatically if it has too much fragmentation. Requires restart.",
           "type": "integer",
           "minimum": 0,
           "maximum": 9
         },
-        "FSharp.fsac.gc.heapCount" : {
+        "FSharp.fsac.gc.heapCount": {
           "default": 2,
-          "markdownDescription": "Limits the number of [heaps](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals#the-managed-heap) created by the garbage collector. Applies to server garbage collection only. See [Middle Ground between Server and Workstation GC](https://devblogs.microsoft.com/dotnet/middle-ground-between-server-and-workstation-gc/) for more details. This can allow FSAC to still benefit from Server garbage collection while still limiting the number of heaps. Requires restart.",
+          "markdownDescription": "Limits the number of [heaps](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals#the-managed-heap) created by the garbage collector. Applies to server garbage collection only. See [Middle Ground between Server and Workstation GC](https://devblogs.microsoft.com/dotnet/middle-ground-between-server-and-workstation-gc/) for more details. This can allow FSAC to still benefit from Server garbage collection while still limiting the number of heaps. [Only available on .NET 7 or higher](https://github.com/ionide/ionide-vscode-fsharp/issues/1899#issuecomment-1649009462). Requires restart.",
           "type": "integer",
+          "required": [
+            "FSharp.fsac.gc.server"
+          ]
+        },
+        "Fsharp.fsac.gc.noAffinitize": {
+          "default": true,
+          "type": "boolean",
+          "markdownDescription": "Specifies whether to [affinitize](https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#affinitize) garbage collection threads with processors. To affinitize a GC thread means that it can only run on its specific CPU.. Applies to server garbage collection only. See [GCNoAffinitize](https://learn.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/runtime/gcnoaffinitize-element#remarks) for more details. [Only available on .NET 7 or higher](https://github.com/ionide/ionide-vscode-fsharp/issues/1899#issuecomment-1649009462). Requires restart.",
           "required": [
             "FSharp.fsac.gc.server"
           ]
@@ -733,7 +741,7 @@
         },
         "FSharp.openTelemetry.enabled": {
           "default": false,
-          "description": "Enables OpenTelemetry exporter. See https://opentelemetry.io/docs/reference/specification/protocol/exporter/ for environment variables to configure for the exporter. Requires Restart.",
+          "markdownDescription": "Enables OpenTelemetry exporter. See [OpenTelemetry Protocol Exporter](https://opentelemetry.io/docs/reference/specification/protocol/exporter/) for environment variables to configure for the exporter. Requires Restart.",
           "type": "boolean"
         },
         "FSharp.pipelineHints.enabled": {
@@ -1739,5 +1747,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.8.2"
+  "version": "7.8.5"
 }

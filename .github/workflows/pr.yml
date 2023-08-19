@@ -2,8 +2,11 @@ name: Build Pull Requests
 
 on:
   push:
-   branches:
-     - '*'
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - '*'
 
 jobs:
   build:
