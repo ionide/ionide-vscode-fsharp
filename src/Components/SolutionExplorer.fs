@@ -785,8 +785,8 @@ module SolutionExplorer =
         let normalizedPath = filePath.Replace("\\", "/")
         let fileUri = vscode.Uri.parse $"file:///%s{normalizedPath}"
 
-        LineLens.removeDocument fileUri
-        PipelineHints.removeDocument fileUri
+        LineLens.Instance.removeDocument fileUri
+        PipelineHints.Instance.removeDocument fileUri
 
     let activate (context: ExtensionContext) =
         let emiter = vscode.EventEmitter.Create<_>()
