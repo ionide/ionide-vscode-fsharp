@@ -20,7 +20,7 @@ module CSharpExtension =
     let mutable private hasWarned = false
 
     let private csharpAvailableContext: bool -> unit =
-        let fn = Context.cachedSetter "fsharp.debuggerAvailable"
+        let fn = Context.cachedSetter "fsharp.debugger.available"
 
         fun value ->
             hasCSharp <- value
