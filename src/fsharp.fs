@@ -10,6 +10,9 @@ open Ionide.VSCode.Helpers
 open Ionide.VSCode.FSharp
 open Node.ChildProcess
 
+let private logger =
+    ConsoleAndOutputChannelLogger(Some "Main", Level.DEBUG, Some defaultOutputChannel, Some Level.DEBUG)
+
 type Api =
     { ProjectLoadedEvent: Event<DTO.Project>
       BuildProject: DTO.Project -> JS.Promise<string>
@@ -27,14 +30,15 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
             try
                 activationFn ctx
             with ex ->
-                printfn $"Error while activating feature '{label}': {ex}"
+                logger.Error $"Error while activating feature '{label}': {ex}"
                 Unchecked.defaultof<_>
 
     LanguageService.start context
-    |> Promise.catch (fun e -> printfn $"Error activating FSAC: %A{e}") // prevent unhandled rejected promises
+    |> Promise.catch (fun e -> logger.Error $"Error activating FSAC: %A{e}") // prevent unhandled rejected promises
     |> Promise.onSuccess (fun _ ->
         let progressOpts = createEmpty<ProgressOptions>
         progressOpts.location <- U2.Case1 ProgressLocation.Window
+        logger.Debug "Activating features"
 
         window.withProgress (
             progressOpts,
@@ -46,7 +50,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
                 p.report pm
 
                 Project.activate context
-                |> Promise.catch (fun e -> printfn $"Error loading projects: %A{e}")
+                |> Promise.catch (fun e -> logger.Error $"Error loading projects: %A{e}")
                 |> Promise.onSuccess (fun _ -> tryActivate "quickinfoproject" QuickInfoProject.activate context)
                 |> Promise.bind (fun _ ->
                     if showExplorer then
@@ -56,7 +60,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
                         Promise.lift None)
                 |> Promise.bind (fun _ -> tryActivate "analyzers" LanguageService.loadAnalyzers ())
                 |> Promise.catch (fun e ->
-                    printfn $"Error loading all projects: %A{e}"
+                    logger.Error $"Error loading all projects: %A{e}"
 
                     let pm =
                         {| message = Some "Error loading projects"
@@ -119,7 +123,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
           GetProjectLauncher = Project.getLauncher
           DebugProject = Debugger.debugProject })
     |> Promise.catch (fun e ->
-        printfn $"Error activating features: %A{e}"
+        logger.Error $"Error activating features: %A{e}"
         Unchecked.defaultof<_>)
 
 

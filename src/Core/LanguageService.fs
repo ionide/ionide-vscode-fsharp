@@ -37,6 +37,11 @@ module Notifications =
     let testDetected = testDetectedEmitter.event
 
 module LanguageService =
+    open Fable.Import.LanguageServer.Client
+
+    let private logger =
+        ConsoleAndOutputChannelLogger(Some "LanguageService", Level.DEBUG, Some defaultOutputChannel, Some Level.DEBUG)
+
     module Types =
         open Fable.Import.VSCode.Vscode
         type PlainNotification = { content: string }
@@ -599,7 +604,42 @@ Consider:
         let clientOpts =
             let opts = createEmpty<Client.LanguageClientOptions>
 
+            let mutable initFails = 0
 
+            let initializationFailureHandler (error: U3<ResponseError, Exception, obj option>) =
+                if initFails < 5 then
+                    logger.Error($"Initialization failed: %%", error)
+                    initFails <- initFails + 1
+                    true
+                else
+                    false
+
+
+            let restarts = new ResizeArray<_>()
+
+            let errorHandling =
+                {
+
+                  new ErrorHandler with
+                      member this.closed() : CloseAction =
+                          restarts.Add(1)
+
+                          if restarts |> Seq.length < 5 then
+                              CloseAction.Restart
+                          else
+
+                              logger.Error("Server closed")
+                              CloseAction.DoNotRestart
+
+                      member this.error(error: Exception, message: Message, count: float) : ErrorAction =
+                          logger.Error($"Error from server: {error} {message} {count}")
+
+                          if count < 3.0 then
+                              ErrorAction.Continue
+                          else
+                              ErrorAction.Shutdown
+
+                }
 
             let initOpts = createObj [ "AutomaticWorkspaceInit" ==> false ]
 
@@ -611,7 +651,12 @@ Consider:
             // that's why we need to coerce it here.
             opts.documentSelector <- Some selector
             opts.synchronize <- Some synch
+            opts.errorHandler <- Some errorHandling
             opts.revealOutputChannelOn <- Some Client.RevealOutputChannelOn.Never
+            // Worth keeping around for debug purposes
+            // opts.traceOutputChannel <- Some defaultOutputChannel
+            // opts.outputChannel <- Some defaultOutputChannel
+            opts.initializationFailedHandler <- Some(!!initializationFailureHandler)
 
             opts.initializationOptions <- Some !^(Some initOpts)
             opts?markdown <- createObj [ "isTrusted" ==> true; "supportHtml" ==> true ]
@@ -632,7 +677,38 @@ Consider:
             let enableProjectGraph =
                 "FSharp.enableMSBuildProjectGraph" |> Configuration.get false
 
-            let conserveMemory = "FSharp.fsac.conserveMemory" |> Configuration.get false
+            let tryBool x =
+                // Boolean.TryParse generates: TypeError: e.match is not a function if we don't call toString first
+                match Boolean.TryParse(x.ToString()) with
+                | (true, v) -> Some v
+                | _ -> None
+
+            let tryInt x =
+                match Int32.TryParse(x.ToString()) with
+                | (true, v) -> Some v
+                | _ -> None
+
+            let oldgcConserveMemory =
+                "FSharp.fsac.conserveMemory"
+                |> Configuration.tryGet
+                |> Option.map string
+                |> Option.bind tryBool
+
+            let gcConserveMemory =
+                "FSharp.fsac.gc.conserveMemory" |> Configuration.tryGet |> Option.bind tryInt
+
+            let gcConserveMemory =
+                // prefer new setting, fallback to old, default is 0
+                match gcConserveMemory, oldgcConserveMemory with
+                | Some x, _ -> x
+                | None, Some true -> 9
+                | None, _ -> 0
+
+            let gcHeapCount = "FSharp.fsac.gc.heapCount" |> Configuration.get 2
+
+            let gcServer = "FSharp.fsac.gc.server" |> Configuration.get true
+
+            let gcNoAffinitize = "Fsharp.fsac.gc.noAffinitize" |> Configuration.get true
 
             let parallelReferenceResolution =
                 "FSharp.fsac.parallelReferenceResolution" |> Configuration.get false
@@ -779,21 +855,38 @@ Consider:
                               | pres when Seq.length pres > 0 -> "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1
                               | _ -> () ]
 
-                        return args, envVariables, fsacPath
+                        return args, envVariables, fsacPath, sdkVersion
                 }
+
+            /// Converts true to 1 and false to 0
+            /// Useful for environment variables that require this semantic
+            let inline boolToInt b = if b then 1 else 0
 
             let spawnNetCore dotnet : JS.Promise<Executable> =
                 promise {
-                    let! (fsacDotnetArgs, fsacEnvVars, fsacPath) = discoverDotnetArgs ()
+                    let! (fsacDotnetArgs, fsacEnvVars, fsacPath, sdkVersion) = discoverDotnetArgs ()
+                    // Only set DOTNET_GCHeapCount if we're on .NET 7 or higher
+                    // .NET 6 has some issues with this env var on linux
+                    // https://github.com/ionide/ionide-vscode-fsharp/issues/1899
+                    let versionSupportingEnvVars = (semver.parse (Some(U2.Case1 "7.0.0"))).Value
+
+                    let isNet7orHigher =
+                        semver.cmp (U2.Case2 sdkVersion, Operator.GTE, U2.Case2 versionSupportingEnvVars)
 
                     let fsacEnvVars =
                         [ yield! fsacEnvVars
-                          if conserveMemory then
-                              yield "DOTNET_GCConserveMemory", box "9"
+                          if isNet7orHigher then
+                              // it doesn't really make sense to set GCNoAffinitize without setting GCHeapCount
+                              yield "DOTNET_GCNoAffinitize", box (boolToInt gcNoAffinitize) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#affinitize
+                              yield "DOTNET_GCHeapCount", box (gcHeapCount.ToString("X")) // Requires hexadecimal value https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#heap-count
+
+                          yield "DOTNET_GCConserveMemory", box gcConserveMemory //https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory
+                          yield "DOTNET_GCServer", box (boolToInt gcServer) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#workstation-vs-server
+
                           if parallelReferenceResolution then
                               yield "FCS_ParallelReferenceResolution", box "true" ]
 
-                    printfn $"""FSAC (NETCORE): '%s{fsacPath}'"""
+                    logger.Debug $"""FSAC (NETCORE): '%s{fsacPath}'"""
 
                     let exeOpts = createEmpty<ExecutableOptions>
 
@@ -892,12 +985,17 @@ Consider:
 
     let start (c: ExtensionContext) =
         promise {
-            let! startOpts = getOptions c
-            let cl = createClient startOpts
-            registerCustomNotifications cl
-            let started = cl.start ()
-            c.subscriptions.Add(started |> box |> unbox)
-            return ()
+            try
+                let! startOpts = getOptions c
+                logger.Debug("F# language server options: %%", startOpts)
+                let cl = createClient startOpts
+                registerCustomNotifications cl
+                let started = cl.start ()
+                c.subscriptions.Add(started |> box |> unbox)
+                return ()
+            with e ->
+                logger.Error("Error starting F# language server: %%", e)
+                return raise e
         }
 
     let stop () =
