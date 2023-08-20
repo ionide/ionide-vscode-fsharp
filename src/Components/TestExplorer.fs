@@ -543,6 +543,8 @@ type CodeLocationCache() =
 
     member _.GetById(testId: TestId) = locationCache.TryGet testId
 
+    member _.GetKnownTestIds() : TestId seq = locationCache.Keys
+
     member _.DeleteByFile(uri: Uri) =
         for kvp in locationCache do
             if kvp.Value.Uri.fsPath = uri.fsPath then
@@ -815,8 +817,9 @@ module ProjectExt =
 
 module TestDiscovery =
 
-    let mergeCodeLocations
+    let tryMatchCodeLocations
         (testItemFactory: TestItem.TestItemFactory)
+        (tryGetLocation: TestId -> LocationRecord option)
         (rootTestCollection: TestItemCollection)
         (testsFromCode: TestItem array)
         =
@@ -832,18 +835,38 @@ module TestDiscovery =
 
             (replacementItem, withUri)
 
+        let copyFromLocationRecord (target: TestItem) (locationRecord: LocationRecord) =
+            let replacementItem =
+                testItemFactory
+                    { id = target.id
+                      label = target.label
+                      uri = Some locationRecord.Uri
+                      range = locationRecord.Range
+                      children = target.children.TestItems()
+                      testFramework = target?testFramework }
+
+            replacementItem
+
         let rec recurse (target: TestItemCollection) (withUri: TestItem array) : unit =
 
             let treeOnly, matched, _codeOnly =
                 ArrayExt.venn TestItem.getId TestItem.getId (target.TestItems()) withUri
 
-            let updatePairs = matched |> Array.map cloneWithUri
+            let exactPathMatch = matched |> Array.map cloneWithUri
 
-            let newTestCollection = Array.concat [ treeOnly; updatePairs |> Array.map fst ]
+            let advancedMatchAttempted =
+                treeOnly
+                |> Array.map (fun unlocated ->
+                    match tryGetLocation unlocated.id with
+                    | Some location -> copyFromLocationRecord unlocated location
+                    | None -> unlocated)
+
+            let newTestCollection =
+                Array.concat [ advancedMatchAttempted; exactPathMatch |> Array.map fst ]
 
             target.replace (ResizeArray newTestCollection)
 
-            updatePairs
+            exactPathMatch
             |> Array.iter (fun (target, withUri) -> recurse target.children (withUri.children.TestItems()))
 
         recurse rootTestCollection testsFromCode
@@ -1411,6 +1434,29 @@ module Interactions =
                                 $"No tests discovered for the following projects. Make sure your tests can be run with `dotnet test` \n {projectList}"
             }
 
+    let tryMatchTestBySuffix (locationCache: CodeLocationCache) (testId: TestId) =
+        let matcher (testId: TestId) (locatedTestId: TestId) =
+            testId.EndsWith(TestItem.getFullName locatedTestId)
+
+        locationCache.GetKnownTestIds()
+        |> Seq.tryFind (matcher testId)
+        |> Option.bind locationCache.GetById
+
+    module Option =
+
+        let tee (f: 'a -> unit) (option: 'a option) =
+            option |> Option.iter f
+            option
+
+    let tryGetLocation (locationCache: CodeLocationCache) testId =
+        let cached = locationCache.GetById testId
+
+        match cached with
+        | Some _ -> cached
+        | None ->
+            tryMatchTestBySuffix locationCache testId
+            |> Option.tee (fun lr -> locationCache.Save(testId, lr))
+
     let onTestsDiscoveredInCode
         (testItemFactory: TestItem.TestItemFactory)
         (rootTestCollection: TestItemCollection)
@@ -1420,8 +1466,14 @@ module Interactions =
         =
 
         let onTestCodeMapped (filePath: string) (testsFromCode: TestItem array) =
-            TestDiscovery.mergeCodeLocations testItemFactory rootTestCollection testsFromCode
             CodeLocationCache.cacheTestLocations locationCache filePath testsFromCode
+
+            TestDiscovery.tryMatchCodeLocations
+                testItemFactory
+                (tryGetLocation locationCache)
+                rootTestCollection
+                testsFromCode
+
 
             let cached = testsPerFileCache.TryGet(filePath)
 
@@ -1465,10 +1517,12 @@ let activate (context: ExtensionContext) =
     logger.Debug("Extension Storage", storageUri)
     let makeTrxPath = TrxParser.makeTrxPath workspaceRoot storageUri
 
+    let tryGetLocation = Interactions.tryGetLocation locationCache
+
     testController.createRunProfile (
         "Run F# Tests",
         TestRunProfileKind.Run,
-        Interactions.runHandler testController locationCache.GetById makeTrxPath,
+        Interactions.runHandler testController tryGetLocation makeTrxPath,
         true
     )
     |> unbox
@@ -1495,12 +1549,7 @@ let activate (context: ExtensionContext) =
 
 
     let refreshHandler cancellationToken =
-        Interactions.refreshTestList
-            testItemFactory
-            testController.items
-            locationCache.GetById
-            makeTrxPath
-            cancellationToken
+        Interactions.refreshTestList testItemFactory testController.items tryGetLocation makeTrxPath cancellationToken
         |> Promise.toThenable
         |> (!^)
 
@@ -1513,7 +1562,7 @@ let activate (context: ExtensionContext) =
             hasInitiatedDiscovery <- true
 
             let trxTests =
-                TestDiscovery.discoverFromTrx testItemFactory locationCache.GetById makeTrxPath
+                TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath
 
             let workspaceProjects = Project.getLoaded ()
             let initialTests = trxTests workspaceProjects
@@ -1524,7 +1573,7 @@ let activate (context: ExtensionContext) =
             Interactions.refreshTestList
                 testItemFactory
                 testController.items
-                locationCache.GetById
+                tryGetLocation
                 makeTrxPath
                 cancellationTokenSource.token
             |> Promise.start
