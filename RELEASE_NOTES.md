@@ -1,4 +1,4 @@
-### 7.9.0 - 21.08.2023
+### 7.9.0-preview - 21.08.2023
 
 * Updates FSAC to 0.62.0 - bringing the language features and tooling enhancement from the 7.0.400 SDKs to Ionide.
 * A massive [enhancement to the test explorer integration](https://github.com/ionide/ionide-vscode-fsharp/pull/1874) was contributed by @farlee2121! Thank you! This new version uses the `dotnet test` listing as the source of truth, and allows go-to-definition.
