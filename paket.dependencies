@@ -44,3 +44,8 @@ group build
   nuget Fake.Tools.Git
   nuget Fake.JavaScript.Yarn
   nuget Octokit <= 0.49.0
+
+  // Enforce updated binlog parser until Fake gets an update, so we're not stuck
+  // on an old sdk version.
+  // ref: https://github.com/fsprojects/FAKE/issues/2744
+  nuget MSBuild.StructuredLogger >= 2.1.784
