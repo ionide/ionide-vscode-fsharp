@@ -4,6 +4,7 @@ root = true
 [*.fs]
 indent_style = space
 indent_size = 4
+# keep in sync with .gitattributes
 end_of_line = crlf
 charset = utf-8
 trim_trailing_whitespace = true
