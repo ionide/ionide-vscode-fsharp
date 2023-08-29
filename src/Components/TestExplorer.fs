@@ -562,17 +562,19 @@ module TestItem =
 
     let constructProjectRootId (projectPath: ProjectPath) : TestId = constructId projectPath ""
 
-    let getFullName (testId: TestId) : FullTestName =
+    let private componentizeId (testId: TestId) : (ProjectPath * FullTestName) =
         let split =
             testId.Split(separator = [| idSeparator |], options = StringSplitOptions.None)
 
-        FullTestName.ofString split.[1]
+        (split.[0], split.[1])
+
+    let getFullName (testId: TestId) : FullTestName =
+        let _, fullName = componentizeId testId
+        fullName
 
     let getProjectPath (testId: TestId) : ProjectPath =
-        let split =
-            testId.Split(separator = [| idSeparator |], options = StringSplitOptions.None)
-
-        ProjectPath.ofString split.[0]
+        let projectPath, _ = componentizeId testId
+        projectPath
 
     let getId (t: TestItem) = t.id
 
@@ -724,6 +726,40 @@ module TestItem =
 
             [| fromProject testItemFactory projectPath project.Info.TargetFramework fileTests |])
 
+    let tryGetById (testId: TestId) (rootCollection: TestItem array) : TestItem option =
+        let projectPath, fullTestName = componentizeId testId
+
+        let rec recurse
+            (collection: TestItemCollection)
+            (parentPath: FullTestName)
+            (remainingPath: TestName.Segment list)
+            =
+
+            let currentLabel, remainingPath =
+                match remainingPath with
+                | currentLabel :: remainingPath -> (currentLabel, remainingPath)
+                | [] -> TestName.Segment.empty, []
+
+            let fullName = TestName.appendSegment parentPath currentLabel
+            let id = constructId projectPath fullName
+            let existingItem = collection.get (id)
+
+            match existingItem with
+            | None -> None
+            | Some existingItem ->
+                if remainingPath <> [] then
+                    recurse existingItem.children fullName remainingPath
+                else
+                    Some existingItem
+
+
+        let pathSegments = TestName.splitSegments fullTestName
+
+        rootCollection
+        |> Array.tryFind (fun ti -> ti.id = constructProjectRootId projectPath)
+        |> Option.bind (fun projectRoot -> recurse projectRoot.children "" pathSegments)
+
+
     let getOrMakeHierarchyPath
         (rootCollection: TestItemCollection)
         (itemFactory: TestItemFactory)
@@ -779,14 +815,16 @@ module TestItem =
 
 
 module CodeLocationCache =
+
+    let private testToLocation (testItem: TestItem) =
+            match testItem.uri with
+            | None -> None
+            | Some uri -> Some { Uri = uri; Range = testItem.range }
+
     let cacheTestLocations (locationCache: CodeLocationCache) (filePath: string) (testItems: TestItem array) =
         let fileUri = vscode.Uri.parse (filePath, true)
         locationCache.DeleteByFile(fileUri)
 
-        let testToLocation (testItem: TestItem) =
-            match testItem.uri with
-            | None -> None
-            | Some uri -> Some { Uri = uri; Range = testItem.range }
 
         let saveTestItem (testItem: TestItem) =
             testToLocation testItem
@@ -817,9 +855,10 @@ module ProjectExt =
 
 module TestDiscovery =
 
+
     let tryMatchCodeLocations
         (testItemFactory: TestItem.TestItemFactory)
-        (tryGetLocation: TestId -> LocationRecord option)
+        (tryMatchDisplacedTest: TestId -> TestItem option)
         (rootTestCollection: TestItemCollection)
         (testsFromCode: TestItem array)
         =
@@ -835,18 +874,6 @@ module TestDiscovery =
 
             (replacementItem, withUri)
 
-        let copyFromLocationRecord (target: TestItem) (locationRecord: LocationRecord) =
-            let replacementItem =
-                testItemFactory
-                    { id = target.id
-                      label = target.label
-                      uri = Some locationRecord.Uri
-                      range = locationRecord.Range
-                      children = target.children.TestItems()
-                      testFramework = target?testFramework }
-
-            replacementItem
-
         let rec recurse (target: TestItemCollection) (withUri: TestItem array) : unit =
 
             let treeOnly, matched, _codeOnly =
@@ -857,8 +884,11 @@ module TestDiscovery =
             let advancedMatchAttempted =
                 treeOnly
                 |> Array.map (fun unlocated ->
-                    match tryGetLocation unlocated.id with
-                    | Some location -> copyFromLocationRecord unlocated location
+                    match tryMatchDisplacedTest unlocated.id with
+                    | Some displacedFragmentRoot ->
+                        let updated, _ = cloneWithUri (unlocated, displacedFragmentRoot)
+                        recurse updated.children (displacedFragmentRoot.children.TestItems())
+                        updated
                     | None -> unlocated)
 
             let newTestCollection =
@@ -868,6 +898,9 @@ module TestDiscovery =
 
             exactPathMatch
             |> Array.iter (fun (target, withUri) -> recurse target.children (withUri.children.TestItems()))
+
+        // let matched, notMatched = advancedMatchAttempted |> Array.partition (TestItem.tryGetLocation >> Option.isSome)
+        // matched |>
 
         recurse rootTestCollection testsFromCode
 
@@ -1438,9 +1471,7 @@ module Interactions =
         let matcher (testId: TestId) (locatedTestId: TestId) =
             testId.EndsWith(TestItem.getFullName locatedTestId)
 
-        locationCache.GetKnownTestIds()
-        |> Seq.tryFind (matcher testId)
-        |> Option.bind locationCache.GetById
+        locationCache.GetKnownTestIds() |> Seq.tryFind (matcher testId)
 
     module Option =
 
@@ -1455,6 +1486,7 @@ module Interactions =
         | Some _ -> cached
         | None ->
             tryMatchTestBySuffix locationCache testId
+            |> Option.bind locationCache.GetById
             |> Option.tee (fun lr -> locationCache.Save(testId, lr))
 
     let onTestsDiscoveredInCode
@@ -1468,11 +1500,17 @@ module Interactions =
         let onTestCodeMapped (filePath: string) (testsFromCode: TestItem array) =
             CodeLocationCache.cacheTestLocations locationCache filePath testsFromCode
 
-            TestDiscovery.tryMatchCodeLocations
-                testItemFactory
-                (tryGetLocation locationCache)
-                rootTestCollection
-                testsFromCode
+            let tryMatchDisplacedTest (testId: TestId) : TestItem option =
+                tryMatchTestBySuffix locationCache testId
+                |> Option.bind (fun matchedId ->
+                    TestItem.tryGetById matchedId testsFromCode
+                    |> Option.tee (fun matchedCodeTest ->
+                        logger.Debug(
+                            $"nya - matched fragment: {TestItem.getFullName testId} -> {TestItem.getFullName matchedCodeTest.id}"
+                        )))
+
+
+            TestDiscovery.tryMatchCodeLocations testItemFactory tryMatchDisplacedTest rootTestCollection testsFromCode
 
 
             let cached = testsPerFileCache.TryGet(filePath)
