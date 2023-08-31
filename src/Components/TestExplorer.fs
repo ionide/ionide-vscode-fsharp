@@ -1506,10 +1506,14 @@ let activate (context: ExtensionContext) =
 
     testController.refreshHandler <- Some refreshHandler
 
+
+    let shouldAutoDiscoverTests =
+        Configuration.get true "FSharp.TestExplorer.AutoDiscoverTestsOnLoad"
+
     let mutable hasInitiatedDiscovery = false
 
     Project.workspaceLoaded.Invoke(fun () ->
-        if not hasInitiatedDiscovery then
+        if shouldAutoDiscoverTests && not hasInitiatedDiscovery then
             hasInitiatedDiscovery <- true
 
             let trxTests =
