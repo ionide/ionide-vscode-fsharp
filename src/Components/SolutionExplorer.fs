@@ -1043,7 +1043,9 @@ module SolutionExplorer =
                     let projRefs = project.ProjectReferences |> Array.map (fun n -> n.ProjectFileName)
 
                     let packageRefs =
-                        project.PackageReferences |> Array.map (fun n -> n.Name + " " + n.Version)
+                        project.PackageReferences
+                        |> Array.distinctBy (fun n -> n.Name)
+                        |> Array.map (fun n -> n.Name + " " + n.Version)
 
                     let refs =
                         refs
