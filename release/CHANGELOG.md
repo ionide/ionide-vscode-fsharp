@@ -1,3 +1,8 @@
+### 7.10.0 - 01.09.2023
+
+* [Add setting to turn off test discovery on workspace load](https://github.com/ionide/ionide-vscode-fsharp/pull/1919) (Thanks @farlee2121!)
+* [Show package names only once](https://github.com/ionide/ionide-vscode-fsharp/pull/1920) (Thanks @dawedawe!)
+
 ### 7.9.0 - 21.08.2023
 
 * Updates FSAC to 0.62.0 - bringing the language features and tooling enhancement from the 7.0.400 SDKs to Ionide.
