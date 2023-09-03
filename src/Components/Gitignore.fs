@@ -1,4 +1,4 @@
-/// Prompt users to add VSCode lines to their gitignore if the config is set
+// Prompt users to add VSCode lines to their gitignore if the config is set
 namespace Ionide.VSCode.FSharp
 
 module Gitignore =

@@ -53,7 +53,7 @@ Error: %A
 
 ### Steps to reproduce
 
-<!-- Add here the step to reproduce you problem. Example: -->
+<!-- Add here the steps to reproduce you problem. Example: -->
 <!-- 1. Open an F# file -->
 <!-- 2. Ctrl + P > "F# Add Reference" -->
             """
