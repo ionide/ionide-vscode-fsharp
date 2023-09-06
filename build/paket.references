@@ -15,3 +15,5 @@ Fake.Api.GitHub
 Fake.Tools.Git
 Fake.JavaScript.Yarn
 Octokit 
+
+MSBuild.StructuredLogger

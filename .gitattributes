@@ -1,1 +1,4 @@
 * text=auto
+
+# keep in sync with .editorconfig
+*.fs text eol=crlf

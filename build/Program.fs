@@ -357,7 +357,7 @@ let initTargets () =
     Target.create "ReleaseGitHub" (fun _ -> releaseGithub release)
 
     Target.create "Format" (fun _ ->
-        DotNet.exec id "fantomas" "-r src build"
+        DotNet.exec id "fantomas" "src build"
         |> fun r ->
             if r.OK then
                 ()

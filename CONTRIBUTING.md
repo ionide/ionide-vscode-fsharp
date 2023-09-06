@@ -20,8 +20,8 @@ First things first! In order to build & develop Ionide locally, you'll need to i
 
 ### Prerequisites
 
-- [Visual Studio Code][vscode] 🙄
-- [.NET 6][dotnet]
+- [Visual Studio Code][vscode]
+- [.NET 7][dotnet]
 - [Node.js][nodejs]
 - [Yarn][yarn]
 
@@ -232,7 +232,7 @@ to make a strong case to convince the community of the merits of this feature.
 Please provide as much detail and context as possible.
 
 
-[dotnet]: https://www.microsoft.com/net/download/core
+[dotnet]: https://dotnet.microsoft.com/en-us/download/dotnet/7.0
 [nodejs]: https://nodejs.org/en/download/
 [yarn]: https://yarnpkg.com/en/docs/install
 [vscode]: https://code.visualstudio.com/Download
