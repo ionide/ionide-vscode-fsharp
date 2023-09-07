@@ -98,64 +98,8 @@ module MSBuild =
             |> Promise.ofThenable
 
     let invokeMSBuild project target =
-        let autoshow =
-            let cfg = workspace.getConfiguration ()
-            cfg.get ("FSharp.msbuildAutoshow", false)
-
-        let command = [ project; $"/t:%s{target}" ]
-
-        let executeWithHost () =
-            promise {
-                let! msbuildPath = dotnetBinary ()
-                let cmd = ResizeArray("msbuild" :: command)
-                logger.Info("invoking msbuild from %s on %s for target %s", msbuildPath, project, target)
-
-                if autoshow then
-                    outputChannel.show (?preserveFocus = None)
-
-                return! Process.spawnWithNotification msbuildPath cmd outputChannel |> Process.toPromise
-            }
-
-        let progressOpts = createEmpty<ProgressOptions>
-        progressOpts.location <- U2.Case1 ProgressLocation.Window
-
-        window.withProgress (
-            progressOpts,
-            (fun p ctok ->
-                promise {
-                    let pm =
-                        {| message = Some $"Running MSBuild '{target}' target on '{project}'"
-                           increment = None |}
-
-                    p.report pm
-                    let! response = executeWithHost ()
-
-                    match response.Code with
-                    | Some 0 ->
-                        p.report (
-                            {| message = Some "MSBuild completed successfully"
-                               increment = None |}
-                        )
-
-                        return response
-                    | Some code ->
-                        p.report (
-                            {| message = Some $"MSBuild failed with code %d{code}"
-                               increment = None |}
-                        )
-
-                        return response
-                    | None ->
-                        p.report (
-                            {| message = Some "MSBuild failed with an unknown error"
-                               increment = None |}
-                        )
-
-                        return response
-                }
-                |> Promise.toThenable)
-        )
-        |> Promise.ofThenable
+        let cancellationTokenSource = vscode.CancellationTokenSource.Create()
+        invokeMSBuildWithCancel project target cancellationTokenSource.token
 
     let msbuildTasksFilter: TaskFilter =
         let f = createEmpty<TaskFilter>

@@ -20,8 +20,8 @@ First things first! In order to build & develop Ionide locally, you'll need to i
 
 ### Prerequisites
 
-- [Visual Studio Code][vscode] 🙄
-- [.NET 6][dotnet]
+- [Visual Studio Code][vscode]
+- [.NET 7][dotnet]
 - [Node.js][nodejs]
 - [Yarn][yarn]
 
@@ -232,7 +232,23 @@ to make a strong case to convince the community of the merits of this feature.
 Please provide as much detail and context as possible.
 
 
-[dotnet]: https://www.microsoft.com/net/download/core
+[dotnet]: https://dotnet.microsoft.com/en-us/download/dotnet/7.0
 [nodejs]: https://nodejs.org/en/download/
 [yarn]: https://yarnpkg.com/en/docs/install
 [vscode]: https://code.visualstudio.com/Download
+
+
+## Release
+
+1. If updating FSAC
+    1. run `dotnet paket update --group fsac`
+    2. Commit the `paket.lock` 
+2. Add version and notes to `RELEASE_NOTES.md`
+    1. If possible link the pull request of the changes and mention the author of the pull request
+    2. If updating FSAC mention the version of FSAC that is being updated to and link it's release notes
+3. Commit `RELEASE_NOTES.md`
+    1. `git commit -m "Bump version to x.x.x"`
+    2. `git push [remote-branch] main`
+4. [Goto the Release workflow on Github Action](https://github.com/ionide/ionide-vscode-fsharp/actions/workflows/release.yml)
+    1. Click `Run workflow` in the upper right
+    2. Click `Run workflow` button on the dialog that pops up

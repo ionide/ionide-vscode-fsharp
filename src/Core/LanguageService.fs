@@ -596,7 +596,8 @@ Consider:
         promise { return Environment.configFsiSdkFilePath () }
 
     let private createClient (opts: Executable) =
-        let options = createObj [ "run" ==> opts; "debug" ==> opts ] |> unbox<ServerOptions>
+
+        let options: ServerOptions = U5.Case2 {| run = opts; debug = opts |}
 
         let fileDeletedWatcher =
             workspace.createFileSystemWatcher (U2.Case1 "**/*.{fs,fsx}", true, true, false)
@@ -990,8 +991,7 @@ Consider:
                 logger.Debug("F# language server options: %%", startOpts)
                 let cl = createClient startOpts
                 registerCustomNotifications cl
-                let started = cl.start ()
-                c.subscriptions.Add(started |> box |> unbox)
+                do! cl.start ()
                 return ()
             with e ->
                 logger.Error("Error starting F# language server: %%", e)

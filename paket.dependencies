@@ -13,10 +13,10 @@ nuget Thoth.Json 7.0
 
 git https://github.com/ionide/ionide-fsgrammar.git master
 
-github ionide/ionide-vscode-helpers:7da920c71e4f94240a55aabb555327ebef4b653d src/Fable.Import.VSCode.fs
-github ionide/ionide-vscode-helpers:7da920c71e4f94240a55aabb555327ebef4b653d src/Helpers.fs
-github ionide/ionide-vscode-helpers:7da920c71e4f94240a55aabb555327ebef4b653d src/Fable.Import.Showdown.fs
-github ionide/ionide-vscode-helpers:7da920c71e4f94240a55aabb555327ebef4b653d src/Fable.Import.VSCode.LanguageServer.fs
+github ionide/ionide-vscode-helpers:8e81bc03f11f07b8e0811b3d4598eadc78f32f2f src/Fable.Import.VSCode.fs
+github ionide/ionide-vscode-helpers:8e81bc03f11f07b8e0811b3d4598eadc78f32f2f src/Helpers.fs
+github ionide/ionide-vscode-helpers:8e81bc03f11f07b8e0811b3d4598eadc78f32f2f src/Fable.Import.Showdown.fs
+github ionide/ionide-vscode-helpers:8e81bc03f11f07b8e0811b3d4598eadc78f32f2f src/Fable.Import.VSCode.LanguageServer.fs
 
 group fsac
   source https://api.nuget.org/v3/index.json
@@ -44,4 +44,8 @@ group build
   nuget Fake.Tools.Git
   nuget Fake.JavaScript.Yarn
   nuget Octokit <= 0.49.0
-  nuget MSBuild.StructuredLogger
+
+  // Enforce updated binlog parser until Fake gets an update, so we're not stuck
+  // on an old sdk version.
+  // ref: https://github.com/fsprojects/FAKE/issues/2744
+  nuget MSBuild.StructuredLogger >= 2.1.784

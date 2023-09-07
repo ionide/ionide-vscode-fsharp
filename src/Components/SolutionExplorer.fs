@@ -1024,26 +1024,21 @@ module SolutionExplorer =
         NodeReveal.activate context rootChanged.event treeView
 
         let wsProvider =
-            let viewLoading path = "<b>Status:</b> loading.."
+            let viewLoading = "<b>Status:</b> loading.."
 
-            let viewLanguageNotSupported path = "<b>Status:</b> language not supported"
+            let viewLanguageNotSupported = "<b>Status:</b> language not supported"
 
             let viewParsed (proj: Project) =
                 match getProjectModel proj with
-                | (Project(_,
-                           _,
-                           _,
-                           files,
-                           ProjectReferencesList(_, projRefs, _),
-                           PackageReferenceList(_, refs, _),
-                           _,
-                           project)) ->
+                | (Project(_, _, _, _, _, PackageReferenceList(_, refs, _), _, project)) ->
                     let files = project.Files
 
                     let projRefs = project.ProjectReferences |> Array.map (fun n -> n.ProjectFileName)
 
                     let packageRefs =
-                        project.PackageReferences |> Array.map (fun n -> n.Name + " " + n.Version)
+                        project.PackageReferences
+                        |> Array.distinctBy (fun n -> n.Name)
+                        |> Array.map (fun n -> n.Name + " " + n.Version)
 
                     let refs =
                         refs
@@ -1110,7 +1105,7 @@ module SolutionExplorer =
                     |> String.concat "<br />"
                 | _ -> "Failed to generate status report..."
 
-            let viewFailed path error =
+            let viewFailed error =
                 let sdkErrorRegex =
                     Regex(
                         "A compatible SDK version for global\.json version: \[([\d.]+)\].*was not found.*",
@@ -1152,12 +1147,11 @@ module SolutionExplorer =
 
                             match Project.tryFindInWorkspace path with
                             | None -> sprintf "Project '%s' not found" path
-                            | Some(Project.ProjectLoadingState.Loading path) -> viewLoading path
+                            | Some(Project.ProjectLoadingState.Loading _path) -> viewLoading
                             | Some(Project.ProjectLoadingState.Loaded proj) -> viewParsed proj
-                            | Some(Project.ProjectLoadingState.NotRestored(path, error)) -> viewFailed path error
-                            | Some(Project.ProjectLoadingState.Failed(path, error)) -> viewFailed path error
-                            | Some(Project.ProjectLoadingState.LanguageNotSupported path) ->
-                                viewLanguageNotSupported path
+                            | Some(Project.ProjectLoadingState.NotRestored(_path, error)) -> viewFailed error
+                            | Some(Project.ProjectLoadingState.Failed(_path, error)) -> viewFailed error
+                            | Some(Project.ProjectLoadingState.LanguageNotSupported _path) -> viewLanguageNotSupported
                         | _ -> sprintf "Requested uri: %s" (uri.toString ())
 
                     U2.Case1 message |> Some }
@@ -1179,12 +1173,12 @@ module SolutionExplorer =
             | ProjectFailedToLoad(_, path, name, _) -> ShowStatus.CreateOrShow(path, name)
             | ProjectNotRestored(_, path, name, _) -> ShowStatus.CreateOrShow(path, name)
             | Model.ProjectLoading(_, path, name) -> ShowStatus.CreateOrShow(path, name)
-            | Model.Project(_, path, name, _, _, _, _, proj) -> ShowStatus.CreateOrShow(path, name)
+            | Model.Project(_, path, name, _, _, _, _, _proj) -> ShowStatus.CreateOrShow(path, name)
             | _ -> ()
 
         let runDebug m =
             match m with
-            | Model.Project(_, path, name, _, _, _, _, proj) -> proj |> Debugger.buildAndDebug
+            | Model.Project(_, _path, _name, _, _, _, _, proj) -> proj |> Debugger.buildAndDebug
             | _ -> Promise.empty
 
         let setLaunchSettingsCommand m =

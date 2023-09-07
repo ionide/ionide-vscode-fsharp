@@ -1,3 +1,14 @@
+### 7.10.0 - 01.09.2023
+
+* [Add setting to turn off test discovery on workspace load](https://github.com/ionide/ionide-vscode-fsharp/pull/1919) (Thanks @farlee2121!)
+* [Show package names only once](https://github.com/ionide/ionide-vscode-fsharp/pull/1920) (Thanks @dawedawe!)
+
+### 7.9.0 - 21.08.2023
+
+* Updates FSAC to 0.62.0 - bringing the language features and tooling enhancement from the 7.0.400 SDKs to Ionide.
+* A massive [enhancement to the test explorer integration](https://github.com/ionide/ionide-vscode-fsharp/pull/1874) was contributed by @farlee2121! Thank you! This new version uses the `dotnet test` listing as the source of truth, and allows go-to-definition.
+* Update vscode-helpers to have better termination on all platforms.
+
 ### 7.8.5 - 26.07.2023
 * [Disable GCHeapCount and GCNoAffinitize for net6.0](https://github.com/ionide/ionide-vscode-fsharp/pull/1900) (Thanks @TheAngryByrd!)
 
