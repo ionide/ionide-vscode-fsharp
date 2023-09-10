@@ -279,6 +279,18 @@ module Path =
 
 module TrxParser =
 
+    type Execution = { id: string }
+
+    type TestMethod =
+        { adapterTypeName: string
+          className: string
+          name: string }
+
+    type UnitTest =
+        { Execution: Execution
+          TestMethod: TestMethod }
+
+
     let makeTrxPath (workspaceRoot: string) (storageFolderPath: string) (projectPath: ProjectFilePath) : string =
         let relativeProjectPath = node.path.relative (workspaceRoot, projectPath)
         let projectName = Path.getNameOnly projectPath
@@ -331,59 +343,141 @@ module TrxParser =
         let selector = trxSelector trxPath
         extractTestDefinitionsFromSelector selector
 
-    let extractTestResult (xpathSelector: XPath.XPathSelector) (executionId: string) : TrxTestResult =
-        // NOTE: The test result's `testName` isn't always the full name. Some libraries handle it differently
-        // Thus, it must be extracted from the test deff
-        let className =
-            xpathSelector.SelectString
-                $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@className"
 
-        let testName =
-            xpathSelector.SelectString
-                $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@name"
+    let extractTestResult (xpathSelector: XPath.XPathSelector) (trxDef: TrxTestDef) : TrxTestResult =
+        // NOTE: The test result's `testName` isn't always the full name. Some libraries handle it differently
+        // Thus, it must be extracted from the test def
+        // let className =
+        //     xpathSelector.SelectString
+        //         $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{trxDef.ExecutionId}']/t:TestMethod/@className"
+
+        // let testName =
+        //     xpathSelector.SelectString
+        //         $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@name"
 
         let outcome =
-            xpathSelector.SelectString $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@outcome"
+            xpathSelector.SelectString
+                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{trxDef.ExecutionId}']/@outcome"
 
         let errorInfoMessage =
             xpathSelector.TrySelectString
-                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:Message"
+                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{trxDef.ExecutionId}']/t:Output/t:ErrorInfo/t:Message"
 
         let errorStackTrace =
             xpathSelector.TrySelectString
-                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/t:Output/t:ErrorInfo/t:StackTrace"
+                $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{trxDef.ExecutionId}']/t:Output/t:ErrorInfo/t:StackTrace"
 
         let timing =
             let duration =
                 xpathSelector.SelectString
-                    $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{executionId}']/@duration"
+                    $"/t:TestRun/t:Results/t:UnitTestResult[@executionId='{trxDef.ExecutionId}']/@duration"
 
             let success, ts = TimeSpan.TryParse(duration)
 
             if success then ts else TimeSpan.Zero
 
-        let testAdapter =
-            xpathSelector.SelectString
-                $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@adapterTypeName"
+        // let testAdapter =
+        //     xpathSelector.SelectString
+        //         $"/t:TestRun/t:TestDefinitions/t:UnitTest[t:Execution/@id='{executionId}']/t:TestMethod/@adapterTypeName"
 
 
-        { ExecutionId = executionId
-          FullTestName = TestName.fromPathAndTestName className testName
+        { ExecutionId = trxDef.ExecutionId
+          FullTestName = trxDef.FullName
           Outcome = outcome
           ErrorMessage = errorInfoMessage
           ErrorStackTrace = errorStackTrace
           Timing = timing
-          TestFramework = adapterTypeNameToTestFramework testAdapter }
+          TestFramework = trxDef.TestFramework }
+
+    type ErrorInfo =
+        { Message: string option
+          StackTrace: string option }
+
+    type Output = { ErrorInfo: ErrorInfo }
+
+    type UnitTestResult =
+        { ExecutionId: string
+          // testId: string
+          Outcome: string
+          Duration: string
+          Output: Output }
+
+    let extractResultsSection (xpathSelector: XPath.XPathSelector) : UnitTestResult array =
+        let extractRow (index: int) _ : UnitTestResult =
+            let index = index + 1
+
+            let executionId =
+                xpathSelector.SelectString $"/t:TestRun/t:Results/t:UnitTestResult[{index}]/@executionId"
+
+            let outcome =
+                xpathSelector.SelectString $"/t:TestRun/t:Results/t:UnitTestResult[{index}]/@outcome"
+
+            let errorInfoMessage =
+                xpathSelector.TrySelectString
+                    $"/t:TestRun/t:Results/t:UnitTestResult[{index}]/t:Output/t:ErrorInfo/t:Message"
+
+            let errorStackTrace =
+                xpathSelector.TrySelectString
+                    $"/t:TestRun/t:Results/t:UnitTestResult[{index}]/t:Output/t:ErrorInfo/t:StackTrace"
+
+            let duration =
+                xpathSelector.SelectString $"/t:TestRun/t:Results/t:UnitTestResult[{index}]/@duration"
+
+
+            { ExecutionId = executionId
+              Outcome = outcome
+              Duration = duration
+              Output =
+                { ErrorInfo =
+                    { StackTrace = errorStackTrace
+                      Message = errorInfoMessage } } }
+
+        xpathSelector.Select<obj array> "/t:TestRun/t:TestDefinitions/t:UnitTest"
+        |> Array.mapi extractRow
 
 
 
     let extractTrxResults (trxPath: string) =
         let xpathSelector = trxSelector trxPath
 
-        let trxDefToTrxResult (trxDef: TrxTestDef) =
-            extractTestResult xpathSelector trxDef.ExecutionId
+        let trxDefToTrxResult (trxDef: TrxTestDef) = extractTestResult xpathSelector trxDef
 
-        extractTestDefinitionsFromSelector xpathSelector |> Array.map trxDefToTrxResult
+        let mutable prevT = DateTime.Now
+
+        let perfLog title =
+            let now = DateTime.Now
+
+            logger.Debug($"perf - {title} - {now.ToLongTimeString()} - {(now - prevT).TotalSeconds}")
+
+            prevT <- now
+
+        let trxDefs = extractTestDefinitionsFromSelector xpathSelector
+
+        perfLog "trxDefs"
+
+        let trxResults = extractResultsSection xpathSelector
+        perfLog "trxRes"
+        let trxDefId (trxDef: TrxTestDef) = trxDef.ExecutionId
+        let trxResId (trxDef: UnitTestResult) = trxDef.ExecutionId
+        let _, matched, _ = ArrayExt.venn trxDefId trxResId trxDefs trxResults
+
+        let matchedToResult (trxDef: TrxTestDef, trxRes: UnitTestResult) : TrxTestResult =
+            let timing =
+                let success, ts = TimeSpan.TryParse(trxRes.Duration)
+                if success then ts else TimeSpan.Zero
+
+            { ExecutionId = trxDef.ExecutionId
+              FullTestName = trxDef.FullName
+              Outcome = trxRes.Outcome
+              ErrorMessage = trxRes.Output.ErrorInfo.Message
+              ErrorStackTrace = trxRes.Output.ErrorInfo.StackTrace
+              Timing = timing
+              TestFramework = trxDef.TestFramework }
+
+        let normalizedResults = matched |> Array.map matchedToResult
+        perfLog "joined results"
+        normalizedResults
+
 
     let inferHierarchy (testDefs: TrxTestDef array) : TestName.NameHierarchy<TrxTestDef> array =
         testDefs
@@ -1196,6 +1290,19 @@ module Interactions =
                     None
 
             let trxPath = makeTrxPath projectPath
+            let mutable prevT = DateTime.Now
+
+            let perfLog title =
+                let now = DateTime.Now
+
+                logger.Debug(
+                    $"perf - {Path.getNameOnly projectPath} - {title} - {now.ToLongTimeString()} - {(now - prevT).TotalSeconds}"
+                )
+
+                prevT <- now
+
+
+            perfLog "pre-run"
 
             let! output =
                 DotnetCli.test
@@ -1205,10 +1312,14 @@ module Interactions =
                     filterExpression
                     cancellationToken
 
+            perfLog "post-run"
+
             TestRun.appendOutputLine testRun output
 
             let testResults =
                 TrxParser.extractTrxResults trxPath |> Array.map trxResultToTestResult
+
+            perfLog "post-parse"
 
             if Array.isEmpty testResults then
                 let message =
@@ -1218,6 +1329,8 @@ module Interactions =
                 TestRun.appendOutputLine testRun message
             else
                 mergeResultsToExplorer testRun projectPath projectRunRequest.TargetFramework runnableTests testResults
+
+            perfLog "post-merge"
         }
 
 
@@ -1620,14 +1733,10 @@ let activate (context: ExtensionContext) =
 
     testController.refreshHandler <- Some refreshHandler
 
-
-    let shouldAutoDiscoverTests =
-        Configuration.get true "FSharp.TestExplorer.AutoDiscoverTestsOnLoad"
-
     let mutable hasInitiatedDiscovery = false
 
     Project.workspaceLoaded.Invoke(fun () ->
-        if shouldAutoDiscoverTests && not hasInitiatedDiscovery then
+        if not hasInitiatedDiscovery then
             hasInitiatedDiscovery <- true
 
             let trxTests =
