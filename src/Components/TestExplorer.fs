@@ -233,24 +233,6 @@ type TestResult =
       Timing: float
       TestFramework: TestFrameworkId option }
 
-type TrxTestDef =
-    { ExecutionId: string
-      TestName: string
-      ClassName: string
-      TestFramework: TestFrameworkId option }
-
-    member self.FullName = TestName.fromPathAndTestName self.ClassName self.TestName
-
-
-type TrxTestResult =
-    { ExecutionId: string
-      FullTestName: string
-      Outcome: string
-      ErrorMessage: string option
-      ErrorStackTrace: string option
-      Timing: TimeSpan
-      TestFramework: TestFrameworkId option }
-
 module Path =
 
     let tryPath (path: string) =
@@ -279,16 +261,19 @@ module Path =
 
 module TrxParser =
 
-    type Execution = { id: string }
+    type Execution = { Id: string }
 
     type TestMethod =
-        { adapterTypeName: string
-          className: string
-          name: string }
+        { AdapterTypeName: string
+          ClassName: string
+          Name: string }
 
     type UnitTest =
         { Execution: Execution
           TestMethod: TestMethod }
+
+        member self.FullName =
+            TestName.fromPathAndTestName self.TestMethod.ClassName self.TestMethod.Name
 
     type ErrorInfo =
         { Message: string option
@@ -298,10 +283,13 @@ module TrxParser =
 
     type UnitTestResult =
         { ExecutionId: string
-          // testId: string
           Outcome: string
-          Duration: string
+          Duration: TimeSpan
           Output: Output }
+
+    type TestWithResult =
+        { UnitTest: UnitTest
+          UnitTestResult: UnitTestResult }
 
     let makeTrxPath (workspaceRoot: string) (storageFolderPath: string) (projectPath: ProjectFilePath) : string =
         let relativeProjectPath = node.path.relative (workspaceRoot, projectPath)
@@ -326,8 +314,8 @@ module TrxParser =
         let xmlDoc = mkDoc trxContent
         XPath.XPathSelector(xmlDoc, "http://microsoft.com/schemas/VisualStudio/TeamTest/2010")
 
-    let extractTestDefinitionsFromSelector (xpathSelector: XPath.XPathSelector) : TrxTestDef array =
-        let extractTestDef (node: XmlNode) : TrxTestDef =
+    let extractTestDefinitionsFromSelector (xpathSelector: XPath.XPathSelector) : UnitTest array =
+        let extractTestDef (node: XmlNode) : UnitTest =
             let executionId = xpathSelector.SelectStringRelative(node, "t:Execution/@id")
 
             let className = xpathSelector.SelectStringRelative(node, "t:TestMethod/@className")
@@ -336,10 +324,11 @@ module TrxParser =
             let testAdapter =
                 xpathSelector.SelectStringRelative(node, "t:TestMethod/@adapterTypeName")
 
-            { ExecutionId = executionId
-              TestName = testName
-              ClassName = className
-              TestFramework = adapterTypeNameToTestFramework testAdapter }
+            { Execution = { Id = executionId }
+              TestMethod =
+                { Name = testName
+                  ClassName = className
+                  AdapterTypeName = testAdapter } }
 
         xpathSelector.SelectNodes "/t:TestRun/t:TestDefinitions/t:UnitTest"
         |> Array.map extractTestDef
@@ -362,12 +351,15 @@ module TrxParser =
             let errorStackTrace =
                 xpathSelector.TrySelectStringRelative(node, "t:Output/t:ErrorInfo/t:StackTrace")
 
-            let duration = xpathSelector.SelectStringRelative(node, "@duration")
+            let durationSpan =
+                let durationString = xpathSelector.SelectStringRelative(node, "@duration")
+                let success, ts = TimeSpan.TryParse(durationString)
+                if success then ts else TimeSpan.Zero
 
 
             { ExecutionId = executionId
               Outcome = outcome
-              Duration = duration
+              Duration = durationSpan
               Output =
                 { ErrorInfo =
                     { StackTrace = errorStackTrace
@@ -385,28 +377,19 @@ module TrxParser =
 
         let trxResults = extractResultsSection xpathSelector
 
-        let trxDefId (trxDef: TrxTestDef) = trxDef.ExecutionId
-        let trxResId (trxDef: UnitTestResult) = trxDef.ExecutionId
+        let trxDefId (testDef: UnitTest) = testDef.Execution.Id
+        let trxResId (res: UnitTestResult) = res.ExecutionId
         let _, matched, _ = ArrayExt.venn trxDefId trxResId trxDefs trxResults
 
-        let matchedToResult (trxDef: TrxTestDef, trxRes: UnitTestResult) : TrxTestResult =
-            let timing =
-                let success, ts = TimeSpan.TryParse(trxRes.Duration)
-                if success then ts else TimeSpan.Zero
-
-            { ExecutionId = trxDef.ExecutionId
-              FullTestName = trxDef.FullName
-              Outcome = trxRes.Outcome
-              ErrorMessage = trxRes.Output.ErrorInfo.Message
-              ErrorStackTrace = trxRes.Output.ErrorInfo.StackTrace
-              Timing = timing
-              TestFramework = trxDef.TestFramework }
+        let matchedToResult (testDef: UnitTest, testResult: UnitTestResult) : TestWithResult =
+            { UnitTest = testDef
+              UnitTestResult = testResult }
 
         let normalizedResults = matched |> Array.map matchedToResult
         normalizedResults
 
 
-    let inferHierarchy (testDefs: TrxTestDef array) : TestName.NameHierarchy<TrxTestDef> array =
+    let inferHierarchy (testDefs: UnitTest array) : TestName.NameHierarchy<UnitTest> array =
         testDefs
         |> Array.map (fun td -> {| FullName = td.FullName; Data = td |})
         |> TestName.inferHierarchy
@@ -992,13 +975,16 @@ module TestDiscovery =
                 let projectPath = ProjectPath.ofString project.Project
                 let heirarchy = TrxParser.inferHierarchy trxDefs
 
-                let fromTrxDef (hierarchy: TestName.NameHierarchy<TrxTestDef>) =
+                let fromTrxDef (hierarchy: TestName.NameHierarchy<TrxParser.UnitTest>) =
                     // NOTE: A project could have multiple test frameworks, but we only track NUnit for now to work around a defect
                     //       The complexity of modifying inferHierarchy and fromNamedHierarchy to distinguish frameworks for individual chains seems excessive for current needs
                     //       Thus, this just determins if there are *any* Nunit tests in the project and treats all the tests like NUnit tests if there are.
                     let testFramework =
                         TestName.NameHierarchy.tryPick
-                            (fun nh -> nh.Data |> Option.bind (fun (trxDef: TrxTestDef) -> trxDef.TestFramework))
+                            (fun nh ->
+                                nh.Data
+                                |> Option.bind (fun (trxDef: TrxParser.UnitTest) ->
+                                    TrxParser.adapterTypeNameToTestFramework trxDef.TestMethod.AdapterTypeName))
                             hierarchy
 
                     let testItemFactory (testItemBuilder: TestItem.TestItemBuilder) =
@@ -1163,10 +1149,10 @@ module Interactions =
 
             displayTestResultInExplorer testRun (treeItem, additionalResult))
 
-    let private trxResultToTestResult (trxResult: TrxTestResult) =
+    let private trxResultToTestResult (trxResult: TrxParser.TestWithResult) =
         // Q: can I get these parameters down to just trxResult?
         let expected, actual =
-            match trxResult.ErrorMessage with
+            match trxResult.UnitTestResult.Output.ErrorInfo.Message with
             | None -> None, None
             | Some message ->
                 let lines =
@@ -1179,14 +1165,15 @@ module Interactions =
 
                 tryFind "Expected:", tryFind "But was:"
 
-        { FullTestName = trxResult.FullTestName
-          Outcome = !!trxResult.Outcome
-          ErrorMessage = trxResult.ErrorMessage
-          ErrorStackTrace = trxResult.ErrorStackTrace
+
+        { FullTestName = trxResult.UnitTest.FullName
+          Outcome = !!trxResult.UnitTestResult.Outcome
+          ErrorMessage = trxResult.UnitTestResult.Output.ErrorInfo.Message
+          ErrorStackTrace = trxResult.UnitTestResult.Output.ErrorInfo.StackTrace
           Expected = expected
           Actual = actual
-          Timing = trxResult.Timing.Milliseconds
-          TestFramework = trxResult.TestFramework }
+          Timing = trxResult.UnitTestResult.Duration.Milliseconds
+          TestFramework = TrxParser.adapterTypeNameToTestFramework trxResult.UnitTest.TestMethod.AdapterTypeName }
 
     type MergeTestResultsToExplorer =
         TestRun -> ProjectPath -> TargetFramework -> TestItem array -> TestResult array -> unit
