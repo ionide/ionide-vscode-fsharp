@@ -1060,10 +1060,32 @@ module Interactions =
         )
         |> Promise.ofThenable
 
+    let private filterEscapeCharacter = '\\'
+    let private filterSpecialCharacters = [| '\\'; '('; ')'; '&'; '|'; '='; '!'; '~' |]
+    let private filterSpecialCharactersSet = Set.ofArray filterSpecialCharacters
 
     let private buildFilterExpression (tests: TestItem array) =
+        // Escape any special characters in test names, as per https://github.com/microsoft/vstest/blob/main/docs/filter.md
+        let escapeFilterExpression (str: string) =
+
+            if str.IndexOfAny(filterSpecialCharacters) < 0 then
+                str
+            else
+                let builder = StringBuilder()
+
+                for i = 0 to str.Length - 1 do
+                    let currentChar = str[i]
+
+                    if filterSpecialCharactersSet.Contains currentChar then
+                        builder.Append(filterEscapeCharacter) |> ignore
+
+                    builder.Append(currentChar) |> ignore
+
+                builder.ToString()
+
         let testToFilterExpression (test: TestItem) =
-            let fullName = TestItem.getFullName test.id
+            let fullTestName = TestItem.getFullName test.id
+            let fullName = escapeFilterExpression fullTestName
 
             if fullName.Contains(" ") && test.TestFramework = TestFrameworkId.NUnit then
                 // workaround for https://github.com/nunit/nunit3-vs-adapter/issues/876
