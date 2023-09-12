@@ -418,12 +418,15 @@ module DotnetCli =
         let execWithCancel
             command
             args
+            (env: obj option)
+            (outputCallback: Node.Buffer.Buffer -> unit)
             (cancellationToken: CancellationToken)
             : JS.Promise<ExecError option * string * string> =
 
             if not cancellationToken.isCancellationRequested then
                 let options = createEmpty<ExecOptions>
                 options.cwd <- workspace.rootPath
+                env |> Option.iter (fun env -> options?env <- env)
 
                 Promise.create (fun resolve reject ->
                     let stdout = ResizeArray()
@@ -432,7 +435,9 @@ module DotnetCli =
 
                     let childProcess =
                         crossSpawn.spawn (command, args, options = options)
-                        |> onOutput (fun e -> stdout.Add(string e))
+                        |> onOutput (fun e ->
+                            outputCallback e
+                            stdout.Add(string e))
                         |> onError (fun e -> error <- Some e)
                         |> onErrorOutput (fun e -> stderr.Add(string e))
                         |> onClose (fun code signal ->
@@ -447,86 +452,43 @@ module DotnetCli =
             else
                 promise { return (None, "", "") }
 
-        let debugTests
-            command
-            args
-            (cancellationToken: CancellationToken)
-            : JS.Promise<ExecError option * string * string> =
-
-            if not cancellationToken.isCancellationRequested then
-                let options = createEmpty<Node.ChildProcess.ExecOptions>
-                options.cwd <- workspace.rootPath
-                options?``env`` <- {| VSTEST_HOST_DEBUG = 1 |}
-
-                let stdout = ResizeArray()
-                let stderr = ResizeArray()
-                let mutable error = None
-
-                let mutable isDebuggerStarted = false
-                let processIdRegex = RegularExpressions.Regex(@"Process Id: (.*),")
-
-                let tryGetProcessId consoleOutput =
-                    let m = processIdRegex.Match(consoleOutput)
-
-                    if m.Success then
-                        let processId = m.Groups.[1].Value
-                        Some processId
-                    else
-                        None
-
-                let tryLauchDebugger (consoleOutput: string) =
-                    if not isDebuggerStarted then
-                        match tryGetProcessId consoleOutput with
-                        | None -> ()
-                        | Some processId ->
-                            let launchRequest: DebugConfiguration =
-                                {| name = ".NET Core Attach"
-                                   ``type`` = "coreclr"
-                                   request = "attach"
-                                   processId = processId |}
-                                |> box
-                                |> unbox
-
-                            let folder = workspace.workspaceFolders.Value.[0]
-
-                            promise {
-                                let! _ =
-                                    Vscode.debug.startDebugging (Some folder, U2.Case2 launchRequest)
-                                    |> Promise.ofThenable
-
-                                do! Promise.sleep 1000
-                                Vscode.commands.executeCommand ("workbench.action.debug.continue") |> ignore
-                            }
-                            |> ignore
-
-                            isDebuggerStarted <- true
-
-
-                Promise.create (fun resolve reject ->
-                    let childProcess =
-                        crossSpawn.spawn (command, args, options = options)
-                        |> onOutput (fun e ->
-                            let bufferString = (string e)
-                            tryLauchDebugger bufferString
-                            stdout.Add(bufferString))
-                        |> onError (fun e -> error <- Some e)
-                        |> onErrorOutput (fun e -> stderr.Add(string e))
-                        |> onClose (fun code signal ->
-                            resolve (unbox error, String.concat "\n" stdout, String.concat "\n" stderr))
-
-
-                    cancellationToken.onCancellationRequested.Invoke(fun _ ->
-                        childProcess.kill (cancelErrorMessage)
-                        None)
-                    |> ignore)
-
-            else
-                promise { return (None, "", "") }
 
     let restore
         (projectPath: string)
         : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
         Process.exec "dotnet" (ResizeArray([| "restore"; projectPath |]))
+
+    let private debugProcessIdRegex = RegularExpressions.Regex(@"Process Id: (.*),")
+
+    let private tryGetDebugProcessId consoleOutput =
+        let m = debugProcessIdRegex.Match(consoleOutput)
+
+        if m.Success then
+            let processId = m.Groups.[1].Value
+            Some processId
+        else
+            None
+
+    let private launchDebugger processId =
+        let launchRequest: DebugConfiguration =
+            {| name = ".NET Core Attach"
+               ``type`` = "coreclr"
+               request = "attach"
+               processId = processId |}
+            |> box
+            |> unbox
+
+        let folder = workspace.workspaceFolders.Value.[0]
+
+        promise {
+            let! _ =
+                Vscode.debug.startDebugging (Some folder, U2.Case2 launchRequest)
+                |> Promise.ofThenable
+
+            do! Promise.sleep 2000
+            Vscode.commands.executeCommand ("workbench.action.debug.continue") |> ignore
+        }
+        |> ignore
 
     let private dotnetTest
         (cancellationToken: CancellationToken)
@@ -550,9 +512,20 @@ module DotnetCli =
         logger.Debug($"Running `dotnet {argString}`")
 
         if shouldDebug then
-            Process.debugTests "dotnet" (ResizeArray(args)) cancellationToken
+            let mutable isDebuggerStarted = false
+
+            let tryLaunchDebugger (consoleOutput: Node.Buffer.Buffer) =
+                if not isDebuggerStarted then
+                    match tryGetDebugProcessId (string consoleOutput) with
+                    | None -> ()
+                    | Some processId ->
+                        launchDebugger processId
+                        isDebuggerStarted <- true
+
+            let env = {| VSTEST_HOST_DEBUG = 1 |} |> box |> Some
+            Process.execWithCancel "dotnet" (ResizeArray(args)) env tryLaunchDebugger cancellationToken
         else
-            Process.execWithCancel "dotnet" (ResizeArray(args)) cancellationToken
+            Process.execWithCancel "dotnet" (ResizeArray(args)) None ignore cancellationToken
 
 
     type TrxPath = string
