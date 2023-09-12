@@ -490,12 +490,19 @@ module DotnetCli =
         }
         |> ignore
 
+    type DebugTests =
+        | Debug
+        | NoDebug
+
+    module DebugTests =
+        let ofBool bool = if bool then Debug else NoDebug
+
     let private dotnetTest
         (cancellationToken: CancellationToken)
         (projectPath: string)
         (targetFramework: string)
         (trxOutputPath: string option)
-        (shouldDebug: bool)
+        (shouldDebug: DebugTests)
         (additionalArgs: string array)
         : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
 
@@ -511,7 +518,8 @@ module DotnetCli =
         let argString = String.Join(" ", args)
         logger.Debug($"Running `dotnet {argString}`")
 
-        if shouldDebug then
+        match shouldDebug with
+        | Debug ->
             let mutable isDebuggerStarted = false
 
             let tryLaunchDebugger (consoleOutput: Node.Buffer.Buffer) =
@@ -524,8 +532,7 @@ module DotnetCli =
 
             let env = {| VSTEST_HOST_DEBUG = 1 |} |> box |> Some
             Process.execWithCancel "dotnet" (ResizeArray(args)) env tryLaunchDebugger cancellationToken
-        else
-            Process.execWithCancel "dotnet" (ResizeArray(args)) None ignore cancellationToken
+        | NoDebug -> Process.execWithCancel "dotnet" (ResizeArray(args)) None ignore cancellationToken
 
 
     type TrxPath = string
@@ -536,7 +543,7 @@ module DotnetCli =
         (targetFramework: string)
         (trxOutputPath: string option)
         (filterExpression: string option)
-        (shouldDebug: bool)
+        (shouldDebug: DebugTests)
         (cancellationToken: CancellationToken)
         : JS.Promise<ConsoleOutput> =
         promise {
@@ -577,7 +584,7 @@ module DotnetCli =
                     projectPath
                     targetFramework
                     None
-                    false
+                    NoDebug
                     [| "--list-tests"; yield! additionalArgs |]
 
             let testNames =
@@ -1275,7 +1282,7 @@ module Interactions =
                     projectRunRequest.TargetFramework
                     (Some trxPath)
                     filterExpression
-                    projectRunRequest.ShouldDebug
+                    (projectRunRequest.ShouldDebug |> DotnetCli.DebugTests.ofBool)
                     cancellationToken
 
             TestRun.appendOutputLine testRun output
@@ -1517,7 +1524,7 @@ module Interactions =
                                 project.Info.TargetFramework
                                 trxPath
                                 None
-                                false
+                                DotnetCli.DebugTests.NoDebug
                                 cancellationToken)
 
                     let trxDiscoveredTests =
