@@ -186,7 +186,7 @@ type LineLens
     let decorationType =
         decorationType |> Option.defaultValue LineLensDecorations.decorationType
 
-    let mutable config = { enabled = true; prefix = "// " }
+    let mutable config = { enabled = true; prefix = " // " }
     let mutable state: LineLensState option = None
 
     /// Set the decorations for the editor, filtering lines where the user recently typed
