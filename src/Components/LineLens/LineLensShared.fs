@@ -275,12 +275,12 @@ type LineLens
         state <- None
         logger.Debug "Uninstalled"
 
-    let configChangedHandler (config: LineLensConfig ref) decorationType =
+    let configChangedHandler decorationType =
         logger.Debug("Config Changed event")
 
-        let wasEnabled = (config.Value.enabled) && state <> None
-        config.Value <- getConfig ()
-        let isEnabled = config.Value.enabled
+        let wasEnabled = (config.enabled) && state <> None
+        config <- getConfig ()
+        let isEnabled = config.enabled
 
         if wasEnabled <> isEnabled then
             if isEnabled then install decorationType else uninstall ()
@@ -313,7 +313,8 @@ type LineLens
 
     member t.activate(context: ExtensionContext) =
         logger.Info "Activating"
-        let changeHandler = fun () -> configChangedHandler (ref config) decorationType
+
+        let changeHandler = fun () -> configChangedHandler decorationType
 
         workspace.onDidChangeConfiguration $ (changeHandler, (), context.subscriptions)
         |> ignore
