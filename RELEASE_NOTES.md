@@ -1,3 +1,12 @@
+
+### 7.11.0 - 06.09.2023
+
+* Update to FSAC 0.63.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.63.0) for more details.
+* [A little cleanup in src/Components](https://github.com/ionide/ionide-vscode-fsharp/pull/1921) (Thanks @dawedawe!)
+* [Reduce Friction Contributing](https://github.com/ionide/ionide-vscode-fsharp/pull/1918) (Thanks @stroborobo!)
+* [Suffix location matching in test explorer](https://github.com/ionide/ionide-vscode-fsharp/pull/1922) (Thanks @farlee2121!)
+
+
 ### 7.10.0 - 01.09.2023
 
 * [Add setting to turn off test discovery on workspace load](https://github.com/ionide/ionide-vscode-fsharp/pull/1919) (Thanks @farlee2121!)
