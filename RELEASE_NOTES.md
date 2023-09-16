@@ -1,4 +1,10 @@
 
+### 7.12.0 - 16.09.2023
+* [Add a leading space to the default prefix in LineLens.config](https://github.com/ionide/ionide-vscode-fsharp/pull/1928) (Thanks @Numpsy)
+* [Make LineLens.configChangedHandler update the config directly, instead of through a ref](https://github.com/ionide/ionide-vscode-fsharp/pull/1929) (Thanks @Numpsy)
+* [check user provided string for any content before renaming file to it](https://github.com/ionide/ionide-vscode-fsharp/pull/1932) (Thanks @dawedawe!)
+* [Adds Test debugging support](https://github.com/ionide/ionide-vscode-fsharp/pull/1927) (Thanks @farlee2121!)
+
 ### 7.11.0 - 06.09.2023
 
 * Update to FSAC 0.63.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.63.0) for more details.
