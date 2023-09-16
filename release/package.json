@@ -949,6 +949,11 @@
     ],
     "keybindings": [
       {
+        "command": "fsharp.explorer.renameFile",
+        "key": "F2",
+        "when": "viewItem == ionide.projectExplorer.file"
+      },
+      {
         "command": "fsi.SendLine",
         "key": "alt\u002B/",
         "mac": "alt\u002B/",
