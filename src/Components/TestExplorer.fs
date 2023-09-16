@@ -486,7 +486,7 @@ module DotnetCli =
                 |> Promise.ofThenable
 
             // NOTE: Have to wait or it'll continue before the debugger reaches the stop on entry point.
-            //       That'll leave the debugger in a confusing state where it shows it's attached but 
+            //       That'll leave the debugger in a confusing state where it shows it's attached but
             //       no breakpoints are hit and the breakpoints show as disabled
             do! Promise.sleep 2000
             Vscode.commands.executeCommand ("workbench.action.debug.continue") |> ignore
@@ -527,7 +527,7 @@ module DotnetCli =
 
             let tryLaunchDebugger (consoleOutput: Node.Buffer.Buffer) =
                 if not isDebuggerStarted then
-                    // NOTE: the processId we need to attach to is not the one we started for `dotnet test`. 
+                    // NOTE: the processId we need to attach to is not the one we started for `dotnet test`.
                     //       Dotnet test will return the correct process id if (and only if) we are in debug mode
                     match tryGetDebugProcessId (string consoleOutput) with
                     | None -> ()
