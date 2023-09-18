@@ -880,13 +880,13 @@ module SolutionExplorer =
                             |> Promise.bind (fun newFileNameOpt ->
                                 promise {
                                     match newFileNameOpt with
-                                    | Some newFileName ->
+                                    | Some newFileName when not (String.IsNullOrWhiteSpace newFileName) ->
                                         let newFileName = handleUntitled newFileName
 
                                         do! FsProjEdit.renameFile proj virtualPath newFileName
 
                                         cleanTextEditorsDecorations filePath
-                                    | None -> ()
+                                    | _ -> ()
 
                                     return null
                                 })

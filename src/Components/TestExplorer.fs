@@ -406,6 +406,8 @@ module DotnetCli =
         open Ionide.VSCode.Helpers.Process
         open Node.ChildProcess
 
+        let private cancelErrorMessage = "SIGINT"
+
         /// <summary>
         /// Fire off a command and gather the error, if any, and the stdout and stderr streams.
         /// The command is fired from the workspace's root path.
@@ -416,13 +418,15 @@ module DotnetCli =
         let execWithCancel
             command
             args
+            (env: obj option)
+            (outputCallback: Node.Buffer.Buffer -> unit)
             (cancellationToken: CancellationToken)
             : JS.Promise<ExecError option * string * string> =
-            let cancelErrorMessage = "SIGINT"
 
             if not cancellationToken.isCancellationRequested then
                 let options = createEmpty<ExecOptions>
                 options.cwd <- workspace.rootPath
+                env |> Option.iter (fun env -> options?env <- env)
 
                 Promise.create (fun resolve reject ->
                     let stdout = ResizeArray()
@@ -431,7 +435,9 @@ module DotnetCli =
 
                     let childProcess =
                         crossSpawn.spawn (command, args, options = options)
-                        |> onOutput (fun e -> stdout.Add(string e))
+                        |> onOutput (fun e ->
+                            outputCallback e
+                            stdout.Add(string e))
                         |> onError (fun e -> error <- Some e)
                         |> onErrorOutput (fun e -> stderr.Add(string e))
                         |> onClose (fun code signal ->
@@ -446,16 +452,60 @@ module DotnetCli =
             else
                 promise { return (None, "", "") }
 
+
     let restore
         (projectPath: string)
         : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
         Process.exec "dotnet" (ResizeArray([| "restore"; projectPath |]))
+
+    let private debugProcessIdRegex = RegularExpressions.Regex(@"Process Id: (.*),")
+
+    let private tryGetDebugProcessId consoleOutput =
+        let m = debugProcessIdRegex.Match(consoleOutput)
+
+        if m.Success then
+            let processId = m.Groups.[1].Value
+            Some processId
+        else
+            None
+
+    let private launchDebugger processId =
+        let launchRequest: DebugConfiguration =
+            {| name = ".NET Core Attach"
+               ``type`` = "coreclr"
+               request = "attach"
+               processId = processId |}
+            |> box
+            |> unbox
+
+        let folder = workspace.workspaceFolders.Value.[0]
+
+        promise {
+            let! _ =
+                Vscode.debug.startDebugging (Some folder, U2.Case2 launchRequest)
+                |> Promise.ofThenable
+
+            // NOTE: Have to wait or it'll continue before the debugger reaches the stop on entry point.
+            //       That'll leave the debugger in a confusing state where it shows it's attached but
+            //       no breakpoints are hit and the breakpoints show as disabled
+            do! Promise.sleep 2000
+            Vscode.commands.executeCommand ("workbench.action.debug.continue") |> ignore
+        }
+        |> ignore
+
+    type DebugTests =
+        | Debug
+        | NoDebug
+
+    module DebugTests =
+        let ofBool bool = if bool then Debug else NoDebug
 
     let private dotnetTest
         (cancellationToken: CancellationToken)
         (projectPath: string)
         (targetFramework: string)
         (trxOutputPath: string option)
+        (shouldDebug: DebugTests)
         (additionalArgs: string array)
         : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
 
@@ -471,7 +521,24 @@ module DotnetCli =
         let argString = String.Join(" ", args)
         logger.Debug($"Running `dotnet {argString}`")
 
-        Process.execWithCancel "dotnet" (ResizeArray(args)) cancellationToken
+        match shouldDebug with
+        | Debug ->
+            let mutable isDebuggerStarted = false
+
+            let tryLaunchDebugger (consoleOutput: Node.Buffer.Buffer) =
+                if not isDebuggerStarted then
+                    // NOTE: the processId we need to attach to is not the one we started for `dotnet test`.
+                    //       Dotnet test will return the correct process id if (and only if) we are in debug mode
+                    match tryGetDebugProcessId (string consoleOutput) with
+                    | None -> ()
+                    | Some processId ->
+                        launchDebugger processId
+                        isDebuggerStarted <- true
+
+            let env = {| VSTEST_HOST_DEBUG = 1 |} |> box |> Some
+            Process.execWithCancel "dotnet" (ResizeArray(args)) env tryLaunchDebugger cancellationToken
+        | NoDebug -> Process.execWithCancel "dotnet" (ResizeArray(args)) None ignore cancellationToken
+
 
     type TrxPath = string
     type ConsoleOutput = string
@@ -481,6 +548,7 @@ module DotnetCli =
         (targetFramework: string)
         (trxOutputPath: string option)
         (filterExpression: string option)
+        (shouldDebug: DebugTests)
         (cancellationToken: CancellationToken)
         : JS.Promise<ConsoleOutput> =
         promise {
@@ -495,7 +563,13 @@ module DotnetCli =
                 logger.Debug("Filter", filter)
 
             let! _, stdOutput, stdError =
-                dotnetTest cancellationToken projectPath targetFramework trxOutputPath [| "--no-build"; yield! filter |]
+                dotnetTest
+                    cancellationToken
+                    projectPath
+                    targetFramework
+                    trxOutputPath
+                    shouldDebug
+                    [| "--no-build"; yield! filter |]
 
             logger.Debug("Test run exitCode", stdError)
 
@@ -515,6 +589,7 @@ module DotnetCli =
                     projectPath
                     targetFramework
                     None
+                    NoDebug
                     [| "--list-tests"; yield! additionalArgs |]
 
             let testNames =
@@ -1007,6 +1082,7 @@ module Interactions =
             ProjectPath: ProjectPath
             /// examples: net6.0, net7.0, netcoreapp2.0, etc
             TargetFramework: TargetFramework
+            ShouldDebug: bool
             Tests: TestItem array
             /// The Tests are listed due to a include filter, so when running the tests the --filter should be added
             HasIncludeFilter: bool
@@ -1211,6 +1287,7 @@ module Interactions =
                     projectRunRequest.TargetFramework
                     (Some trxPath)
                     filterExpression
+                    (projectRunRequest.ShouldDebug |> DotnetCli.DebugTests.ofBool)
                     cancellationToken
 
             TestRun.appendOutputLine testRun output
@@ -1264,9 +1341,14 @@ module Interactions =
                         [| testItem |])
                 |> Array.distinctBy TestItem.getId
 
+            let shouldDebug =
+                runRequest.profile
+                |> Option.map (fun p -> p.kind = TestRunProfileKind.Debug)
+                |> Option.defaultValue false
 
             { ProjectPath = projectPath
               TargetFramework = project.Info.TargetFramework
+              ShouldDebug = shouldDebug
               HasIncludeFilter = Option.isSome runRequest.``include``
               Tests = replaceProjectRootIfPresent tests })
 
@@ -1441,7 +1523,14 @@ module Interactions =
                             let projectPath = project.Project
                             report $"Discovering tests for {projectPath}"
                             let trxPath = makeTrxPath projectPath |> Some
-                            DotnetCli.test projectPath project.Info.TargetFramework trxPath None cancellationToken)
+
+                            DotnetCli.test
+                                projectPath
+                                project.Info.TargetFramework
+                                trxPath
+                                None
+                                DotnetCli.DebugTests.NoDebug
+                                cancellationToken)
 
                     let trxDiscoveredTests =
                         TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjects
@@ -1584,21 +1673,18 @@ let activate (context: ExtensionContext) =
 
     let tryGetLocation = Interactions.tryGetLocation locationCache
 
-    testController.createRunProfile (
-        "Run F# Tests",
-        TestRunProfileKind.Run,
-        Interactions.runHandler testController tryGetLocation makeTrxPath,
-        true
-    )
+    let runHandler = Interactions.runHandler testController tryGetLocation makeTrxPath
+
+    testController.createRunProfile ("Run F# Tests", TestRunProfileKind.Run, runHandler, true)
     |> unbox
     |> context.subscriptions.Add
 
-    //    testController.createRunProfile ("Debug F# Tests", TestRunProfileKind.Debug, runHandler testController, true)
-    //    |> unbox
-    //    |> context.subscriptions.Add
+    testController.createRunProfile ("Debug F# Tests", TestRunProfileKind.Debug, runHandler, false)
+    |> unbox
+    |> context.subscriptions.Add
 
     let testsPerFileCache = Collections.Generic.Dictionary<string, TestItem array>()
-    // Multiple result items might point to the same code location, but there will never be mroe than one code-located test per result-based test item
+    // Multiple result items might point to the same code location, but there will never be more than one code-located test per result-based test item
     let displacedFragmentMapCache =
         Collections.Generic.Dictionary<ResultBasedTestId, CodeBasedTestId>()
 
