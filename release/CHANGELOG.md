@@ -1,5 +1,8 @@
 
 
+### 7.12.2 - 19.09.2023
+* [Escape special characters when building test filters](https://github.com/ionide/ionide-vscode-fsharp/pull/1926) (Thanks @Numpsy!)
+
 ### 7.12.1 - 18.09.2023
 * Update to FSAC 0.63.1. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.63.1) for more details.
 * [Fix regression of AutoDiscoverTestsOnLoad behavior ](https://github.com/ionide/ionide-vscode-fsharp/pull/1933) (Thanks @farlee2121!)
