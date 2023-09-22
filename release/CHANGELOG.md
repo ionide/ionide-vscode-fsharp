@@ -1,5 +1,8 @@
 
 
+### 7.12.3 - 22.09.2023
+* [Prefill the file dialog with the old name when renaming a file](https://github.com/ionide/ionide-vscode-fsharp/pull/1934) (Thanks @dawedawe!)
+
 ### 7.12.2 - 19.09.2023
 * [Escape special characters when building test filters](https://github.com/ionide/ionide-vscode-fsharp/pull/1926) (Thanks @Numpsy!)
 
