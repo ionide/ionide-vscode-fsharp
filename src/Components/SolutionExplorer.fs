@@ -625,9 +625,15 @@ module SolutionExplorer =
         else
             (fn + ".fs")
 
-    let private createNewFileDialg (proj: string) (existingFiles: list<Model>) (prompt: string) =
+    let private createNewFileDialg
+        (proj: string)
+        (existingFiles: list<Model>)
+        (prompt: string)
+        (prefilled: string Option)
+        =
         let opts = createEmpty<InputBoxOptions>
         opts.placeHolder <- Some "new.fs"
+        opts.value <- prefilled
         opts.prompt <- Some prompt
 
         opts.validateInput <-
@@ -875,7 +881,11 @@ module SolutionExplorer =
                     | Some model ->
                         match tryFindParentProject model with
                         | Some(Project(_, proj, _, files, _, _, _, _)) ->
-                            createNewFileDialg proj files "Enter a new name"
+                            createNewFileDialg
+                                proj
+                                files
+                                "Enter a new name"
+                                (Some(virtualPath.Split([| '/' |]) |> Array.last))
                             |> Promise.ofThenable
                             |> Promise.bind (fun newFileNameOpt ->
                                 promise {
@@ -909,7 +919,7 @@ module SolutionExplorer =
                     | Some model ->
                         match tryFindParentProject model with
                         | Some(Project(_, proj, _, files, _, _, _, _)) ->
-                            createNewFileDialg proj files "New file name, relative to selected file"
+                            createNewFileDialg proj files "New file name, relative to selected file" None
                             |> Promise.ofThenable
                             |> Promise.bind (fun file ->
                                 match file with
@@ -933,7 +943,7 @@ module SolutionExplorer =
                     | Some model ->
                         match tryFindParentProject model with
                         | Some(Project(_, proj, _, files, _, _, _, _)) ->
-                            createNewFileDialg proj files "New file name, relative to selected file"
+                            createNewFileDialg proj files "New file name, relative to selected file" None
                             |> Promise.ofThenable
                             |> Promise.map (fun file ->
                                 match file with
@@ -954,7 +964,7 @@ module SolutionExplorer =
             objfy2 (fun m ->
                 match unbox m with
                 | Project(_, proj, _, files, _, _, _, _) ->
-                    createNewFileDialg proj files "New file name, relative to project file"
+                    createNewFileDialg proj files "New file name, relative to project file" None
                     |> Promise.ofThenable
                     |> Promise.map (fun file ->
                         match file with
