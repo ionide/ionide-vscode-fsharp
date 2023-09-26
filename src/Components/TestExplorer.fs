@@ -221,7 +221,11 @@ type TestResultOutcome =
 type TestFrameworkId = string
 
 module TestFrameworkId =
+    [<Literal>]
     let NUnit = "NUnit"
+
+    [<Literal>]
+    let MsTest = "MSTest"
 
 type TestResult =
     { FullTestName: string
@@ -261,6 +265,14 @@ module Path =
 
 module TrxParser =
 
+    let adapterTypeNameToTestFramework adapterTypeName =
+        if String.startWith "executor://nunit" adapterTypeName then
+            Some TestFrameworkId.NUnit
+        else if String.startWith "executor://mstest" adapterTypeName then
+            Some TestFrameworkId.MsTest
+        else
+            None
+
     type Execution = { Id: string }
 
     type TestMethod =
@@ -273,7 +285,14 @@ module TrxParser =
           Execution: Execution
           TestMethod: TestMethod }
 
-        member self.FullName = self.Name
+        member self.FullName =
+            // IMPORTANT: XUnit and MSTest don't include the parameterized test case data in the TestMethod.Name
+            //    but NUnit and MSTest don't use fully qualified names in UnitTest.Name.
+            //    Therefore, we have to conditionally build this full name based on the framework
+            match self.TestMethod.AdapterTypeName |> adapterTypeNameToTestFramework with
+            | Some TestFrameworkId.NUnit -> TestName.fromPathAndTestName self.TestMethod.ClassName self.TestMethod.Name
+            | Some TestFrameworkId.MsTest -> TestName.fromPathAndTestName self.TestMethod.ClassName self.Name
+            | _ -> self.Name
 
     type ErrorInfo =
         { Message: string option
@@ -302,12 +321,6 @@ module TrxParser =
             node.path.resolve (storageFolderPath, "TestResults", relativeResultsPath, $"{projectName}.trx")
 
         trxPath
-
-    let adapterTypeNameToTestFramework adapterTypeName =
-        if String.startWith "executor://nunit" adapterTypeName then
-            Some TestFrameworkId.NUnit
-        else
-            None
 
     let trxSelector (trxPath: string) : XPath.XPathSelector =
         let trxContent = node.fs.readFileSync (trxPath, "utf8")
