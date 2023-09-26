@@ -269,11 +269,11 @@ module TrxParser =
           Name: string }
 
     type UnitTest =
-        { Execution: Execution
+        { Name: string
+          Execution: Execution
           TestMethod: TestMethod }
 
-        member self.FullName =
-            TestName.fromPathAndTestName self.TestMethod.ClassName self.TestMethod.Name
+        member self.FullName = self.Name
 
     type ErrorInfo =
         { Message: string option
@@ -318,15 +318,19 @@ module TrxParser =
         let extractTestDef (node: XmlNode) : UnitTest =
             let executionId = xpathSelector.SelectStringRelative(node, "t:Execution/@id")
 
+            // IMPORTANT: t:UnitTest/@name is not the same as t:TestMethod/@className + t:TestMethod/@name
+            //  for theory tests in xUnit and MSTest https://github.com/ionide/ionide-vscode-fsharp/issues/1935
+            let fullTestName = xpathSelector.SelectStringRelative(node, "@name")
             let className = xpathSelector.SelectStringRelative(node, "t:TestMethod/@className")
-            let testName = xpathSelector.SelectStringRelative(node, "t:TestMethod/@name")
+            let testMethodName = xpathSelector.SelectStringRelative(node, "t:TestMethod/@name")
 
             let testAdapter =
                 xpathSelector.SelectStringRelative(node, "t:TestMethod/@adapterTypeName")
 
-            { Execution = { Id = executionId }
+            { Name = fullTestName
+              Execution = { Id = executionId }
               TestMethod =
-                { Name = testName
+                { Name = testMethodName
                   ClassName = className
                   AdapterTypeName = testAdapter } }
 
@@ -883,6 +887,7 @@ module TestItem =
             collection.add (testItem)
 
             if remainingPath <> [] then
+                logger.Debug("nya - remaining path", remainingPath)
                 recurse testItem.children fullName remainingPath
             else
                 testItem
@@ -1238,13 +1243,19 @@ module Interactions =
             ArrayExt.venn treeItemComparable resultComparable expectedToRun testResults
 
         expected |> Array.iter (displayTestResultInExplorer testRun)
+        logger.Debug("nya - expected", expected)
         missing |> Array.iter tryRemove
+        logger.Debug("nya - missing", missing)
+        logger.Debug("nya - added", added)
 
         added
         |> Array.iter (fun additionalResult ->
+            logger.Debug("nya - adding", additionalResult)
+
             let treeItem =
                 getOrMakeHierarchyPath additionalResult.TestFramework additionalResult.FullTestName
 
+            logger.Debug("nya - displaying added")
             displayTestResultInExplorer testRun (treeItem, additionalResult))
 
     let private trxResultToTestResult (trxResult: TrxParser.TestWithResult) =
