@@ -887,7 +887,6 @@ module TestItem =
             collection.add (testItem)
 
             if remainingPath <> [] then
-                logger.Debug("nya - remaining path", remainingPath)
                 recurse testItem.children fullName remainingPath
             else
                 testItem
@@ -1243,19 +1242,13 @@ module Interactions =
             ArrayExt.venn treeItemComparable resultComparable expectedToRun testResults
 
         expected |> Array.iter (displayTestResultInExplorer testRun)
-        logger.Debug("nya - expected", expected)
         missing |> Array.iter tryRemove
-        logger.Debug("nya - missing", missing)
-        logger.Debug("nya - added", added)
 
         added
         |> Array.iter (fun additionalResult ->
-            logger.Debug("nya - adding", additionalResult)
-
             let treeItem =
                 getOrMakeHierarchyPath additionalResult.TestFramework additionalResult.FullTestName
 
-            logger.Debug("nya - displaying added")
             displayTestResultInExplorer testRun (treeItem, additionalResult))
 
     let private trxResultToTestResult (trxResult: TrxParser.TestWithResult) =
@@ -1287,7 +1280,7 @@ module Interactions =
     type MergeTestResultsToExplorer =
         TestRun -> ProjectPath -> TargetFramework -> TestItem array -> TestResult array -> unit
 
-    let runTestProject
+    let private runTestProject_withoutExceptionHandling
         (mergeResultsToExplorer: MergeTestResultsToExplorer)
         (makeTrxPath: string -> string)
         (testRun: TestRun)
@@ -1337,6 +1330,31 @@ module Interactions =
             else
                 mergeResultsToExplorer testRun projectPath projectRunRequest.TargetFramework runnableTests testResults
         }
+
+    let runTestProject
+        (mergeResultsToExplorer: MergeTestResultsToExplorer)
+        (makeTrxPath: string -> string)
+        (testRun: TestRun)
+        (cancellationToken: CancellationToken)
+        (projectRunRequest: ProjectRunRequest)
+        =
+        promise {
+            try
+                return!
+                    runTestProject_withoutExceptionHandling
+                        mergeResultsToExplorer
+                        makeTrxPath
+                        testRun
+                        cancellationToken
+                        projectRunRequest
+            with e ->
+                let message =
+                    $"❌ Error running tests: \n    project: {projectRunRequest.ProjectPath} \n\n    error:\n        {e.Message}"
+
+                TestRun.appendOutputLine testRun message
+                TestRun.showError testRun message projectRunRequest.Tests
+        }
+
 
 
     let private filtersToProjectRunRequests (rootTestCollection: TestItemCollection) (runRequest: TestRunRequest) =
@@ -1409,6 +1427,7 @@ module Interactions =
 
             let runTestProject =
                 runTestProject mergeTestResultsToExplorer makeTrxPath testRun _ct
+
 
             let buildProject testRun projectRunRequest =
                 promise {
