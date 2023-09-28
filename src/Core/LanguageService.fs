@@ -723,7 +723,7 @@ Consider:
             let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
             let sourceText =
-                "FSharp.fsac.sourceTextImplementation" |> Configuration.get "NamedText"
+                "FSharp.fsac.sourceTextImplementation" |> Configuration.get "RoslynSourceText"
 
             /// given a set of tfms and a target tfm, find the first of the set that satisfies the target.
             /// if no target is found, use the 'latest' tfm
