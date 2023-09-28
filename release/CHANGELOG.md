@@ -1,4 +1,9 @@
 
+### 7.12.4 - 27.09.2023
+
+* Update to FSAC 0.64.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.64.0) for more details.
+* [Default to RoslynSourceText](https://github.com/fsharp/FsAutoComplete/pull/1168) (Thanks @TheAngryByrd!)
+
 
 ### 7.12.3 - 22.09.2023
 * [Prefill the file dialog with the old name when renaming a file](https://github.com/ionide/ionide-vscode-fsharp/pull/1934) (Thanks @dawedawe!)
