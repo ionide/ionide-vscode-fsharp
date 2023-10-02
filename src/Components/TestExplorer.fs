@@ -557,12 +557,12 @@ module DotnetCli =
             let filter =
                 match filterExpression with
                 | None -> Array.empty
-                | Some filterExpression -> [| "--filter"; filterExpression |]
+                | Some filterExpression -> [| "--filter"; $"\"{filterExpression}\"" |]
 
             if filter.Length > 0 then
                 logger.Debug("Filter", filter)
 
-            let! _, stdOutput, stdError =
+            let! errored, stdOutput, stdError =
                 dotnetTest
                     cancellationToken
                     projectPath
@@ -571,7 +571,9 @@ module DotnetCli =
                     shouldDebug
                     [| "--no-build"; yield! filter |]
 
-            logger.Debug("Test run exitCode", stdError)
+            match errored with
+            | Some error -> logger.Error("Test run failed - %s - %s - %s", error, stdOutput, stdError)
+            | None -> logger.Debug("Test run exitCode - %s - %s", stdOutput, stdError)
 
             return (stdOutput + stdError)
         }
