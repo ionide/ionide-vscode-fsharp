@@ -221,7 +221,11 @@ type TestResultOutcome =
 type TestFrameworkId = string
 
 module TestFrameworkId =
+    [<Literal>]
     let NUnit = "NUnit"
+
+    [<Literal>]
+    let MsTest = "MSTest"
 
 type TestResult =
     { FullTestName: string
@@ -261,6 +265,14 @@ module Path =
 
 module TrxParser =
 
+    let adapterTypeNameToTestFramework adapterTypeName =
+        if String.startWith "executor://nunit" adapterTypeName then
+            Some TestFrameworkId.NUnit
+        else if String.startWith "executor://mstest" adapterTypeName then
+            Some TestFrameworkId.MsTest
+        else
+            None
+
     type Execution = { Id: string }
 
     type TestMethod =
@@ -269,11 +281,18 @@ module TrxParser =
           Name: string }
 
     type UnitTest =
-        { Execution: Execution
+        { Name: string
+          Execution: Execution
           TestMethod: TestMethod }
 
         member self.FullName =
-            TestName.fromPathAndTestName self.TestMethod.ClassName self.TestMethod.Name
+            // IMPORTANT: XUnit and MSTest don't include the parameterized test case data in the TestMethod.Name
+            //    but NUnit and MSTest don't use fully qualified names in UnitTest.Name.
+            //    Therefore, we have to conditionally build this full name based on the framework
+            match self.TestMethod.AdapterTypeName |> adapterTypeNameToTestFramework with
+            | Some TestFrameworkId.NUnit -> TestName.fromPathAndTestName self.TestMethod.ClassName self.TestMethod.Name
+            | Some TestFrameworkId.MsTest -> TestName.fromPathAndTestName self.TestMethod.ClassName self.Name
+            | _ -> self.Name
 
     type ErrorInfo =
         { Message: string option
@@ -303,12 +322,6 @@ module TrxParser =
 
         trxPath
 
-    let adapterTypeNameToTestFramework adapterTypeName =
-        if String.startWith "executor://nunit" adapterTypeName then
-            Some TestFrameworkId.NUnit
-        else
-            None
-
     let trxSelector (trxPath: string) : XPath.XPathSelector =
         let trxContent = node.fs.readFileSync (trxPath, "utf8")
         let xmlDoc = mkDoc trxContent
@@ -318,15 +331,19 @@ module TrxParser =
         let extractTestDef (node: XmlNode) : UnitTest =
             let executionId = xpathSelector.SelectStringRelative(node, "t:Execution/@id")
 
+            // IMPORTANT: t:UnitTest/@name is not the same as t:TestMethod/@className + t:TestMethod/@name
+            //  for theory tests in xUnit and MSTest https://github.com/ionide/ionide-vscode-fsharp/issues/1935
+            let fullTestName = xpathSelector.SelectStringRelative(node, "@name")
             let className = xpathSelector.SelectStringRelative(node, "t:TestMethod/@className")
-            let testName = xpathSelector.SelectStringRelative(node, "t:TestMethod/@name")
+            let testMethodName = xpathSelector.SelectStringRelative(node, "t:TestMethod/@name")
 
             let testAdapter =
                 xpathSelector.SelectStringRelative(node, "t:TestMethod/@adapterTypeName")
 
-            { Execution = { Id = executionId }
+            { Name = fullTestName
+              Execution = { Id = executionId }
               TestMethod =
-                { Name = testName
+                { Name = testMethodName
                   ClassName = className
                   AdapterTypeName = testAdapter } }
 
@@ -1276,7 +1293,7 @@ module Interactions =
     type MergeTestResultsToExplorer =
         TestRun -> ProjectPath -> TargetFramework -> TestItem array -> TestResult array -> unit
 
-    let runTestProject
+    let private runTestProject_withoutExceptionHandling
         (mergeResultsToExplorer: MergeTestResultsToExplorer)
         (makeTrxPath: string -> string)
         (testRun: TestRun)
@@ -1326,6 +1343,31 @@ module Interactions =
             else
                 mergeResultsToExplorer testRun projectPath projectRunRequest.TargetFramework runnableTests testResults
         }
+
+    let runTestProject
+        (mergeResultsToExplorer: MergeTestResultsToExplorer)
+        (makeTrxPath: string -> string)
+        (testRun: TestRun)
+        (cancellationToken: CancellationToken)
+        (projectRunRequest: ProjectRunRequest)
+        =
+        promise {
+            try
+                return!
+                    runTestProject_withoutExceptionHandling
+                        mergeResultsToExplorer
+                        makeTrxPath
+                        testRun
+                        cancellationToken
+                        projectRunRequest
+            with e ->
+                let message =
+                    $"❌ Error running tests: \n    project: {projectRunRequest.ProjectPath} \n\n    error:\n        {e.Message}"
+
+                TestRun.appendOutputLine testRun message
+                TestRun.showError testRun message projectRunRequest.Tests
+        }
+
 
 
     let private filtersToProjectRunRequests (rootTestCollection: TestItemCollection) (runRequest: TestRunRequest) =
@@ -1398,6 +1440,7 @@ module Interactions =
 
             let runTestProject =
                 runTestProject mergeTestResultsToExplorer makeTrxPath testRun _ct
+
 
             let buildProject testRun projectRunRequest =
                 promise {
