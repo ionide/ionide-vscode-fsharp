@@ -93,6 +93,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
         tryActivate "pipelinehints" PipelineHints.Instance.activate context
         tryActivate "testExplorer" TestExplorer.activate context
         tryActivate "inlayhints" InlayHints.activate context
+        tryActivate "languageservice" LanguageService.activate context
 
         let buildProject project =
             promise {

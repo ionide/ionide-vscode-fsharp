@@ -408,6 +408,11 @@
           "light": "./images/lock-open-solid-light.svg"
         },
         "title": "Unlock Info Panel"
+      },
+      {
+        "category": "F#",
+        "command": "fsharp.restartLanguageService",
+        "title": "Restart Language Service"
       }
     ],
     "configuration": {
@@ -1231,6 +1236,10 @@
         {
           "command": "fsharp.showDocumentation",
           "when": "false"
+        },
+        {
+          "command": "fsharp.restartLanguageService",
+          "when": "editorLangId == \u0027fsharp\u0027"
         }
       ],
       "editor/context": [
