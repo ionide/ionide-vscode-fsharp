@@ -1004,14 +1004,3 @@ Consider:
             | Some cl -> return! cl.stop ()
             | None -> return ()
         }
-
-    let activate (context: ExtensionContext) =
-        let restart () =
-            promise {
-                logger.Debug("Restarting F# langugae service")
-                do! stop ()
-                do! start context
-            }
-
-        commands.registerCommand ("fsharp.restartLanguageService", restart |> objfy2)
-        |> context.Subscribe

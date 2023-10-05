@@ -20,6 +20,19 @@ type Api =
       GetProjectLauncher: OutputChannel -> DTO.Project -> (string list -> JS.Promise<ChildProcess>) option
       DebugProject: DTO.Project -> string[] -> JS.Promise<unit> }
 
+
+let private activateLanguageServiceRestart (context: ExtensionContext) =
+    let restart () =
+        promise {
+            logger.Debug("Restarting F# language service")
+            do! LanguageService.stop ()
+            do! LanguageService.start context
+            do! Project.initWorkspace ()
+        }
+
+    commands.registerCommand ("fsharp.restartLanguageService", restart |> objfy2)
+    |> context.Subscribe
+
 let activate (context: ExtensionContext) : JS.Promise<Api> =
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
 
@@ -93,7 +106,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
         tryActivate "pipelinehints" PipelineHints.Instance.activate context
         tryActivate "testExplorer" TestExplorer.activate context
         tryActivate "inlayhints" InlayHints.activate context
-        tryActivate "languageservice" LanguageService.activate context
+        tryActivate "languageservice" activateLanguageServiceRestart context
 
         let buildProject project =
             promise {
