@@ -1,4 +1,8 @@
 
+### 7.12.5 - 02.10.2023
+* [Test Runner: Fixing XUnit Theory Test Detection](https://github.com/ionide/ionide-vscode-fsharp/pull/1936) (Thanks @farlee2121!)
+* [Test Runner: Fix running tests on zsh](https://github.com/ionide/ionide-vscode-fsharp/pull/1940) (Thanks @TheAngryByrd!)
+
 ### 7.12.4 - 27.09.2023
 
 * Update to FSAC 0.64.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.64.0) for more details.
