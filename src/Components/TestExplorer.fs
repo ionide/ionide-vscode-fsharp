@@ -1202,6 +1202,17 @@ module Interactions =
                 // NOTE: using DisplayName allows single theory cases to be run for xUnit
                 let operator = if test.children.size = 0 then "=" else "~"
                 $"(DisplayName{operator}{escapedTestName})"
+            else if test.TestFramework = TestFrameworkId.MsTest && String.endWith ")" fullTestName then
+                // NOTE: MSTest can't filter to parameterized test cases
+                //  Truncating before the case parameters will run all the theory cases
+                //  example parameterized test name -> `MsTestTests.TestClass.theoryTest (2,3,5)`
+                let truncateOnLast (separator: string) (toSplit: string) =
+                    match toSplit.LastIndexOf(separator) with
+                    | -1 -> toSplit
+                    | index -> toSplit.Substring(0, index)
+
+                let truncatedTestName = truncateOnLast @" \(" escapedTestName
+                $"(FullyQualifiedName~{truncatedTestName})"
             else if test.children.size = 0 then
                 $"(FullyQualifiedName={escapedTestName})"
             else
