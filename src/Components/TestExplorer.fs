@@ -75,6 +75,10 @@ module ListExt =
     let mapPartitioned f (left, right) =
         (left |> List.map f), (right |> List.map f)
 
+module Dict =
+    let tryGet (d: Collections.Generic.IDictionary<'key, 'value>) (key) : 'value option =
+        if d.ContainsKey(key) then Some d[key] else None
+
 module CancellationToken =
     let mergeTokens (tokens: CancellationToken list) =
         let tokenSource = vscode.CancellationTokenSource.Create()
@@ -227,6 +231,12 @@ module TestFrameworkId =
     [<Literal>]
     let MsTest = "MSTest"
 
+    [<Literal>]
+    let XUnit = "XUnit"
+
+    [<Literal>]
+    let Expecto = "Expecto"
+
 type TestResult =
     { FullTestName: string
       Outcome: TestResultOutcome
@@ -270,6 +280,10 @@ module TrxParser =
             Some TestFrameworkId.NUnit
         else if String.startWith "executor://mstest" adapterTypeName then
             Some TestFrameworkId.MsTest
+        else if String.startWith "executor://xunit" adapterTypeName then
+            Some TestFrameworkId.XUnit
+        else if String.startWith "executor://yolodev" adapterTypeName then
+            Some TestFrameworkId.Expecto
         else
             None
 
@@ -1067,7 +1081,7 @@ module TestDiscovery =
             trxTestsPerProject
             |> Array.map (fun (project, trxDefs) ->
                 let projectPath = ProjectPath.ofString project.Project
-                let heirarchy = TrxParser.inferHierarchy trxDefs
+                let hierarchy = TrxParser.inferHierarchy trxDefs
 
                 let fromTrxDef (hierarchy: TestName.NameHierarchy<TrxParser.UnitTest>) =
                     // NOTE: A project could have multiple test frameworks, but we only track NUnit for now to work around a defect
@@ -1088,10 +1102,9 @@ module TestDiscovery =
 
                     TestItem.fromNamedHierarchy testItemFactory tryGetLocation projectPath hierarchy
 
-                let projectTests = heirarchy |> Array.map fromTrxDef
+                let projectTests = hierarchy |> Array.map fromTrxDef
 
                 TestItem.fromProject testItemFactory projectPath project.Info.TargetFramework projectTests)
-
 
         treeItems
 
@@ -1180,17 +1193,32 @@ module Interactions =
 
         let testToFilterExpression (test: TestItem) =
             let fullTestName = TestItem.getFullName test.id
-            let fullName = escapeFilterExpression fullTestName
+            let escapedTestName = escapeFilterExpression fullTestName
 
-            if fullName.Contains(" ") && test.TestFramework = TestFrameworkId.NUnit then
+            if escapedTestName.Contains(" ") && test.TestFramework = TestFrameworkId.NUnit then
                 // workaround for https://github.com/nunit/nunit3-vs-adapter/issues/876
                 // Potentially we are going to run multiple tests that match this filter
-                let testPart = fullName.Split(' ').[0]
+                let testPart = escapedTestName.Split(' ').[0]
                 $"(FullyQualifiedName~{testPart})"
+            else if test.TestFramework = TestFrameworkId.XUnit then
+                // NOTE: using DisplayName allows single theory cases to be run for xUnit
+                let operator = if test.children.size = 0 then "=" else "~"
+                $"(DisplayName{operator}{escapedTestName})"
+            else if test.TestFramework = TestFrameworkId.MsTest && String.endWith ")" fullTestName then
+                // NOTE: MSTest can't filter to parameterized test cases
+                //  Truncating before the case parameters will run all the theory cases
+                //  example parameterized test name -> `MsTestTests.TestClass.theoryTest (2,3,5)`
+                let truncateOnLast (separator: string) (toSplit: string) =
+                    match toSplit.LastIndexOf(separator) with
+                    | -1 -> toSplit
+                    | index -> toSplit.Substring(0, index)
+
+                let truncatedTestName = truncateOnLast @" \(" escapedTestName
+                $"(FullyQualifiedName~{truncatedTestName})"
             else if test.children.size = 0 then
-                $"(FullyQualifiedName={fullName})"
+                $"(FullyQualifiedName={escapedTestName})"
             else
-                $"(FullyQualifiedName~{fullName})"
+                $"(FullyQualifiedName~{escapedTestName})"
 
         let filterExpression =
             tests |> Array.map testToFilterExpression |> String.concat "|"
@@ -1281,7 +1309,6 @@ module Interactions =
                     |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
 
                 tryFind "Expected:", tryFind "But was:"
-
 
         { FullTestName = trxResult.UnitTest.FullName
           Outcome = !!trxResult.UnitTestResult.Outcome
@@ -1412,10 +1439,18 @@ module Interactions =
                 |> Option.map (fun p -> p.kind = TestRunProfileKind.Debug)
                 |> Option.defaultValue false
 
+            let hasIncludeFilter =
+                let isOnlyProjectSelected =
+                    match tests with
+                    | [| single |] -> single.id = (TestItem.constructProjectRootId project.Project)
+                    | _ -> false
+
+                (Option.isSome runRequest.``include``) && (not isOnlyProjectSelected)
+
             { ProjectPath = projectPath
               TargetFramework = project.Info.TargetFramework
               ShouldDebug = shouldDebug
-              HasIncludeFilter = Option.isSome runRequest.``include``
+              HasIncludeFilter = hasIncludeFilter
               Tests = replaceProjectRootIfPresent tests })
 
     let runHandler
@@ -1544,7 +1579,12 @@ module Interactions =
                     logger.Error(message, buildFailures |> List.map ProjectPath.fromProject)
 
                 else
-                    let librariesCapableOfListOnlyDiscovery = set [ "Expecto"; "xunit.abstractions" ]
+                    let detectablePackageToFramework =
+                        dict
+                            [ "Expecto", TestFrameworkId.Expecto
+                              "xunit.abstractions", TestFrameworkId.XUnit ]
+
+                    let librariesCapableOfListOnlyDiscovery = set detectablePackageToFramework.Keys
 
                     let listDiscoveryProjects, trxDiscoveryProjects =
                         builtTestProjects
@@ -1558,6 +1598,17 @@ module Interactions =
 
                             let! testNames =
                                 DotnetCli.listTests project.Project project.Info.TargetFramework false cancellationToken
+
+                            let detectedTestFramework =
+                                let getPackageName (pr: PackageReference) = pr.Name
+
+                                project.PackageReferences
+                                |> Array.tryPick (getPackageName >> Dict.tryGet detectablePackageToFramework)
+
+                            let testItemFactory (testItemBuilder: TestItem.TestItemBuilder) =
+                                testItemFactory
+                                    { testItemBuilder with
+                                        testFramework = detectedTestFramework }
 
                             let testHierarchy =
                                 testNames
@@ -1601,6 +1652,7 @@ module Interactions =
 
                     let trxDiscoveredTests =
                         TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjects
+
 
                     let listDiscoveredTests = listDiscoveredPerProject |> Array.map snd
                     let newTests = Array.concat [ listDiscoveredTests; trxDiscoveredTests ]
