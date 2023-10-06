@@ -1,7 +1,13 @@
 
+### 7.13.0 - 05.10.2023
+* Update to FSAC 0.64.1. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.64.1) for more details.
+* [Add command to restart language service](https://github.com/ionide/ionide-vscode-fsharp/pull/1942) (Thanks @sheridanchris!)
+* [Test Runner: Xunit theory filter](https://github.com/ionide/ionide-vscode-fsharp/pull/1943) (Thanks @farlee2121!)
+
 ### 7.12.5 - 02.10.2023
 * [Test Runner: Fixing XUnit Theory Test Detection](https://github.com/ionide/ionide-vscode-fsharp/pull/1936) (Thanks @farlee2121!)
 * [Test Runner: Fix running tests on zsh](https://github.com/ionide/ionide-vscode-fsharp/pull/1940) (Thanks @TheAngryByrd!)
+
 
 ### 7.12.4 - 27.09.2023
 
