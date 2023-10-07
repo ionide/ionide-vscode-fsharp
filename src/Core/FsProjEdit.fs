@@ -64,18 +64,21 @@ module FsProjEdit =
 
     let addProjectReferencePath path =
         promise {
-            let projects = Project.getAll () |> ResizeArray
+            match path with
+            | Some path ->
+                let projects = Project.getAll () |> List.filter (fun p -> p <> path) |> ResizeArray
 
-            if projects.Count <> 0 then
-                let opts = createEmpty<QuickPickOptions>
-                opts.placeHolder <- Some "Reference"
+                if projects.Count <> 0 then
+                    let opts = createEmpty<QuickPickOptions>
+                    opts.placeHolder <- Some "Reference"
 
-                let! n = window.showQuickPick (projects |> U2.Case1, opts)
+                    let! n = window.showQuickPick (projects |> U2.Case1, opts)
 
-                return!
-                    match n, path with
-                    | Some n, Some path -> LanguageService.dotnetAddProject path n
-                    | _ -> Promise.empty
+                    return!
+                        match n with
+                        | Some n -> LanguageService.dotnetAddProject path n
+                        | _ -> Promise.empty
+            | _ -> return! Promise.empty
         }
 
     let removeProjectReferencePath ref proj =
