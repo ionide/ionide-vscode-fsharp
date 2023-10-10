@@ -1,4 +1,8 @@
 
+### 7.14.0 - 09.10.2023
+* Update to FSAC 0.65.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.64.0) for more details.
+* [Don't offer to reference the target project when adding a project reference](https://github.com/ionide/ionide-vscode-fsharp/pull/1945) (Thanks @dawedawe!)
+
 ### 7.13.0 - 05.10.2023
 * Update to FSAC 0.64.1. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.64.1) for more details.
 * [Add command to restart language service](https://github.com/ionide/ionide-vscode-fsharp/pull/1942) (Thanks @sheridanchris!)
