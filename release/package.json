@@ -657,6 +657,7 @@
         },
         "FSharp.inlayHints.enabled": {
           "default": true,
+          "markdownDeprecationMessage": "This can be controlled by `editor.inlayHints.enabled` instead.",
           "description": "Controls if the inlay hints feature is enabled",
           "type": "boolean"
         },
