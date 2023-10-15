@@ -670,9 +670,6 @@ Consider:
 
     let getOptions (c: ExtensionContext) : JS.Promise<Executable> =
         promise {
-            let enableAdaptiveLspServer =
-                "FSharp.enableAdaptiveLspServer" |> Configuration.get true
-
             let openTelemetryEnabled = "FSharp.openTelemetry.enabled" |> Configuration.get false
 
             let enableProjectGraph =
@@ -721,9 +718,6 @@ Consider:
             let fsacSilencedLogs = "FSharp.fsac.silencedLogs" |> Configuration.get [||]
 
             let verbose = "FSharp.verboseLogging" |> Configuration.get false
-
-            let sourceText =
-                "FSharp.fsac.sourceTextImplementation" |> Configuration.get "RoslynSourceText"
 
             /// given a set of tfms and a target tfm, find the first of the set that satisfies the target.
             /// if no target is found, use the 'latest' tfm
@@ -914,8 +908,6 @@ Consider:
                               yield "--wait-for-debugger"
                           if enableProjectGraph then
                               yield "--project-graph-enabled"
-                          if enableAdaptiveLspServer then
-                              yield "--adaptive-lsp-server-enabled"
                           if openTelemetryEnabled then
                               yield "--otel-exporter-enabled"
                           if verbose then
@@ -923,7 +915,6 @@ Consider:
                           if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0 then
                               yield "--filter"
                               yield! fsacSilencedLogs
-                          yield $"--source-text-factory={sourceText}"
                           match c.storageUri with
                           | Some uri ->
                               let storageDir = uri.fsPath
