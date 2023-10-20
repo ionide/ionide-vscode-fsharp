@@ -566,7 +566,12 @@ module DotnetCli =
                         launchDebugger processId
                         isDebuggerStarted <- true
 
-            let env = {| VSTEST_HOST_DEBUG = 1 |} |> box |> Some
+            let env =
+                let parentEnv = Node.Api.``process``.env
+                let childEnv = parentEnv
+                childEnv?VSTEST_HOST_DEBUG <- 1
+                childEnv |> box |> Some
+
             Process.execWithCancel "dotnet" (ResizeArray(args)) env tryLaunchDebugger cancellationToken
         | NoDebug -> Process.execWithCancel "dotnet" (ResizeArray(args)) None ignore cancellationToken
 
