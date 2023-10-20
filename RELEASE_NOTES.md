@@ -1,3 +1,6 @@
+### 7.15.1 - 19.10.2020
+* [Forward env variables in test debugging](https://github.com/ionide/ionide-vscode-fsharp/pull/1951) (Thanks @farlee2121!)
+
 ### 7.15.0 - 15.10.2023
 * Update to FSAC 0.66.1. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.66.1) for more details.
 * Updated the F# syntax grammar to pick up fixes for backticked namespace and module names, let struct syntax highlights, and customer operators/doc comments. (Thanks @dawedawe and @MangelMaxime!)
