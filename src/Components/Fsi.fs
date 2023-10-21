@@ -319,17 +319,19 @@ module Fsi =
 
     let mutable lastCd: string option = None
     let mutable lastCurrentFile: string option = None
+    let mutable lastCurrentLine: int option = None
 
     let private sendCd (terminal: Terminal) (textEditor: TextEditor option) =
-        let file, dir =
+        let file, dir, line =
             match textEditor with
             | Some textEditor ->
                 let file = textEditor.document.fileName
                 let dir = node.path.dirname file
-                file, dir
+                let line = int textEditor.selection.start.line + 1
+                file, dir, line
             | None ->
                 let dir = workspace.rootPath.Value
-                node.path.join (dir, "tmp.fsx"), dir
+                node.path.join (dir, "tmp.fsx"), dir, 1
 
         match lastCd with
         // Same dir as last time, no need to send it
@@ -341,15 +343,16 @@ module Fsi =
 
             lastCd <- Some dir
 
-        match lastCurrentFile with
+        match lastCurrentFile, lastCurrentLine with
         // Same file as last time, no need to send it
-        | Some(currentFile) when currentFile = file -> ()
+        | Some(currentFile), Some(currentLine) when currentFile = file && currentLine = line -> ()
         | _ ->
-            let msg = sprintf "# %d @\"%s\"\n;;\n" 1 file
+            let msg = sprintf "# %d @\"%s\"\n" line file
 
             terminal.sendText (msg, false)
 
             lastCurrentFile <- Some file
+            lastCurrentLine <- Some line
 
     let fsiBinaryAndParameters () =
         let addWatcher = "FSharp.addFsiWatcher" |> Configuration.get false
@@ -489,10 +492,17 @@ module Fsi =
 
     let private send (terminal: Terminal) (msg: string) =
         let msgWithNewline = msg + (if msg.Contains "//" then "\n" else "") + ";;\n" // TODO: Useful ??
+        let linesCount = msgWithNewline |> Seq.filter ((=) '\n') |> Seq.length
 
         promise {
             terminal.sendText (msgWithNewline, false)
             lastSelectionSent <- Some msg
+
+            lastCurrentLine <-
+                match lastCurrentLine with
+                | Some line -> line + linesCount
+                | _ -> linesCount + 1
+                |> Some
         }
         |> Promise.onFail (fun _ -> window.showErrorMessage ("Failed to send text to FSI") |> ignore)
         |> Promise.suppress

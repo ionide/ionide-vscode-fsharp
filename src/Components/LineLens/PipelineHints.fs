@@ -44,10 +44,13 @@ module PipelineDecorationUpdate =
 
             textLine.range, n.Types, previousTextLine)
 
+    /// match something like " 'T1 is int list "
+    let typeParamRegex = JS.Constructors.RegExp.Create @"'.+?\s.+?\s([\s\S]+)"
+
     let private getSignature (index: int) (range: Vscode.Range, tts: string[]) =
         let tt = tts.[index]
-        let id = tt.IndexOf("is")
-        let res = tt.Substring(id + 3)
+        let groups = typeParamRegex.Match(tt).Groups
+        let res = groups[1].Value
         range, "  " + res
 
     let private getSignatures (range: Vscode.Range, tts: string[], previousNonPipeLine: Vscode.Range option) =
