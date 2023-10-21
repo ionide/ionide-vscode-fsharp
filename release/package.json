@@ -525,6 +525,11 @@
           "description": "Includes external (from unopened modules and namespaces) symbols in autocomplete",
           "type": "boolean"
         },
+        "FSharp.fullNameExternalAutocomplete": {
+          "default": false,
+          "description": "When selecting an external symbols in autocomplete, insert the full name to the editor rather than open its module/namespace. Also allow filtering suggestions by typing its full name. \n\n Requires `FSharp.externalAutocomplete` enabled.",
+          "type": "boolean"
+        },
         "FSharp.fsac.attachDebugger": {
           "default": false,
           "description": "Appends the \u0027--attachdebugger\u0027 argument to fsac, this will allow you to attach a debugger.",
