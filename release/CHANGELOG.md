@@ -1,4 +1,4 @@
-### 7.15.1 - 19.10.2020
+### 7.15.1 - 19.10.2023
 * [Forward env variables in test debugging](https://github.com/ionide/ionide-vscode-fsharp/pull/1951) (Thanks @farlee2121!)
 
 ### 7.15.0 - 15.10.2023
