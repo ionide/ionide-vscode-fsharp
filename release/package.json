@@ -527,7 +527,7 @@
         },
         "FSharp.fullNameExternalAutocomplete": {
           "default": false,
-          "description": "When selecting an external symbols in autocomplete, insert the full name to the editor rather than open its module/namespace. Also allow filtering suggestions by typing its full name. \n\n Requires `FSharp.externalAutocomplete` enabled.",
+          "description": "When selecting an external symbols in autocomplete, insert the full name to the editor rather than open its module/namespace. Also allow filtering suggestions by typing its full name. \n\n Requires \u0060FSharp.externalAutocomplete\u0060 enabled.",
           "type": "boolean"
         },
         "FSharp.fsac.attachDebugger": {
@@ -1775,5 +1775,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.15.1"
+  "version": "7.15.2"
 }

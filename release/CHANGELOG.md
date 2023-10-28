@@ -1,3 +1,7 @@
+### 7.15.2 - 28.10.2023
+* Update to FSAC 0.67.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.67.0) for more details.
+* [Adds setting for FullNameExternalAutocomplete, Fix PipelineHint localization, Fix sending lines to fsi](https://github.com/ionide/ionide-vscode-fsharp/pull/1952) (Thanks @Tangent-90)
+
 ### 7.15.1 - 19.10.2023
 * [Forward env variables in test debugging](https://github.com/ionide/ionide-vscode-fsharp/pull/1951) (Thanks @farlee2121!)
 
