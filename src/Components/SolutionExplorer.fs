@@ -262,6 +262,11 @@ module SolutionExplorer =
             let result = Workspace items
             setParentRefs items result
             result
+        | WorkspacePeekFound.Fsproj proj ->
+            let result = getProjItem proj.Fsproj
+            let root = Workspace [ result ]
+            setParentRef result root
+            root
 
     let private getSolution () =
         Project.getLoadedSolution () |> Option.map getSolutionModel

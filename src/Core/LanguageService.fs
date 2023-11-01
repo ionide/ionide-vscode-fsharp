@@ -516,22 +516,26 @@ Consider:
                       Kind = kind }
             | None -> None
 
-        let mapFound (f: obj) : WorkspacePeekFound option =
+        let mapFound (f: obj) : WorkspacePeekFound array =
             let data = f?Data
 
             match f?Type |> unbox with
-            | "directory" -> Some(WorkspacePeekFound.Directory(data |> unbox))
+            | "directory" -> 
+                let folderPeek = [|WorkspacePeekFound.Directory(data |> unbox)|]
+                let projectPeeks = data?Fsprojs |> unbox |> Array.map (fun p -> WorkspacePeekFound.Fsproj({ Fsproj = p }))
+
+                Array.concat [|projectPeeks;folderPeek|]
             | "solution" ->
                 let sln =
                     { WorkspacePeekFoundSolution.Path = data?Path |> unbox
                       Configurations = data?Configurations |> unbox
                       Items = data?Items |> unbox |> Array.choose mapItem }
 
-                Some(WorkspacePeekFound.Solution sln)
-            | _ -> None
+                [|WorkspacePeekFound.Solution sln|]
+            | _ -> [||]
 
         let parse (ws: obj) =
-            { WorkspacePeek.Found = ws?Found |> unbox |> Array.choose mapFound }
+            { WorkspacePeek.Found = ws?Found |> unbox |> Array.map mapFound |> Array.concat }
 
         match client with
         | None -> Promise.empty
