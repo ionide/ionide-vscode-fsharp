@@ -469,7 +469,7 @@ module MSBuild =
         let unlessIgnored (path: string) f =
             if Project.isIgnored path then unbox () else f path
 
-        let initWorkspace _n = Project.initWorkspace ()
+        let initWorkspace _n = Project.initWorkspace context
 
         let solutionWatcher = workspace.createFileSystemWatcher (U2.Case1 "**/*.sln")
 
