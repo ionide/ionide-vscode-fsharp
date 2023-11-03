@@ -58,6 +58,8 @@ module Project =
 
     let deepLevel = "FSharp.workspaceModePeekDeepLevel" |> Configuration.get 2 |> max 0
 
+    let lazyLoadWorkspace = "FSharp.lazyLoadWorkspace" |> Configuration.get false
+
     let isNetCoreApp (project: Project) =
         project.Info.TargetFramework :: project.Info.TargetFrameworks
         |> Seq.exists (fun tfm -> tfm = "net5.0" || tfm.StartsWith "netcoreapp")
@@ -106,8 +108,7 @@ module Project =
                 | Folder folder -> folder.Items |> Array.collect getProjs
 
             sln.Items |> Array.collect getProjs |> Array.toList
-        | Some(WorkspacePeekFound.Directory dir) -> dir.Fsprojs |> Array.toList
-
+        | Some(WorkspacePeekFound.Directory dir) -> dir.Fsprojs |> Array.map (fun f -> f.Path) |> Array.toList
 
     let getNotLoaded () =
         let lst =
@@ -250,7 +251,7 @@ module Project =
         let projs =
             match loadedWorkspace with
             | None -> Array.empty
-            | Some(WorkspacePeekFound.Directory dir) -> dir.Fsprojs
+            | Some(WorkspacePeekFound.Directory dir) -> dir.Fsprojs |> Array.map (fun f -> f.Path)
             | Some(WorkspacePeekFound.Solution sln) -> sln.Items |> Array.collect foldFsproj |> Array.map fst
 
         let loadingInProgress p =
@@ -545,7 +546,7 @@ module Project =
 
             let wdir =
                 { WorkspacePeekFoundDirectory.Directory = workspace.rootPath.Value
-                  Fsprojs = fsprojs |> Array.ofList }
+                  Fsprojs = fsprojs |> List.map (fun p -> { Path = p; CompileItems = [||] }) |> Array.ofList }
 
             return WorkspacePeekFound.Directory wdir
         }
@@ -642,30 +643,50 @@ module Project =
                 setAnyProjectContext true
         | None -> ()
 
-    let private initWorkspaceHelper x =
+    let private initWorkspaceHelper (context: ExtensionContext) x =
         clearLoadedProjects ()
         loadedWorkspace <- Some x
         workspaceChangedEmitter.fire x
 
         let projs =
             match x with
-            | WorkspacePeekFound.Directory dir -> dir.Fsprojs
-            | WorkspacePeekFound.Solution sln -> sln.Items |> Array.collect foldFsproj |> Array.map fst
+            | WorkspacePeekFound.Directory dir -> dir.Fsprojs |> Array.map (fun f -> (f.Path, f.CompileItems))
+            | WorkspacePeekFound.Solution sln -> sln.Items |> Array.collect foldFsproj |> Array.map (fun (p, _) -> (p, [||]))
 
         match x with
         | WorkspacePeekFound.Solution _ -> setAnyProjectContext true
         | WorkspacePeekFound.Directory _ when not (projs |> Array.isEmpty) -> setAnyProjectContext true
         | _ -> ()
 
-        projs |> List.ofArray |> LanguageService.workspaceLoad |> Promise.map ignore
+        if lazyLoadWorkspace then
+            //TODO: Register a file open event handler and load the project on demand
+            let fsFileToProj = Dictionary<string, string>()
+            for (proj, compileItems) in projs do
+                for compileItem in compileItems do
+                    fsFileToProj.[compileItem] <- proj
+
+            let openFileHandler (e: TextDocument) =
+                
+                match tryFindInWorkspace e.uri.path with
+                | Some(ProjectLoadingState.Loaded _) -> ()
+                | Some(ProjectLoadingState.Loading _) -> ()
+                | _ -> LanguageService.workspaceLoad [ fsFileToProj[e.uri.path] ] |> ignore
+
+            // workspace.onDidOpenTextDocument $ (openFileHandler, (), context.subscriptions) |> ignore
+            workspace.onDidOpenTextDocument.Invoke(unbox openFileHandler)
+            |> context.Subscribe
+
+            Promise.lift ()
+        else
+            projs |> Array.map(fun (p, _) -> p) |> List.ofArray |> LanguageService.workspaceLoad |> Promise.map ignore
 
 
-    let initWorkspace () =
+    let initWorkspace (context: ExtensionContext) =
         getWorkspace ()
         |> Promise.bind (function
             | Some x -> Promise.lift x
             | None -> getWorkspaceForModeIonideSearch ())
-        |> Promise.bind (initWorkspaceHelper)
+        |> Promise.bind (initWorkspaceHelper context)
 
     module internal ProjectStatus =
         let mutable timer = None
@@ -744,7 +765,7 @@ module Project =
                 workspacePeek ()
                 |> Promise.bind (fun x -> pickFSACWorkspace x (CurrentWorkspaceConfiguration.get ()))
                 |> Promise.bind (function
-                    | Some w -> initWorkspaceHelper w
+                    | Some w -> initWorkspaceHelper context w
                     | None -> Promise.empty)
                 |> box
                 |> Some)
@@ -760,4 +781,4 @@ module Project =
         )
         |> context.Subscribe
 
-        initWorkspace ()
+        initWorkspace context

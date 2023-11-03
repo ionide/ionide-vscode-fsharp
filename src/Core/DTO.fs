@@ -271,12 +271,16 @@ module DTO =
 
     type WorkspacePeek = { Found: WorkspacePeekFound[] }
 
+    and WorkspacePeekFsproj =
+        { Path: string; CompileItems: string[] }
+
     and WorkspacePeekFound =
         | Directory of WorkspacePeekFoundDirectory
         | Solution of WorkspacePeekFoundSolution
 
     and WorkspacePeekFoundDirectory =
-        { Directory: string; Fsprojs: string[] }
+        { Directory: string
+          Fsprojs: WorkspacePeekFsproj[] }
 
     and WorkspacePeekFoundSolution =
         { Path: string

@@ -919,6 +919,11 @@
           "description": "Path to the directory or solution file that should be loaded as a workspace. If set, no workspace probing or discovery is done by Ionide at all.",
           "scope": "window",
           "type": "string"
+        },
+        "FSharp.lazyLoadWorkspace": {
+          "default": false,
+          "description": "Configures Ionide to not load any projects upfront but instead load them when .fs files are opened.",
+          "type": "boolean"
         }
       },
       "title": "F#",

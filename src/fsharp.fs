@@ -27,7 +27,7 @@ let private activateLanguageServiceRestart (context: ExtensionContext) =
             logger.Debug("Restarting F# language service")
             do! LanguageService.stop ()
             do! LanguageService.start context
-            do! Project.initWorkspace ()
+            do! Project.initWorkspace context
         }
 
     commands.registerCommand ("fsharp.restartLanguageService", restart |> objfy2)

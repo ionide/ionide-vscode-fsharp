@@ -257,7 +257,7 @@ module SolutionExplorer =
             setParentRef s result
             result
         | WorkspacePeekFound.Directory dir ->
-            let items = dir.Fsprojs |> Array.map getProjItem |> List.ofArray
+            let items = dir.Fsprojs |> Array.map (fun f -> getProjItem f.Path) |> List.ofArray
 
             let result = Workspace items
             setParentRefs items result
@@ -714,7 +714,7 @@ module SolutionExplorer =
         | PackageReference _
         | ProjectReference _ -> None
 
-    let newProject () =
+    let newProject (context: ExtensionContext) =
         promise {
             let! templates = LanguageService.dotnetNewList ()
 
@@ -777,7 +777,7 @@ module SolutionExplorer =
                             | _ ->
                                 //If it's the first project in the workspace we need to init the workspace
                                 if Project.getInWorkspace().IsEmpty then
-                                    do! Project.initWorkspace ()
+                                    do! Project.initWorkspace context
 
                         ()
                     | _ -> ()
