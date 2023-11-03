@@ -257,7 +257,7 @@ module SolutionExplorer =
             setParentRef s result
             result
         | WorkspacePeekFound.Directory dir ->
-            let items = dir.Fsprojs |> Array.map getProjItem |> List.ofArray
+            let items = dir.Fsprojs |> Array.map (fun f -> getProjItem f.Path) |> List.ofArray
 
             let result = Workspace items
             setParentRefs items result
