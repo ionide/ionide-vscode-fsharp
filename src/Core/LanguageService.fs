@@ -668,6 +668,117 @@ Consider:
         client <- Some cl
         cl
 
+    module SdkResolution =
+        let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
+
+        let tfmForSdkVersion (v: SemVer) =
+            match int v.major, int v.minor with
+            | 3, 1 -> "netcoreapp3.1"
+            | 3, 0 -> "netcoreapp3.0"
+            | 2, 1 -> "netcoreapp2.1"
+            | 2, 0 -> "netcoreapp2.0"
+            | n, _ -> $"net{n}.0"
+
+        /// given a set of tfms and a target tfm, find the first of the set that satisfies the target.
+        /// if no target is found, use the 'latest' tfm
+        /// e.g. [net6.0, net7.0] + net8.0 -> net7.0
+        /// e.g. [net6.0, net7.0] + net7.0 -> net7.0
+        let findBestTFM (availableTFMs: string seq) (tfm: string) =
+            let tfmToSemVer (t: string) =
+                t.Replace("netcoreapp", "").Replace("net", "").Split([| '.' |], 2)
+                |> fun ver -> semver.parse (!! $"{ver[0]}.{ver[1]}.0")
+
+            let tfmMap =
+                availableTFMs
+                |> Seq.choose (fun tfm ->
+                    match tfmToSemVer tfm with
+                    | Some v -> Some(tfm, v)
+                    | None -> None)
+                |> Seq.sortBy (fun (_, v) -> v.major, v.minor)
+
+            printfn $"choosing from among %A{tfmMap}"
+
+            match tfmToSemVer tfm with
+            | None ->
+                printfn "unable to parse target tfm, using latest"
+                Seq.last availableTFMs
+            | Some ver ->
+                tfmMap
+                |> Seq.skipWhile (fun (_, v) -> (semver.compare (!!v, !!ver)) = enum -1) // skip while fsac tfm is less than target tfm
+                |> Seq.tryHead // get first fsac tfm that is greater than or equal to target tfm
+                |> Option.map fst
+                |> Option.defaultWith (fun () -> Seq.last availableTFMs)
+
+        let probePathForTFMs (basePath: string) (tfm: string) =
+            let availableTFMs =
+                node.fs.readdirSync (!!basePath) |> Seq.filter (fun p -> p.StartsWith "net") // there are loose files in the basePath, ignore those
+
+            printfn $"Available FSAC TFMs: %A{availableTFMs}"
+
+            if availableTFMs |> Seq.contains tfm then
+                printfn "TFM match found"
+                tfm, node.path.join (basePath, tfm, "fsautocomplete.dll")
+            else
+                // find best-matching
+                let tfm = findBestTFM availableTFMs tfm
+                tfm, node.path.join (basePath, tfm, "fsautocomplete.dll")
+
+        let isNetFolder (folder: string) =
+            printfn $"checking folder %s{folder}"
+            let baseName = node.path.basename folder
+
+            baseName.StartsWith("net")
+            && let stat = node.fs.statSync (!!folder) in
+               stat.isDirectory ()
+
+        /// locates the FSAC dll and TFM for that dll given a host TFM
+        let fsacPathForTfm (tfm: string) : string * string =
+            match fsacNetcorePath with
+            | null
+            | "" ->
+                // user didn't specify a path, so use FSAC from our extension
+                let binPath = node.path.join (VSCodeExtension.ionidePluginPath (), "bin")
+                probePathForTFMs binPath tfm
+            | userSpecified ->
+                if userSpecified.EndsWith ".dll" then
+                    let tfm = node.path.basename (node.path.dirname userSpecified)
+                    tfm, userSpecified
+                else
+                    // if dir has tfm folders, probe
+                    let filesAndFolders =
+                        node.fs.readdirSync (!!userSpecified)
+                        |> Seq.map (fun child -> node.path.join ([| userSpecified; child |]))
+
+                    printfn $"candidates: %A{filesAndFolders}"
+
+                    if filesAndFolders |> Seq.exists isNetFolder then
+                        // tfm directories found, probe this directory like we would our own bin path
+                        probePathForTFMs userSpecified tfm
+                    else
+                        // no tfm paths, try to use `fsautocomplete.dll` from this directory
+                        let tfm = node.path.basename (node.path.dirname userSpecified)
+                        tfm, node.path.join (userSpecified, "fsautocomplete.dll")
+
+        let sdkVersionAndTargetFramework () =
+            promise {
+                let! sdkVersionAtRootPath = sdkVersion ()
+
+                match sdkVersionAtRootPath with
+                | Error e ->
+                    printfn $"Error finding dotnet version: {e}"
+                    return failwith "Error finding dotnet version, do you have dotnet installed and on the PATH?"
+                | Ok sdkVersion ->
+                    printfn "Parsed SDK version at root path: %s" sdkVersion.raw
+                    let sdkTfm = tfmForSdkVersion sdkVersion
+                    return sdkVersion, sdkTfm
+            }
+
+        let resolvedFsacPathForAmbientSdkTargetFramework () =
+            promise {
+                let! _, tfm = sdkVersionAndTargetFramework ()
+                return fsacPathForTfm tfm
+            }
+
     let getOptions (c: ExtensionContext) : JS.Promise<Executable> =
         promise {
             let openTelemetryEnabled = "FSharp.openTelemetry.enabled" |> Configuration.get false
@@ -713,144 +824,46 @@ Consider:
 
             let fsacAttachDebugger = "FSharp.fsac.attachDebugger" |> Configuration.get false
 
-            let fsacNetcorePath = "FSharp.fsac.netCoreDllPath" |> Configuration.get ""
 
             let fsacSilencedLogs = "FSharp.fsac.silencedLogs" |> Configuration.get [||]
 
             let verbose = "FSharp.verboseLogging" |> Configuration.get false
 
-            /// given a set of tfms and a target tfm, find the first of the set that satisfies the target.
-            /// if no target is found, use the 'latest' tfm
-            /// e.g. [net6.0, net7.0] + net8.0 -> net7.0
-            /// e.g. [net6.0, net7.0] + net7.0 -> net7.0
-            let findBestTFM (availableTFMs: string seq) (tfm: string) =
-                let tfmToSemVer (t: string) =
-                    t.Replace("netcoreapp", "").Replace("net", "").Split([| '.' |], 2)
-                    |> fun ver -> semver.parse (!! $"{ver[0]}.{ver[1]}.0")
-
-                let tfmMap =
-                    availableTFMs
-                    |> Seq.choose (fun tfm ->
-                        match tfmToSemVer tfm with
-                        | Some v -> Some(tfm, v)
-                        | None -> None)
-                    |> Seq.sortBy (fun (_, v) -> v.major, v.minor)
-
-                printfn $"choosing from among %A{tfmMap}"
-
-                match tfmToSemVer tfm with
-                | None ->
-                    printfn "unable to parse target tfm, using latest"
-                    Seq.last availableTFMs
-                | Some ver ->
-                    tfmMap
-                    |> Seq.skipWhile (fun (_, v) -> (semver.compare (!!v, !!ver)) = enum -1) // skip while fsac tfm is less than target tfm
-                    |> Seq.tryHead // get first fsac tfm that is greater than or equal to target tfm
-                    |> Option.map fst
-                    |> Option.defaultWith (fun () -> Seq.last availableTFMs)
-
-            let probePathForTFMs (basePath: string) (tfm: string) =
-                let availableTFMs =
-                    node.fs.readdirSync (!!basePath) |> Seq.filter (fun p -> p.StartsWith "net") // there are loose files in the basePath, ignore those
-
-                printfn $"Available FSAC TFMs: %A{availableTFMs}"
-
-                if availableTFMs |> Seq.contains tfm then
-                    printfn "TFM match found"
-                    tfm, node.path.join (basePath, tfm, "fsautocomplete.dll")
-                else
-                    // find best-matching
-                    let tfm = findBestTFM availableTFMs tfm
-                    tfm, node.path.join (basePath, tfm, "fsautocomplete.dll")
-
-            let isNetFolder (folder: string) =
-                printfn $"checking folder %s{folder}"
-                let baseName = node.path.basename folder
-
-                baseName.StartsWith("net")
-                && let stat = node.fs.statSync (!!folder) in
-                   stat.isDirectory ()
-
-            /// locates the FSAC dll and TFM for that dll given a host TFM
-            let fsacPathForTfm (tfm: string) : string * string =
-                match fsacNetcorePath with
-                | null
-                | "" ->
-                    // user didn't specify a path, so use FSAC from our extension
-                    let binPath = node.path.join (VSCodeExtension.ionidePluginPath (), "bin")
-                    probePathForTFMs binPath tfm
-                | userSpecified ->
-                    if userSpecified.EndsWith ".dll" then
-                        let tfm = node.path.basename (node.path.dirname userSpecified)
-                        tfm, userSpecified
-                    else
-                        // if dir has tfm folders, probe
-                        let filesAndFolders =
-                            node.fs.readdirSync (!!userSpecified)
-                            |> Seq.map (fun child -> node.path.join ([| userSpecified; child |]))
-
-                        printfn $"candidates: %A{filesAndFolders}"
-
-                        if filesAndFolders |> Seq.exists isNetFolder then
-                            // tfm directories found, probe this directory like we would our own bin path
-                            probePathForTFMs userSpecified tfm
-                        else
-                            // no tfm paths, try to use `fsautocomplete.dll` from this directory
-                            let tfm = node.path.basename (node.path.dirname userSpecified)
-                            tfm, node.path.join (userSpecified, "fsautocomplete.dll")
-
-            let tfmForSdkVersion (v: SemVer) =
-                match int v.major, int v.minor with
-                | 3, 1 -> "netcoreapp3.1"
-                | 3, 0 -> "netcoreapp3.0"
-                | 2, 1 -> "netcoreapp2.1"
-                | 2, 0 -> "netcoreapp2.0"
-                | n, _ -> $"net{n}.0"
-
             let discoverDotnetArgs () =
                 promise {
+                    let! sdkVersion, sdkTfm = SdkResolution.sdkVersionAndTargetFramework ()
+                    printfn "Parsed SDK version to tfm: %s" sdkTfm
+                    let fsacTfm, fsacPath = SdkResolution.fsacPathForTfm sdkTfm
+                    printfn "Parsed TFM to fsac path: %s" fsacPath
 
-                    let! sdkVersionAtRootPath = sdkVersion ()
+                    let userDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
 
-                    match sdkVersionAtRootPath with
-                    | Error e ->
-                        printfn $"Error finding dotnet version: {e}"
-                        return failwith "Error finding dotnet version, do you have dotnet installed and on the PATH?"
-                    | Ok sdkVersion ->
-                        printfn "Parsed SDK version at root path: %s" sdkVersion.raw
-                        let sdkTfm = tfmForSdkVersion sdkVersion
-                        printfn "Parsed SDK version to tfm: %s" sdkTfm
-                        let fsacTfm, fsacPath = fsacPathForTfm sdkTfm
-                        printfn "Parsed TFM to fsac path: %s" fsacPath
+                    let hasUserRollForward =
+                        userDotnetArgs
+                        |> Array.tryFindIndex (fun a -> a = "--roll-forward")
+                        |> Option.map (fun _ -> true)
+                        |> Option.defaultValue false
 
-                        let userDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
+                    let hasUserFxVersion =
+                        userDotnetArgs
+                        |> Array.tryFindIndex (fun a -> a = "--fx-version")
+                        |> Option.map (fun _ -> true)
+                        |> Option.defaultValue false
 
-                        let hasUserRollForward =
-                            userDotnetArgs
-                            |> Array.tryFindIndex (fun a -> a = "--roll-forward")
-                            |> Option.map (fun _ -> true)
-                            |> Option.defaultValue false
+                    let shouldApplyImplicitRollForward =
+                        not (hasUserFxVersion || hasUserRollForward) && sdkTfm <> fsacTfm // if the SDK doesn't match one of our FSAC TFMs, then we're in compat mode
 
-                        let hasUserFxVersion =
-                            userDotnetArgs
-                            |> Array.tryFindIndex (fun a -> a = "--fx-version")
-                            |> Option.map (fun _ -> true)
-                            |> Option.defaultValue false
+                    let args = userDotnetArgs
 
-                        let shouldApplyImplicitRollForward =
-                            not (hasUserFxVersion || hasUserRollForward) && sdkTfm <> fsacTfm // if the SDK doesn't match one of our FSAC TFMs, then we're in compat mode
+                    let envVariables =
+                        [ if shouldApplyImplicitRollForward then
+                              "DOTNET_ROLL_FORWARD", box "LatestMajor"
+                          match sdkVersion.prerelease with
+                          | null -> ()
+                          | pres when Seq.length pres > 0 -> "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1
+                          | _ -> () ]
 
-                        let args = userDotnetArgs
-
-                        let envVariables =
-                            [ if shouldApplyImplicitRollForward then
-                                  "DOTNET_ROLL_FORWARD", box "LatestMajor"
-                              match sdkVersion.prerelease with
-                              | null -> ()
-                              | pres when Seq.length pres > 0 -> "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1
-                              | _ -> () ]
-
-                        return args, envVariables, fsacPath, sdkVersion
+                    return args, envVariables, fsacPath, sdkVersion
                 }
 
             /// Converts true to 1 and false to 0

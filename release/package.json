@@ -614,6 +614,11 @@
           "markdownDescription": "An array of additional command line parameters to pass to FSI when it is started. See [the Microsoft documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list.",
           "type": "array"
         },
+        "FSharp.fsiUsesFSACDirectoryForCompilerTool": {
+          "default": false,
+          "markdownDescription": "EXPERIMENTAL: adds an --compiltertool:/path/to/FSAC argument to the FSI parameters so the extensions that FSAC ships are conviniently loaded in the FSI session",
+          "type": "bool"
+        },
         "FSharp.fsiSdkFilePath": {
           "default": "",
           "description": "The path to the F# Interactive tool used by Ionide-FSharp (When using .NET SDK scripts)",
