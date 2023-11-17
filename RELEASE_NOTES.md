@@ -1,5 +1,5 @@
 ### 7.16.0 - 17.11.2023
-* Update to FSAC 0.6*.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.68.0) for more details. (Includes F# 8 support!)
+* Update to FSAC 0.68.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.68.0) for more details. (Includes F# 8 support!)
 
 ### 7.15.2 - 28.10.2023
 * Update to FSAC 0.67.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.67.0) for more details.
