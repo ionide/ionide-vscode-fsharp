@@ -240,9 +240,21 @@ Please provide as much detail and context as possible.
 
 ## Release
 
-1. If updating FSAC
-    1. run `dotnet paket update --group fsac`
-    2. Commit the `paket.lock` 
+1. Dependencies
+    1. If updating FSAC
+        1. run `dotnet paket update --group fsac`
+        2. Commit the `paket.lock` 
+    2. If updating ionide-grammar
+        1. `open paket.lock`
+        2. find the line `remote: https://github.com/ionide/ionide-fsgrammar.git`
+        3. update the hash to the latest commit on the main branch
+        4. Commit the `paket.lock` 
+    3. if updating ionide-vscode-helpers
+        1. open `paket.dependencies`
+        2. find the lines for `github ionide/ionide-vscode-helpers`
+        3. Update the hash for all the files
+        4. run `dotnet paket install`
+        5. Commit the `paket.dependencies` and `paket.lock`
 2. Add version and notes to `RELEASE_NOTES.md`
     1. If possible link the pull request of the changes and mention the author of the pull request
     2. If updating FSAC mention the version of FSAC that is being updated to and link it's release notes
