@@ -1,9 +1,13 @@
+### 7.16.1 - 18.11.2023
+* [Fix colorisation when declaring abstract member with generics types](https://github.com/ionide/ionide-fsgrammar/pull/205) (Thanks @MangelMaxime!)
+* [allow operator symbols after a double slash](https://github.com/ionide/ionide-fsgrammar/pull/203) (Thanks @dawedawe!)
+
 ### 7.16.0 - 17.11.2023
 * Update to FSAC 0.68.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.68.0) for more details. (Includes F# 8 support!)
 
 ### 7.15.2 - 28.10.2023
 * Update to FSAC 0.67.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.67.0) for more details.
-* [Adds setting for FullNameExternalAutocomplete, Fix PipelineHint localization, Fix sending lines to fsi](https://github.com/ionide/ionide-vscode-fsharp/pull/1952) (Thanks @Tangent-90)
+* [Adds setting for FullNameExternalAutocomplete, Fix PipelineHint localization, Fix sending lines to fsi](https://github.com/ionide/ionide-vscode-fsharp/pull/1952) (Thanks @Tangent-90!)
 
 ### 7.15.1 - 19.10.2023
 * [Forward env variables in test debugging](https://github.com/ionide/ionide-vscode-fsharp/pull/1951) (Thanks @farlee2121!)
