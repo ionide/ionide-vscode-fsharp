@@ -452,6 +452,12 @@
           "scope": "machine-overridable",
           "type": "array"
         },
+        "FSharp.includeAnalyzers": {
+          "default": [],
+          "description": "The names of custom analyzers that should exclusively be executed, others should be ignored.",
+          "scope": "machine-overridable",
+          "type": "array"
+        },
         "FSharp.autoRevealInExplorer": {
           "default": "sameAsFileExplorer",
           "description": "Controls whether the solution explorer should automatically reveal and select files when opening them. If \u0060sameAsFileExplorer\u0060 is set, then the value of the \u0060explorer.autoReveal\u0060 setting will be used instead.",
