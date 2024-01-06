@@ -645,7 +645,7 @@ Consider:
                           System.Func<TextDocument, Position, CancellationToken, obj, ProviderResult<obj>>
                               (fun doc pos cTok next ->
                                   logger.Info(
-                                      "Checking if position %s in document %s is a known virtual document",
+                                      "[hover] Checking if position %s in document %s is a known virtual document",
                                       pos,
                                       doc
                                   )
@@ -654,52 +654,78 @@ Consider:
                                   | None -> next $ (doc, pos, cTok)
                                   | Some(nestedDocUri, nestedLanguage) ->
                                       logger.Info(
-                                          "Found virtual document %s with language %s",
+                                          "[hover] Found virtual document %s with language %s",
                                           nestedDocUri.toString (true),
                                           nestedLanguage
                                       )
 
-                                      box (
-                                          commands.executeCommand (
-                                              "vscode.executeHoverProvider",
-                                              unbox nestedDocUri,
-                                              unbox pos
+                                      promise {
+                                          let! doc = workspace.openTextDocument (nestedDocUri) |> Promise.ofThenable
+                                          let charRange = vscode.Range.Create(pos, pos.translate (characterDelta = 1))
+
+                                          let content =
+                                              doc
+                                                  .getText(charRange)
+                                                  .Split([| Environment.NewLine |], StringSplitOptions.None)
+
+                                          logger.Info(
+                                              "[hover] Virtual document %s has content '%j' at position %s",
+                                              nestedDocUri.toString (true),
+                                              content,
+                                              pos
                                           )
-                                      )
-                                      |> unbox)
+
+                                          let! results =
+                                              commands.executeCommand (
+                                                  "vscode.executeHoverProvider",
+                                                  unbox nestedDocUri,
+                                                  unbox pos
+                                              )
+                                              |> Promise.ofThenable
+                                              |> Promise.catch (fun e ->
+                                                  logger.Error("Error while executing hover provider: %o", e)
+                                                  None)
+
+                                          return results
+                                      }
+                                      |> Promise.toThenable
+                                      |> U2.Case2
+                                      |> Some)
                       )
                       "provideDocumentHighlights",
                       box (
                           System.Func<TextDocument, Position, CancellationToken, obj, ProviderResult<obj>>
                               (fun doc pos cTok next ->
                                   logger.Info(
-                                      "Checking if position %s in document %s is a known virtual document",
+                                      "[highlights] Checking if position %s in document %s is a known virtual document",
                                       pos,
-                                      doc
+                                      doc.uri.toString (true)
                                   )
 
                                   match NestedLanguages.tryGetVirtualDocumentInDocAtPosition (doc, pos) with
                                   | None -> next $ (doc, pos, cTok)
                                   | Some(nestedDocUri, nestedLanguage) ->
                                       logger.Info(
-                                          "Found virtual document %s with language %s",
-                                          nestedDocUri,
+                                          "[highlights] Found virtual document %s with language %s",
+                                          nestedDocUri.toString (true),
                                           nestedLanguage
                                       )
 
-                                      box (
-                                          commands.executeCommand (
-                                              "vscode.executeDocumentHighlights",
-                                              unbox nestedDocUri,
-                                              unbox pos
-                                          )
+
+                                      commands.executeCommand (
+                                          "vscode.executeDocumentHighlights",
+                                          unbox nestedDocUri,
+                                          unbox pos
                                       )
+                                      |> Promise.ofThenable
+                                      |> Promise.catchEnd (fun e ->
+                                          logger.Error("Error while executing highlights: %o", e))
                                       |> unbox)
                       )
                       "provideDocumentSemanticTokens",
                       box (
                           System.Func<TextDocument, CancellationToken, obj, ProviderResult<obj>>(fun doc cTok next ->
-                              logger.Info("Checking if document %s has any known virtual documents", doc)
+                              logger.Info("Checking if document %s has any known virtual documents", doc.uri)
 
                               match NestedLanguages.getAllVirtualDocsForDoc (doc) with
                               | [||] -> next $ (doc, cTok)
@@ -721,7 +747,10 @@ Consider:
                                                   "vscode.provideDocumentSemanticTokens",
                                                   [| unbox nestedDocUri |]
                                               )
-                                              |> unbox<JS.Promise<obj[]>>
+                                              |> Promise.ofThenable
+                                              |> Promise.catchEnd (fun e ->
+                                                  logger.Error("Error while executing getting tokens: %o", e))
+                                              |> unbox
                                               |> Async.AwaitPromise
 
                                           if not (isUndefined tokens) then

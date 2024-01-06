@@ -9,6 +9,9 @@ type VSCUri = Fable.Import.VSCode.Vscode.Uri
 [<RequireQualifiedAccess>]
 module NestedLanguages =
 
+    let private logger =
+        ConsoleAndOutputChannelLogger(Some "NestedLanguages", Level.DEBUG, Some defaultOutputChannel, Some Level.DEBUG)
+
     type NestedDocument =
         { languageId: string
           content: string
@@ -30,11 +33,10 @@ module NestedLanguages =
 
         uri
 
-    let private replaceWithWhitespace (input: string) (builder: System.Text.StringBuilder) =
-        input.Split([| '\n'; '\r' |], System.StringSplitOptions.None)
-        |> Array.iter (fun line ->
-            let s = System.String(' ', line.Length)
-            builder.Append(s) |> ignore<System.Text.StringBuilder>)
+    let split (s: string) =
+        s.Split([| Node.Api.os.EOL |], System.StringSplitOptions.None)
+
+    let empty len = System.String(Array.replicate len ' ')
 
     let private vscodePos (p: DTO.LSP.Position) : Vscode.Position =
         vscode.Position.Create(p.line, p.character)
@@ -42,28 +44,40 @@ module NestedLanguages =
     let private vscodeRange (r: DTO.LSP.Range) : Vscode.Range =
         vscode.Range.Create(vscodePos r.start, vscodePos r.``end``)
 
+    let convertToWhitespace (s: string) (builder: System.Text.StringBuilder) =
+        split s
+        |> Array.iteri (fun index line ->
+            if index <> 0 then
+                builder.Append(Node.Api.os.EOL) |> ignore<System.Text.StringBuilder>
+
+            builder.Append(empty line.Length) |> ignore<System.Text.StringBuilder>)
+
     let private createSyntheticDocument (parentDocument: TextDocument) (targetSubranges: DTO.LSP.Range[]) : string =
 
         let fullDocumentRange =
             // create a range that covers the whole document by making a too-long range and having the document trim it to size
             parentDocument.validateRange (vscode.Range.Create(0, 0, parentDocument.lineCount, 0))
 
+        logger.Info("Document %s has range %s", parentDocument.uri, fullDocumentRange)
+
         let fullDocumentText = parentDocument.getText ()
         let builder = System.Text.StringBuilder(fullDocumentText.Length)
 
         match targetSubranges with
-        | [||] -> replaceWithWhitespace fullDocumentText builder
+        | [||] -> convertToWhitespace fullDocumentText builder
+
         | [| single |] ->
-            replaceWithWhitespace
+            convertToWhitespace
                 (parentDocument.getText (vscode.Range.Create(fullDocumentRange.start, vscodePos single.start)))
                 builder
 
             let actualContent = parentDocument.getText (vscodeRange single)
             builder.Append(actualContent) |> ignore<System.Text.StringBuilder>
 
-            replaceWithWhitespace
+            convertToWhitespace
                 (parentDocument.getText (vscode.Range.Create(vscodePos single.``end``, fullDocumentRange.``end``)))
                 builder
+
         | ranges ->
             let mutable currentPos = fullDocumentRange.start
             // foreach range
@@ -73,15 +87,31 @@ module NestedLanguages =
             // at the end of the ranges, copy in the whitespace from currentPos to fullDocumentRange.end
             for range in ranges do
                 let currentToRangeStart = vscode.Range.Create(currentPos, vscodePos range.start)
-                replaceWithWhitespace (parentDocument.getText (currentToRangeStart)) builder
+
+                convertToWhitespace (parentDocument.getText (currentToRangeStart)) builder
+
                 let actualContent = parentDocument.getText (vscodeRange range)
                 builder.Append(actualContent) |> ignore<System.Text.StringBuilder>
                 currentPos <- vscodePos range.``end``
 
             let currentToEnd = vscode.Range.Create(currentPos, fullDocumentRange.``end``)
-            replaceWithWhitespace (parentDocument.getText (currentToEnd)) builder
 
-        builder.ToString()
+            convertToWhitespace (parentDocument.getText (currentToEnd)) builder
+
+        let finalContent = builder.ToString()
+
+        let finalLines =
+            finalContent.Split([| Node.Api.os.EOL |], System.StringSplitOptions.None)
+
+        if float finalLines.Length <> parentDocument.lineCount then
+            logger.Error(
+                "Document %s has %d lines but synthetic document has %d lines",
+                parentDocument.uri.toString (),
+                parentDocument.lineCount,
+                finalLines.Length
+            )
+
+        finalContent
 
     /// given the languages found in a given file, create a synthetic document for each language and track that
     /// document in the documentsMap, clearing the documentsMap of any documents that are no longer needed for that file
@@ -101,9 +131,6 @@ module NestedLanguages =
             // track virtual documents with their parent
             let uris = nestedDocuments |> Array.map (fun (fst, _, _, _) -> fst)
             documentsForFile[languages.textDocument.uri] <- uris
-
-            // TODO: remove documents when their parent closes
-
             // store the virtual contents in our map
             nestedDocuments
             |> Array.iter (fun (uri, language, ranges, document) ->
@@ -111,6 +138,28 @@ module NestedLanguages =
                     { languageId = language
                       rangesInParentFile = ranges
                       content = document })
+
+            // TODO: remove documents when their parent closes
+            let! _ =
+                nestedDocuments
+                |> Array.map (fun (uriString, lang, _, _) ->
+                    promise {
+                        let uri = vscode.Uri.parse (uriString, strict = true)
+                        let! doc = workspace.openTextDocument (uri)
+                        let actualRange = doc.validateRange (vscode.Range.Create(0, 0, 10000000, 10000000))
+
+                        logger.Info(
+                            "Classified document %s as language %s with content %s occupying range %s",
+                            uriString,
+                            doc.languageId,
+                            doc.getText (),
+                            actualRange
+                        )
+                    })
+                |> unbox
+                |> Promise.all
+
+            return ()
         }
 
     let tryGetVirtualDocumentInDocAtPosition (parentDocument: TextDocument, position: Position) =
