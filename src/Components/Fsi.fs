@@ -291,7 +291,7 @@ module Fsi =
                                 let hint =
                                     vscode.InlayHint.Create(
                                         line.range.``end``,
-                                        !!(" == " + value),
+                                        !!(" = " + value),
                                         InlayHintKind.Parameter
                                     )
 
