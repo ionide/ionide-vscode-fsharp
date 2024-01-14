@@ -1,3 +1,9 @@
+### 7.17.0 - 14.01.2024
+* Update to FSAC 0.69.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.69.0) for more details.
+* [Fix Capture (*) inside block comment](https://github.com/ionide/ionide-fsgrammar/pull/208) (thanks @mbottini!)
+* [Fix egregious and unidiomatic equality syntax in the FSI watcher](https://github.com/ionide/ionide-vscode-fsharp/pull/1975) (Thanks @baronfel!)
+* [Analyzers: Update analyzers support to 0.23.0 ](https://github.com/ionide/ionide-vscode-fsharp/pull/1974) (thanks @dawedawe!)
+
 ### 7.16.1 - 18.11.2023
 * [Fix colorisation when declaring abstract member with generics types](https://github.com/ionide/ionide-fsgrammar/pull/205) (Thanks @MangelMaxime!)
 * [allow operator symbols after a double slash](https://github.com/ionide/ionide-fsgrammar/pull/203) (Thanks @dawedawe!)
