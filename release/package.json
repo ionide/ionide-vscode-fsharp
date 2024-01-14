@@ -1787,5 +1787,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.16.1"
+  "version": "7.17.0"
 }
