@@ -1,3 +1,7 @@
+### 7.18.0 - 06.02.2024
+
+* Update to FSAC 0.70.0 to get support for using Reference Assemblies when products have created them.
+
 ### 7.17.0 - 14.01.2024
 * Update to FSAC 0.69.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.69.0) for more details.
 * [Fix Capture (*) inside block comment](https://github.com/ionide/ionide-fsgrammar/pull/208) (thanks @mbottini!)
