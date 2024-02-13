@@ -1,3 +1,7 @@
+### 7.18.1 - 13.02.2024
+
+* Update to FSAC 0.70.1 to fix debugging when projects use Reference Assemblies.
+
 ### 7.18.0 - 06.02.2024
 
 * Update to FSAC 0.70.0 to get support for using Reference Assemblies when products have created them.
