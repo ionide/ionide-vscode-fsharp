@@ -45,6 +45,9 @@
         "*.fs": "${basename}.fsi, ${basename}.fs.js, ${basename}.fs.js.map",
         "*.fsl": "${basename}.fsi, ${basename}.fs",
         "*.fsy": "${basename}.fsi, ${basename}.fs"
+      },
+      "files.associations": {
+        ".fantomasignore": "ignore"
       }
     },
     "colors": [
