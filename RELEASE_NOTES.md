@@ -1,3 +1,7 @@
+### 7.18.2 - 07.03.2024
+
+* Update to FSAC 0.71.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.71.0) for more details.
+
 ### 7.18.1 - 13.02.2024
 
 * Update to FSAC 0.70.1 to fix debugging when projects use Reference Assemblies.
