@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -30,6 +30,7 @@
     <Compile Include="Core/LanguageService.fs" />
     <Compile Include="Core/Project.fs" />
     <Compile Include="Core/FsProjEdit.fs" />
+    <Compile Include="Components/CSharpExtensionSupport.fs" />
     <Compile Include="Components/Diagnostics.fs" />
     <Compile Include="Components/Gitignore.fs" />
     <Compile Include="Components/LanguageConfiguration.fs" />

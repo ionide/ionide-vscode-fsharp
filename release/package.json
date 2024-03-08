@@ -331,7 +331,8 @@
           "dark": "./images/debug-mono-dark.svg",
           "light": "./images/debug-mono-light.svg"
         },
-        "title": "Debug"
+        "title": "Debug",
+        "enablement": "fsharp.debugger.available"
       },
       {
         "command": "fsharp.explorer.project.setDefault",
@@ -353,7 +354,8 @@
       {
         "command": "fsharp.debugDefaultProject",
         "icon": "./images/debug.png",
-        "title": "F#: Debug Default Project"
+        "title": "F#: Debug Default Project",
+        "enablement": "fsharp.debugger.available"
       },
       {
         "command": "fsharp.chooseDefaultProject",
@@ -1246,7 +1248,7 @@
         },
         {
           "command": "fsharp.debugDefaultProject",
-          "when": "fsharp.project.any"
+          "when": "fsharp.project.any \u0026\u0026 fsharp.debugger.available"
         },
         {
           "command": "fsharp.chooseDefaultProject",
@@ -1298,7 +1300,7 @@
         {
           "command": "fsharp.debugDefaultProject",
           "group": "fsharp",
-          "when": "fsharp.project.any \u0026\u0026 config.FSharp.enableTouchBar"
+          "when": "fsharp.project.any \u0026\u0026 config.FSharp.enableTouchBar \u0026\u0026 fsharp.debugger.available"
         },
         {
           "command": "fsharp.runDefaultProject",
@@ -1493,7 +1495,7 @@
         {
           "command": "fsharp.explorer.solution.clean",
           "group": "1_navigation@3",
-          "when": "viewItem == ionide.projectExplorer.solution"
+          "when": "viewItem == ionide.projectExplorer.solution "
         },
         {
           "command": "fsharp.explorer.solution.restore",
@@ -1573,12 +1575,12 @@
         {
           "command": "fsharp.explorer.project.debug",
           "group": "1_run@2",
-          "when": "viewItem == ionide.projectExplorer.projectExe"
+          "when": "viewItem == ionide.projectExplorer.projectExe \u0026\u0026 fsharp.debugger.available"
         },
         {
           "command": "fsharp.explorer.project.debug",
           "group": "inline@2",
-          "when": "viewItem == ionide.projectExplorer.projectExe"
+          "when": "viewItem == ionide.projectExplorer.projectExe \u0026\u0026 fsharp.debugger.available"
         },
         {
           "command": "fsharp.explorer.project.setDefault",
@@ -1776,9 +1778,7 @@
   "engines": {
     "vscode": "^0.10.0"
   },
-  "extensionDependencies": [
-    "ms-dotnettools.csharp"
-  ],
+  "extensionDependencies": [],
   "homepage": "http://ionide.io",
   "icon": "images/logo.png",
   "license": "MIT",

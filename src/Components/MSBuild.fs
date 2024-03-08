@@ -486,19 +486,6 @@ module MSBuild =
         let registerCommand com (action: unit -> _) =
             commands.registerCommand (com, action |> objfy2) |> context.Subscribe
 
-        let registerCommand2 com (action: obj -> obj -> _) =
-            commands.registerCommand (com, action |> objfy3) |> context.Subscribe
-
-        /// typed msbuild cmd. Optional project and msbuild host
-        let typedMsbuildCmd f projOpt =
-            let p =
-                if JS.isDefined projOpt then
-                    Some(unbox<string> (projOpt))
-                else
-                    None
-
-            fun _ -> f p
-
         tasks.registerTaskProvider ("msbuild", msbuildBuildTaskProvider)
         |> context.Subscribe
 

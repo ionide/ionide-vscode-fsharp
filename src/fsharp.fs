@@ -46,6 +46,8 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
                 logger.Error $"Error while activating feature '{label}': {ex}"
                 Unchecked.defaultof<_>
 
+    CSharpExtension.activate (context)
+
     LanguageService.start context
     |> Promise.catch (fun e -> logger.Error $"Error activating FSAC: %A{e}") // prevent unhandled rejected promises
     |> Promise.onSuccess (fun _ ->

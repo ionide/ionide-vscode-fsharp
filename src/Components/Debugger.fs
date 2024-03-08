@@ -336,34 +336,39 @@ module Debugger =
         { new DebugConfigurationProvider with
             override x.provideDebugConfigurations(folder: option<WorkspaceFolder>, token: option<CancellationToken>) =
                 let generate () =
-                    promise {
-                        logger.Info("Evaluating launch settings configurations for %O", folder)
-                        let projects = Project.getLoaded ()
-                        let! msbuildTasks = tasks.fetchTasks (msbuildTasksFilter)
+                    match CSharpExtension.tryFindCSharpExtension () with
+                    | false ->
+                        CSharpExtension.warnAboutMissingCSharpExtension ()
+                        promise { return ResizeArray() }
+                    | true ->
+                        promise {
+                            logger.Info("Evaluating launch settings configurations for %O", folder)
+                            let projects = Project.getLoaded ()
+                            let! msbuildTasks = tasks.fetchTasks (msbuildTasksFilter)
 
-                        let tasks =
-                            projects
-                            |> List.collect (fun (p: Project) ->
-                                [ let projectFile = node.path.basename p.Project
+                            let tasks =
+                                projects
+                                |> List.collect (fun (p: Project) ->
+                                    [ let projectFile = node.path.basename p.Project
 
-                                  let buildTaskForProject =
-                                      msbuildTasks
-                                      |> Seq.tryFind (fun t ->
-                                          t.group = Some vscode.TaskGroup.Build && t.name = projectFile)
-                                  // emit configurations for any launchsettings for this project
-                                  match readSettingsForProject p with
-                                  | Some launchSettings ->
-                                      yield! configsForProject (p, launchSettings, buildTaskForProject)
-                                  | None -> ()
-                                  // emit a default configuration for this project if it is an executable
-                                  match defaultConfigForProject (p, buildTaskForProject) with
-                                  | Some p -> yield p
-                                  | None -> () ])
+                                      let buildTaskForProject =
+                                          msbuildTasks
+                                          |> Seq.tryFind (fun t ->
+                                              t.group = Some vscode.TaskGroup.Build && t.name = projectFile)
+                                      // emit configurations for any launchsettings for this project
+                                      match readSettingsForProject p with
+                                      | Some launchSettings ->
+                                          yield! configsForProject (p, launchSettings, buildTaskForProject)
+                                      | None -> ()
+                                      // emit a default configuration for this project if it is an executable
+                                      match defaultConfigForProject (p, buildTaskForProject) with
+                                      | Some p -> yield p
+                                      | None -> () ])
 
-                        return ResizeArray tasks
-                    }
+                            return ResizeArray tasks
+                        }
 
-                generate () // this bix/unbox is a hack because JS types
+                generate () // this box/unbox is a hack because JS types
                 |> box
                 |> unbox
 
@@ -386,6 +391,7 @@ module Debugger =
                 ProviderResult.Some(U2.Case1 debugConfiguration) }
 
     let activate (c: ExtensionContext) =
+
         commands.registerCommand ("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2)
         |> c.Subscribe
 
