@@ -836,6 +836,11 @@
             "FSharp.simplifyNameAnalyzer"
           ]
         },
+        "FSharp.unnecessaryParenthesesAnalyzer": {
+          "default": false,
+          "description": "Enables detection of unnecessary parentheses",
+          "type": "boolean"
+        },
         "FSharp.smartIndent": {
           "default": false,
           "description": "Enables smart indent feature",
