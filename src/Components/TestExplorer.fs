@@ -1174,7 +1174,10 @@ module Interactions =
         |> Promise.ofThenable
 
     let private filterEscapeCharacter = '\\'
-    let private filterSpecialCharacters = [| '\\'; '('; ')'; '&'; '|'; '='; '!'; '~' |]
+
+    let private filterSpecialCharacters =
+        [| '\\'; '('; ')'; '&'; '|'; '='; '!'; '~'; '"' |]
+
     let private filterSpecialCharactersSet = Set.ofArray filterSpecialCharacters
 
     let private buildFilterExpression (tests: TestItem array) =
