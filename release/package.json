@@ -571,7 +571,7 @@
         },
         "FSharp.fsac.fsacArgs": {
           "default": [],
-          "description": "additional CLI arguments to be provided to FSAC itself. Useful for flags that aren't exposed in the settings or CLI arguments that only exist in custom built versions of FSAC. Requires restart.",
+          "description": "additional CLI arguments to be provided to FSAC itself. Useful for flags that aren\u0027t exposed in the settings or CLI arguments that only exist in custom built versions of FSAC. Requires restart.",
           "items": {
             "type": "string"
           },
@@ -1803,5 +1803,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.18.2"
+  "version": "7.19.0"
 }
