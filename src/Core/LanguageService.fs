@@ -900,6 +900,8 @@ Consider:
 
                     exeOpts.env <- exeEnv
 
+                    let additionalFSACArgs = "FSharp.fsac.fsacArgs" |> Configuration.get [||]
+
                     let args =
                         [ yield! fsacDotnetArgs
                           yield fsacPath
@@ -920,7 +922,8 @@ Consider:
                               let storageDir = uri.fsPath
                               yield "--state-directory"
                               yield storageDir
-                          | None -> () ]
+                          | None -> ()
+                          yield! additionalFSACArgs ]
                         |> ResizeArray
 
                     let executable = createEmpty<Executable>
