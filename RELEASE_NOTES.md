@@ -1,4 +1,4 @@
-### 7.19.0 - 25.04.2024
+### 7.19.1 - 25.04.2024
 * ADDED: [Add config entry for parens analyzer](https://github.com/ionide/ionide-vscode-fsharp/pull/1994) (Thanks! @brianrourkeboll!)
 * ADDED: [Adds arbitrary additional arguments to be passed to fsac](https://github.com/ionide/ionide-vscode-fsharp/pull/2004) (Thanks @TheAngryByrd!)
 * FIX: [Escape quotes in test filter expressions](https://github.com/ionide/ionide-vscode-fsharp/pull/1999) (Thanks @farlee2121!)
