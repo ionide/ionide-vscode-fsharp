@@ -675,6 +675,9 @@ Consider:
             let enableProjectGraph =
                 "FSharp.enableMSBuildProjectGraph" |> Configuration.get false
 
+            let useTransparentCompiler =
+                "FSharp.fcs.transparentCompiler.enabled" |> Configuration.get false
+
             let tryBool x =
                 // Boolean.TryParse generates: TypeError: e.match is not a function if we don't call toString first
                 match Boolean.TryParse(x.ToString()) with
@@ -917,6 +920,8 @@ Consider:
                           if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0 then
                               yield "--filter"
                               yield! fsacSilencedLogs
+                          if useTransparentCompiler then
+                              yield "--use-fcs-transparent-compiler"
                           match c.storageUri with
                           | Some uri ->
                               let storageDir = uri.fsPath
