@@ -1,3 +1,9 @@
+### 7.19.1 - 25.04.2024
+* ADDED: [Add config entry for parens analyzer](https://github.com/ionide/ionide-vscode-fsharp/pull/1994) (Thanks! @brianrourkeboll!)
+* ADDED: [Adds arbitrary additional arguments to be passed to fsac](https://github.com/ionide/ionide-vscode-fsharp/pull/2004) (Thanks @TheAngryByrd!)
+* FIX: [Escape quotes in test filter expressions](https://github.com/ionide/ionide-vscode-fsharp/pull/1999) (Thanks @farlee2121!)
+* Update to FSAC 0.72.1. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.72.1) for more details.
+
 ### 7.18.2 - 07.03.2024
 
 * Update to FSAC 0.71.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.71.0) for more details.
