@@ -547,12 +547,12 @@
         },
         "FSharp.fcs.transparentCompiler.enabled": {
           "default": false,
-          "description": "EXPERIMENTAL: Enables the FSharp Compiler Service's [transparent compiler](https://github.com/dotnet/fsharp/pull/15179) feature. Requires restart.",
+          "markdownDescription": "EXPERIMENTAL: Enables the FSharp Compiler Service\u0027s [transparent compiler](https://github.com/dotnet/fsharp/pull/15179) feature. Requires restart.",
           "type": "boolean"
         },
         "FSharp.fsac.attachDebugger": {
           "default": false,
-          "description": "Appends the \u0027--attachdebugger\u0027 argument to fsac, this will allow you to attach a debugger.",
+          "markdownDescription": "Appends the `--attachdebugger` argument to fsac, this will allow you to attach a debugger.",
           "type": "boolean"
         },
         "FSharp.fsac.cachedTypeCheckCount": {
@@ -576,7 +576,7 @@
         },
         "FSharp.fsac.fsacArgs": {
           "default": [],
-          "description": "additional CLI arguments to be provided to FSAC itself. Useful for flags that aren\u0027t exposed in the settings or CLI arguments that only exist in custom built versions of FSAC. Requires restart.",
+          "description": "additional CLI arguments to be provided to FSAC itself. Useful for flags that aren't exposed in the settings or CLI arguments that only exist in custom built versions of FSAC. Requires restart.",
           "items": {
             "type": "string"
           },
@@ -1808,5 +1808,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.19.1"
+  "version": "7.20.0"
 }

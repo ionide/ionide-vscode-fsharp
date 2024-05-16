@@ -1,4 +1,9 @@
-### 7.19.0 - 25.04.2024
+### 7.20.0 - 15.05.2024
+
+* ADDED: New flag to enable the F# Compiler's Transparent Compiler mode. Set `FSharp.fcs.transparentCompiler.enabled` to `true` to opt into the experimental analysis mode. This mode should be faster than the previous APIs, but may be unstable and may use more memory. As a result, it is still in an experimental mode and must be opted-in to.
+* Update to FSAC 0.73.0. Check out the [release notes](https://github.com/ionide/FsAutoComplete/releases/tag/v0.73.0) for more details on that. This update brings more metrics, and a _ton_ of new codefixes around signature files and the F# 8 dot-lambda syntax.
+
+### 7.19.1 - 25.04.2024
 * ADDED: [Add config entry for parens analyzer](https://github.com/ionide/ionide-vscode-fsharp/pull/1994) (Thanks! @brianrourkeboll!)
 * ADDED: [Adds arbitrary additional arguments to be passed to fsac](https://github.com/ionide/ionide-vscode-fsharp/pull/2004) (Thanks @TheAngryByrd!)
 * FIX: [Escape quotes in test filter expressions](https://github.com/ionide/ionide-vscode-fsharp/pull/1999) (Thanks @farlee2121!)
