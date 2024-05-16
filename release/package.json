@@ -552,7 +552,7 @@
         },
         "FSharp.fsac.attachDebugger": {
           "default": false,
-          "markdownDescription": "Appends the `--attachdebugger` argument to fsac, this will allow you to attach a debugger.",
+          "markdownDescription": "Appends the \u0060--attachdebugger\u0060 argument to fsac, this will allow you to attach a debugger.",
           "type": "boolean"
         },
         "FSharp.fsac.cachedTypeCheckCount": {
@@ -576,7 +576,7 @@
         },
         "FSharp.fsac.fsacArgs": {
           "default": [],
-          "description": "additional CLI arguments to be provided to FSAC itself. Useful for flags that aren't exposed in the settings or CLI arguments that only exist in custom built versions of FSAC. Requires restart.",
+          "description": "additional CLI arguments to be provided to FSAC itself. Useful for flags that aren\u0027t exposed in the settings or CLI arguments that only exist in custom built versions of FSAC. Requires restart.",
           "items": {
             "type": "string"
           },
