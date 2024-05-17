@@ -1,3 +1,7 @@
+### 7.20.1 - 17.05.2024
+
+* Fixed: The .NET 8 build of FsAutoComplete wasn't being included in the build. Now it is!
+
 ### 7.20.0 - 15.05.2024
 
 * ADDED: New flag to enable the F# Compiler's Transparent Compiler mode. Set `FSharp.fcs.transparentCompiler.enabled` to `true` to opt into the experimental analysis mode. This mode should be faster than the previous APIs, but may be unstable and may use more memory. As a result, it is still in an experimental mode and must be opted-in to.
