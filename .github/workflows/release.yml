@@ -20,11 +20,11 @@ jobs:
     steps:
     # manual triggers are detached HEADs, so we need to checkout the branch
     # to actually create + push a commit later on in the workflow
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        ref: ${{ github.head_ref }}
+        ref: ${{ github.event.workflow_dispatch.ref }}
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
     - uses: actions/setup-node@v3
       with:
         node-version: '16'
