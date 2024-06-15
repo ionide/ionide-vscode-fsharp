@@ -611,12 +611,17 @@ module Fsi =
             |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not)
             |> Seq.toList
 
+        let files = project.Files |> Seq.toList
+
         let sendReference terminal (path: ResolvedReferencePath) = send terminal $"#r @\"%s{path}\""
+
+        let sendLoad terminal path = send terminal $"#load @\"%s{path}\""
 
         promise {
             let! terminal = getTerminal ()
 
             do! Promise.executeForAll (sendReference terminal) references
+            do! Promise.executeForAll (sendLoad terminal) files
         }
         |> Promise.suppress
         |> ignore
