@@ -357,11 +357,11 @@ module Fsi =
     let fsiBinaryAndParameters () =
         let addWatcher = "FSharp.addFsiWatcher" |> Configuration.get false
 
-        let parms =
+        let parms: string array =
             let fsiParams =
                 Array.append
-                    (Configuration.get Array.empty<string> "FSharp.fsiExtraParameters")
-                    (Configuration.get Array.empty<string> "FSharp.FSIExtraInteractiveParameters")
+                    (Configuration.get None "FSharp.fsiExtraParameters" |> Option.toArray)
+                    (Configuration.get None "FSharp.FSIExtraInteractiveParameters" |> Option.toArray)
                 |> Array.toList
 
             let p =

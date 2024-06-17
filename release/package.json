@@ -634,18 +634,15 @@
           "type": "array"
         },
         "FSharp.fsiExtraParameters": {
-          "default": [],
           "markdownDescription": "An array of additional command line parameters to pass to FSI when it is started. See [the Microsoft documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list.",
           "type": "array",
           "markdownDeprecationMessage": "This setting can lead to errors when providing both FSI-CLI-only and script-typechecking-related parameters. Please use \u0060#FSharp.FSIExtraInteractiveParameters#\u0060 for FSI-CLI-specific parameters, and \u0060#FSharp.FSIExtraSharedParameters#\u0060 for typechecking-related parameters."
         },
         "FSharp.FSIExtraSharedParameters": {
-          "default": [],
           "markdownDescription": "An array of additional command line parameters to pass to the compiler to use when checking FSI scripts. See [the Microsoft documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list. If both this and \u0060#FSharp.fsiExtraParameters#\u0060 are used, only \u0060#FSharp.fsiExtraParameters#\u0060 will be used.",
           "type": "array"
         },
         "FSharp.FSIExtraInteractiveParameters": {
-          "default": [],
           "markdownDescription": "An array of additional command line parameters to pass to FSI when it is launched. See [the Microsoft documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list.  If both this and \u0060#FSharp.fsiExtraParameters#\u0060 are used, both sets of arguments will be passed to the launched FSI.",
           "type": "array"
         },
