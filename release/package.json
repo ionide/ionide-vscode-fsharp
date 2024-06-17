@@ -253,10 +253,6 @@
         "title": "Show project status"
       },
       {
-        "command": "fsharp.explorer.renameFile",
-        "title": "Rename file"
-      },
-      {
         "command": "fsharp.explorer.addProjecRef",
         "title": "Add project reference"
       },
@@ -640,6 +636,17 @@
         "FSharp.fsiExtraParameters": {
           "default": [],
           "markdownDescription": "An array of additional command line parameters to pass to FSI when it is started. See [the Microsoft documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list.",
+          "type": "array",
+          "markdownDeprecationMessage": "This setting can lead to errors when providing both FSI-CLI-only and script-typechecking-related parameters. Please use `#FSharp.FSIExtraInteractiveParameters#` for FSI-CLI-specific parameters, and `#FSharp.FSIExtraSharedParameters#` for typechecking-related parameters."
+        },
+        "FSharp.FSIExtraSharedParameters": {
+          "default": [],
+          "markdownDescription": "An array of additional command line parameters to pass to the compiler to use when checking FSI scripts. See [the Microsoft documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list. If both this and `#FSharp.fsiExtraParameters#` are used, only `#FSharp.fsiExtraParameters#` will be used.",
+          "type": "array"
+        },
+        "FSharp.FSIExtraInteractiveParameters": {
+          "default": [],
+          "markdownDescription": "An array of additional command line parameters to pass to FSI when it is launched. See [the Microsoft documentation](https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/fsharp-interactive-options) for an exhaustive list.  If both this and `#FSharp.fsiExtraParameters#` are used, both sets of arguments will be passed to the launched FSI.",
           "type": "array"
         },
         "FSharp.fsiSdkFilePath": {

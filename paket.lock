@@ -38,7 +38,7 @@ NUGET
       FSharp.Core (>= 4.7.2)
 GIT
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (7d029a46f17637228b2ee85dd02e511c3e8039b3)
+     (0100f551f6c32598a58aba97344bf828673fec7a)
 GITHUB
   remote: ionide/ionide-vscode-helpers
     src/Fable.Import.Showdown.fs (8e81bc03f11f07b8e0811b3d4598eadc78f32f2f)
@@ -241,4 +241,4 @@ STORAGE: PACKAGES
 RESTRICTION: == netstandard2.0
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    fsautocomplete (0.73)
+    fsautocomplete (0.73.1)

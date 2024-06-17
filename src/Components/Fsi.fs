@@ -359,9 +359,10 @@ module Fsi =
 
         let parms =
             let fsiParams =
-                "FSharp.fsiExtraParameters"
-                |> Configuration.get Array.empty<string>
-                |> List.ofArray
+                Array.append
+                    (Configuration.get Array.empty<string> "FSharp.fsiExtraParameters")
+                    (Configuration.get Array.empty<string> "FSharp.FSIExtraInteractiveParameters")
+                |> Array.toList
 
             let p =
                 node.path.join (VSCodeExtension.ionidePluginPath (), "watcher", "watcher.fsx")
