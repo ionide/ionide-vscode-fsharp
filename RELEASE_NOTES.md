@@ -1,3 +1,12 @@
+### 7.20.2 - 17.06.2024
+
+* Update to FSAC 0.73.2. This release splits out the settings for `FSharp.FSIExtraParameters` into two groups:
+  * `FSharp.FSIExtraInteractiveParameters`, used when actually launching FSI instances in VSCode
+  * `FSharp.FSIExtraSharedParameters` used when doing IDE analysis of scripts.
+  * Options like `--consolecolors` would go in `FSharp.FSIExtraInteractiveParameters`, while options like `--debug` would go in `FSharp.FSIExtraSharedParameters`. This should help prevent issues where FSI is launched with options that are not supported by the IDE analysis.
+* FSAC 0.73.2 also includes fixes for tooltip rendering of optional parameters and generic type parameters.
+* Bumped the F# textmate grammar to get [several](https://github.com/ionide/ionide-fsgrammar/pull/211) [really](https://github.com/ionide/ionide-fsgrammar/pull/212) [awesome](https://github.com/ionide/ionide-fsgrammar/pull/214) [fixes](https://github.com/ionide/ionide-fsgrammar/pull/215) from @brianrourkeboll
+
 ### 7.20.1 - 17.05.2024
 
 * Fixed: The .NET 8 build of FsAutoComplete wasn't being included in the build. Now it is!

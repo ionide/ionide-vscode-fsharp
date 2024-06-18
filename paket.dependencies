@@ -27,7 +27,7 @@ group fsac
 group build
   source https://api.nuget.org/v3/index.json
   storage: none
-  framework: net7.0
+  framework: net8.0
 
   nuget Fake.Core.Target
   nuget Fake.Core.Process
