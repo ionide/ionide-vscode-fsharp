@@ -358,10 +358,13 @@ module Fsi =
         let addWatcher = "FSharp.addFsiWatcher" |> Configuration.get false
 
         let parms: string array =
+            let getOptionalArray key : string[] option = Configuration.get None key
+
             let fsiParams =
                 Array.append
-                    (Configuration.get None "FSharp.fsiExtraParameters" |> Option.toArray)
-                    (Configuration.get None "FSharp.FSIExtraInteractiveParameters" |> Option.toArray)
+                    (getOptionalArray "FSharp.fsiExtraParameters" |> Option.defaultValue [||])
+                    (getOptionalArray "FSharp.FSIExtraInteractiveParameters"
+                     |> Option.defaultValue [||])
                 |> Array.toList
 
             let p =
