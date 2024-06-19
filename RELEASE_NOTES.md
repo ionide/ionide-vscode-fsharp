@@ -1,3 +1,7 @@
+### 7.20.3 - 19.06.2024
+
+* Fix regression in FSI argument forwarding
+
 ### 7.20.2 - 17.06.2024
 
 * Update to FSAC 0.73.2. This release splits out the settings for `FSharp.FSIExtraParameters` into two groups:
