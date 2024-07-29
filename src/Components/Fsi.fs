@@ -647,7 +647,7 @@ module Fsi =
 
             let! td = vscode.Uri.parse ("untitled:" + path) |> workspace.openTextDocument
 
-            let! te = window.showTextDocument (td, ViewColumn.Three)
+            let! te = window.showTextDocument (td, ViewColumn.Beside)
 
             let! _ =
                 te.edit (fun e ->
