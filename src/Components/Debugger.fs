@@ -53,6 +53,7 @@ module LaunchJsonVersion2 =
         }
 
 module Debugger =
+    open Node.Api
     let outputChannel = window.createOutputChannel "Ionide: Debugger"
 
     let private logger =
@@ -149,7 +150,10 @@ module Debugger =
             | projects ->
                 let picks =
                     projects
-                    |> List.map (fun p -> createObj [ "data" ==> p; "label" ==> p.Project ])
+                    |> List.map (fun p -> path.basename p.Project, p)
+                    |> List.sortBy fst
+                    |> List.map (fun (projectName, project) ->
+                        createObj [ "data" ==> project; "label" ==> projectName ])
                     |> ResizeArray
 
                 let! proj = window.showQuickPick (unbox<U2<ResizeArray<QuickPickItem>, _>> picks)
