@@ -22,13 +22,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Setup .NET Core
-      uses: actions/setup-dotnet@v2
+      uses: actions/setup-dotnet@v4
     - uses: actions/setup-node@v3
       with:
-        node-version: '16'
+        node-version: '22'
         cache: 'yarn'
     - name: Restore tools
       run: dotnet tool restore
-    - run: yarn global add vsce
+    - run: yarn global add @vscode/vsce
     - name: Run Test
       run: dotnet run --project build -- -t Build
