@@ -27,7 +27,7 @@ jobs:
       uses: actions/setup-dotnet@v2
     - uses: actions/setup-node@v3
       with:
-        node-version: '16'
+        node-version: '18'
         cache: 'yarn'
     - name: Restore tools
       run: dotnet tool restore
