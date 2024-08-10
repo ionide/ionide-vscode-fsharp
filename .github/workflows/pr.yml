@@ -29,6 +29,6 @@ jobs:
         cache: 'yarn'
     - name: Restore tools
       run: dotnet tool restore
-    - run: yarn global add vsce
+    - run: yarn global add @vscode/vsce
     - name: Run Test
       run: dotnet run --project build -- -t Build
