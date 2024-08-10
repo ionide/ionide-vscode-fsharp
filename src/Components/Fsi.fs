@@ -609,18 +609,17 @@ module Fsi =
 
         None
 
+    let private fsiInitCommandsForProject (project: Project) =
+        [| yield!
+               project.References
+               |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not)
+               |> Seq.map (sprintf "#r @\"%s\"")
+           yield! project.Files |> Seq.map (sprintf "#load @\"%s\"") |]
+
     let sendReferencesForProject project =
-        let references =
-            project.References
-            |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not)
-            |> Seq.toList
-
-        let sendReference terminal (path: ResolvedReferencePath) = send terminal $"#r @\"%s{path}\""
-
         promise {
             let! terminal = getTerminal ()
-
-            do! Promise.executeForAll (sendReference terminal) references
+            do! Promise.executeForAll (fun i -> send terminal i) (fsiInitCommandsForProject project)
         }
         |> Promise.suppress
         |> ignore
@@ -635,12 +634,7 @@ module Fsi =
         | None -> window.showErrorMessage ("File not in a project") |> ignore
 
     let generateProjectReferencesForProject project =
-        let ctn =
-            [| yield!
-                   project.References
-                   |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not)
-                   |> Seq.map (sprintf "#r @\"%s\"")
-               yield! project.Files |> Seq.map (sprintf "#load @\"%s\"") |]
+        let ctn = fsiInitCommandsForProject project
 
         promise {
             let path = node.path.join (workspace.rootPath.Value, "references.fsx")

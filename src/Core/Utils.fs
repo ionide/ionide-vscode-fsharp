@@ -316,11 +316,11 @@ module Promise =
     let suppress (pr: JS.Promise<'T>) =
         pr |> Promise.either (fun _ -> U2.Case1()) (fun _ -> U2.Case1())
 
-    let executeForAll f items =
-        match items with
-        | [] -> empty
-        | [ x ] -> f x
-        | x :: tail -> tail |> List.fold (fun acc next -> acc |> Promise.bind (fun _ -> f next)) (f x)
+    let executeForAll f (items: #seq<'t>) =
+        if Seq.isEmpty items then
+            empty
+        else
+            Seq.fold (fun acc next -> acc |> Promise.bind (fun _ -> f next)) (f (Seq.head items)) (Seq.skip 1 items)
 
     let mapExecuteForAll (f: 'a -> JS.Promise<'b>) items =
         let mutable collected = ResizeArray()
