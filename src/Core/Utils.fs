@@ -163,6 +163,11 @@ module Configuration =
             .getConfiguration()
             .update (key, value, configurationTarget = U2.Case1 ConfigurationTarget.Global)
 
+    let setForFsharpLanguageOnly key value target =
+        workspace
+            .getConfiguration(scope = ConfigurationScope.Case4 {| languageId = "fsharp"; uri = None |})
+            .update (key, value, configurationTarget = U2.Case1 target, overrideInLanguage = true)
+
 [<AutoOpen>]
 module Utils =
     open Fable.Core
