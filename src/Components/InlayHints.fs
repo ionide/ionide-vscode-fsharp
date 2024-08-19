@@ -11,7 +11,6 @@ let private logger =
 let mutable private toggleSupported = false
 
 module Config =
-    let enabled = "FSharp.inlayHints.enabled"
     let typeAnnotationsEnabled = "FSharp.inlayHints.typeAnnotations"
     let parameterNamesEnabled = "FSharp.inlayHints.parameterNames"
     let disableLongTooltip = "FSharp.inlayHints.disableLongTooltip"
@@ -31,12 +30,36 @@ let supportsToggle (vscodeVersion: string) =
     // toggle was introduced in 1.67.0, so any version of that should allow us to set the toggle
     Semver.semver.gte (U2.Case1 vscodeVersion, U2.Case1 "1.67.0", U2.Case2 compareOptions)
 
+let setLocalOrGlobalConfiguration configKey configValue =
+    if isUndefined workspace.workspaceFolders then
+        // do the config update at the user-level since no workspace is open
+        Configuration.setGlobal configKey configValue |> box |> Some
+    else
+        // do the config update at the workspace level
+        Configuration.set configKey configValue |> box |> Some
+
+let setLocalOrGlobalConfigurationForFSharpLanguage configKey configValue =
+    if isUndefined workspace.workspaceFolders then
+        // do the config update at the user-level since no workspace is open
+        Configuration.setForFsharpLanguageOnly configKey configValue ConfigurationTarget.Global
+        |> box
+        |> Some
+    else
+        // do the config update at the workspace level
+        Configuration.setForFsharpLanguageOnly configKey configValue ConfigurationTarget.Workspace
+        |> box
+        |> Some
+
+
 let activate (context: ExtensionContext) =
     toggleSupported <- supportsToggle vscode.version
 
     commands.registerCommand (
         Commands.disableLongTooltip,
-        (fun _ -> Configuration.set Config.disableLongTooltip (Some true) |> box |> Some)
+        (fun _ ->
+            setLocalOrGlobalConfiguration Config.disableLongTooltip (Some true)
+            |> box
+            |> Some)
     )
     |> context.Subscribe
 
@@ -44,24 +67,36 @@ let activate (context: ExtensionContext) =
         commands.registerCommand (
             Commands.setToToggle,
             (fun _ ->
-                Configuration.set Config.editorInlayHintsEnabled (Some "offUnlessPressed")
+                setLocalOrGlobalConfiguration Config.editorInlayHintsEnabled (Some "offUnlessPressed")
                 |> box
                 |> Some)
         )
         |> context.Subscribe
 
-    commands.registerCommand (Commands.hideAll, (fun _ -> Configuration.set Config.enabled (Some false) |> box |> Some))
+    commands.registerCommand (
+        Commands.hideAll,
+        (fun _ ->
+            setLocalOrGlobalConfigurationForFSharpLanguage Config.editorInlayHintsEnabled (Some "off")
+            |> box
+            |> Some)
+    )
     |> context.Subscribe
 
     commands.registerCommand (
         Commands.hideParameterNames,
-        (fun _ -> Configuration.set Config.parameterNamesEnabled (Some false) |> box |> Some)
+        (fun _ ->
+            setLocalOrGlobalConfiguration Config.parameterNamesEnabled (Some false)
+            |> box
+            |> Some)
     )
     |> context.Subscribe
 
     commands.registerCommand (
         Commands.hideTypeAnnotations,
-        (fun _ -> Configuration.set Config.typeAnnotationsEnabled (Some false) |> box |> Some)
+        (fun _ ->
+            setLocalOrGlobalConfiguration Config.typeAnnotationsEnabled (Some false)
+            |> box
+            |> Some)
     )
     |> context.Subscribe
 
