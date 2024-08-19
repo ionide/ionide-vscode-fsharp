@@ -1,3 +1,10 @@
+### 7.21.0 - 18.08.2024
+
+* Update to FSAC 0.74.0. This release includes the compiler update for NET SDK 8.0.400, as well as enhancements 
+  to constructor tooltips and some miscellaneous perf improvements to some places collections were used internally.
+* Fixed: the way we open the FSI generated references file to not assume a 3-column view.
+* Changed: Make 'Send references to FSI' and 'Generate references' commands use the same internal logic to reduce differences in behavior.
+
 ### 7.20.3 - 19.06.2024
 
 * Fix regression in FSI argument forwarding
