@@ -1,0 +1,7 @@
+contact_links:
+  - name: 🗨 Discussions
+    url: https://github.com/ionide/ionide-vscode-fsharp/discussions/new/choose
+    about: Ask and answer questions.
+  - name: 💬 Discord server
+    url: https://discord.gg/R6n7c54
+    about: Chat with the community.
