@@ -1,8 +1,3 @@
-### 7.21.1 - 07.09.2024
-
-* Updated to FSAC 0.74.1. This release includes fixes for the floating codelens issue users have reported, updates to the Fantomas integration to allow usage with the global-tool installation of fantomas, and an enhancement to the 'generate cases' code action for DU matches that allows it to generate cases even when no matches have been entered.
-* Updated the Ionide textmate grammar to get some more highlighting fixes
-
 ### 7.21.0 - 18.08.2024
 
 * Update to FSAC 0.74.0. This release includes the compiler update for NET SDK 8.0.400, as well as enhancements 
