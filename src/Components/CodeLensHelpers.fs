@@ -11,24 +11,18 @@ module CodeLensHelpers =
 
     type LspUri = string
 
-    type LspPosition = {
-        line : uint32
-        character : uint32
-    }
+    type LspPosition = { line: uint32; character: uint32 }
 
-    type LspRange = {
-        start : LspPosition
-        ``end`` : LspPosition
-    }
+    type LspRange =
+        { start: LspPosition
+          ``end``: LspPosition }
 
-    type LspLocation = {
-        uri : string
-        range : LspRange
-    }
+    type LspLocation = { uri: string; range: LspRange }
 
     type CustomIExports =
         abstract registerCommand:
-            command: string * callback: (LspUri -> LspPosition -> LspLocation seq -> obj option) * ?thisArg: obj -> Disposable
+            command: string * callback: (LspUri -> LspPosition -> LspLocation seq -> obj option) * ?thisArg: obj ->
+                Disposable
 
     let showReferences (uri: LspUri) (args2: LspPosition) (args3: LspLocation seq) =
         let uri = vscode.Uri.parse !!uri
@@ -54,5 +48,8 @@ module CodeLensHelpers =
 
     let activate (context: ExtensionContext) =
         (unbox<CustomIExports> commands)
-            .registerCommand ("fsharp.showReferences", unbox<(LspUri -> LspPosition -> LspLocation seq -> obj option)> (showReferences))
+            .registerCommand (
+                "fsharp.showReferences",
+                unbox<(LspUri -> LspPosition -> LspLocation seq -> obj option)> (showReferences)
+            )
         |> context.Subscribe
