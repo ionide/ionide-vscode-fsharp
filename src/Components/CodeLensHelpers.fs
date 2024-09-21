@@ -6,25 +6,45 @@ open Fable.Import.VSCode.Vscode
 
 module CodeLensHelpers =
 
+    // This data structure provided by FSAC, in CodeLensResolve:
+    // https://github.com/ionide/FsAutoComplete/blob/258fbc55053f585ea6ebd81a7dc10e4f3573aff6/src/FsAutoComplete/LspServers/AdaptiveFSharpLspServer.fs#L1637
+
+    type LspUri = string
+
+    type LspPosition = {
+        line : uint32
+        character : uint32
+    }
+
+    type DotnetNewListResponseRange = {
+        start : Position
+        ``end`` : Position
+    }
+
+    type LspLocation = {
+        uri : string
+        range : Range
+    }
+
     type CustomIExports =
         abstract registerCommand:
-            command: string * callback: (obj -> obj -> obj -> obj option) * ?thisArg: obj -> Disposable
+            command: string * callback: (LspUri -> LspPosition -> LspLocation seq -> obj option) * ?thisArg: obj -> Disposable
 
-    let showReferences (args: obj) (args2: obj) (args3: obj) =
-        let uri = vscode.Uri.parse !!args
-        let pos = vscode.Position.Create(!!args2?Line, !!args2?Character)
+    let showReferences (uri: LspUri) (args2: LspPosition) (args3: LspLocation seq) =
+        let uri = vscode.Uri.parse !!uri
+        let pos = vscode.Position.Create(float args2.line, float args2.character)
 
         let locs =
-            !!args3
+            args3
             |> Seq.map (fun f ->
-                let uri = vscode.Uri.parse !!f?Uri
-
+                let uri = vscode.Uri.parse f.uri
+                
                 let range =
                     vscode.Range.Create(
-                        !!f?Range?Start?Line,
-                        !!f?Range?Start?Character,
-                        !!f?Range?End?Line,
-                        !!f?Range?End?Character
+                        float f.range.start.line,
+                        float f.range.start.character,
+                        float f.range.``end``.line,
+                        float f.range.``end``.character
                     )
 
                 vscode.Location.Create(uri, !^range))
@@ -34,5 +54,5 @@ module CodeLensHelpers =
 
     let activate (context: ExtensionContext) =
         (unbox<CustomIExports> commands)
-            .registerCommand ("fsharp.showReferences", unbox<(obj -> obj -> obj -> obj option)> (showReferences))
+            .registerCommand ("fsharp.showReferences", unbox<(LspUri -> LspPosition -> LspLocation seq -> obj option)> (showReferences))
         |> context.Subscribe
