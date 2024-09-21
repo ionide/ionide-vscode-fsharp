@@ -16,14 +16,14 @@ module CodeLensHelpers =
         character : uint32
     }
 
-    type DotnetNewListResponseRange = {
-        start : Position
-        ``end`` : Position
+    type LspRange = {
+        start : LspPosition
+        ``end`` : LspPosition
     }
 
     type LspLocation = {
         uri : string
-        range : Range
+        range : LspRange
     }
 
     type CustomIExports =
@@ -38,7 +38,7 @@ module CodeLensHelpers =
             args3
             |> Seq.map (fun f ->
                 let uri = vscode.Uri.parse f.uri
-                
+
                 let range =
                     vscode.Range.Create(
                         float f.range.start.line,
