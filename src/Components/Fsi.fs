@@ -11,6 +11,8 @@ open DTO
 module node = Node.Api
 
 module Fsi =
+    open System.Text.RegularExpressions
+
     module SdkScriptsNotify =
 
         open Ionide.VSCode.FSharp
@@ -494,40 +496,33 @@ module Fsi =
             return terminal
         }
 
-    let detectTerminalSize (terminal: Terminal) =
-        promise {
-            let! terminalId = Promise.ofThenable terminal.processId
+    let private commentRegex =
+        Regex(@"\/{2,3}.+\S+", RegexOptions.ECMAScript)
 
-            match terminalId with
-            | Some id ->
-                let! terminalSize = execCommand "stty" [ "size"; "-F"; sprintf "/proc/%d/fd/0" id ]
-                let rows, cols = terminalSize.Split(' ') |> Array.map int |> fun arr -> arr.[0], arr.[1]
-                return Some(rows, cols)
-            | None -> return None
-        }
+    let private multilineCommentRegex =
+        Regex(@"\(\*[\s\S]*?\*\)", RegexOptions.ECMAScript)
+
+    // TODO: add support to detect terminal size? and reformat output
+    // not defined atm in typescript vscode...
 
     let private send (terminal: Terminal) (msg: string) =
-        let msgWithNewline = msg + (if msg.Contains "//" then "\n" else "") + ";;\n" // TODO: Useful ??
+        let noComments =
+            commentRegex.Replace(msg, "") |> fun s -> multilineCommentRegex.Replace(s, "")
+
+        let msgWithNewline =
+            noComments + (if noComments.Contains "//" then "\n" else "") + ";;\n" // TODO: Useful ??
+
         let linesCount = msgWithNewline |> Seq.filter ((=) '\n') |> Seq.length
 
         promise {
-            let! terminalSize = detectTerminalSize terminal
+            terminal.sendText (msgWithNewline, false)
+            lastSelectionSent <- Some noComments
 
-            match terminalSize with
-            | Some(rows, cols) ->
-                if linesCount > rows then
-                    window.showWarningMessage ("The line is too long for the terminal size. Consider resizing the terminal.")
-                    |> ignore
-                else
-                    terminal.sendText (msgWithNewline, false)
-                    lastSelectionSent <- Some msg
-
-                    lastCurrentLine <-
-                        match lastCurrentLine with
-                        | Some line -> line + linesCount
-                        | _ -> linesCount + 1
-                        |> Some
-            | None -> ()
+            lastCurrentLine <-
+                match lastCurrentLine with
+                | Some line -> line + linesCount
+                | _ -> linesCount + 1
+                |> Some
         }
         |> Promise.onFail (fun _ -> window.showErrorMessage ("Failed to send text to FSI") |> ignore)
         |> Promise.suppress
