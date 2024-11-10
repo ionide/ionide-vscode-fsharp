@@ -57,6 +57,13 @@ You find a version of this plugin pre-packaged with the FOSS debugger from Samsu
 - Solution / project explorer
 - And more...
 
+## New Feature: Handling Terminal Size and Long Lines in FSI Terminal
+
+This new feature addresses the issue of handling comments and long lines in the interactive mode of Ionide. It includes the following improvements:
+
+- Detecting terminal size and generating a message to inform users when the terminal is too small or the line is too long.
+- Modifying the way code is sent to the FSI terminal to handle comments and long lines better.
+
 ## How to Contribute
 
 Ths project is hosted on [GitHub](https://github.com/ionide/ionide-vscode-fsharp) where you can [report issues](https://github.com/ionide/ionide-vscode-fsharp/issues), participate in [discussions](https://github.com/ionide/ionide-vscode-fsharp/discussions), fork

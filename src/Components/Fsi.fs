@@ -494,19 +494,40 @@ module Fsi =
             return terminal
         }
 
+    let detectTerminalSize (terminal: Terminal) =
+        promise {
+            let! terminalId = Promise.ofThenable terminal.processId
+
+            match terminalId with
+            | Some id ->
+                let! terminalSize = execCommand "stty" [ "size"; "-F"; sprintf "/proc/%d/fd/0" id ]
+                let rows, cols = terminalSize.Split(' ') |> Array.map int |> fun arr -> arr.[0], arr.[1]
+                return Some(rows, cols)
+            | None -> return None
+        }
+
     let private send (terminal: Terminal) (msg: string) =
         let msgWithNewline = msg + (if msg.Contains "//" then "\n" else "") + ";;\n" // TODO: Useful ??
         let linesCount = msgWithNewline |> Seq.filter ((=) '\n') |> Seq.length
 
         promise {
-            terminal.sendText (msgWithNewline, false)
-            lastSelectionSent <- Some msg
+            let! terminalSize = detectTerminalSize terminal
 
-            lastCurrentLine <-
-                match lastCurrentLine with
-                | Some line -> line + linesCount
-                | _ -> linesCount + 1
-                |> Some
+            match terminalSize with
+            | Some(rows, cols) ->
+                if linesCount > rows then
+                    window.showWarningMessage ("The line is too long for the terminal size. Consider resizing the terminal.")
+                    |> ignore
+                else
+                    terminal.sendText (msgWithNewline, false)
+                    lastSelectionSent <- Some msg
+
+                    lastCurrentLine <-
+                        match lastCurrentLine with
+                        | Some line -> line + linesCount
+                        | _ -> linesCount + 1
+                        |> Some
+            | None -> ()
         }
         |> Promise.onFail (fun _ -> window.showErrorMessage ("Failed to send text to FSI") |> ignore)
         |> Promise.suppress
@@ -559,7 +580,13 @@ module Fsi =
 
                 let text = editor.document.getText range
 
-                do! send terminal text
+                // Skip comments
+                let textWithoutComments =
+                    text.Split('\n')
+                    |> Array.filter (fun line -> not (line.Trim().StartsWith("//")))
+                    |> String.concat "\n"
+
+                do! send terminal textWithoutComments
         }
 
     let private sendLastSelection () =
