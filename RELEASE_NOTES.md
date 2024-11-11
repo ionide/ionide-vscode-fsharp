@@ -1887,7 +1887,3 @@ New options
 
 #### 0.1.0 - 10.10.2015
 * We are live - yay!
-
-### 7.21.3 - 01.10.2024
-
-* ADDED: New feature to handle terminal size and long lines in the FSI terminal. This includes detecting terminal size and generating a message to inform users when the terminal is too small or the line is too long, and modifying the way code is sent to the FSI terminal to handle comments and long lines better.
