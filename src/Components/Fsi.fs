@@ -562,6 +562,34 @@ module Fsi =
                 do! send terminal text
         }
 
+    let private sendSelectionExtendedToWholeLine () =
+        let editor = window.activeTextEditor.Value
+
+        promise {
+            if editor.selection.isEmpty then
+                do! sendLine ()
+            else
+                // Note: Handle terminal stuff only in this part of the if/else branch
+                // because sendLine will already handle it for the other branch
+
+                let! terminal = getTerminal ()
+
+                sendCd terminal (Some editor)
+
+                let range =
+                    vscode.Range.Create(
+                        editor.selection.anchor.line,
+                        editor.selection.anchor.character,
+                        editor.selection.active.line,
+                        editor.selection.active.character
+                    )
+
+                let fullRange = vscode.Range.Create(range.start.line, 0, range.``end``.line + 1., 0)
+                let text = editor.document.getText fullRange
+
+                do! send terminal text
+        }
+
     let private sendLastSelection () =
         promise {
             match lastSelectionSent with
@@ -679,6 +707,9 @@ module Fsi =
         |> context.Subscribe
 
         commands.registerCommand ("fsi.SendSelection", sendSelection |> objfy2)
+        |> context.Subscribe
+
+        commands.registerCommand ("fsi.SendSelectionExtendedToWholeLine", sendSelectionExtendedToWholeLine |> objfy2)
         |> context.Subscribe
 
         commands.registerCommand ("fsi.SendLastSelection", sendLastSelection |> objfy2)
