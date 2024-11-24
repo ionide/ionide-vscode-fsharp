@@ -1,3 +1,9 @@
+### 7.22.0 - 24.11.2024
+
+* Update to FSAC 0.75.0. This release adds support for F# 9 language features and .NET 9 SDKs and tooling.
+* Removes support for .NET 6 and .NET 7 SDKs and tooling.
+* Added new configuration for using the DATAS Server GC Mode via the "FSharp.fsac.gc.useDatas" setting. This mode is enabled by default in .NET 9, disabled by default in .NET 8, and mutually exclusive with the pre-existing "Fsharp.fsac.gc.noAffinitize" and "Fsharp.fsac.gc.heapCount" settings.
+
 ### 7.21.2 - 21.09.2024
 
 * FIXED: [Fix Find References in CodeLens](https://github.com/ionide/ionide-vscode-fsharp/pull/2042) from @PaigeM80
