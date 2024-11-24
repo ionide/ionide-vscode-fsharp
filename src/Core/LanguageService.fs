@@ -705,11 +705,17 @@ Consider:
                 | None, Some true -> 9
                 | None, _ -> 0
 
-            let gcHeapCount = "FSharp.fsac.gc.heapCount" |> Configuration.get 2
 
             let gcServer = "FSharp.fsac.gc.server" |> Configuration.get true
 
-            let gcNoAffinitize = "Fsharp.fsac.gc.noAffinitize" |> Configuration.get true
+            let gcServerUseDatas: bool option =
+                "FSharp.fsac.gc.useDatas" |> Configuration.tryGet |> Option.bind tryBool
+
+            let gcNoAffinitize =
+                "Fsharp.fsac.gc.noAffinitize" |> Configuration.tryGet |> Option.bind tryBool
+
+            let gcHeapCount =
+                "FSharp.fsac.gc.heapCount" |> Configuration.tryGet |> Option.bind tryInt
 
             let parallelReferenceResolution =
                 "FSharp.fsac.parallelReferenceResolution" |> Configuration.get false
@@ -866,17 +872,43 @@ Consider:
                     // Only set DOTNET_GCHeapCount if we're on .NET 7 or higher
                     // .NET 6 has some issues with this env var on linux
                     // https://github.com/ionide/ionide-vscode-fsharp/issues/1899
-                    let versionSupportingEnvVars = (semver.parse (Some(U2.Case1 "7.0.0"))).Value
 
-                    let isNet7orHigher =
-                        semver.cmp (U2.Case2 sdkVersion, Operator.GTE, U2.Case2 versionSupportingEnvVars)
+                    let versionSupportingDATASGCMode = (semver.parse (Some(U2.Case1 "9.0.0"))).Value
+                    let isdotnet8 = sdkVersion.major = 8
+
+                    let isNet9orHigher =
+                        semver.cmp (U2.Case2 sdkVersion, Operator.GTE, U2.Case2 versionSupportingDATASGCMode)
+
+                    // datas is on by 9
+                    let useDatas =
+                        match gcServerUseDatas with
+                        | Some b -> b
+                        | None -> isNet9orHigher
+
+                    let gcNoAffinitize =
+                        match gcNoAffinitize with
+                        | Some b -> b
+                        | None -> isdotnet8 || not useDatas // no need to affinitize on 9 because Datas
+
+                    let gcHeapCount =
+                        match gcHeapCount with
+                        | Some i -> Some i
+                        | None -> if isdotnet8 then Some 2 else None
 
                     let fsacEnvVars =
                         [ yield! fsacEnvVars
-                          if isNet7orHigher then
+
+                          if useDatas then
+                              // DATAS and affinitization/heap management seem to be mutually exclusive, so we enforce that here.
+                              yield "DOTNET_GCDynamicAdaptationMode", box (boolToInt useDatas) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#dynamic-adaptation-to-application-sizes-datas
+                          else
                               // it doesn't really make sense to set GCNoAffinitize without setting GCHeapCount
                               yield "DOTNET_GCNoAffinitize", box (boolToInt gcNoAffinitize) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#affinitize
-                              yield "DOTNET_GCHeapCount", box (gcHeapCount.ToString("X")) // Requires hexadecimal value https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#heap-count
+
+                              yield!
+                                  gcHeapCount
+                                  |> Option.map (fun hc -> "DOTNET_GCHeapCount", box (hc.ToString("X")))
+                                  |> Option.toList // Requires hexadecimal value https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#heap-count
 
                           yield "DOTNET_GCConserveMemory", box gcConserveMemory //https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory
                           yield "DOTNET_GCServer", box (boolToInt gcServer) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#workstation-vs-server
