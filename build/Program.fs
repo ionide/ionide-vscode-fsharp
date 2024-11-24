@@ -309,7 +309,7 @@ let initTargets () =
 
 
     Target.create "CopyFSACNetcore" (fun _ ->
-        let tfms = [ "net6.0"; "net7.0"; "net8.0" ]
+        let tfms = [ "net8.0"; "net9.0" ]
 
         for tfm in tfms do
             let fsacBinNetcore = $"packages/fsac/fsautocomplete/tools/{tfm}/any"
