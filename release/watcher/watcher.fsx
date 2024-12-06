@@ -2,13 +2,20 @@ fsi.AddPrinter (fun (_: obj) ->
     let fsiAsm = "FSI-ASSEMBLY"
 
     let asmNum (asm:System.Reflection.Assembly) =
-        asm.GetName().Name.Replace(fsiAsm, "") |> System.Int32.TryParse |> fun (b,v) -> if b then v else 0
+        match asm.GetName().Name with
+        | null -> 0
+        | name -> name.Replace(fsiAsm, "") |> System.Int32.TryParse |> fun (b,v) -> if b then v else 0
 
     let fsiAssemblies =
         // use multiple assemblies (FSI-ASSEMBLY1, FSI-ASSEMBLY2...) if single isn't found
         let fsiAsms =
             System.AppDomain.CurrentDomain.GetAssemblies()
-            |> Array.filter (fun asm -> asm.GetName().Name.StartsWith fsiAsm)
+            |> Array.filter (fun asm ->
+                match asm.GetName().Name with
+                | null -> false
+                | name -> name.StartsWith fsiAsm
+            )
+
         fsiAsms
         |> Array.tryFind (fun asm -> asm.GetName().Name = fsiAsm)
         |> function
@@ -30,9 +37,14 @@ fsi.AddPrinter (fun (_: obj) ->
         |> Seq.sortBy (fun (_, (i, _)) -> i) //order by original index
         |> Seq.map (fun (_, (_, pi)) -> pi.Name, pi.GetValue(null, Array.empty), pi.PropertyType) //discard ordering index, project usuable watch value
 
+    let isFsiAssembly (ty:System.Type) =
+        match ty.FullName with
+        | null -> false
+        | name -> name.StartsWith("FSI")
+
     let getRecords (fsiAssembly:System.Reflection.Assembly) =
         fsiAssembly.GetTypes()
-        |> Seq.filter (fun ty -> ty.FullName.StartsWith("FSI"))
+        |> Seq.filter isFsiAssembly
         |> Seq.filter (Reflection.FSharpType.IsRecord)
         |> Seq.map (fun ty ->
             let flds =
@@ -43,9 +55,12 @@ fsi.AddPrinter (fun (_: obj) ->
 
     let getUnions (fsiAssembly:System.Reflection.Assembly) =
         fsiAssembly.GetTypes()
-        |> Seq.filter (fun ty -> ty.FullName.StartsWith("FSI"))
+        |> Seq.filter isFsiAssembly
         |> Seq.filter (Reflection.FSharpType.IsUnion)
-        |> Seq.filter (fun ty -> ty.BaseType.Name = "Object") //find DU declaration not DU cases
+        |> Seq.filter (fun ty ->
+            match ty.BaseType with
+            | null -> false
+            | ty -> ty.Name = "Object") //find DU declaration not DU cases
         |> Seq.map (fun ty ->
             let flds =
                 Reflection.FSharpType.GetUnionCases ty
@@ -60,7 +75,7 @@ fsi.AddPrinter (fun (_: obj) ->
 
     let getFuncs (fsiAssembly:System.Reflection.Assembly) =
         fsiAssembly.GetTypes()
-        |> Seq.filter (fun ty -> ty.FullName.StartsWith("FSI"))
+        |> Seq.filter isFsiAssembly
         |> Seq.filter (Reflection.FSharpType.IsModule)
         |> Seq.choose (fun ty ->
             let meth =
@@ -97,10 +112,9 @@ fsi.AddPrinter (fun (_: obj) ->
 
     let fromAssemblies folder =
         fsiAssemblies
-        |> Array.toList
-        |> Seq.map (fun asm -> asmNum asm, asm)
-        |> Seq.sortByDescending fst // assume later/higher assembly # always shadows
-        |> Seq.fold folder (Set.empty, Seq.empty)
+        |> Array.map (fun asm -> asmNum asm, asm)
+        |> Array.sortByDescending fst // assume later/higher assembly # always shadows
+        |> Array.fold folder (Set.empty, Seq.empty)
         |> snd
 
     let arrangeVars (state: Set<string> * seq<string>) (step, asm) =
@@ -123,7 +137,7 @@ fsi.AddPrinter (fun (_: obj) ->
                 let shadowed = (fst state).Contains name
                 let parms =
                     parms
-                    |> Seq.map (fun (n, t) -> n + ": " + t)
+                    |> Seq.map (fun (n, t) -> $"{n}: {t}")
                     |> String.concat "; "
                 formatVarsAndFuncs name parms typ step shadowed, name)
         let names =
@@ -199,4 +213,4 @@ fsi.AddPrinter (fun (_: obj) ->
     }
     |> Async.Start
 
-    null)
+    "")
