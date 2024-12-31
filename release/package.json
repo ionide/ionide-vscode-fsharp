@@ -859,7 +859,7 @@
           ]
         },
         "FSharp.unnecessaryParenthesesAnalyzer": {
-          "default": false,
+          "default": true,
           "description": "Enables detection of unnecessary parentheses",
           "type": "boolean"
         },
