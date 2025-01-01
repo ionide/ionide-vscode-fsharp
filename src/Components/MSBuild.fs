@@ -399,6 +399,7 @@ module MSBuild =
     let buildTaskListForSolution (s: WorkspacePeekFound) : JS.Promise<MSBuildTask seq> =
         promise {
             match s with
+            | WorkspacePeekFound.Fsproj _ -> return Seq.empty
             | WorkspacePeekFound.Directory _ -> return Seq.empty
             | WorkspacePeekFound.Solution({ Path = p }) ->
                 let! dotnet = dotnetBinary ()
