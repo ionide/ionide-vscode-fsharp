@@ -25,7 +25,7 @@ You find a version of this plugin pre-packaged with the FOSS debugger from Samsu
 
 # Requirements
 
-* .NET 6.0/7.0 SDK - https://dotnet.microsoft.com/download/dotnet/7.0
+* .NET 8.0/9.0 SDK - https://dotnet.microsoft.com/download/dotnet/7.0
 
 * VS Code C# plugin - Ionide's debugging capabilities rely on either the [Omnisharp](https://github.com/OmniSharp/omnisharp-vscode) debugger or [netcoredbg](https://github.com/muhammadsammy/free-omnisharp-vscode).
 
