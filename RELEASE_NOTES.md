@@ -1,3 +1,9 @@
+### 7.23.0 - 09.02.2024
+
+* [Update watcher.fsx to support nullness](https://github.com/ionide/ionide-vscode-fsharp/commit/5fcad2926ccf09d7c987ab6a409c481dda2c4610) from @isaacabraham
+* [Enable unnecessary parentheses analyzer by default](https://github.com/ionide/ionide-vscode-fsharp/pull/2057) from @brianrourkeboll
+* Update to FSAC 0.76.2 . Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.76.1) for more details.
+
 ### 7.22.0 - 24.11.2024
 
 * Update to FSAC 0.75.0. This release adds support for F# 9 language features and .NET 9 SDKs and tooling.

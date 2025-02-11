@@ -863,7 +863,7 @@
           ]
         },
         "FSharp.unnecessaryParenthesesAnalyzer": {
-          "default": false,
+          "default": true,
           "description": "Enables detection of unnecessary parentheses",
           "type": "boolean"
         },
@@ -1831,5 +1831,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.22.0"
+  "version": "7.23.0"
 }
