@@ -1,3 +1,7 @@
+### 7.23.1 - 12.02.2024
+
+* [Restore variable evaluation in FSI](https://github.com/ionide/ionide-vscode-fsharp/pull/2061) from @enzian
+
 ### 7.23.0 - 09.02.2024
 
 * [Update watcher.fsx to support nullness](https://github.com/ionide/ionide-vscode-fsharp/commit/5fcad2926ccf09d7c987ab6a409c481dda2c4610) from @isaacabraham
