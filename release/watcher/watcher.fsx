@@ -213,4 +213,4 @@ fsi.AddPrinter (fun (_: obj) ->
     }
     |> Async.Start
 
-    "")
+    null)
