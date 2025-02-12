@@ -137,7 +137,7 @@ fsi.AddPrinter (fun (_: obj) ->
                 let shadowed = (fst state).Contains name
                 let parms =
                     parms
-                    |> Seq.map (fun (n, t) -> $"{n}: {t}")
+                    |> Seq.map (fun (n, t) -> n + ": " + t)
                     |> String.concat "; "
                 formatVarsAndFuncs name parms typ step shadowed, name)
         let names =
