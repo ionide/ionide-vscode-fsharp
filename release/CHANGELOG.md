@@ -1,3 +1,12 @@
+
+### 7.24.0 - 12.02.2024
+
+* Update to FSAC 0.77.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.77.0) for more details.
+
+### 7.23.1 - 12.02.2024
+
+* [Restore variable evaluation in FSI](https://github.com/ionide/ionide-vscode-fsharp/pull/2061) from @enzian
+
 ### 7.23.0 - 09.02.2024
 
 * [Update watcher.fsx to support nullness](https://github.com/ionide/ionide-vscode-fsharp/commit/5fcad2926ccf09d7c987ab6a409c481dda2c4610) from @isaacabraham
