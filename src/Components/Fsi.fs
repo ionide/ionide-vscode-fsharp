@@ -321,17 +321,20 @@ module Fsi =
     let mutable lastCurrentFile: string option = None
     let mutable lastCurrentLine: int option = None
 
-    let private sendCd (terminal: Terminal) (textEditor: TextEditor option) =
+    let private sendCd (terminal: Terminal) (textEditor: TextEditor option) (overrideLine: int option) =
         let file, dir, line =
             match textEditor with
             | Some textEditor ->
                 let file = textEditor.document.fileName
                 let dir = node.path.dirname file
-                let line = int textEditor.selection.start.line + 1
+                let line = defaultArg overrideLine (int textEditor.selection.start.line + 1)
                 file, dir, line
+
             | None ->
                 let dir = workspace.rootPath.Value
-                node.path.join (dir, "tmp.fsx"), dir, 1
+                let file = node.path.join (dir, "tmp.fsx")
+                let line = defaultArg overrideLine 1
+                file, dir, line
 
         match lastCd with
         // Same dir as last time, no need to send it
@@ -612,7 +615,7 @@ module Fsi =
         promise {
             let! terminal = getTerminal ()
 
-            sendCd terminal (Some editor)
+            sendCd terminal (Some editor) (Some 1)
             do! send terminal text
         }
 
