@@ -332,9 +332,7 @@ module Fsi =
 
             | None ->
                 let dir = workspace.rootPath.Value
-                let file = node.path.join (dir, "tmp.fsx")
-                let line = defaultArg overrideLine 1
-                file, dir, line
+                node.path.join (dir, "tmp.fsx"), dir, 1
 
         match lastCd with
         // Same dir as last time, no need to send it
@@ -474,7 +472,7 @@ module Fsi =
             fsiTerminal <- Some terminal
 
             // initially have to set up the terminal to be in the correct start directory
-            sendCd newTerminal window.activeTextEditor
+            sendCd newTerminal window.activeTextEditor None
 
             return newTerminal
         }
@@ -532,7 +530,7 @@ module Fsi =
             let pos = editor.selection.start
             let line = editor.document.lineAt pos
 
-            sendCd terminal (Some editor)
+            sendCd terminal (Some editor) None
 
             do! send terminal line.text
             do! moveCursorDownOneLine ()
@@ -550,7 +548,7 @@ module Fsi =
 
                 let! terminal = getTerminal ()
 
-                sendCd terminal (Some editor)
+                sendCd terminal (Some editor) None
 
                 let range =
                     vscode.Range.Create(
@@ -577,7 +575,7 @@ module Fsi =
 
                 let! terminal = getTerminal ()
 
-                sendCd terminal (Some editor)
+                sendCd terminal (Some editor) None
 
                 let range =
                     vscode.Range.Create(
