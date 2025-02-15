@@ -1,9 +1,15 @@
 
-### 7.24.0 - 12.02.2024
+### 7.25.0 - 14.02.2025
+
+* Update to FSAC 0.77.1. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.77.1) for more details.
+    * This fixes an issue with trying to design time build projects that can't be built
+* [add command to send selection extended to whole line](https://github.com/ionide/ionide-vscode-fsharp/pull/2051) from @yuuuxt
+
+### 7.24.0 - 12.02.2025
 
 * Update to FSAC 0.77.0. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.77.0) for more details.
 
-### 7.23.1 - 12.02.2024
+### 7.23.1 - 12.02.2025
 
 * [Restore variable evaluation in FSI](https://github.com/ionide/ionide-vscode-fsharp/pull/2061) from @enzian
 
