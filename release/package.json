@@ -93,6 +93,10 @@
         "title": "FSI: Send Selection"
       },
       {
+        "command": "fsi.SendSelectionExtendedToWholeLine",
+        "title": "FSI: Send Selection Extended To Whole Line"
+      },
+      {
         "command": "fsi.SendLastSelection",
         "title": "FSI: Send Last Selection"
       },
@@ -1016,6 +1020,12 @@
         "when": "editorFocus \u0026\u0026 !findWidgetVisible \u0026\u0026 editorLangId == \u0027fsharp\u0027"
       },
       {
+        "command": "fsi.SendSelectionExtendedToWholeLine",
+        "key": "alt\u002Bshift\u002BEnter",
+        "mac": "alt\u002Bshift\u002BEnter",
+        "when": "editorFocus \u0026\u0026 !findWidgetVisible \u0026\u0026 editorLangId == \u0027fsharp\u0027"
+      },
+      {
         "command": "fsharp.generateDoc",
         "key": "alt\u002Bshift\u002Bj",
         "when": "editorFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027"
@@ -1193,6 +1203,10 @@
         },
         {
           "command": "fsi.SendSelection",
+          "when": "editorLangId == \u0027fsharp\u0027"
+        },
+        {
+          "command": "fsi.SendSelectionExtendedToWholeLine",
           "when": "editorLangId == \u0027fsharp\u0027"
         },
         {
