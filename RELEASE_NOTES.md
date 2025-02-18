@@ -2,7 +2,7 @@
 ### 7.25.1 - 17.02.2025
 
 * Update to FSAC 0.77.2. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.77.2) for more details.
-    * This fixes an issue with trying to design time build projects that can't be built
+    * Fixes slow builds when using binlogs with Graph based builds
 
 ### 7.25.0 - 14.02.2025
 
