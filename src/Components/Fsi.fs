@@ -321,14 +321,15 @@ module Fsi =
     let mutable lastCurrentFile: string option = None
     let mutable lastCurrentLine: int option = None
 
-    let private sendCd (terminal: Terminal) (textEditor: TextEditor option) =
+    let private sendCd (terminal: Terminal) (textEditor: TextEditor option) (overrideLine: int option) =
         let file, dir, line =
             match textEditor with
             | Some textEditor ->
                 let file = textEditor.document.fileName
                 let dir = node.path.dirname file
-                let line = int textEditor.selection.start.line + 1
+                let line = defaultArg overrideLine (int textEditor.selection.start.line + 1)
                 file, dir, line
+
             | None ->
                 let dir = workspace.rootPath.Value
                 node.path.join (dir, "tmp.fsx"), dir, 1
@@ -471,7 +472,7 @@ module Fsi =
             fsiTerminal <- Some terminal
 
             // initially have to set up the terminal to be in the correct start directory
-            sendCd newTerminal window.activeTextEditor
+            sendCd newTerminal window.activeTextEditor None
 
             return newTerminal
         }
@@ -529,7 +530,7 @@ module Fsi =
             let pos = editor.selection.start
             let line = editor.document.lineAt pos
 
-            sendCd terminal (Some editor)
+            sendCd terminal (Some editor) None
 
             do! send terminal line.text
             do! moveCursorDownOneLine ()
@@ -547,7 +548,7 @@ module Fsi =
 
                 let! terminal = getTerminal ()
 
-                sendCd terminal (Some editor)
+                sendCd terminal (Some editor) None
 
                 let range =
                     vscode.Range.Create(
@@ -574,7 +575,7 @@ module Fsi =
 
                 let! terminal = getTerminal ()
 
-                sendCd terminal (Some editor)
+                sendCd terminal (Some editor) None
 
                 let range =
                     vscode.Range.Create(
@@ -612,7 +613,7 @@ module Fsi =
         promise {
             let! terminal = getTerminal ()
 
-            sendCd terminal (Some editor)
+            sendCd terminal (Some editor) (Some 1)
             do! send terminal text
         }
 
