@@ -867,6 +867,20 @@
           "description": "Enables detection of unnecessary parentheses",
           "type": "boolean"
         },
+        "FSharp.unnecessaryParenthesesAnalyzerExclusions": {
+          "default": [
+            ".*\\.g\\.fs",
+            ".*\\.cg\\.fs"
+          ],
+          "description": "A set of regex patterns to exclude from the unnecessary parentheses analyzer",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "required": [
+            "FSharp.unnecessaryParenthesesAnalyzer"
+          ]
+        },
         "FSharp.smartIndent": {
           "default": false,
           "description": "Enables smart indent feature",
