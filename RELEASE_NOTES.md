@@ -1,4 +1,9 @@
 
+### 7.25.3 - 02.03.2025
+
+* [Add exclusion config for parens analyzer](https://github.com/ionide/ionide-vscode-fsharp/pull/2070) from @brianrourkeboll
+* Update to FSAC 0.77.3. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.77.3) for more details.
+
 ### 7.25.2 - 18.02.2025
 
 * [Fix #2064 -- Fsi: Send File Problem](https://github.com/ionide/ionide-vscode-fsharp/pull/2065) from @LH-and-FPGA
