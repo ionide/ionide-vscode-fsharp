@@ -24,7 +24,7 @@ assignees: ''
 ### Screenshots
 <!--If applicable, add screenshots to help explain your problem.  -->
 
-## Machine info
+### Machine infos
  - OS: Windows/Mac/Linux
  - .NET SDK version: [e.g. 5.0.100]
  - Ionide version: [e.g 5.0.1, don't use descriptions like `latest` ]
