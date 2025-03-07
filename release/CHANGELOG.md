@@ -1,4 +1,8 @@
 
+### 7.25.5 - 06.03.2025
+
+* Bump to get OpenVSIX deploy working
+
 ### 7.25.4 - 06.03.2025
 
 * Update to FSAC 0.77.4. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.77.4) for more details.
