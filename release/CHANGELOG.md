@@ -1,4 +1,8 @@
 
+### 7.25.4 - 06.03.2025
+
+* Update to FSAC 0.77.4. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.77.4) for more details.
+
 ### 7.25.3 - 02.03.2025
 
 * [Add exclusion config for parens analyzer](https://github.com/ionide/ionide-vscode-fsharp/pull/2070) from @brianrourkeboll
