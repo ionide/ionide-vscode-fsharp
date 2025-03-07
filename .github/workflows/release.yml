@@ -49,7 +49,7 @@ jobs:
     - name: Build OpenVsix package
       run: dotnet run --project build -- -t BuildPackageOpenVsix
     - name: Publish to Open VSX Registry
-      uses: HaaLeo/publish-vscode-extension@v1
+      uses: HaaLeo/publish-vscode-extension@v2
       id: publishToOpenVSX
       with:
         packagePath: "./release"
