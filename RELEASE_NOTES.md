@@ -1,4 +1,8 @@
 
+### 7.25.6 - 16.03.2025
+
+* Fix [#1018](https://github.com/ionide/ionide-vscode-fsharp/issues/1018) - [Prevent solution explorer from stealing focus](https://github.com/ionide/ionide-vscode-fsharp/pull/2075) from @TheAngryByrd
+
 ### 7.25.5 - 06.03.2025
 
 * Bump to get OpenVSIX deploy working
