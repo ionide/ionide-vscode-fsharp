@@ -36,7 +36,7 @@ let private activateLanguageServiceRestart (context: ExtensionContext) =
 let activate (context: ExtensionContext) : JS.Promise<Api> =
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
 
-    let showExplorer = "FSharp.showExplorerOnStartup" |> Configuration.get true
+    let showExplorer = "FSharp.showExplorerOnStartup" |> Configuration.get false
 
     let tryActivate label activationFn =
         fun ctx ->
