@@ -1,4 +1,9 @@
 
+
+### 7.25.7 - 25.03.2025
+
+* Update to FSAC 0.77.5. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.77.5) for more details.
+
 ### 7.25.6 - 16.03.2025
 
 * Fix [#1018](https://github.com/ionide/ionide-vscode-fsharp/issues/1018) - [Prevent solution explorer from stealing focus](https://github.com/ionide/ionide-vscode-fsharp/pull/2075) from @TheAngryByrd
