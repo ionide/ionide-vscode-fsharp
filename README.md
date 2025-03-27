@@ -59,7 +59,7 @@ You find a version of this plugin pre-packaged with the FOSS debugger from Samsu
 
 ## How to Contribute
 
-Ths project is hosted on [GitHub](https://github.com/ionide/ionide-vscode-fsharp) where you can [report issues](https://github.com/ionide/ionide-vscode-fsharp/issues), participate in [discussions](https://github.com/ionide/ionide-vscode-fsharp/discussions), fork
+This project is hosted on [GitHub](https://github.com/ionide/ionide-vscode-fsharp) where you can [report issues](https://github.com/ionide/ionide-vscode-fsharp/issues), participate in [discussions](https://github.com/ionide/ionide-vscode-fsharp/discussions), fork
 the project and submit pull requests.
 
 ### Building and Running
