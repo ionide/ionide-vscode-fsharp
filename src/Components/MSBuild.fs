@@ -24,7 +24,7 @@ module MSBuild =
             | Ok msbuild -> Promise.lift msbuild
             | Error msg -> Promise.reject (exn msg))
 
-    let invokeMSBuildWithCancel project target (cancellationToken: CancellationToken) =
+    let invokeMSBuildWithCancel project target (cancellationToken: CancellationToken) args =
 
         if cancellationToken.isCancellationRequested then
             promise { return { Code = None; Signal = Some "SIGINT" } }
@@ -33,12 +33,17 @@ module MSBuild =
                 let cfg = workspace.getConfiguration ()
                 cfg.get ("FSharp.msbuildAutoshow", false)
 
-            let command = [ project; $"/t:%s{target}" ]
+            let command =
+                [
+                    project;
+                   // $"/t:%s{target}"
+                ]
+                @ args
 
             let executeWithHost () =
                 promise {
                     let! msbuildPath = dotnetBinary ()
-                    let cmd = ResizeArray("msbuild" :: command)
+                    let cmd = ResizeArray("build" :: command)
                     logger.Info("invoking msbuild from %s on %s for target %s", msbuildPath, project, target)
 
                     if autoshow then
@@ -222,7 +227,7 @@ module MSBuild =
                     }
         }
 
-    let buildProjectPath target (project: Project) = invokeMSBuild project.Project target
+    let buildProjectPath target (project: Project) = invokeMSBuild project.Project target []
 
     let buildProjectPathFast (project: Project) =
         promise {
@@ -252,7 +257,7 @@ module MSBuild =
 
                                 p.report pm
 
-                                invokeMSBuild path "Restore" |> Promise.bind continuation |> Promise.toThenable)
+                                invokeMSBuild path "Restore" [] |> Promise.bind continuation |> Promise.toThenable)
                         )
                         |> Promise.ofThenable
                         |> Async.AwaitPromise
