@@ -240,6 +240,7 @@ module TestFrameworkId =
 type TestResult =
     { FullTestName: string
       Outcome: TestResultOutcome
+      Output: string option
       ErrorMessage: string option
       ErrorStackTrace: string option
       Expected: string option
@@ -312,13 +313,12 @@ module TrxParser =
         { Message: string option
           StackTrace: string option }
 
-    type Output = { ErrorInfo: ErrorInfo }
-
     type UnitTestResult =
         { ExecutionId: string
           Outcome: string
           Duration: TimeSpan
-          Output: Output }
+          Output: string option
+          ErrorInfo: ErrorInfo }
 
     type TestWithResult =
         { UnitTest: UnitTest
@@ -376,6 +376,8 @@ module TrxParser =
 
             let outcome = xpathSelector.SelectStringRelative(node, "@outcome")
 
+            let outputMessage = xpathSelector.TrySelectStringRelative(node, "t:Output/t:StdOut")
+
             let errorInfoMessage =
                 xpathSelector.TrySelectStringRelative(node, "t:Output/t:ErrorInfo/t:Message")
 
@@ -387,14 +389,13 @@ module TrxParser =
                 let success, ts = TimeSpan.TryParse(durationString)
                 if success then ts else TimeSpan.Zero
 
-
             { ExecutionId = executionId
               Outcome = outcome
               Duration = durationSpan
-              Output =
-                { ErrorInfo =
-                    { StackTrace = errorStackTrace
-                      Message = errorInfoMessage } } }
+              Output = outputMessage
+              ErrorInfo =
+                { StackTrace = errorStackTrace
+                  Message = errorInfoMessage } }
 
         xpathSelector.SelectNodes "/t:TestRun/t:Results/t:UnitTestResult"
         |> Array.map extractRow
@@ -1237,7 +1238,12 @@ module Interactions =
 
         match testResult.Outcome with
         | TestResultOutcome.NotExecuted -> testRun.skipped testItem
-        | TestResultOutcome.Passed -> testRun.passed (testItem, testResult.Timing)
+        | TestResultOutcome.Passed ->
+            testResult.Output
+            |> Option.iter (TestRun.appendOutputLineForTest testRun testItem)
+
+            testRun.passed (testItem, testResult.Timing)
+
         | TestResultOutcome.Failed ->
             let fullErrorMessage =
                 match testResult.ErrorMessage with
@@ -1248,10 +1254,10 @@ module Interactions =
                 | None -> "No error reported"
 
             let msg = vscode.TestMessage.Create(!^fullErrorMessage)
-
             msg.location <- TestItem.tryGetLocation testItem
             msg.expectedOutput <- testResult.Expected
             msg.actualOutput <- testResult.Actual
+
             TestRun.showFailure testRun testItem msg testResult.Timing
 
     let mergeTestResultsToExplorer
@@ -1303,9 +1309,8 @@ module Interactions =
             displayTestResultInExplorer testRun (treeItem, additionalResult))
 
     let private trxResultToTestResult (trxResult: TrxParser.TestWithResult) =
-        // Q: can I get these parameters down to just trxResult?
         let expected, actual =
-            match trxResult.UnitTestResult.Output.ErrorInfo.Message with
+            match trxResult.UnitTestResult.ErrorInfo.Message with
             | None -> None, None
             | Some message ->
                 let lines =
@@ -1320,8 +1325,9 @@ module Interactions =
 
         { FullTestName = trxResult.UnitTest.FullName
           Outcome = !!trxResult.UnitTestResult.Outcome
-          ErrorMessage = trxResult.UnitTestResult.Output.ErrorInfo.Message
-          ErrorStackTrace = trxResult.UnitTestResult.Output.ErrorInfo.StackTrace
+          Output = trxResult.UnitTestResult.Output
+          ErrorMessage = trxResult.UnitTestResult.ErrorInfo.Message
+          ErrorStackTrace = trxResult.UnitTestResult.ErrorInfo.StackTrace
           Expected = expected
           Actual = actual
           Timing = trxResult.UnitTestResult.Duration.Milliseconds
