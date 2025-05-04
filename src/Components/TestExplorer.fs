@@ -313,12 +313,15 @@ module TrxParser =
         { Message: string option
           StackTrace: string option }
 
+    type Output =
+        { StdOut: string option
+          ErrorInfo: ErrorInfo }
+
     type UnitTestResult =
         { ExecutionId: string
           Outcome: string
           Duration: TimeSpan
-          Output: string option
-          ErrorInfo: ErrorInfo }
+          Output: Output }
 
     type TestWithResult =
         { UnitTest: UnitTest
@@ -392,10 +395,11 @@ module TrxParser =
             { ExecutionId = executionId
               Outcome = outcome
               Duration = durationSpan
-              Output = outputMessage
-              ErrorInfo =
-                { StackTrace = errorStackTrace
-                  Message = errorInfoMessage } }
+              Output =
+                { StdOut = outputMessage
+                  ErrorInfo =
+                    { StackTrace = errorStackTrace
+                      Message = errorInfoMessage } } }
 
         xpathSelector.SelectNodes "/t:TestRun/t:Results/t:UnitTestResult"
         |> Array.map extractRow
@@ -1310,7 +1314,7 @@ module Interactions =
 
     let private trxResultToTestResult (trxResult: TrxParser.TestWithResult) =
         let expected, actual =
-            match trxResult.UnitTestResult.ErrorInfo.Message with
+            match trxResult.UnitTestResult.Output.ErrorInfo.Message with
             | None -> None, None
             | Some message ->
                 let lines =
@@ -1325,9 +1329,9 @@ module Interactions =
 
         { FullTestName = trxResult.UnitTest.FullName
           Outcome = !!trxResult.UnitTestResult.Outcome
-          Output = trxResult.UnitTestResult.Output
-          ErrorMessage = trxResult.UnitTestResult.ErrorInfo.Message
-          ErrorStackTrace = trxResult.UnitTestResult.ErrorInfo.StackTrace
+          Output = trxResult.UnitTestResult.Output.StdOut
+          ErrorMessage = trxResult.UnitTestResult.Output.ErrorInfo.Message
+          ErrorStackTrace = trxResult.UnitTestResult.Output.ErrorInfo.StackTrace
           Expected = expected
           Actual = actual
           Timing = trxResult.UnitTestResult.Duration.Milliseconds
