@@ -107,6 +107,7 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
         tryActivate "testExplorer" TestExplorer.activate context
         tryActivate "inlayhints" InlayHints.activate context
         tryActivate "languageservice" activateLanguageServiceRestart context
+        tryActivate "otel" OTel.activate context
 
         let buildProject project =
             promise {
