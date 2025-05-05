@@ -1,5 +1,10 @@
 
 
+### 7.25.8 - 05.05.2025
+
+* Update to FSAC 0.77.7. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.77.7) for more details.
+* Log standard out on passing tests (#2082)[https://github.com/ionide/ionide-vscode-fsharp/pull/2082] from @pblasucci
+
 ### 7.25.7 - 25.03.2025
 
 * Update to FSAC 0.77.5. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.77.5) for more details.
