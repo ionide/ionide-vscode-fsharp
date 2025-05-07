@@ -391,8 +391,60 @@ module Fsi =
             match dotnet with
             | Ok dotnet ->
                 let! fsiSetting = LanguageService.fsiSdk ()
+                let! (_, fsacPath) = LanguageService.SdkResolution.resolvedFsacPathForAmbientSdkTargetFramework ()
+
+                let fsacPath =
+                    if fsacPath.EndsWith ".dll" then
+                        let lastIndex =
+                            [ fsacPath.LastIndexOf "/"; fsacPath.LastIndexOf @"\\" ]
+                            |> Seq.sortDescending
+                            |> Seq.tryHead
+
+                        match lastIndex with
+                        | Some lastIndex when lastIndex > 0 -> fsacPath.Substring(0, lastIndex)
+                        | None
+                        | Some _ -> fsacPath
+                    else
+                        fsacPath
+
                 let fsiArg = defaultArg fsiSetting "fsi"
-                return dotnet, [| yield fsiArg; yield! parms |]
+
+                let parms =
+                    let useFsacDirectoryAsCompilerTool =
+                        "FSharp.fsiUsesFSACDirectoryForCompilerTool" |> Configuration.get false
+
+                    let p =
+                        node.path.join (VSCodeExtension.ionidePluginPath (), "watcher", "watcher.fsx")
+
+                    let fsiParams =
+                        let userParams =
+                            "FSharp.fsiExtraParameters"
+                            |> Configuration.get Array.empty<string>
+                            |> List.ofArray
+
+                        if useFsacDirectoryAsCompilerTool then
+                            userParams @ [ $"--compilertool:{fsacPath}" ]
+                        else
+                            userParams
+
+                    let fsiParams =
+                        let addWatcher = "FSharp.addFsiWatcher" |> Configuration.get false
+
+                        if addWatcher then
+                            [ "--load:" + p ] @ fsiParams
+                        else
+                            fsiParams
+
+                    if Environment.isWin then
+                        // these flags are added to work around issues with the vscode terminal shell on windows
+                        [ "--fsi-server-input-codepage:28591"; "--fsi-server-output-codepage:65001" ]
+                        @ fsiParams
+                    else
+                        fsiParams
+
+                let args = [| fsiArg; yield! parms |]
+
+                return dotnet, args
             | Error msg -> return failwith msg
         }
 
