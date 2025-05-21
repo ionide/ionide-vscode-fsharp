@@ -1831,8 +1831,12 @@
   "engines": {
     "vscode": "^0.10.0"
   },
+  "extensionPack": [
+    "ms-dotnettools.csharp",
+    "anyshere.csharp",
+    "muhammad-sammy.csharp"
+  ],
   "extensionDependencies": [
-    "ms-dotnettools.csharp"
   ],
   "homepage": "http://ionide.io",
   "icon": "images/logo.png",
