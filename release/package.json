@@ -1833,7 +1833,7 @@
   },
   "extensionPack": [
     "ms-dotnettools.csharp",
-    "anyshere.csharp",
+    "anysphere.csharp",
     "muhammad-sammy.csharp"
   ],
   "extensionDependencies": [
