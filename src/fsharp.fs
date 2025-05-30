@@ -13,6 +13,15 @@ open Node.ChildProcess
 let private logger =
     ConsoleAndOutputChannelLogger(Some "Main", Level.DEBUG, Some defaultOutputChannel, Some Level.DEBUG)
 
+let private requiredExtensions =
+    [ "ms-dotnettools.csharp" // VSCode C# extension
+      "anysphere.csharp" // Cursor C# extension
+      "muhammad-sammy.csharp" ] // Free/Libre C# extension
+
+let private checkCSharpExtension () =
+    requiredExtensions
+    |> List.exists (fun extId -> extensions.getExtension extId |> Option.isSome)
+
 type Api =
     { ProjectLoadedEvent: Event<DTO.Project>
       BuildProject: DTO.Project -> JS.Promise<string>
@@ -33,7 +42,7 @@ let private activateLanguageServiceRestart (context: ExtensionContext) =
     commands.registerCommand ("fsharp.restartLanguageService", restart |> objfy2)
     |> context.Subscribe
 
-let activate (context: ExtensionContext) : JS.Promise<Api> =
+let private doActivate (context: ExtensionContext) : JS.Promise<Api> =
     let solutionExplorer = "FSharp.enableTreeView" |> Configuration.get true
 
     let showExplorer = "FSharp.showExplorerOnStartup" |> Configuration.get false
@@ -139,6 +148,25 @@ let activate (context: ExtensionContext) : JS.Promise<Api> =
     |> Promise.catch (fun e ->
         logger.Error $"Error activating features: %A{e}"
         Unchecked.defaultof<_>)
+
+let activate (context: ExtensionContext) : JS.Promise<Api> =
+    // Check for C# extension at runtime
+    if not (checkCSharpExtension ()) then
+        let extensionList =
+            requiredExtensions
+            |> List.rev
+            |> function
+                | [] -> ""
+                | [ x ] -> x
+                | last :: rest ->
+                    let restStr = rest |> List.rev |> String.concat ", "
+                    $"{restStr} or {last}"
+
+        window.showErrorMessage ($"Ionide requires one of the following C# extensions to be installed: {extensionList}")
+        |> Promise.ofThenable
+        |> Promise.map (fun _ -> Unchecked.defaultof<_>)
+    else
+        doActivate context
 
 
 let deactivate (disposables: Disposable[]) = LanguageService.stop ()
