@@ -1,4 +1,8 @@
 
+### 7.26.1 - 01.06.2025
+
+* Update to FSAC 0.78.3. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.78.3) for more details.
+
 ### 7.26.0 - 01.06.2025
 
 * Remove the explicit dependency on any C# extension, and instead recommend the appropriate C# extension for the client (VSCode, Codium, Cursor, etc) via an 'extension pack'. [ionide/ionide-vscode-fsharp#2088](https://github.com/ionide/ionide-vscode-fsharp/pull/2088) - thanks @dbrattli!
