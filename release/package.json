@@ -1836,8 +1836,7 @@
     "anysphere.csharp",
     "muhammad-sammy.csharp"
   ],
-  "extensionDependencies": [
-  ],
+  "extensionDependencies": [],
   "homepage": "http://ionide.io",
   "icon": "images/logo.png",
   "license": "MIT",
@@ -1849,5 +1848,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.25.10"
+  "version": "7.26.0"
 }

@@ -1,4 +1,8 @@
 
+### 7.26.0 - 01.06.2025
+
+* Remove the explicit dependency on any C# extension, and instead recommend the appropriate C# extension for the client (VSCode, Codium, Cursor, etc) via an 'extension pack'. [ionide/ionide-vscode-fsharp#2088](https://github.com/ionide/ionide-vscode-fsharp/pull/2088) - thanks @dbrattli!
+
 ### 7.25.10 - 17.05.2025
 
 * Update to FSAC 0.78.1. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.78.1) for more details.
