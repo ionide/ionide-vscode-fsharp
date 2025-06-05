@@ -578,7 +578,12 @@ module DotnetCli =
                 childEnv |> box |> Some
 
             Process.execWithCancel "dotnet" (ResizeArray(args)) env tryLaunchDebugger cancellationToken
-        | NoDebug -> Process.execWithCancel "dotnet" (ResizeArray(args)) None ignore cancellationToken
+        | NoDebug ->
+            let env =
+                let staleOverrides = {| VSTEST_HOST_DEBUG = 0 |}
+                staleOverrides |> box |> Some
+
+            Process.execWithCancel "dotnet" (ResizeArray(args)) env ignore cancellationToken
 
 
     type TrxPath = string
