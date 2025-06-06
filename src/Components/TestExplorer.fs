@@ -1053,7 +1053,7 @@ module TestDiscovery =
             removed |> Array.map TestItem.getId |> Array.iter targetCollection.delete
 
             added
-            |> Array.filter (TestItem.getId >> isKnownDisplacedFragment)
+            |> Array.filter (TestItem.getId >> isKnownDisplacedFragment >> not)
             |> Array.iter targetCollection.add
 
             unchanged
