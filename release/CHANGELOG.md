@@ -1,4 +1,8 @@
 
+### 7.26.2 - 10.06.2025
+
+* [Update stale VSTEST_HOST_DEBUG env var on non debug test run](https://github.com/ionide/ionide-vscode-fsharp/pull/2091) from @rowanhwilliams.
+
 ### 7.26.1 - 01.06.2025
 
 * Update to FSAC 0.78.3. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.78.3) for more details.
