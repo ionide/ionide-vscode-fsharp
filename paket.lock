@@ -241,4 +241,4 @@ STORAGE: PACKAGES
 RESTRICTION: == netstandard2.0
 NUGET
   remote: https://api.nuget.org/v3/index.json
-    fsautocomplete (0.78.3)
+    fsautocomplete (0.78.4)
