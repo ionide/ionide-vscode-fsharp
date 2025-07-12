@@ -259,7 +259,7 @@ Please provide as much detail and context as possible.
     1. If possible link the pull request of the changes and mention the author of the pull request
     2. If updating FSAC mention the version of FSAC that is being updated to and link it's release notes
 3. Commit `RELEASE_NOTES.md`
-    1. `git commit -m "Bump version to x.x.x"`
+    1. `git commit -m "Release notes for x.x.x"`
     2. `git push [remote-branch] main`
 4. [Goto the Release workflow on Github Action](https://github.com/ionide/ionide-vscode-fsharp/actions/workflows/release.yml)
     1. Click `Run workflow` in the upper right
