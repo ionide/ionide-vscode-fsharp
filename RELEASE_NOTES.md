@@ -1,6 +1,10 @@
+### 7.26.4 - 19.07.2025
+
+* [Fix macos test discovery, update stale env var with process.env vars](https://github.com/ionide/ionide-vscode-fsharp/pull/2096) from @rowanhwilliams.
+
 ### 7.26.3 - 12.07.2025
 
-* * Update to FSAC 0.78.4. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.78.4) for more details.
+* Update to FSAC 0.78.4. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.78.4) for more details.
 
 ### 7.26.2 - 10.06.2025
 
