@@ -557,6 +557,14 @@ module DotnetCli =
         let argString = String.Join(" ", args)
         logger.Debug($"Running `dotnet {argString}`")
 
+        let getEnv enableTestHostDebugger =
+            let parentEnv = Node.Api.``process``.env
+            let childEnv = parentEnv
+            //NOTE: Important to include VSTEST_HOST_DEBUG=0 when not debugging to remove stale values
+            //      that may cause the debugger to wait and hang
+            childEnv?VSTEST_HOST_DEBUG <- (if enableTestHostDebugger then 1 else 0)
+            childEnv |> box |> Some
+
         match shouldDebug with
         | Debug ->
             let mutable isDebuggerStarted = false
@@ -571,20 +579,8 @@ module DotnetCli =
                         launchDebugger processId
                         isDebuggerStarted <- true
 
-            let env =
-                let parentEnv = Node.Api.``process``.env
-                let childEnv = parentEnv
-                childEnv?VSTEST_HOST_DEBUG <- 1
-                childEnv |> box |> Some
-
-            Process.execWithCancel "dotnet" (ResizeArray(args)) env tryLaunchDebugger cancellationToken
-        | NoDebug ->
-            let env =
-                let staleOverrides = {| VSTEST_HOST_DEBUG = 0 |}
-                staleOverrides |> box |> Some
-
-            Process.execWithCancel "dotnet" (ResizeArray(args)) env ignore cancellationToken
-
+            Process.execWithCancel "dotnet" (ResizeArray(args)) (getEnv true) tryLaunchDebugger cancellationToken
+        | NoDebug -> Process.execWithCancel "dotnet" (ResizeArray(args)) (getEnv false) ignore cancellationToken
 
     type TrxPath = string
     type ConsoleOutput = string
