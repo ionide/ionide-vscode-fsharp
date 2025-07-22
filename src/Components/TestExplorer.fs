@@ -706,6 +706,17 @@ module TestItem =
 
     let getId (t: TestItem) = t.id
 
+    let tryPick (f: TestItem -> Option<'u>) root =
+        let rec recurse testItem =
+            let searchResult = f testItem
+
+            if Option.isSome searchResult then
+                searchResult
+            else
+                testItem.children.TestItems() |> Array.tryPick recurse
+
+        recurse root
+
     let runnableChildren (root: TestItem) : TestItem array =
         // The goal is to collect here the actual runnable tests, they might be nested under a tree structure.
         let rec visit (testItem: TestItem) : TestItem array =
@@ -1785,7 +1796,77 @@ module Mailbox =
 
         idleLoop ()
 
+module TestItemDTO =
+
+    let testItemsOfTestDTOs testItemFactory tryGetLocation (flatTests: TestItemDTO array) =
+
+        let fromTestItemDTO
+            (constructId: FullTestName -> TestId)
+            (itemFactory: TestItem.TestItemFactory)
+            (tryGetLocation: TestId -> LocationRecord option)
+            (hierarchy: TestName.NameHierarchy<TestItemDTO>)
+            : TestItem =
+            let rec recurse (namedNode: TestName.NameHierarchy<TestItemDTO>) =
+                let id = constructId namedNode.FullName
+
+                let toUri path =
+                    try
+                        if String.IsNullOrEmpty path then
+                            None
+                        else
+                            vscode.Uri.parse ($"file:///{path}", true) |> Some
+                    with e ->
+                        logger.Debug($"Failed to parse test location uri {path}", e)
+                        None
+
+                let toRange (rangeDto: TestFileRange) =
+                    vscode.Range.Create(
+                        vscode.Position.Create(rangeDto.StartLine, 0),
+                        vscode.Position.Create(rangeDto.EndLine, 0)
+                    )
+                // TODO: figure out how to incorporate cached location data
+                itemFactory
+                    { id = id
+                      label = namedNode.Name
+                      uri = namedNode.Data |> Option.bind (fun t -> t.CodeFilePath) |> Option.bind toUri
+                      range =
+                        namedNode.Data
+                        |> Option.bind (fun t -> t.CodeLocationRange)
+                        |> Option.map toRange
+                      // uri = location |> LocationRecord.tryGetUri
+                      // range = location |> LocationRecord.tryGetRange
+                      children = namedNode.Children |> Array.map recurse
+                      testFramework =
+                        namedNode.Data
+                        |> Option.bind (fun t -> t.ExecutorUri |> TrxParser.adapterTypeNameToTestFramework) }
+
+            recurse hierarchy
+
+
+        let mapDtosForProject ((projectPath, targetFramework), flatTests) =
+            let namedHierarchies =
+                flatTests
+                |> Array.map (fun t -> {| Data = t; FullName = t.FullName |})
+                |> TestName.inferHierarchy
+
+            let projectChildTestItems =
+                namedHierarchies
+                |> Array.map (fromTestItemDTO (TestItem.constructId projectPath) testItemFactory tryGetLocation)
+
+            TestItem.fromProject testItemFactory projectPath targetFramework projectChildTestItems
+
+        let testDtosByProject =
+            flatTests |> Array.groupBy (fun dto -> dto.ProjectFilePath, dto.TargetFramework)
+      
+        let testItemsByProject = testDtosByProject |> Array.map mapDtosForProject
+
+        testItemsByProject
+
+
 let activate (context: ExtensionContext) =
+
+    let useLegacyDotnetCliIntegration =
+        Configuration.get false "FSharp.TestExplorer.UseLegacyDotnetCliIntegration"
 
     let testController =
         tests.createTestController ("fsharp-test-controller", "F# Test Controller")
@@ -1839,9 +1920,31 @@ let activate (context: ExtensionContext) =
 
 
     let refreshHandler cancellationToken =
-        Interactions.refreshTestList testItemFactory testController.items tryGetLocation makeTrxPath cancellationToken
-        |> Promise.toThenable
-        |> (!^)
+        if useLegacyDotnetCliIntegration then
+            Interactions.refreshTestList
+                testItemFactory
+                testController.items
+                tryGetLocation
+                makeTrxPath
+                cancellationToken
+            |> Promise.toThenable
+            |> (!^)
+        else
+            promise {
+                try
+                    let! discoveryResponse = LanguageService.testDiscovery ()
+
+                    let testItems =
+                        discoveryResponse.Data
+                        |> TestItemDTO.testItemsOfTestDTOs testItemFactory tryGetLocation
+                        |> ResizeArray
+
+                    testController.items.replace (testItems)
+                with e ->
+                    logger.Error("Ionide test discovery threw an exception", e)
+            }
+            |> Promise.toThenable
+            |> (!^)
 
     testController.refreshHandler <- Some refreshHandler
 

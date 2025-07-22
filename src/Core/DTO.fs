@@ -368,6 +368,22 @@ module DTO =
         { file: string
           tests: TestAdapterEntry[] }
 
+    type TestFileRange = { StartLine: int; EndLine: int }
+
+    type TestItemDTO =
+        {
+            FullName: string
+            DisplayName: string
+            /// Identifies the test adapter that ran the tests
+            /// Example: executor://xunit/VsTestRunner2/netcoreapp
+            /// Used for determining the test library, which effects how tests names are broken down
+            ExecutorUri: string
+            ProjectFilePath: string
+            TargetFramework: string
+            CodeFilePath: string option
+            CodeLocationRange: TestFileRange option
+        }
+
     type Result<'T> = { Kind: string; Data: 'T }
 
     type HelptextResult = Result<Helptext>
@@ -396,6 +412,7 @@ module DTO =
     type FSharpLiterateResult = Result<string>
     type PipelineHintsResult = Result<PipelineHint array>
     type TestResult = Result<TestForFile>
+    type DiscoverTestsResult = Result<TestItemDTO array>
 
 
     module DotnetNew =

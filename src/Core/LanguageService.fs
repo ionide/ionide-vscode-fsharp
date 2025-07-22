@@ -595,6 +595,15 @@ Consider:
     let fsiSdk () =
         promise { return Environment.configFsiSdkFilePath () }
 
+    let testDiscovery s =
+        match client with
+        | None ->
+            Promise.empty
+        | Some cl ->
+            cl.sendRequest ("test/discoverTests", ())
+            |> Promise.map (fun (res: Types.PlainNotification) ->
+                res.content |> ofJson<DiscoverTestsResult>)
+
     let private createClient (opts: Executable) =
 
         let options: ServerOptions = U5.Case2 {| run = opts; debug = opts |}
