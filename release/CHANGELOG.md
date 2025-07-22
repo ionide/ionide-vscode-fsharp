@@ -1,3 +1,9 @@
+### 7.26.5 - 21.07.2025
+
+* ionide-fsgrammar: [fix: inline on getter/setter](https://github.com/ionide/ionide-fsgrammar/pull/228) from @MangelMaxime.
+* ionide-fsgrammar: [fix: remove non-needed comment patterns + rewrite invalid endCaptures to whileCaptures](https://github.com/ionide/ionide-fsgrammar/pull/231) from @MangelMaxime.
+* ionide-fsgrammar: [feat: add support for | null highlighting](https://github.com/ionide/ionide-fsgrammar/pull/230) from @MangelMaxime.
+
 ### 7.26.4 - 19.07.2025
 
 * [Fix macos test discovery, update stale env var with process.env vars](https://github.com/ionide/ionide-vscode-fsharp/pull/2096) from @rowanhwilliams.
