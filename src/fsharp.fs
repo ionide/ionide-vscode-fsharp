@@ -95,7 +95,7 @@ let private doActivate (context: ExtensionContext) : JS.Promise<Api> =
     |> Promise.map (fun _ ->
         if solutionExplorer then
             tryActivate "solutionExplorer" SolutionExplorer.activate context
-
+        tryActivate "nestedLanguages" NestedLanguages.activate context
         tryActivate "fsprojedit" FsProjEdit.activate context
         tryActivate "diagnostics" Diagnostics.activate context
         tryActivate "linelens" LineLens.Instance.activate context
