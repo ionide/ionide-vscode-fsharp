@@ -848,6 +848,72 @@ module TestItem =
               children = children
               testFramework = None }
 
+
+    let ofTestDTOs testItemFactory tryGetLocation (flatTests: TestItemDTO array) =
+
+        let fromTestItemDTO
+            (constructId: FullTestName -> TestId)
+            (itemFactory: TestItemFactory)
+            (tryGetLocation: TestId -> LocationRecord option)
+            (hierarchy: TestName.NameHierarchy<TestItemDTO>)
+            : TestItem =
+            let rec recurse (namedNode: TestName.NameHierarchy<TestItemDTO>) =
+                let id = constructId namedNode.FullName
+
+                let toUri path =
+                    try
+                        if String.IsNullOrEmpty path then
+                            None
+                        else
+                            vscode.Uri.parse ($"file:///{path}", true) |> Some
+                    with e ->
+                        logger.Debug($"Failed to parse test location uri {path}", e)
+                        None
+
+                let toRange (rangeDto: TestFileRange) =
+                    vscode.Range.Create(
+                        vscode.Position.Create(rangeDto.StartLine, 0),
+                        vscode.Position.Create(rangeDto.EndLine, 0)
+                    )
+                // TODO: figure out how to incorporate cached location data
+                itemFactory
+                    { id = id
+                      label = namedNode.Name
+                      uri = namedNode.Data |> Option.bind (fun t -> t.CodeFilePath) |> Option.bind toUri
+                      range =
+                        namedNode.Data
+                        |> Option.bind (fun t -> t.CodeLocationRange)
+                        |> Option.map toRange
+                      // uri = location |> LocationRecord.tryGetUri
+                      // range = location |> LocationRecord.tryGetRange
+                      children = namedNode.Children |> Array.map recurse
+                      testFramework =
+                        namedNode.Data
+                        |> Option.bind (fun t -> t.ExecutorUri |> TrxParser.adapterTypeNameToTestFramework) }
+
+            recurse hierarchy
+
+
+        let mapDtosForProject ((projectPath, targetFramework), flatTests) =
+            let namedHierarchies =
+                flatTests
+                |> Array.map (fun t -> {| Data = t; FullName = t.FullName |})
+                |> TestName.inferHierarchy
+
+            let projectChildTestItems =
+                namedHierarchies
+                |> Array.map (fromTestItemDTO (constructId projectPath) testItemFactory tryGetLocation)
+
+            fromProject testItemFactory projectPath targetFramework projectChildTestItems
+
+        let testDtosByProject =
+            flatTests |> Array.groupBy (fun dto -> dto.ProjectFilePath, dto.TargetFramework)
+
+        let testItemsByProject = testDtosByProject |> Array.map mapDtosForProject
+
+        testItemsByProject
+
+
     let isProjectItem (testId: TestId) =
         constructProjectRootId (getProjectPath testId) = testId
 
@@ -1126,6 +1192,52 @@ module TestDiscovery =
                 TestItem.fromProject testItemFactory projectPath project.Info.TargetFramework projectTests)
 
         treeItems
+
+    let private tryInferTestFrameworkFromPackage (project: Project) =
+
+        let detectablePackageToFramework =
+            dict
+                [ "Expecto", TestFrameworkId.Expecto
+                  "xunit.abstractions", TestFrameworkId.XUnit ]
+
+        let getPackageName (pr: PackageReference) = pr.Name
+
+        project.PackageReferences
+        |> Array.tryPick (getPackageName >> Dict.tryGet detectablePackageToFramework)
+
+    /// Does this project use a test framework where we can consistently discover test cases using `dotnet test --list-tests`
+    /// This requires the test library to print the fully-qualified test names
+    let canListTestCasesWithCli (project: Project) =
+        let librariesCapableOfListOnlyDiscovery =
+            set [ TestFrameworkId.Expecto; TestFrameworkId.XUnit ]
+
+        tryInferTestFrameworkFromPackage project
+        |> Option.map librariesCapableOfListOnlyDiscovery.Contains
+        |> Option.defaultValue false
+
+
+    /// Use `dotnet test --list-tests` to
+    let discoverTestsByCliListTests testItemFactory tryGetLocation cancellationToken (project: Project) =
+        promise {
+
+            let! testNames = DotnetCli.listTests project.Project project.Info.TargetFramework false cancellationToken
+
+            let detectedTestFramework = tryInferTestFrameworkFromPackage project
+
+            let testItemFactory (testItemBuilder: TestItem.TestItemBuilder) =
+                testItemFactory
+                    { testItemBuilder with
+                        testFramework = detectedTestFramework }
+
+            let testHierarchy =
+                testNames
+                |> Array.map (fun n -> {| FullName = n; Data = () |})
+                |> TestName.inferHierarchy
+                |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation project.Project)
+
+            return TestItem.fromProject testItemFactory project.Project project.Info.TargetFramework testHierarchy
+        }
+
 
 module Interactions =
     type ProjectRunRequest =
@@ -1544,11 +1656,94 @@ module Interactions =
             }
             |> (Promise.toThenable >> (!^))
 
+    let private discoverTestsWithDotnetCli
+        testItemFactory
+        tryGetLocation
+        makeTrxPath
+        report
+        (rootTestCollection: TestItemCollection)
+        cancellationToken
+        builtTestProjects
+        =
+        promise {
+            let warn (message: string) =
+                logger.Warn(message)
+                window.showWarningMessage (message) |> ignore
+
+            let listDiscoveryProjects, trxDiscoveryProjects =
+                builtTestProjects |> List.partition TestDiscovery.canListTestCasesWithCli
+
+            let discoverTestsByListOnly project =
+                report $"Discovering tests for {project.Project}"
+                TestDiscovery.discoverTestsByCliListTests testItemFactory tryGetLocation cancellationToken project
+
+            let! listDiscoveredPerProject =
+                listDiscoveryProjects
+                |> ListExt.mapKeepInputAsync discoverTestsByListOnly
+                |> Promise.all
+
+            trxDiscoveryProjects
+            |> List.iter (ProjectPath.fromProject >> makeTrxPath >> Path.deleteIfExists)
+
+            let! _ =
+                trxDiscoveryProjects
+                |> Promise.executeWithMaxParallel maxParallelTestProjects (fun project ->
+                    let projectPath = project.Project
+                    report $"Discovering tests for {projectPath}"
+                    let trxPath = makeTrxPath projectPath |> Some
+
+                    DotnetCli.test
+                        projectPath
+                        project.Info.TargetFramework
+                        trxPath
+                        None
+                        DotnetCli.DebugTests.NoDebug
+                        cancellationToken)
+
+            let trxDiscoveredTests =
+                TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjects
+
+
+            let listDiscoveredTests = listDiscoveredPerProject |> Array.map snd
+            let newTests = Array.concat [ listDiscoveredTests; trxDiscoveredTests ]
+
+            report $"Discovered {newTests |> Array.sumBy (TestItem.runnableChildren >> Array.length)} tests"
+            rootTestCollection.replace (newTests |> ResizeArray)
+
+            if builtTestProjects |> List.length > 0 && Array.length newTests = 0 then
+                let message =
+                    "Detected test projects but no tests. Make sure your tests can be run with `dotnet test`"
+
+                window.showWarningMessage (message) |> ignore
+                logger.Warn(message)
+
+            else
+                let possibleDiscoveryFailures =
+                    Array.concat
+                        [ let getProjectTests (ti: TestItem) = ti.children.TestItems()
+
+                          listDiscoveredPerProject
+                          |> Array.filter (snd >> getProjectTests >> Array.isEmpty)
+                          |> Array.map (fst >> ProjectPath.fromProject)
+
+                          trxDiscoveryProjects
+                          |> Array.ofList
+                          |> Array.map ProjectPath.fromProject
+                          |> Array.filter (makeTrxPath >> Path.tryPath >> Option.isNone) ]
+
+                if (not << Array.isEmpty) possibleDiscoveryFailures then
+                    let projectList = String.Join("\n", possibleDiscoveryFailures)
+
+                    warn
+                        $"No tests discovered for the following projects. Make sure your tests can be run with `dotnet test` \n {projectList}"
+        }
+
     let refreshTestList
         testItemFactory
         (rootTestCollection: TestItemCollection)
         tryGetLocation
         makeTrxPath
+        useLegacyDotnetCliIntegration
         (cancellationToken: CancellationToken)
         =
 
@@ -1561,11 +1756,6 @@ module Interactions =
                     p.report
                         {| message = Some message
                            increment = None |}
-
-                let warn (message: string) =
-                    logger.Warn(message)
-                    window.showWarningMessage (message) |> ignore
-
 
                 let cancellationToken =
                     CancellationToken.mergeTokens [ cancellationToken; progressCancelToken ]
@@ -1605,114 +1795,26 @@ module Interactions =
                     window.showErrorMessage (message) |> ignore
                     logger.Error(message, buildFailures |> List.map ProjectPath.fromProject)
 
+                else if useLegacyDotnetCliIntegration then
+                    do!
+                        discoverTestsWithDotnetCli
+                            testItemFactory
+                            tryGetLocation
+                            makeTrxPath
+                            report
+                            rootTestCollection
+                            cancellationToken
+                            builtTestProjects
                 else
-                    let detectablePackageToFramework =
-                        dict
-                            [ "Expecto", TestFrameworkId.Expecto
-                              "xunit.abstractions", TestFrameworkId.XUnit ]
+                    let! discoveryResponse = LanguageService.testDiscovery ()
 
-                    let librariesCapableOfListOnlyDiscovery = set detectablePackageToFramework.Keys
+                    let testItems =
+                        discoveryResponse.Data
+                        |> TestItem.ofTestDTOs testItemFactory tryGetLocation
+                        |> ResizeArray
 
-                    let listDiscoveryProjects, trxDiscoveryProjects =
-                        builtTestProjects
-                        |> List.partition (fun project ->
-                            project.PackageReferences
-                            |> Array.exists (fun pr -> librariesCapableOfListOnlyDiscovery |> Set.contains pr.Name))
+                    rootTestCollection.replace (testItems)
 
-                    let discoverTestsByListOnly (project: Project) =
-                        promise {
-                            report $"Discovering tests for {project.Project}"
-
-                            let! testNames =
-                                DotnetCli.listTests project.Project project.Info.TargetFramework false cancellationToken
-
-                            let detectedTestFramework =
-                                let getPackageName (pr: PackageReference) = pr.Name
-
-                                project.PackageReferences
-                                |> Array.tryPick (getPackageName >> Dict.tryGet detectablePackageToFramework)
-
-                            let testItemFactory (testItemBuilder: TestItem.TestItemBuilder) =
-                                testItemFactory
-                                    { testItemBuilder with
-                                        testFramework = detectedTestFramework }
-
-                            let testHierarchy =
-                                testNames
-                                |> Array.map (fun n -> {| FullName = n; Data = () |})
-                                |> TestName.inferHierarchy
-                                |> Array.map (
-                                    TestItem.fromNamedHierarchy testItemFactory tryGetLocation project.Project
-                                )
-
-                            return
-                                TestItem.fromProject
-                                    testItemFactory
-                                    project.Project
-                                    project.Info.TargetFramework
-                                    testHierarchy
-                        }
-
-
-                    let! listDiscoveredPerProject =
-                        listDiscoveryProjects
-                        |> ListExt.mapKeepInputAsync discoverTestsByListOnly
-                        |> Promise.all
-
-                    trxDiscoveryProjects
-                    |> List.iter (ProjectPath.fromProject >> makeTrxPath >> Path.deleteIfExists)
-
-                    let! _ =
-                        trxDiscoveryProjects
-                        |> Promise.executeWithMaxParallel maxParallelTestProjects (fun project ->
-                            let projectPath = project.Project
-                            report $"Discovering tests for {projectPath}"
-                            let trxPath = makeTrxPath projectPath |> Some
-
-                            DotnetCli.test
-                                projectPath
-                                project.Info.TargetFramework
-                                trxPath
-                                None
-                                DotnetCli.DebugTests.NoDebug
-                                cancellationToken)
-
-                    let trxDiscoveredTests =
-                        TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjects
-
-
-                    let listDiscoveredTests = listDiscoveredPerProject |> Array.map snd
-                    let newTests = Array.concat [ listDiscoveredTests; trxDiscoveredTests ]
-
-                    report $"Discovered {newTests |> Array.sumBy (TestItem.runnableChildren >> Array.length)} tests"
-                    rootTestCollection.replace (newTests |> ResizeArray)
-
-                    if testProjectCount > 0 && Array.length newTests = 0 then
-                        let message =
-                            "Detected test projects but no tests. Make sure your tests can be run with `dotnet test`"
-
-                        window.showWarningMessage (message) |> ignore
-                        logger.Warn(message)
-
-                    else
-                        let possibleDiscoveryFailures =
-                            Array.concat
-                                [ let getProjectTests (ti: TestItem) = ti.children.TestItems()
-
-                                  listDiscoveredPerProject
-                                  |> Array.filter (snd >> getProjectTests >> Array.isEmpty)
-                                  |> Array.map (fst >> ProjectPath.fromProject)
-
-                                  trxDiscoveryProjects
-                                  |> Array.ofList
-                                  |> Array.map ProjectPath.fromProject
-                                  |> Array.filter (makeTrxPath >> Path.tryPath >> Option.isNone) ]
-
-                        if (not << Array.isEmpty) possibleDiscoveryFailures then
-                            let projectList = String.Join("\n", possibleDiscoveryFailures)
-
-                            warn
-                                $"No tests discovered for the following projects. Make sure your tests can be run with `dotnet test` \n {projectList}"
             }
 
     let tryMatchTestBySuffix (locationCache: CodeLocationCache) (testId: TestId) =
@@ -1796,73 +1898,6 @@ module Mailbox =
 
         idleLoop ()
 
-module TestItemDTO =
-
-    let testItemsOfTestDTOs testItemFactory tryGetLocation (flatTests: TestItemDTO array) =
-
-        let fromTestItemDTO
-            (constructId: FullTestName -> TestId)
-            (itemFactory: TestItem.TestItemFactory)
-            (tryGetLocation: TestId -> LocationRecord option)
-            (hierarchy: TestName.NameHierarchy<TestItemDTO>)
-            : TestItem =
-            let rec recurse (namedNode: TestName.NameHierarchy<TestItemDTO>) =
-                let id = constructId namedNode.FullName
-
-                let toUri path =
-                    try
-                        if String.IsNullOrEmpty path then
-                            None
-                        else
-                            vscode.Uri.parse ($"file:///{path}", true) |> Some
-                    with e ->
-                        logger.Debug($"Failed to parse test location uri {path}", e)
-                        None
-
-                let toRange (rangeDto: TestFileRange) =
-                    vscode.Range.Create(
-                        vscode.Position.Create(rangeDto.StartLine, 0),
-                        vscode.Position.Create(rangeDto.EndLine, 0)
-                    )
-                // TODO: figure out how to incorporate cached location data
-                itemFactory
-                    { id = id
-                      label = namedNode.Name
-                      uri = namedNode.Data |> Option.bind (fun t -> t.CodeFilePath) |> Option.bind toUri
-                      range =
-                        namedNode.Data
-                        |> Option.bind (fun t -> t.CodeLocationRange)
-                        |> Option.map toRange
-                      // uri = location |> LocationRecord.tryGetUri
-                      // range = location |> LocationRecord.tryGetRange
-                      children = namedNode.Children |> Array.map recurse
-                      testFramework =
-                        namedNode.Data
-                        |> Option.bind (fun t -> t.ExecutorUri |> TrxParser.adapterTypeNameToTestFramework) }
-
-            recurse hierarchy
-
-
-        let mapDtosForProject ((projectPath, targetFramework), flatTests) =
-            let namedHierarchies =
-                flatTests
-                |> Array.map (fun t -> {| Data = t; FullName = t.FullName |})
-                |> TestName.inferHierarchy
-
-            let projectChildTestItems =
-                namedHierarchies
-                |> Array.map (fromTestItemDTO (TestItem.constructId projectPath) testItemFactory tryGetLocation)
-
-            TestItem.fromProject testItemFactory projectPath targetFramework projectChildTestItems
-
-        let testDtosByProject =
-            flatTests |> Array.groupBy (fun dto -> dto.ProjectFilePath, dto.TargetFramework)
-      
-        let testItemsByProject = testDtosByProject |> Array.map mapDtosForProject
-
-        testItemsByProject
-
-
 let activate (context: ExtensionContext) =
 
     let useLegacyDotnetCliIntegration =
@@ -1920,31 +1955,22 @@ let activate (context: ExtensionContext) =
 
 
     let refreshHandler cancellationToken =
-        if useLegacyDotnetCliIntegration then
-            Interactions.refreshTestList
-                testItemFactory
-                testController.items
-                tryGetLocation
-                makeTrxPath
-                cancellationToken
-            |> Promise.toThenable
-            |> (!^)
-        else
-            promise {
-                try
-                    let! discoveryResponse = LanguageService.testDiscovery ()
+        promise {
+            try
+                do!
+                    Interactions.refreshTestList
+                        testItemFactory
+                        testController.items
+                        tryGetLocation
+                        makeTrxPath
+                        useLegacyDotnetCliIntegration
+                        cancellationToken
+            with e ->
+                logger.Error("Ionide test discovery threw an exception", e)
+        }
+        |> Promise.toThenable
+        |> (!^)
 
-                    let testItems =
-                        discoveryResponse.Data
-                        |> TestItemDTO.testItemsOfTestDTOs testItemFactory tryGetLocation
-                        |> ResizeArray
-
-                    testController.items.replace (testItems)
-                with e ->
-                    logger.Error("Ionide test discovery threw an exception", e)
-            }
-            |> Promise.toThenable
-            |> (!^)
 
     testController.refreshHandler <- Some refreshHandler
 
@@ -1957,12 +1983,13 @@ let activate (context: ExtensionContext) =
         if shouldAutoDiscoverTests && not hasInitiatedDiscovery then
             hasInitiatedDiscovery <- true
 
-            let trxTests =
-                TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath
+            if useLegacyDotnetCliIntegration then
+                let trxTests =
+                    TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath
 
-            let workspaceProjects = Project.getLoaded ()
-            let initialTests = trxTests workspaceProjects
-            initialTests |> Array.iter testController.items.add
+                let workspaceProjects = Project.getLoaded ()
+                let initialTests = trxTests workspaceProjects
+                initialTests |> Array.iter testController.items.add
 
             let cancellationTokenSource = vscode.CancellationTokenSource.Create()
             // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
@@ -1971,6 +1998,7 @@ let activate (context: ExtensionContext) =
                 testController.items
                 tryGetLocation
                 makeTrxPath
+                useLegacyDotnetCliIntegration
                 cancellationTokenSource.token
             |> Promise.start
 

@@ -597,12 +597,10 @@ Consider:
 
     let testDiscovery s =
         match client with
-        | None ->
-            Promise.empty
+        | None -> Promise.empty
         | Some cl ->
             cl.sendRequest ("test/discoverTests", ())
-            |> Promise.map (fun (res: Types.PlainNotification) ->
-                res.content |> ofJson<DiscoverTestsResult>)
+            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<DiscoverTestsResult>)
 
     let private createClient (opts: Executable) =
 
