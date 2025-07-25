@@ -679,7 +679,16 @@ type CodeLocationCache() =
                 locationCache.Remove(kvp.Key) |> ignore
 
 
+module Option =
 
+    let tee (f: 'a -> unit) (option: 'a option) =
+        option |> Option.iter f
+        option
+
+    let tryFallback f opt =
+        match opt with
+        | Some _ -> opt
+        | None -> f ()
 
 module TestItem =
 
@@ -857,35 +866,43 @@ module TestItem =
             (tryGetLocation: TestId -> LocationRecord option)
             (hierarchy: TestName.NameHierarchy<TestItemDTO>)
             : TestItem =
+            let toUri path =
+                try
+                    if String.IsNullOrEmpty path then
+                        None
+                    else
+                        vscode.Uri.parse ($"file:///{path}", true) |> Some
+                with e ->
+                    logger.Debug($"Failed to parse test location uri {path}", e)
+                    None
+
+            let toRange (rangeDto: TestFileRange) =
+                vscode.Range.Create(
+                    vscode.Position.Create(rangeDto.StartLine, 0),
+                    vscode.Position.Create(rangeDto.EndLine, 0)
+                )
+
+            let tryDtoToLocation (dto: TestItemDTO) : LocationRecord option =
+                match dto.CodeFilePath |> Option.bind toUri, dto.CodeLocationRange with
+                | Some path, Some range ->
+                    { Uri = path
+                      Range = toRange (range) |> Some }
+                    |> Some
+                | _ -> None
+
             let rec recurse (namedNode: TestName.NameHierarchy<TestItemDTO>) =
                 let id = constructId namedNode.FullName
 
-                let toUri path =
-                    try
-                        if String.IsNullOrEmpty path then
-                            None
-                        else
-                            vscode.Uri.parse ($"file:///{path}", true) |> Some
-                    with e ->
-                        logger.Debug($"Failed to parse test location uri {path}", e)
-                        None
+                let codeLocation =
+                    namedNode.Data
+                    |> Option.bind tryDtoToLocation
+                    |> Option.tryFallback (fun _ -> tryGetLocation id)
 
-                let toRange (rangeDto: TestFileRange) =
-                    vscode.Range.Create(
-                        vscode.Position.Create(rangeDto.StartLine, 0),
-                        vscode.Position.Create(rangeDto.EndLine, 0)
-                    )
-                // TODO: figure out how to incorporate cached location data
                 itemFactory
                     { id = id
                       label = namedNode.Name
-                      uri = namedNode.Data |> Option.bind (fun t -> t.CodeFilePath) |> Option.bind toUri
-                      range =
-                        namedNode.Data
-                        |> Option.bind (fun t -> t.CodeLocationRange)
-                        |> Option.map toRange
-                      // uri = location |> LocationRecord.tryGetUri
-                      // range = location |> LocationRecord.tryGetRange
+                      uri = codeLocation |> LocationRecord.tryGetUri
+                      range = codeLocation |> LocationRecord.tryGetRange
                       children = namedNode.Children |> Array.map recurse
                       testFramework =
                         namedNode.Data
@@ -1822,17 +1839,6 @@ module Interactions =
             testId.EndsWith(TestItem.getFullName locatedTestId)
 
         locationCache.GetKnownTestIds() |> Seq.tryFind (matcher testId)
-
-    module Option =
-
-        let tee (f: 'a -> unit) (option: 'a option) =
-            option |> Option.iter f
-            option
-
-        let tryFallback f opt =
-            match opt with
-            | Some _ -> opt
-            | None -> f ()
 
     let tryGetLocation (locationCache: CodeLocationCache) testId =
         let cached = locationCache.GetById testId
