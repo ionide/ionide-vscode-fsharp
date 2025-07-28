@@ -595,10 +595,17 @@ Consider:
     let fsiSdk () =
         promise { return Environment.configFsiSdkFilePath () }
 
-    let testDiscovery s =
+    let testDiscovery incrementalUpdateHandler () =
         match client with
         | None -> Promise.empty
         | Some cl ->
+            cl.onNotification (
+                "test/testDiscoveryUpdate",
+                (fun (notification: Types.PlainNotification) ->
+                    let parsed = ofJson<TestDiscoveryUpdate> notification.content
+                    incrementalUpdateHandler parsed)
+            )
+
             cl.sendRequest ("test/discoverTests", ())
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<DiscoverTestsResult>)
 

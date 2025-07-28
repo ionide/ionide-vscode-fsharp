@@ -384,6 +384,9 @@ module DTO =
             CodeLocationRange: TestFileRange option
         }
 
+    type TestDiscoveryUpdate = { Tests: TestItemDTO array }
+
+
     type Result<'T> = { Kind: string; Data: 'T }
 
     type HelptextResult = Result<Helptext>

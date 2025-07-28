@@ -910,7 +910,6 @@ module TestItem =
 
             recurse hierarchy
 
-
         let mapDtosForProject ((projectPath, targetFramework), flatTests) =
             let namedHierarchies =
                 flatTests
@@ -1351,14 +1350,14 @@ module Interactions =
                 // Potentially we are going to run multiple tests that match this filter
                 let testPart = escapedTestName.Split(' ').[0]
                 $"(FullyQualifiedName~{testPart})"
+            // NOTE: using DisplayName allows single theory cases to be run for xUnit
             else if test.TestFramework = TestFrameworkId.XUnit then
-                // NOTE: using DisplayName allows single theory cases to be run for xUnit
                 let operator = if test.children.size = 0 then "=" else "~"
                 $"(DisplayName{operator}{escapedTestName})"
+            // NOTE: MSTest can't filter to parameterized test cases
+            //  Truncating before the case parameters will run all the theory cases
+            //  example parameterized test name -> `MsTestTests.TestClass.theoryTest (2,3,5)`
             else if test.TestFramework = TestFrameworkId.MsTest && String.endWith ")" fullTestName then
-                // NOTE: MSTest can't filter to parameterized test cases
-                //  Truncating before the case parameters will run all the theory cases
-                //  example parameterized test name -> `MsTestTests.TestClass.theoryTest (2,3,5)`
                 let truncateOnLast (separator: string) (toSplit: string) =
                     match toSplit.LastIndexOf(separator) with
                     | -1 -> toSplit
@@ -1823,7 +1822,37 @@ module Interactions =
                             cancellationToken
                             builtTestProjects
                 else
-                    let! discoveryResponse = LanguageService.testDiscovery ()
+                    let mergeTestItemCollections (target: TestItem array) (addition: TestItem array) : TestItem array =
+                        let rec recurse (target: TestItem array) (addition: TestItem array) : TestItem array =
+                            let targetOnly, conficted, addedOnly =
+                                ArrayExt.venn TestItem.getId TestItem.getId target addition
+
+                            let mergeSingle (targetItem: TestItem, addedItem: TestItem) =
+                                let mergedChildren =
+                                    recurse (targetItem.children.TestItems()) (addedItem.children.TestItems())
+
+                                addedItem.children.replace (ResizeArray mergedChildren)
+                                addedItem
+
+                            Array.concat [ targetOnly; addedOnly; conficted |> Array.map mergeSingle ]
+
+                        recurse target addition
+
+                    let mutable discoveredTestsAccumulator: TestItem array =
+                        rootTestCollection.TestItems()
+
+                    let incrementalUpdateHandler (discoveryUpdate: TestDiscoveryUpdate) : unit =
+                        try
+                            let newItems =
+                                discoveryUpdate.Tests |> TestItem.ofTestDTOs testItemFactory tryGetLocation
+
+                            discoveredTestsAccumulator <- mergeTestItemCollections discoveredTestsAccumulator newItems
+
+                            rootTestCollection.replace (ResizeArray discoveredTestsAccumulator)
+                        with e ->
+                            logger.Debug("Incremental test discovery update threw an exception", e)
+
+                    let! discoveryResponse = LanguageService.testDiscovery incrementalUpdateHandler ()
 
                     let testItems =
                         discoveryResponse.Data
@@ -1831,7 +1860,6 @@ module Interactions =
                         |> ResizeArray
 
                     rootTestCollection.replace (testItems)
-
             }
 
     let tryMatchTestBySuffix (locationCache: CodeLocationCache) (testId: TestId) =
