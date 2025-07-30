@@ -595,7 +595,7 @@ Consider:
     let fsiSdk () =
         promise { return Environment.configFsiSdkFilePath () }
 
-    let testDiscovery incrementalUpdateHandler () =
+    let discoverTests incrementalUpdateHandler () =
         match client with
         | None -> Promise.empty
         | Some cl ->
@@ -608,6 +608,13 @@ Consider:
 
             cl.sendRequest ("test/discoverTests", ())
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<DiscoverTestsResult>)
+
+    let runTests () =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            cl.sendRequest ("test/runTests", ())
+            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<RunTestsResult>)
 
     let private createClient (opts: Executable) =
 

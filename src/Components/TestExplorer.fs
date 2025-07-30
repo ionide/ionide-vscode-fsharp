@@ -79,6 +79,22 @@ module Dict =
     let tryGet (d: Collections.Generic.IDictionary<'key, 'value>) (key) : 'value option =
         if d.ContainsKey(key) then Some d[key] else None
 
+module Option =
+
+    let tee (f: 'a -> unit) (option: 'a option) =
+        option |> Option.iter f
+        option
+
+    let tryFallback f opt =
+        match opt with
+        | Some _ -> opt
+        | None -> f ()
+
+    let tryFallbackValue fallbackOpt opt =
+        match opt with
+        | Some _ -> opt
+        | None -> fallbackOpt
+
 module CancellationToken =
     let mergeTokens (tokens: CancellationToken list) =
         let tokenSource = vscode.CancellationTokenSource.Create()
@@ -220,6 +236,16 @@ type TestResultOutcome =
     | NotExecuted
     | Failed
     | Passed
+    | Skipped
+
+module TestResultOutcome =
+    let ofOutcomeDto (outcomeDto: TestOutcomeDTO) =
+        match outcomeDto with
+        | TestOutcomeDTO.Failed -> TestResultOutcome.Failed
+        | TestOutcomeDTO.Passed -> TestResultOutcome.Passed
+        | TestOutcomeDTO.Skipped -> TestResultOutcome.Skipped
+        | TestOutcomeDTO.None -> TestResultOutcome.NotExecuted
+        | TestOutcomeDTO.NotFound -> TestResultOutcome.NotExecuted
 
 
 type TestFrameworkId = string
@@ -237,6 +263,18 @@ module TestFrameworkId =
     [<Literal>]
     let Expecto = "Expecto"
 
+    let tryFromExecutorUri adapterTypeName =
+        if String.startWith "executor://nunit" adapterTypeName then
+            Some NUnit
+        else if String.startWith "executor://mstest" adapterTypeName then
+            Some MsTest
+        else if String.startWith "executor://xunit" adapterTypeName then
+            Some XUnit
+        else if String.startWith "executor://yolodev" adapterTypeName then
+            Some Expecto
+        else
+            None
+
 type TestResult =
     { FullTestName: string
       Outcome: TestResultOutcome
@@ -247,6 +285,37 @@ type TestResult =
       Actual: string option
       Timing: float
       TestFramework: TestFrameworkId option }
+
+module TestResult =
+    let tryExtractExpectedAndActual (message: string option) =
+        let expected, actual =
+            match message with
+            | None -> None, None
+            | Some message ->
+                let lines =
+                    message.Split([| "\r\n"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
+                    |> Array.map (fun n -> n.TrimStart())
+
+                let tryFind (startsWith: string) =
+                    Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
+                    |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
+
+                tryFind "Expected:", tryFind "But was:" |> Option.tryFallbackValue (tryFind "Actual:")
+
+        expected, actual
+
+    let ofTestResultDTO (testResultDto: TestResultDTO) =
+        let expected, actual = tryExtractExpectedAndActual testResultDto.ErrorMessage
+
+        { FullTestName = testResultDto.TestItem.FullName
+          Outcome = testResultDto.Outcome |> TestResultOutcome.ofOutcomeDto
+          Output = testResultDto.AdditionalOutput
+          ErrorMessage = testResultDto.ErrorMessage
+          ErrorStackTrace = testResultDto.ErrorStackTrace
+          Timing = testResultDto.Duration.Milliseconds
+          TestFramework = testResultDto.TestItem.ExecutorUri |> TestFrameworkId.tryFromExecutorUri
+          Expected = expected
+          Actual = actual }
 
 module Path =
 
@@ -276,18 +345,6 @@ module Path =
 
 module TrxParser =
 
-    let adapterTypeNameToTestFramework adapterTypeName =
-        if String.startWith "executor://nunit" adapterTypeName then
-            Some TestFrameworkId.NUnit
-        else if String.startWith "executor://mstest" adapterTypeName then
-            Some TestFrameworkId.MsTest
-        else if String.startWith "executor://xunit" adapterTypeName then
-            Some TestFrameworkId.XUnit
-        else if String.startWith "executor://yolodev" adapterTypeName then
-            Some TestFrameworkId.Expecto
-        else
-            None
-
     type Execution = { Id: string }
 
     type TestMethod =
@@ -304,7 +361,7 @@ module TrxParser =
             // IMPORTANT: XUnit and MSTest don't include the parameterized test case data in the TestMethod.Name
             //    but NUnit and MSTest don't use fully qualified names in UnitTest.Name.
             //    Therefore, we have to conditionally build this full name based on the framework
-            match self.TestMethod.AdapterTypeName |> adapterTypeNameToTestFramework with
+            match self.TestMethod.AdapterTypeName |> TestFrameworkId.tryFromExecutorUri with
             | Some TestFrameworkId.NUnit -> TestName.fromPathAndTestName self.TestMethod.ClassName self.TestMethod.Name
             | Some TestFrameworkId.MsTest -> TestName.fromPathAndTestName self.TestMethod.ClassName self.Name
             | _ -> self.Name
@@ -679,17 +736,6 @@ type CodeLocationCache() =
                 locationCache.Remove(kvp.Key) |> ignore
 
 
-module Option =
-
-    let tee (f: 'a -> unit) (option: 'a option) =
-        option |> Option.iter f
-        option
-
-    let tryFallback f opt =
-        match opt with
-        | Some _ -> opt
-        | None -> f ()
-
 module TestItem =
 
     let private idSeparator = " -- "
@@ -906,7 +952,7 @@ module TestItem =
                       children = namedNode.Children |> Array.map recurse
                       testFramework =
                         namedNode.Data
-                        |> Option.bind (fun t -> t.ExecutorUri |> TrxParser.adapterTypeNameToTestFramework) }
+                        |> Option.bind (fun t -> t.ExecutorUri |> TestFrameworkId.tryFromExecutorUri) }
 
             recurse hierarchy
 
@@ -1193,7 +1239,7 @@ module TestDiscovery =
                             (fun nh ->
                                 nh.Data
                                 |> Option.bind (fun (trxDef: TrxParser.UnitTest) ->
-                                    TrxParser.adapterTypeNameToTestFramework trxDef.TestMethod.AdapterTypeName))
+                                    TestFrameworkId.tryFromExecutorUri trxDef.TestMethod.AdapterTypeName))
                             hierarchy
 
                     let testItemFactory (testItemBuilder: TestItem.TestItemBuilder) =
@@ -1379,6 +1425,7 @@ module Interactions =
 
         match testResult.Outcome with
         | TestResultOutcome.NotExecuted -> testRun.skipped testItem
+        | TestResultOutcome.Skipped -> testRun.skipped testItem
         | TestResultOutcome.Passed ->
             testResult.Output
             |> Option.iter (TestRun.appendOutputLineForTest testRun testItem)
@@ -1450,19 +1497,9 @@ module Interactions =
             displayTestResultInExplorer testRun (treeItem, additionalResult))
 
     let private trxResultToTestResult (trxResult: TrxParser.TestWithResult) =
+
         let expected, actual =
-            match trxResult.UnitTestResult.Output.ErrorInfo.Message with
-            | None -> None, None
-            | Some message ->
-                let lines =
-                    message.Split([| "\r\n"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
-                    |> Array.map (fun n -> n.TrimStart())
-
-                let tryFind (startsWith: string) =
-                    Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
-                    |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
-
-                tryFind "Expected:", tryFind "But was:"
+            TestResult.tryExtractExpectedAndActual trxResult.UnitTestResult.Output.ErrorInfo.Message
 
         { FullTestName = trxResult.UnitTest.FullName
           Outcome = !!trxResult.UnitTestResult.Outcome
@@ -1472,7 +1509,7 @@ module Interactions =
           Expected = expected
           Actual = actual
           Timing = trxResult.UnitTestResult.Duration.Milliseconds
-          TestFramework = TrxParser.adapterTypeNameToTestFramework trxResult.UnitTest.TestMethod.AdapterTypeName }
+          TestFramework = TestFrameworkId.tryFromExecutorUri trxResult.UnitTest.TestMethod.AdapterTypeName }
 
     type MergeTestResultsToExplorer =
         TestRun -> ProjectPath -> TargetFramework -> TestItem array -> TestResult array -> unit
@@ -1554,7 +1591,10 @@ module Interactions =
 
 
 
-    let private filtersToProjectRunRequests (rootTestCollection: TestItemCollection) (runRequest: TestRunRequest) =
+    let private filtersToProjectRunRequests
+        (rootTestCollection: TestItemCollection)
+        (runRequest: TestRunRequest)
+        : ProjectRunRequest array =
         let testSelection =
             runRequest.``include``
             |> Option.map Array.ofSeq
@@ -1612,6 +1652,7 @@ module Interactions =
         (testController: TestController)
         (tryGetLocation: TestId -> LocationRecord option)
         (makeTrxPath)
+        (useLegacyDotnetCliIntegration: bool)
         (req: TestRunRequest)
         (_ct: CancellationToken)
         : U2<Thenable<unit>, unit> =
@@ -1664,9 +1705,46 @@ module Interactions =
 
                 let successfullyBuiltRequests = buildResults |> List.choose id
 
-                let! _ =
-                    successfullyBuiltRequests
-                    |> (Promise.executeWithMaxParallel maxParallelTestProjects runTestProject)
+                if useLegacyDotnetCliIntegration then
+                    let! _ =
+                        successfullyBuiltRequests
+                        |> (Promise.executeWithMaxParallel maxParallelTestProjects runTestProject)
+
+                    ()
+                else
+                    try
+                        let runRequestDictionary =
+                            projectRunRequests |> Array.map (fun rr -> rr.ProjectPath, rr) |> Map
+
+                        logger.Debug("Nya: made runRequestDictionary")
+                        let! runResult = LanguageService.runTests ()
+                        logger.Debug("Nya: server test run complete", runResult)
+
+                        let groups =
+                            runResult.Data
+                            |> Array.groupBy (fun (tr: TestResultDTO) ->
+                                tr.TestItem.ProjectFilePath, tr.TestItem.TargetFramework)
+
+                        logger.Debug("Nya: results grouped", runResult)
+
+                        groups
+                        |> Array.iter (fun ((projPath, targetFramework), results) ->
+                            logger.Debug("Nya: merging for project", projPath, results)
+
+                            let expectedToRun =
+                                runRequestDictionary
+                                |> Map.tryFind projPath
+                                |> Option.map (fun rr -> rr.Tests |> Array.collect TestItem.runnableChildren)
+                                |> Option.defaultValue Array.empty
+
+                            logger.Debug("Nya: expected to run", expectedToRun)
+
+
+                            let actuallyRan = results |> Array.map TestResult.ofTestResultDTO
+                            logger.Debug("Nya: actuallyRan", actuallyRan)
+                            mergeTestResultsToExplorer testRun projPath targetFramework expectedToRun actuallyRan)
+                    with ex ->
+                        logger.Debug("Nya: test run failed with exception", ex)
 
                 testRun.``end`` ()
             }
@@ -1852,7 +1930,7 @@ module Interactions =
                         with e ->
                             logger.Debug("Incremental test discovery update threw an exception", e)
 
-                    let! discoveryResponse = LanguageService.testDiscovery incrementalUpdateHandler ()
+                    let! discoveryResponse = LanguageService.discoverTests incrementalUpdateHandler ()
 
                     let testItems =
                         discoveryResponse.Data
@@ -1954,7 +2032,8 @@ let activate (context: ExtensionContext) =
 
     let tryGetLocation = Interactions.tryGetLocation locationCache
 
-    let runHandler = Interactions.runHandler testController tryGetLocation makeTrxPath
+    let runHandler =
+        Interactions.runHandler testController tryGetLocation makeTrxPath useLegacyDotnetCliIntegration
 
     testController.createRunProfile ("Run F# Tests", TestRunProfileKind.Run, runHandler, true)
     |> unbox

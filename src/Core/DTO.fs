@@ -384,6 +384,22 @@ module DTO =
             CodeLocationRange: TestFileRange option
         }
 
+    [<RequireQualifiedAccess>]
+    type TestOutcomeDTO =
+        | Failed = 0
+        | Passed = 1
+        | Skipped = 2
+        | None = 3
+        | NotFound = 4
+
+    type TestResultDTO =
+        { TestItem: TestItemDTO
+          Outcome: TestOutcomeDTO
+          ErrorMessage: string option
+          ErrorStackTrace: string option
+          AdditionalOutput: string option
+          Duration: System.TimeSpan }
+
     type TestDiscoveryUpdate = { Tests: TestItemDTO array }
 
 
@@ -416,6 +432,7 @@ module DTO =
     type PipelineHintsResult = Result<PipelineHint array>
     type TestResult = Result<TestForFile>
     type DiscoverTestsResult = Result<TestItemDTO array>
+    type RunTestsResult = Result<TestResultDTO array>
 
 
     module DotnetNew =
