@@ -402,6 +402,10 @@ module DTO =
 
     type TestDiscoveryUpdate = { Tests: TestItemDTO array }
 
+    type TestRunUpdate =
+        { TestResults: TestResultDTO array
+          ActiveTests: TestItemDTO array }
+
 
     type Result<'T> = { Kind: string; Data: 'T }
 

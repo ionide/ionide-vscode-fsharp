@@ -1477,6 +1477,7 @@ module Interactions =
         (testRun: TestRun)
         (projectPath: ProjectPath)
         (targetFramework: TargetFramework)
+        (shouldDeleteMissing: bool)
         (expectedToRun: TestItem array)
         (testResults: TestResult array)
         =
@@ -1510,7 +1511,9 @@ module Interactions =
             ArrayExt.venn treeItemComparable resultComparable expectedToRun testResults
 
         expected |> Array.iter (displayTestResultInExplorer testRun)
-        missing |> Array.iter tryRemove
+
+        if shouldDeleteMissing then
+            missing |> Array.iter tryRemove
 
         added
         |> Array.iter (fun additionalResult ->
@@ -1534,8 +1537,14 @@ module Interactions =
           Timing = trxResult.UnitTestResult.Duration.Milliseconds
           TestFramework = TestFrameworkId.tryFromExecutorUri trxResult.UnitTest.TestMethod.AdapterTypeName }
 
+    type TrimMissing = bool
+
+    module TrimMissing =
+        let Trim = true
+        let NoTrim = false
+
     type MergeTestResultsToExplorer =
-        TestRun -> ProjectPath -> TargetFramework -> TestItem array -> TestResult array -> unit
+        TestRun -> ProjectPath -> TargetFramework -> TrimMissing -> TestItem array -> TestResult array -> unit
 
     let private runTestProject_withoutExceptionHandling
         (mergeResultsToExplorer: MergeTestResultsToExplorer)
@@ -1585,7 +1594,13 @@ module Interactions =
                 window.showWarningMessage (message) |> ignore
                 TestRun.appendOutputLine testRun message
             else
-                mergeResultsToExplorer testRun projectPath projectRunRequest.TargetFramework runnableTests testResults
+                mergeResultsToExplorer
+                    testRun
+                    projectPath
+                    projectRunRequest.TargetFramework
+                    TrimMissing.Trim
+                    runnableTests
+                    testResults
         }
 
     let runTestProject
@@ -1739,23 +1754,36 @@ module Interactions =
                         let runRequestDictionary =
                             projectRunRequests |> Array.map (fun rr -> rr.ProjectPath, rr) |> Map
 
-                        let! runResult = LanguageService.runTests ()
+                        let mergeResults (shouldTrim: TrimMissing) (resultDtos: TestResultDTO array) =
+                            let groups =
+                                resultDtos
+                                |> Array.groupBy (fun tr -> tr.TestItem.ProjectFilePath, tr.TestItem.TargetFramework)
 
-                        let groups =
-                            runResult.Data
-                            |> Array.groupBy (fun (tr: TestResultDTO) ->
-                                tr.TestItem.ProjectFilePath, tr.TestItem.TargetFramework)
+                            groups
+                            |> Array.iter (fun ((projPath, targetFramework), results) ->
+                                let expectedToRun =
+                                    runRequestDictionary
+                                    |> Map.tryFind projPath
+                                    |> Option.map (fun rr -> rr.Tests |> Array.collect TestItem.runnableChildren)
+                                    |> Option.defaultValue Array.empty
 
-                        groups
-                        |> Array.iter (fun ((projPath, targetFramework), results) ->
-                            let expectedToRun =
-                                runRequestDictionary
-                                |> Map.tryFind projPath
-                                |> Option.map (fun rr -> rr.Tests |> Array.collect TestItem.runnableChildren)
-                                |> Option.defaultValue Array.empty
+                                let actuallyRan: TestResult array = results |> Array.map TestResult.ofTestResultDTO
 
-                            let actuallyRan = results |> Array.map TestResult.ofTestResultDTO
-                            mergeTestResultsToExplorer testRun projPath targetFramework expectedToRun actuallyRan)
+                                mergeTestResultsToExplorer
+                                    testRun
+                                    projPath
+                                    targetFramework
+                                    shouldTrim
+                                    expectedToRun
+                                    actuallyRan)
+
+                        let incrementalUpdateHandler (runUpdate: TestRunUpdate) =
+                            mergeResults TrimMissing.NoTrim runUpdate.TestResults
+
+                        let! runResult = LanguageService.runTests incrementalUpdateHandler ()
+
+                        mergeResults TrimMissing.Trim runResult.Data
+
                     with ex ->
                         logger.Debug("Test run failed with exception", ex)
 
