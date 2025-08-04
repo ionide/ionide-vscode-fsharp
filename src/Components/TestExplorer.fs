@@ -1919,17 +1919,22 @@ module Interactions =
                     let mutable discoveredTestsAccumulator: TestItem array =
                         rootTestCollection.TestItems()
 
+                    let mutable discoveredTestCount: int = 0
+
                     let incrementalUpdateHandler (discoveryUpdate: TestDiscoveryUpdate) : unit =
                         try
                             let newItems =
                                 discoveryUpdate.Tests |> TestItem.ofTestDTOs testItemFactory tryGetLocation
 
                             discoveredTestsAccumulator <- mergeTestItemCollections discoveredTestsAccumulator newItems
+                            discoveredTestCount <- discoveredTestCount + (discoveryUpdate.Tests |> Array.length)
 
+                            report $"Discovering tests: {discoveredTestCount} discovered"
                             rootTestCollection.replace (ResizeArray discoveredTestsAccumulator)
                         with e ->
                             logger.Debug("Incremental test discovery update threw an exception", e)
 
+                    report "Discovering tests"
                     let! discoveryResponse = LanguageService.discoverTests incrementalUpdateHandler ()
 
                     let testItems =
