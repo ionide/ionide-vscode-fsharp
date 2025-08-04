@@ -275,6 +275,21 @@ module TestFrameworkId =
         else
             None
 
+module TestItemDTO =
+    let getNormalizedFullName (dto: TestItemDTO) =
+        match dto.ExecutorUri |> TestFrameworkId.tryFromExecutorUri with
+        // NOTE: XUnit and MSTest don't include the theory case parameters in the FullyQualifiedName, but do include them in the DisplayName.
+        //       Thus we need to append the DisplayName to differentiate the test cases
+        | Some TestFrameworkId.MsTest ->
+            if dto.FullName.EndsWith(dto.DisplayName) then
+                dto.FullName
+            else
+                dto.FullName + "." + dto.DisplayName
+        | Some TestFrameworkId.XUnit ->
+            // NOTE: XUnit includes the FullyQualifiedName in the DisplayName
+            dto.DisplayName
+        | _ -> dto.FullName
+
 type TestResult =
     { FullTestName: string
       Outcome: TestResultOutcome
@@ -307,7 +322,7 @@ module TestResult =
     let ofTestResultDTO (testResultDto: TestResultDTO) =
         let expected, actual = tryExtractExpectedAndActual testResultDto.ErrorMessage
 
-        { FullTestName = testResultDto.TestItem.FullName
+        { FullTestName = testResultDto.TestItem |> TestItemDTO.getNormalizedFullName
           Outcome = testResultDto.Outcome |> TestResultOutcome.ofOutcomeDto
           Output = testResultDto.AdditionalOutput
           ErrorMessage = testResultDto.ErrorMessage
@@ -957,10 +972,12 @@ module TestItem =
             recurse hierarchy
 
         let mapDtosForProject ((projectPath, targetFramework), flatTests) =
+            let testDtoToNamedItem (dto: TestItemDTO) =
+                {| Data = dto
+                   FullName = dto |> TestItemDTO.getNormalizedFullName |}
+
             let namedHierarchies =
-                flatTests
-                |> Array.map (fun t -> {| Data = t; FullName = t.FullName |})
-                |> TestName.inferHierarchy
+                flatTests |> Array.map testDtoToNamedItem |> TestName.inferHierarchy
 
             let projectChildTestItems =
                 namedHierarchies
@@ -1458,6 +1475,7 @@ module Interactions =
         (expectedToRun: TestItem array)
         (testResults: TestResult array)
         =
+
         let tryRemove (testWithoutResult: TestItem) =
             let parentCollection =
                 match testWithoutResult.parent with
@@ -1716,35 +1734,25 @@ module Interactions =
                         let runRequestDictionary =
                             projectRunRequests |> Array.map (fun rr -> rr.ProjectPath, rr) |> Map
 
-                        logger.Debug("Nya: made runRequestDictionary")
                         let! runResult = LanguageService.runTests ()
-                        logger.Debug("Nya: server test run complete", runResult)
 
                         let groups =
                             runResult.Data
                             |> Array.groupBy (fun (tr: TestResultDTO) ->
                                 tr.TestItem.ProjectFilePath, tr.TestItem.TargetFramework)
 
-                        logger.Debug("Nya: results grouped", runResult)
-
                         groups
                         |> Array.iter (fun ((projPath, targetFramework), results) ->
-                            logger.Debug("Nya: merging for project", projPath, results)
-
                             let expectedToRun =
                                 runRequestDictionary
                                 |> Map.tryFind projPath
                                 |> Option.map (fun rr -> rr.Tests |> Array.collect TestItem.runnableChildren)
                                 |> Option.defaultValue Array.empty
 
-                            logger.Debug("Nya: expected to run", expectedToRun)
-
-
                             let actuallyRan = results |> Array.map TestResult.ofTestResultDTO
-                            logger.Debug("Nya: actuallyRan", actuallyRan)
                             mergeTestResultsToExplorer testRun projPath targetFramework expectedToRun actuallyRan)
                     with ex ->
-                        logger.Debug("Nya: test run failed with exception", ex)
+                        logger.Debug("Test run failed with exception", ex)
 
                 testRun.``end`` ()
             }
