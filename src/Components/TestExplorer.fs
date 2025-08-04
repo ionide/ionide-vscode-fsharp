@@ -286,8 +286,13 @@ module TestItemDTO =
             else
                 dto.FullName + "." + dto.DisplayName
         | Some TestFrameworkId.XUnit ->
-            // NOTE: XUnit includes the FullyQualifiedName in the DisplayName
-            dto.DisplayName
+            // NOTE: XUnit includes the FullyQualifiedName in the DisplayName.
+            //       But it doesn't nest theory cases, just appends the case parameters
+            if dto.DisplayName <> dto.FullName then
+                let theoryCaseFragment = dto.DisplayName.Split('.') |> Array.last
+                dto.FullName + "." + theoryCaseFragment
+            else
+                dto.FullName
         | _ -> dto.FullName
 
 type TestResult =
