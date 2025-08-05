@@ -1751,8 +1751,16 @@ module Interactions =
                     ()
                 else
                     try
-                        let runRequestDictionary =
-                            projectRunRequests |> Array.map (fun rr -> rr.ProjectPath, rr) |> Map
+                        let runnableTestsByProject =
+                            projectRunRequests
+                            |> Array.map (fun rr -> rr.ProjectPath, rr.Tests |> Array.collect TestItem.runnableChildren)
+                            |> Map
+
+                        let expectedTestsById =
+                            runnableTestsByProject
+                            |> Map.values
+                            |> Seq.collect (Seq.map (fun t -> t.id, t))
+                            |> Map
 
                         let mergeResults (shouldTrim: TrimMissing) (resultDtos: TestResultDTO array) =
                             let groups =
@@ -1762,9 +1770,8 @@ module Interactions =
                             groups
                             |> Array.iter (fun ((projPath, targetFramework), results) ->
                                 let expectedToRun =
-                                    runRequestDictionary
+                                    runnableTestsByProject
                                     |> Map.tryFind projPath
-                                    |> Option.map (fun rr -> rr.Tests |> Array.collect TestItem.runnableChildren)
                                     |> Option.defaultValue Array.empty
 
                                 let actuallyRan: TestResult array = results |> Array.map TestResult.ofTestResultDTO
@@ -1777,7 +1784,22 @@ module Interactions =
                                     expectedToRun
                                     actuallyRan)
 
+                        let showStarted (testItems: TestItemDTO array) =
+                            try
+                                let groups = testItems |> Array.groupBy (fun t -> t.ProjectFilePath)
+
+                                groups
+                                |> Array.iter (fun (projPath, activeTests) ->
+                                    let testIdsToStart =
+                                        activeTests |> Array.map (fun t -> TestItem.constructId projPath t.FullName)
+
+                                    let knownExplorerItems = testIdsToStart |> Array.choose expectedTestsById.TryFind
+                                    knownExplorerItems |> TestRun.showStarted testRun)
+                            with ex ->
+                                logger.Debug("Threw error while mapping active test items to the explorer", ex)
+
                         let incrementalUpdateHandler (runUpdate: TestRunUpdate) =
+                            showStarted runUpdate.ActiveTests
                             mergeResults TrimMissing.NoTrim runUpdate.TestResults
 
                         let! runResult = LanguageService.runTests incrementalUpdateHandler ()
