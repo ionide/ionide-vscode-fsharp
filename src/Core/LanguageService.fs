@@ -94,6 +94,8 @@ module LanguageService =
             { start: Fable.Import.VSCode.Vscode.Position
               ``end``: Fable.Import.VSCode.Vscode.Position }
 
+        type TestRunRequest = { TestCaseFilter: string option }
+
     type Uri with
 
         member uri.ToDocumentUri = uri.ToString()
@@ -609,7 +611,7 @@ Consider:
             cl.sendRequest ("test/discoverTests", ())
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<DiscoverTestsResult>)
 
-    let runTests incrementalUpdateHandler () =
+    let runTests incrementalUpdateHandler (testCaseFilter: string option) =
         match client with
         | None -> Promise.empty
         | Some cl ->
@@ -620,7 +622,9 @@ Consider:
                     incrementalUpdateHandler parsed)
             )
 
-            cl.sendRequest ("test/runTests", ())
+            let request: Types.TestRunRequest = { TestCaseFilter = testCaseFilter }
+
+            cl.sendRequest ("test/runTests", request)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<RunTestsResult>)
 
     let private createClient (opts: Executable) =

@@ -1802,7 +1802,19 @@ module Interactions =
                             showStarted runUpdate.ActiveTests
                             mergeResults TrimMissing.NoTrim runUpdate.TestResults
 
-                        let! runResult = LanguageService.runTests incrementalUpdateHandler ()
+                        let filterExpression =
+                            match req.``include`` with
+                            | None -> None
+                            | Some selectedCases when Seq.isEmpty selectedCases -> None
+                            | Some selectedCases ->
+                                projectRunRequests
+                                |> Array.collect (fun rr -> rr.Tests)
+                                |> buildFilterExpression
+                                |> Some
+
+                        logger.Debug($"Test Filter Expression: {filterExpression}")
+
+                        let! runResult = LanguageService.runTests incrementalUpdateHandler filterExpression
 
                         mergeResults TrimMissing.Trim runResult.Data
 
