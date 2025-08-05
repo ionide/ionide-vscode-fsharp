@@ -1814,7 +1814,12 @@
           "when": "fsharp.showProjectExplorerInFsharpActivity"
         }
       ]
-    }
+    },
+    "xmlLanguageParticipants": [
+      {
+        "languageId": "msbuild"
+      }
+    ]
   },
   "contributors": [
     {
