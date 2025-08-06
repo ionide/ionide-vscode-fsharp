@@ -94,7 +94,9 @@ module LanguageService =
             { start: Fable.Import.VSCode.Vscode.Position
               ``end``: Fable.Import.VSCode.Vscode.Position }
 
-        type TestRunRequest = { TestCaseFilter: string option }
+        type TestRunRequest =
+            { TestCaseFilter: string option
+              AttachDebugger: bool }
 
     type Uri with
 
@@ -611,18 +613,37 @@ Consider:
             cl.sendRequest ("test/discoverTests", ())
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<DiscoverTestsResult>)
 
-    let runTests incrementalUpdateHandler (testCaseFilter: string option) =
+    let runTests
+        (incrementalUpdateHandler: TestRunUpdateNotification -> unit)
+        (testCaseFilter: string option)
+        (attachDebugger: bool)
+        =
         match client with
         | None -> Promise.empty
         | Some cl ->
             cl.onNotification (
-                "test/testRunUpdate",
+                "test/testRunProgressUpdate",
                 (fun (notification: Types.PlainNotification) ->
-                    let parsed = ofJson<TestRunUpdate> notification.content
-                    incrementalUpdateHandler parsed)
+                    logger.Debug("Nya: raw update Notification", notification)
+                    let parsed = ofJson<TestRunProgress> notification.content
+                    logger.Debug("Nya: parsed update Notification", parsed)
+                    incrementalUpdateHandler (Progress parsed))
             )
 
-            let request: Types.TestRunRequest = { TestCaseFilter = testCaseFilter }
+            cl.onNotification (
+                "test/processWaitingForDebugger",
+                (fun (notification: Types.PlainNotification) ->
+                    logger.Debug("Nya: raw update Notification", notification)
+                    let parsed = ofJson<string> notification.content
+                    logger.Debug("Nya: parsed update Notification", parsed)
+                    incrementalUpdateHandler (ProcessWaitingForDebugger parsed))
+            )
+
+            let request: Types.TestRunRequest =
+                { TestCaseFilter = testCaseFilter
+                  AttachDebugger = attachDebugger }
+
+            logger.Debug("Nya: runTests request", request)
 
             cl.sendRequest ("test/runTests", request)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<RunTestsResult>)

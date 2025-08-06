@@ -508,6 +508,30 @@ module TrxParser =
         |> TestName.inferHierarchy
 
 
+module VSCodeActions =
+    let launchDebugger processId =
+        let launchRequest: DebugConfiguration =
+            {| name = ".NET Core Attach"
+               ``type`` = "coreclr"
+               request = "attach"
+               processId = processId |}
+            |> box
+            |> unbox
+
+        let folder = workspace.workspaceFolders.Value.[0]
+
+        promise {
+            let! _ =
+                Vscode.debug.startDebugging (Some folder, U2.Case2 launchRequest)
+                |> Promise.ofThenable
+
+            // NOTE: Have to wait or it'll continue before the debugger reaches the stop on entry point.
+            //       That'll leave the debugger in a confusing state where it shows it's attached but
+            //       no breakpoints are hit and the breakpoints show as disabled
+            do! Promise.sleep 2000
+            Vscode.commands.executeCommand ("workbench.action.debug.continue") |> ignore
+        }
+        |> ignore
 
 
 module DotnetCli =
@@ -582,30 +606,6 @@ module DotnetCli =
         else
             None
 
-    let private launchDebugger processId =
-        let launchRequest: DebugConfiguration =
-            {| name = ".NET Core Attach"
-               ``type`` = "coreclr"
-               request = "attach"
-               processId = processId |}
-            |> box
-            |> unbox
-
-        let folder = workspace.workspaceFolders.Value.[0]
-
-        promise {
-            let! _ =
-                Vscode.debug.startDebugging (Some folder, U2.Case2 launchRequest)
-                |> Promise.ofThenable
-
-            // NOTE: Have to wait or it'll continue before the debugger reaches the stop on entry point.
-            //       That'll leave the debugger in a confusing state where it shows it's attached but
-            //       no breakpoints are hit and the breakpoints show as disabled
-            do! Promise.sleep 2000
-            Vscode.commands.executeCommand ("workbench.action.debug.continue") |> ignore
-        }
-        |> ignore
-
     type DebugTests =
         | Debug
         | NoDebug
@@ -653,7 +653,7 @@ module DotnetCli =
                     match tryGetDebugProcessId (string consoleOutput) with
                     | None -> ()
                     | Some processId ->
-                        launchDebugger processId
+                        VSCodeActions.launchDebugger processId
                         isDebuggerStarted <- true
 
             Process.execWithCancel "dotnet" (ResizeArray(args)) (getEnv true) tryLaunchDebugger cancellationToken
@@ -1627,7 +1627,11 @@ module Interactions =
                 TestRun.showError testRun message projectRunRequest.Tests
         }
 
-
+    module TestRunRequest =
+        let isDebugRequested (runRequest: TestRunRequest) =
+            runRequest.profile
+            |> Option.map (fun p -> p.kind = TestRunProfileKind.Debug)
+            |> Option.defaultValue false
 
     let private filtersToProjectRunRequests
         (rootTestCollection: TestItemCollection)
@@ -1667,10 +1671,7 @@ module Interactions =
                         [| testItem |])
                 |> Array.distinctBy TestItem.getId
 
-            let shouldDebug =
-                runRequest.profile
-                |> Option.map (fun p -> p.kind = TestRunProfileKind.Debug)
-                |> Option.defaultValue false
+            let shouldDebug = TestRunRequest.isDebugRequested runRequest
 
             let hasIncludeFilter =
                 let isOnlyProjectSelected =
@@ -1798,9 +1799,15 @@ module Interactions =
                             with ex ->
                                 logger.Debug("Threw error while mapping active test items to the explorer", ex)
 
-                        let incrementalUpdateHandler (runUpdate: TestRunUpdate) =
-                            showStarted runUpdate.ActiveTests
-                            mergeResults TrimMissing.NoTrim runUpdate.TestResults
+                        let incrementalUpdateHandler (runUpdate: TestRunUpdateNotification) =
+                            match runUpdate with
+                            | Progress progress ->
+                                logger.Debug("Nya: matched progress update", progress)
+                                showStarted progress.ActiveTests
+                                mergeResults TrimMissing.NoTrim progress.TestResults
+                            | ProcessWaitingForDebugger processId ->
+                                logger.Debug("Nya: attach debugger", processId)
+                                VSCodeActions.launchDebugger processId
 
                         let filterExpression =
                             match req.``include`` with
@@ -1814,7 +1821,11 @@ module Interactions =
 
                         logger.Debug($"Test Filter Expression: {filterExpression}")
 
-                        let! runResult = LanguageService.runTests incrementalUpdateHandler filterExpression
+                        let attachDebugger = TestRunRequest.isDebugRequested req
+                        logger.Debug("Nya: should debug", attachDebugger)
+
+                        let! runResult =
+                            LanguageService.runTests incrementalUpdateHandler filterExpression attachDebugger
 
                         mergeResults TrimMissing.Trim runResult.Data
 
