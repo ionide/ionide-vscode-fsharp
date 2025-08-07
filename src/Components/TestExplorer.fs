@@ -520,17 +520,8 @@ module VSCodeActions =
 
         let folder = workspace.workspaceFolders.Value.[0]
 
-        promise {
-            let! _ =
-                Vscode.debug.startDebugging (Some folder, U2.Case2 launchRequest)
-                |> Promise.ofThenable
-
-            // NOTE: Have to wait or it'll continue before the debugger reaches the stop on entry point.
-            //       That'll leave the debugger in a confusing state where it shows it's attached but
-            //       no breakpoints are hit and the breakpoints show as disabled
-            do! Promise.sleep 2000
-            Vscode.commands.executeCommand ("workbench.action.debug.continue") |> ignore
-        }
+        Vscode.debug.startDebugging (Some folder, U2.Case2 launchRequest)
+        |> Promise.ofThenable
         |> ignore
 
 
@@ -639,7 +630,12 @@ module DotnetCli =
             let childEnv = parentEnv
             //NOTE: Important to include VSTEST_HOST_DEBUG=0 when not debugging to remove stale values
             //      that may cause the debugger to wait and hang
-            childEnv?VSTEST_HOST_DEBUG <- (if enableTestHostDebugger then 1 else 0)
+            if enableTestHostDebugger then
+                childEnv?VSTEST_HOST_DEBUG <- 1
+                childEnv?VSTEST_DEBUG_NOBP <- 1
+            else
+                childEnv?VSTEST_HOST_DEBUG <- 0
+                childEnv?VSTEST_DEBUG_NOBP <- 0
             childEnv |> box |> Some
 
         match shouldDebug with
