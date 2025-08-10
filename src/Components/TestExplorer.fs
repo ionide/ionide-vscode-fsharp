@@ -1032,7 +1032,6 @@ module TestDiscovery =
         (targetCollection: TestItemCollection)
         (previousCodeTests: TestItem array)
         (newCodeTests: TestItem array)
-        (isKnownDisplacedFragment: CodeBasedTestId -> bool)
         =
         let rangeComparable (maybeRange: Vscode.Range option) =
             let positionComparable (p: Vscode.Position) = $"{p.line}:{p.character}"
@@ -1053,9 +1052,7 @@ module TestDiscovery =
 
             removed |> Array.map TestItem.getId |> Array.iter targetCollection.delete
 
-            added
-            |> Array.filter (TestItem.getId >> isKnownDisplacedFragment)
-            |> Array.iter targetCollection.add
+            added |> Array.iter targetCollection.add
 
             unchanged
             |> Array.iter (fun (previousCodeTest, newCodeTest) ->
@@ -1768,11 +1765,7 @@ module Interactions =
             match cached with
             | None -> ()
             | Some previousTestsFromSameCode ->
-                TestDiscovery.mergeCodeUpdates
-                    rootTestCollection
-                    previousTestsFromSameCode
-                    testsFromCode
-                    displacedFragmentMapCache.ContainsKey
+                TestDiscovery.mergeCodeUpdates rootTestCollection previousTestsFromSameCode testsFromCode
 
             testsPerFileCache[filePath] <- testsFromCode
 
