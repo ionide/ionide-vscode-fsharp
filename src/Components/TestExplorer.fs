@@ -509,7 +509,7 @@ module TrxParser =
 
 
 module VSCodeActions =
-    let launchDebugger processId =
+    let launchDebugger (processId: string) =
         let launchRequest: DebugConfiguration =
             {| name = ".NET Core Attach"
                ``type`` = "coreclr"
@@ -522,7 +522,6 @@ module VSCodeActions =
 
         Vscode.debug.startDebugging (Some folder, U2.Case2 launchRequest)
         |> Promise.ofThenable
-        |> ignore
 
 
 module DotnetCli =
@@ -636,6 +635,7 @@ module DotnetCli =
             else
                 childEnv?VSTEST_HOST_DEBUG <- 0
                 childEnv?VSTEST_DEBUG_NOBP <- 0
+
             childEnv |> box |> Some
 
         match shouldDebug with
@@ -1798,12 +1798,11 @@ module Interactions =
                         let incrementalUpdateHandler (runUpdate: TestRunUpdateNotification) =
                             match runUpdate with
                             | Progress progress ->
-                                logger.Debug("Nya: matched progress update", progress)
                                 showStarted progress.ActiveTests
                                 mergeResults TrimMissing.NoTrim progress.TestResults
-                            | ProcessWaitingForDebugger processId ->
-                                logger.Debug("Nya: attach debugger", processId)
-                                VSCodeActions.launchDebugger processId
+
+                        let onAttachDebugger (processId: int) =
+                            VSCodeActions.launchDebugger (string processId)
 
                         let filterExpression =
                             match req.``include`` with
@@ -1817,11 +1816,14 @@ module Interactions =
 
                         logger.Debug($"Test Filter Expression: {filterExpression}")
 
-                        let attachDebugger = TestRunRequest.isDebugRequested req
-                        logger.Debug("Nya: should debug", attachDebugger)
+                        let shouldDebug = TestRunRequest.isDebugRequested req
 
                         let! runResult =
-                            LanguageService.runTests incrementalUpdateHandler filterExpression attachDebugger
+                            LanguageService.runTests
+                                incrementalUpdateHandler
+                                onAttachDebugger
+                                filterExpression
+                                shouldDebug
 
                         mergeResults TrimMissing.Trim runResult.Data
 

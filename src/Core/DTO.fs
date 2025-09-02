@@ -406,9 +406,7 @@ module DTO =
         { TestResults: TestResultDTO array
           ActiveTests: TestItemDTO array }
 
-    type TestRunUpdateNotification =
-        | Progress of TestRunProgress
-        | ProcessWaitingForDebugger of processId: string
+    type TestRunUpdateNotification = Progress of TestRunProgress
 
     type Result<'T> = { Kind: string; Data: 'T }
 

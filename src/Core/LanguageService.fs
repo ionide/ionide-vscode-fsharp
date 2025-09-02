@@ -613,8 +613,12 @@ Consider:
             cl.sendRequest ("test/discoverTests", ())
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<DiscoverTestsResult>)
 
+    type ProcessId = int
+    type DidDebuggerAttach = bool
+
     let runTests
         (incrementalUpdateHandler: TestRunUpdateNotification -> unit)
+        (onAttachDebugger: ProcessId -> JS.Promise<bool>)
         (testCaseFilter: string option)
         (attachDebugger: bool)
         =
@@ -624,26 +628,22 @@ Consider:
             cl.onNotification (
                 "test/testRunProgressUpdate",
                 (fun (notification: Types.PlainNotification) ->
-                    logger.Debug("Nya: raw update Notification", notification)
                     let parsed = ofJson<TestRunProgress> notification.content
-                    logger.Debug("Nya: parsed update Notification", parsed)
                     incrementalUpdateHandler (Progress parsed))
             )
 
-            cl.onNotification (
+            cl.onRequest (
                 "test/processWaitingForDebugger",
                 (fun (notification: Types.PlainNotification) ->
-                    logger.Debug("Nya: raw update Notification", notification)
-                    let parsed = ofJson<string> notification.content
-                    logger.Debug("Nya: parsed update Notification", parsed)
-                    incrementalUpdateHandler (ProcessWaitingForDebugger parsed))
+                    promise {
+                        let parsed = ofJson<int> notification.content
+                        return! onAttachDebugger parsed
+                    })
             )
 
             let request: Types.TestRunRequest =
                 { TestCaseFilter = testCaseFilter
                   AttachDebugger = attachDebugger }
-
-            logger.Debug("Nya: runTests request", request)
 
             cl.sendRequest ("test/runTests", request)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<RunTestsResult>)
