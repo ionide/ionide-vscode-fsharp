@@ -403,10 +403,9 @@ module DTO =
     type TestDiscoveryUpdate = { Tests: TestItemDTO array }
 
     type TestRunProgress =
-        { TestResults: TestResultDTO array
+        { TestLogs: string array
+          TestResults: TestResultDTO array
           ActiveTests: TestItemDTO array }
-
-    type TestRunUpdateNotification = Progress of TestRunProgress
 
     type Result<'T> = { Kind: string; Data: 'T }
 

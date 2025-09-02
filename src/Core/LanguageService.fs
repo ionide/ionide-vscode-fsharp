@@ -599,7 +599,7 @@ Consider:
     let fsiSdk () =
         promise { return Environment.configFsiSdkFilePath () }
 
-    let discoverTests incrementalUpdateHandler () =
+    let discoverTests onDiscoveryProgress () =
         match client with
         | None -> Promise.empty
         | Some cl ->
@@ -607,7 +607,7 @@ Consider:
                 "test/testDiscoveryUpdate",
                 (fun (notification: Types.PlainNotification) ->
                     let parsed = ofJson<TestDiscoveryUpdate> notification.content
-                    incrementalUpdateHandler parsed)
+                    onDiscoveryProgress parsed)
             )
 
             cl.sendRequest ("test/discoverTests", ())
@@ -617,7 +617,7 @@ Consider:
     type DidDebuggerAttach = bool
 
     let runTests
-        (incrementalUpdateHandler: TestRunUpdateNotification -> unit)
+        (onTestRunProgress: TestRunProgress -> unit)
         (onAttachDebugger: ProcessId -> JS.Promise<bool>)
         (testCaseFilter: string option)
         (attachDebugger: bool)
@@ -629,7 +629,7 @@ Consider:
                 "test/testRunProgressUpdate",
                 (fun (notification: Types.PlainNotification) ->
                     let parsed = ofJson<TestRunProgress> notification.content
-                    incrementalUpdateHandler (Progress parsed))
+                    onTestRunProgress parsed)
             )
 
             cl.onRequest (

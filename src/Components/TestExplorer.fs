@@ -1795,11 +1795,10 @@ module Interactions =
                             with ex ->
                                 logger.Debug("Threw error while mapping active test items to the explorer", ex)
 
-                        let incrementalUpdateHandler (runUpdate: TestRunUpdateNotification) =
-                            match runUpdate with
-                            | Progress progress ->
-                                showStarted progress.ActiveTests
-                                mergeResults TrimMissing.NoTrim progress.TestResults
+                        let onTestRunProgress (progress: TestRunProgress) =
+                            showStarted progress.ActiveTests
+                            mergeResults TrimMissing.NoTrim progress.TestResults
+                            progress.TestLogs |> Array.iter (TestRun.appendOutputLine testRun)
 
                         let onAttachDebugger (processId: int) =
                             VSCodeActions.launchDebugger (string processId)
@@ -1819,11 +1818,7 @@ module Interactions =
                         let shouldDebug = TestRunRequest.isDebugRequested req
 
                         let! runResult =
-                            LanguageService.runTests
-                                incrementalUpdateHandler
-                                onAttachDebugger
-                                filterExpression
-                                shouldDebug
+                            LanguageService.runTests onTestRunProgress onAttachDebugger filterExpression shouldDebug
 
                         mergeResults TrimMissing.Trim runResult.Data
 
@@ -2005,7 +2000,7 @@ module Interactions =
 
                     let mutable discoveredTestCount: int = 0
 
-                    let incrementalUpdateHandler (discoveryUpdate: TestDiscoveryUpdate) : unit =
+                    let onTestDiscoveryProgress (discoveryUpdate: TestDiscoveryUpdate) : unit =
                         try
                             let newItems =
                                 discoveryUpdate.Tests |> TestItem.ofTestDTOs testItemFactory tryGetLocation
@@ -2019,7 +2014,7 @@ module Interactions =
                             logger.Debug("Incremental test discovery update threw an exception", e)
 
                     report "Discovering tests"
-                    let! discoveryResponse = LanguageService.discoverTests incrementalUpdateHandler ()
+                    let! discoveryResponse = LanguageService.discoverTests onTestDiscoveryProgress ()
 
                     let testItems =
                         discoveryResponse.Data
