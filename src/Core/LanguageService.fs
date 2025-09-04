@@ -95,7 +95,8 @@ module LanguageService =
               ``end``: Fable.Import.VSCode.Vscode.Position }
 
         type TestRunRequest =
-            { TestCaseFilter: string option
+            { LimitToProjects: string array option
+              TestCaseFilter: string option
               AttachDebugger: bool }
 
     type Uri with
@@ -619,6 +620,7 @@ Consider:
     let runTests
         (onTestRunProgress: TestRunProgress -> unit)
         (onAttachDebugger: ProcessId -> JS.Promise<bool>)
+        (projectSubset: string array option)
         (testCaseFilter: string option)
         (attachDebugger: bool)
         =
@@ -642,7 +644,8 @@ Consider:
             )
 
             let request: Types.TestRunRequest =
-                { TestCaseFilter = testCaseFilter
+                { LimitToProjects = projectSubset
+                  TestCaseFilter = testCaseFilter
                   AttachDebugger = attachDebugger }
 
             cl.sendRequest ("test/runTests", request)

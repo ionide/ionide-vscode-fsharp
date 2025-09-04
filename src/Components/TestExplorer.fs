@@ -1803,22 +1803,31 @@ module Interactions =
                         let onAttachDebugger (processId: int) =
                             VSCodeActions.launchDebugger (string processId)
 
-                        let filterExpression =
+                        let filterExpression, projectSubset =
                             match req.``include`` with
-                            | None -> None
-                            | Some selectedCases when Seq.isEmpty selectedCases -> None
+                            | None -> None, None
+                            | Some selectedCases when Seq.isEmpty selectedCases -> None, None
                             | Some selectedCases ->
-                                projectRunRequests
-                                |> Array.collect (fun rr -> rr.Tests)
-                                |> buildFilterExpression
-                                |> Some
+                                let filter =
+                                    projectRunRequests
+                                    |> Array.collect (fun rr -> rr.Tests)
+                                    |> buildFilterExpression
+                                    |> Some
+
+                                let projectSubset = projectRunRequests |> Array.map (fun p -> p.ProjectPath) |> Some
+                                filter, projectSubset
 
                         logger.Debug($"Test Filter Expression: {filterExpression}")
 
                         let shouldDebug = TestRunRequest.isDebugRequested req
 
                         let! runResult =
-                            LanguageService.runTests onTestRunProgress onAttachDebugger filterExpression shouldDebug
+                            LanguageService.runTests
+                                onTestRunProgress
+                                onAttachDebugger
+                                projectSubset
+                                filterExpression
+                                shouldDebug
 
                         mergeResults TrimMissing.Trim runResult.Data
 
