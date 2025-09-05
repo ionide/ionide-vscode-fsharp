@@ -40,7 +40,9 @@ module SolutionExplorer =
             path: string *
             name: string *
             virtualPath: string option *
-            projectPath: string
+            projectPath: string *
+            itemType: string option *
+            metadata: Map<string, string> option
         | PackageReference of parent: Model option ref * path: string * name: string * projectPath: string
         | ProjectReference of parent: Model option ref * path: string * name: string * projectPath: string
 
@@ -97,7 +99,7 @@ module SolutionExplorer =
         | ProjectLanguageNotSupported(parent, _, _) -> parent
         | Project(parent, _, _, _, _, _, _, _) -> parent
         | Folder(parent, _, _, _, _) -> parent
-        | File(parent, _, _, _, _) -> parent
+        | File(parent, _, _, _, _, _, _) -> parent
         | PackageReference(parent, _, _, _) -> parent
         | ProjectReference(parent, _, _, _) -> parent
 
@@ -131,7 +133,32 @@ module SolutionExplorer =
             setParentRefs childs result
             result
         else
-            File(ref None, entry.FilePath, entry.Key, Some entry.VirtualPath, projPath)
+            File(ref None, entry.FilePath, entry.Key, Some entry.VirtualPath, projPath, None, None)
+
+    let rec toModelWithMetadata
+        (projPath: string)
+        (files: (string * string * string option * Map<string, string> option) list)
+        (entry: NodeEntry)
+        =
+        if entry.Children.Length > 0 then
+            let childs =
+                entry.Children |> Seq.map (toModelWithMetadata projPath files) |> Seq.toList
+
+            let result = Folder(ref None, entry.Key, entry.FilePath, childs, projPath)
+            setParentRefs childs result
+            result
+        else
+            let fileMetadata =
+                files
+                |> List.tryFind (fun (_, path, _, _) -> path = entry.FilePath)
+                |> Option.map (fun (_, _, itemType, metadata) -> (itemType, metadata))
+
+            let (itemType, metadata) =
+                match fileMetadata with
+                | Some(it, md) -> (it, md)
+                | None -> (None, None)
+
+            File(ref None, entry.FilePath, entry.Key, Some entry.VirtualPath, projPath, itemType, metadata)
 
     let buildTree projPath (files: (string * string) list) =
         let projDir = dirName projPath
@@ -146,15 +173,67 @@ module SolutionExplorer =
 
         entry.Children |> Seq.rev |> Seq.map (toModel projPath) |> Seq.toList
 
+    let buildTreeWithMetadata projPath (files: (string * string * string option * Map<string, string> option) list) =
+        let projDir = dirName projPath
+
+        let entry =
+            { Key = ""
+              FilePath = projDir
+              VirtualPath = ""
+              Children = [] }
+
+        files
+        |> List.iter (fun (virtualPath, path, _, _) -> add' entry virtualPath path)
+
+        entry.Children
+        |> Seq.rev
+        |> Seq.map (toModelWithMetadata projPath files)
+        |> Seq.toList
+
+    let ignoredItemTypes =
+        Set.ofList
+            [ "AssemblyMetadata"
+              "BaseApplicationManifest"
+              "CodeAnalysisImport"
+              "COMReference"
+              "COMFileReference"
+              "Import"
+              "InternalsVisibleTo"
+              "NativeReference"
+              "TrimmerRootAssembly"
+              "Using"
+              "Protobuf" ]
+
+    // File extension to item type mapping
+    let getItemTypeForFile (filePath: string) =
+        let ext = node.path.extname(filePath).ToLowerInvariant()
+
+        match ext with
+        | ".fs"
+        | ".fsi" -> "Compile"
+        | ".fsx" -> "Compile"
+        | ".fsl" -> "FsLex"
+        | ".fsy" -> "FsYacc"
+        | ".txt"
+        | ".md"
+        | ".json"
+        | ".xml"
+        | ".config" -> "Content"
+        | ".resx" -> "EmbeddedResource"
+        | _ -> "Content" // Default fallback
+
+    let shouldShowItem (item: ProjectResponseItem) =
+        not (ignoredItemTypes.Contains(item.Name))
+
     let private getProjectModel (proj: Project) =
         let projects = Project.getLoaded () |> Seq.toArray
 
         let files =
             proj.Items
-            |> Seq.filter (fun p -> p.Name = "Compile")
-            |> Seq.map (fun p -> p.VirtualPath, p.FilePath)
+            |> Seq.filter shouldShowItem
+            |> Seq.map (fun p -> p.VirtualPath, p.FilePath, Some p.Name, Some p.Metadata)
             |> Seq.toList
-            |> buildTree proj.Project
+            |> buildTreeWithMetadata proj.Project
 
         let packageRefs =
             proj.PackageReferences
@@ -231,7 +310,7 @@ module SolutionExplorer =
             | WorkspacePeekFoundSolutionItemKind.Folder folder ->
                 let files =
                     folder.Files
-                    |> Array.map (fun f -> Model.File(ref None, f, node.path.basename (f), None, ""))
+                    |> Array.map (fun f -> Model.File(ref None, f, node.path.basename (f), None, "", None, None))
 
                 let items = folder.Items |> Array.map getItem
 
@@ -303,7 +382,7 @@ module SolutionExplorer =
         | PackageReferenceList _ -> "Package References"
         | ProjectReferencesList(_, refs, _) -> "Project References"
         | Folder(_, n, _, _, _) -> n
-        | File(_, _, name, _, _) -> name
+        | File(_, _, name, _, _, _, _) -> name
         | PackageReference(_, _, name, _) ->
             if name.ToLowerInvariant().EndsWith(".dll") then
                 name.Substring(0, name.Length - 4)
@@ -376,7 +455,7 @@ module SolutionExplorer =
 
                 let command =
                     match element with
-                    | File(_, p, _, _, _) ->
+                    | File(_, p, _, _, _, _, _) ->
                         let c = createEmpty<Command>
                         c.command <- "vscode.open"
                         c.title <- "open"
@@ -413,7 +492,7 @@ module SolutionExplorer =
 
                 let icon, resourceUri =
                     match element with
-                    | File(_, path, _, _, _)
+                    | File(_, path, _, _, _, _, _)
                     | ProjectNotLoaded(_, path, _)
                     | ProjectLoading(_, path, _)
                     | ProjectFailedToLoad(_, path, _, _)
@@ -454,7 +533,7 @@ module SolutionExplorer =
                     | PackageReference(_, _, _, pp)
                     | ProjectReference(_, _, _, pp) -> Some(label ti + "||" + pp)
                     | Folder _ -> None
-                    | File(_, _, _, _, pp) ->
+                    | File(_, _, _, _, pp, _, _) ->
                         (resourceUri
                          |> Option.map (fun u -> (label ti + "||" + u.toString () + "||" + pp)))
                     | _ -> (resourceUri |> Option.map (fun u -> (label ti + "||" + u.toString ())))
@@ -552,7 +631,7 @@ module SolutionExplorer =
 
         let rec private getModelPerFile (model: Model) : (string * Model) list =
             match model with
-            | File(_, path, _, _, _)
+            | File(_, path, _, _, _, _, _)
             | ProjectNotLoaded(_, path, _)
             | ProjectLoading(_, path, _)
             | ProjectFailedToLoad(_, path, _, _)
@@ -664,7 +743,7 @@ module SolutionExplorer =
                         | Folder _
                         | PackageReference _
                         | ProjectReference _ -> false
-                        | File(_, filePath, _, _, _) ->
+                        | File(_, filePath, _, _, _, _, _) ->
                             let projDir = node.path.dirname proj
                             // Need to compute the relative path from the project in order to match the user input
                             let relativeFilePathFromProject = node.path.relative (projDir, filePath)
@@ -692,7 +771,7 @@ module SolutionExplorer =
     let rec private tryFindParentProject (model: Model) =
         match model with
         | Project _ -> Some model
-        | File(parent, _, _, _, _) ->
+        | File(parent, _, _, _, _, _, _) ->
             match parent.Value with
             | Some parent -> tryFindParentProject parent
             | None -> None
@@ -831,7 +910,7 @@ module SolutionExplorer =
             "fsharp.explorer.moveUp",
             objfy2 (fun m ->
                 match unbox m with
-                | File(_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileUpPath proj virtPath
+                | File(_, _, name, Some virtPath, proj, _, _) -> FsProjEdit.moveFileUpPath proj virtPath
                 | _ -> undefined
                 |> ignore
 
@@ -843,7 +922,7 @@ module SolutionExplorer =
             "fsharp.explorer.moveDown",
             objfy2 (fun m ->
                 match unbox m with
-                | File(_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileDownPath proj virtPath
+                | File(_, _, name, Some virtPath, proj, _, _) -> FsProjEdit.moveFileDownPath proj virtPath
                 | _ -> undefined
                 |> ignore
 
@@ -855,7 +934,7 @@ module SolutionExplorer =
             "fsharp.explorer.removeFile",
             objfy2 (fun m ->
                 match unbox m with
-                | File(_, filePath, _, _, proj) ->
+                | File(_, filePath, _, _, proj, _, _) ->
                     promise {
                         let projDir = node.path.dirname proj
                         // Need to compute the relative path from the project in order to match the user input
@@ -876,7 +955,7 @@ module SolutionExplorer =
             "fsharp.explorer.renameFile",
             objfy2 (fun m ->
                 match unbox m with
-                | File(parent, filePath, _, Some virtualPath, _) ->
+                | File(parent, filePath, _, Some virtualPath, _, _, _) ->
                     match parent.Value with
                     | Some model ->
                         match tryFindParentProject model with
@@ -914,7 +993,7 @@ module SolutionExplorer =
             "fsharp.explorer.addAbove",
             objfy2 (fun m ->
                 match unbox m with
-                | File(parent, _, _, Some virtPath, _) ->
+                | File(parent, _, _, Some virtPath, _, _, _) ->
                     match parent.Value with
                     | Some model ->
                         match tryFindParentProject model with
@@ -938,7 +1017,7 @@ module SolutionExplorer =
             "fsharp.explorer.addBelow",
             objfy2 (fun m ->
                 match unbox m with
-                | File(parent, _, _, Some virtPath, _) ->
+                | File(parent, _, _, Some virtPath, _, _, _) ->
                     match parent.Value with
                     | Some model ->
                         match tryFindParentProject model with
