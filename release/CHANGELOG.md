@@ -1,3 +1,7 @@
+### 7.26.7 - 06.09.2025
+
+* Register project files as being the `xml` language to enable XML language features in project files without the TinToy project tools extension [ionide/ionide-vscode-fsharp#2097](https://github.com/ionide/ionide-vscode-fsharp/pull/2097)
+* Test cases shouldn't disappear from the test explorer when their file is edited [ionide/ionide-vscode-fsharp#2098](https://github.com/ionide/ionide-vscode-fsharp/pull/2098) (Thanks @farlee2121!)
 
 ### 7.26.6 - 02.08.2025
 
