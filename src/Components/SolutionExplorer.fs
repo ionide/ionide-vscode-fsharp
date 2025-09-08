@@ -166,6 +166,16 @@ module SolutionExplorer =
         | ".exe" -> "Reference"
         | _ -> "Content" // Default fallback
 
+    // Check if a folder should be included in the tree view
+    let isSpecialFolder (folderName: string) =
+        folderName = ".deps"
+        || folderName = "bin"
+        || folderName = "obj"
+        || folderName = "packages"
+        || folderName = "docs"
+        || folderName = "scripts"
+        || folderName = "tools"
+
     let private getProjectModel (proj: Project) =
         let projects = Project.getLoaded () |> Seq.toArray
 
@@ -187,10 +197,7 @@ module SolutionExplorer =
                     let stats = node.fs.statSync (U2.Case1 fullPath)
                     let isDir = stats.isDirectory ()
 
-                    let isTargetFolder =
-                        (item = ".deps" || item = "bin" || item = "obj" || item = "packages")
-
-                    isDir && isTargetFolder)
+                    isDir && isSpecialFolder item)
                 |> Seq.map (fun folder ->
                     let fullPath = node.path.join (projectDir, folder)
                     (folder, fullPath))
@@ -300,6 +307,14 @@ module SolutionExplorer =
             // Add additional folders that aren't in the solution file
             let solutionDir = node.path.dirname sln.Path
 
+            // Get existing folder names from solution items to avoid duplicates
+            let existingFolderNames =
+                solutionItems
+                |> List.collect (fun item ->
+                    match item with
+                    | WorkspaceFolder(_, name, _) -> [ name ]
+                    | _ -> [])
+
             let additionalSolutionFolders =
                 try
                     let dirContents = node.fs.readdirSync (U2.Case1 solutionDir)
@@ -310,40 +325,25 @@ module SolutionExplorer =
                         let stats = node.fs.statSync (U2.Case1 fullPath)
                         let isDir = stats.isDirectory ()
 
-                        let isTargetFolder =
-                            (item = ".deps"
-                             || item = "bin"
-                             || item = "obj"
-                             || item = "packages"
-                             || item = "docs"
-                             || item = "scripts"
-                             || item = "tools")
-
-
-                        isDir && isTargetFolder)
+                        isDir && isSpecialFolder item && not (existingFolderNames |> List.contains item))
                     |> Seq.map (fun folder ->
                         let fullPath = node.path.join (solutionDir, folder)
 
                         // Recursively scan the contents of this folder
-                        let rec scanFolderContents (currentPath: string) (currentName: string) (depth: int) =
+                        let rec scanFolderContents (currentPath: string) (depth: int) =
+                            // Helper function to determine if an item should be hidden
+                            let shouldHideItem (item: string) (depth: int) =
+                                item.StartsWith(".") && item <> ".deps"
+                                || item = "node_modules"
+                                || item = ".git"
+                                || item = ".vs"
+                                || (item = "packages" && depth > 0)
+
                             try
                                 let contents = node.fs.readdirSync (U2.Case1 currentPath)
 
                                 contents
-                                |> Seq.filter (fun item ->
-                                    // Filter out unwanted items at solution level
-                                    let isUnwanted =
-                                        item.StartsWith(".") && item <> ".deps"
-                                        || // Hide hidden files except .deps
-                                        item = "node_modules"
-                                        || // Hide node_modules
-                                        item = ".git"
-                                        || // Hide git folder
-                                        item = ".vs"
-                                        || // Hide Visual Studio folder
-                                        item = "packages" && depth > 0 // Hide nested packages folders
-
-                                    not isUnwanted)
+                                |> Seq.filter (fun item -> not (shouldHideItem item depth))
                                 |> Seq.map (fun item ->
                                     let itemPath = node.path.join (currentPath, item)
                                     let stats = node.fs.statSync (U2.Case1 itemPath)
@@ -351,14 +351,13 @@ module SolutionExplorer =
                                     if stats.isDirectory () then
                                         // Recursively scan subdirectories (limit depth to avoid infinite recursion)
                                         if depth < 6 then
-                                            let subContents = scanFolderContents itemPath item (depth + 1)
+                                            let subContents = scanFolderContents itemPath (depth + 1)
                                             Model.Folder(ref None, item, itemPath, subContents, "")
                                         else
                                             // For very deep directories, just show as empty folder
                                             Model.Folder(ref None, item, itemPath, [], "")
                                     else
                                         // Use the same file type mapping as project level
-                                        let ext = node.path.extname(item).ToLowerInvariant()
                                         let itemType = getItemTypeForFile item
 
                                         // For files, create a file representation
@@ -367,7 +366,7 @@ module SolutionExplorer =
                             with ex ->
                                 []
 
-                        let folderContents = scanFolderContents fullPath folder 0
+                        let folderContents = scanFolderContents fullPath 0
 
 
                         // Create a WorkspaceFolder with the scanned contents
