@@ -146,15 +146,71 @@ module SolutionExplorer =
 
         entry.Children |> Seq.rev |> Seq.map (toModel projPath) |> Seq.toList
 
+    // File extension to item type mapping
+    let getItemTypeForFile (filePath: string) =
+        let ext = node.path.extname(filePath).ToLowerInvariant()
+
+        match ext with
+        | ".fs"
+        | ".fsi" -> "Compile"
+        | ".fsx" -> "Compile"
+        | ".fsl" -> "FsLex"
+        | ".fsy" -> "FsYacc"
+        | ".txt"
+        | ".md"
+        | ".json"
+        | ".xml"
+        | ".config" -> "Content"
+        | ".resx" -> "EmbeddedResource"
+        | ".dll"
+        | ".exe" -> "Reference"
+        | _ -> "Content" // Default fallback
+
+    // Check if a folder should be included in the tree view
+    let isSpecialFolder (folderName: string) =
+        folderName = ".deps"
+        || folderName = "bin"
+        || folderName = "obj"
+        || folderName = "packages"
+        || folderName = "docs"
+        || folderName = "scripts"
+        || folderName = "tools"
+
     let private getProjectModel (proj: Project) =
         let projects = Project.getLoaded () |> Seq.toArray
 
-        let files =
-            proj.Items
-            |> Seq.filter (fun p -> p.Name = "Compile")
-            |> Seq.map (fun p -> p.VirtualPath, p.FilePath)
-            |> Seq.toList
-            |> buildTree proj.Project
+
+        // Get project files from FSAC
+        let projectFiles =
+            proj.Items |> Seq.map (fun p -> p.VirtualPath, p.FilePath) |> Seq.toList
+
+        // Add additional folders that aren't in the project file
+        let projectDir = node.path.dirname proj.Project
+
+        let additionalFolders =
+            try
+                let dirContents = node.fs.readdirSync (U2.Case1 projectDir)
+
+                dirContents
+                |> Seq.filter (fun item ->
+                    let fullPath = node.path.join (projectDir, item)
+                    let stats = node.fs.statSync (U2.Case1 fullPath)
+                    let isDir = stats.isDirectory ()
+
+                    isDir && isSpecialFolder item)
+                |> Seq.map (fun folder ->
+                    let fullPath = node.path.join (projectDir, folder)
+                    (folder, fullPath))
+                |> Seq.toList
+            with ex ->
+                []
+
+        // Combine project files with additional folders
+        let allItems =
+            projectFiles
+            @ (additionalFolders |> List.map (fun (name, path) -> (name, path)))
+
+        let files = buildTree proj.Project allItems
 
         let packageRefs =
             proj.PackageReferences
@@ -245,13 +301,85 @@ module SolutionExplorer =
 
         match ws with
         | WorkspacePeekFound.Solution sln ->
+            // Get solution items from the solution file
+            let solutionItems = sln.Items |> Array.map getItem |> List.ofArray
+
+            // Add additional folders that aren't in the solution file
+            let solutionDir = node.path.dirname sln.Path
+
+            // Get existing folder names from solution items to avoid duplicates
+            let existingFolderNames =
+                solutionItems
+                |> List.collect (fun item ->
+                    match item with
+                    | WorkspaceFolder(_, name, _) -> [ name ]
+                    | _ -> [])
+
+            let additionalSolutionFolders =
+                try
+                    let dirContents = node.fs.readdirSync (U2.Case1 solutionDir)
+
+                    dirContents
+                    |> Seq.filter (fun item ->
+                        let fullPath = node.path.join (solutionDir, item)
+                        let stats = node.fs.statSync (U2.Case1 fullPath)
+                        let isDir = stats.isDirectory ()
+
+                        isDir && isSpecialFolder item && not (existingFolderNames |> List.contains item))
+                    |> Seq.map (fun folder ->
+                        let fullPath = node.path.join (solutionDir, folder)
+
+                        // Recursively scan the contents of this folder
+                        let rec scanFolderContents (currentPath: string) (depth: int) =
+                            // Helper function to determine if an item should be hidden
+                            let shouldHideItem (item: string) (depth: int) =
+                                item.StartsWith(".") && item <> ".deps"
+                                || item = "node_modules"
+                                || item = ".git"
+                                || item = ".vs"
+                                || (item = "packages" && depth > 0)
+
+                            try
+                                let contents = node.fs.readdirSync (U2.Case1 currentPath)
+
+                                contents
+                                |> Seq.filter (fun item -> not (shouldHideItem item depth))
+                                |> Seq.map (fun item ->
+                                    let itemPath = node.path.join (currentPath, item)
+                                    let stats = node.fs.statSync (U2.Case1 itemPath)
+
+                                    if stats.isDirectory () then
+                                        // Recursively scan subdirectories (limit depth to avoid infinite recursion)
+                                        if depth < 6 then
+                                            let subContents = scanFolderContents itemPath (depth + 1)
+                                            Model.Folder(ref None, item, itemPath, subContents, "")
+                                        else
+                                            // For very deep directories, just show as empty folder
+                                            Model.Folder(ref None, item, itemPath, [], "")
+                                    else
+                                        // Use the same file type mapping as project level
+                                        let itemType = getItemTypeForFile item
+
+                                        // For files, create a file representation
+                                        Model.File(ref None, itemPath, item, None, ""))
+                                |> Seq.toList
+                            with ex ->
+                                []
+
+                        let folderContents = scanFolderContents fullPath 0
+
+
+                        // Create a WorkspaceFolder with the scanned contents
+                        Model.WorkspaceFolder(ref None, folder, folderContents))
+                    |> Seq.toList
+                with ex ->
+                    []
+
+            // Combine solution items with additional folders
+            let allSolutionItems = solutionItems @ additionalSolutionFolders
+
             let s =
-                Solution(
-                    ref None,
-                    sln.Path,
-                    (node.path.basename sln.Path),
-                    (sln.Items |> Array.map getItem |> List.ofArray)
-                )
+                Solution(ref None, sln.Path, (node.path.basename sln.Path), allSolutionItems)
 
             let result = Workspace [ s ]
             setParentRef s result
