@@ -1798,7 +1798,8 @@ module Interactions =
                         let onTestRunProgress (progress: TestRunProgress) =
                             showStarted progress.ActiveTests
                             mergeResults TrimMissing.NoTrim progress.TestResults
-                            progress.TestLogs |> Array.iter (TestRun.appendOutputLine testRun)
+                            let formatLog (log: TestLogMessage) = $"[{log.Level}] {log.Message}"
+                            progress.TestLogs |> Array.iter (formatLog >> TestRun.appendOutputLine testRun)
 
                         let onAttachDebugger (processId: int) =
                             VSCodeActions.launchDebugger (string processId)
@@ -2010,7 +2011,16 @@ module Interactions =
                     let mutable discoveredTestCount: int = 0
 
                     let onTestDiscoveryProgress (discoveryUpdate: TestDiscoveryUpdate) : unit =
+                        let writeTestLog (log: TestLogMessage) =
+                            let message = $"[Discover Tests] {log.Message}"
+                            match log.Level with
+                            | TestLogLevel.Warning -> logger.Warn(message)
+                            | TestLogLevel.Error -> logger.Error(message)
+                            | TestLogLevel.Informational -> logger.Info(message)
+
                         try
+                            discoveryUpdate.TestLogs |> Array.iter writeTestLog
+
                             let newItems =
                                 discoveryUpdate.Tests |> TestItem.ofTestDTOs testItemFactory tryGetLocation
 
@@ -2034,7 +2044,7 @@ module Interactions =
 
                     if testItems |> Seq.length = 0 then
                         window.showWarningMessage (
-                            $"No tests discovered. Make sure your projects are restored, built, and can be run with dotnet test."
+                            $"No tests discovered. Make sure your projects are restored, built, and can be run with dotnet test. Discovery logs can be found in Output > F# - Test Adapter "
                         )
                         |> ignore
             }

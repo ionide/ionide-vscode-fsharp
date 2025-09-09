@@ -400,10 +400,22 @@ module DTO =
           AdditionalOutput: string option
           Duration: System.TimeSpan }
 
-    type TestDiscoveryUpdate = { Tests: TestItemDTO array }
+    [<Fable.Core.StringEnum(Fable.Core.CaseRules.None)>]
+    [<RequireQualifiedAccess>]
+    type TestLogLevel =
+        | Informational
+        | Warning
+        | Error
+
+    type TestLogMessage =
+        { Level: TestLogLevel; Message: string }
+
+    type TestDiscoveryUpdate =
+        { Tests: TestItemDTO array
+          TestLogs: TestLogMessage array }
 
     type TestRunProgress =
-        { TestLogs: string array
+        { TestLogs: TestLogMessage array
           TestResults: TestResultDTO array
           ActiveTests: TestItemDTO array }
 
