@@ -2031,6 +2031,12 @@ module Interactions =
                         |> ResizeArray
 
                     rootTestCollection.replace (testItems)
+
+                    if testItems |> Seq.length = 0 then
+                        window.showWarningMessage (
+                            $"No tests discovered. Make sure your projects are restored, built, and can be run with dotnet test."
+                        )
+                        |> ignore
             }
 
     let tryMatchTestBySuffix (locationCache: CodeLocationCache) (testId: TestId) =
