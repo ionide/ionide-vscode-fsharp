@@ -1,3 +1,7 @@
+### 7.27.0 - 10.09.2025
+
+* [implements file type filtering for Explorer](https://github.com/ionide/ionide-vscode-fsharp/pull/2104) [#2103](https://github.com/ionide/ionide-vscode-fsharp/issues/2103) from thatrajeevkr.
+
 ### 7.26.7 - 06.09.2025
 
 * Register project files as being the `xml` language to enable XML language features in project files without the TinToy project tools extension [ionide/ionide-vscode-fsharp#2097](https://github.com/ionide/ionide-vscode-fsharp/pull/2097)
