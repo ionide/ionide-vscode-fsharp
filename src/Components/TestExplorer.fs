@@ -1846,8 +1846,7 @@ module Interactions =
                             let appendToTestRun testRun (log: TestLogMessage) =
                                 match log.Level with
                                 | TestLogLevel.Informational -> TestRun.Output.appendLine testRun log.Message
-                                | TestLogLevel.Warning ->
-                                    TestRun.Output.appendWarningLine testRun log.Message
+                                | TestLogLevel.Warning -> TestRun.Output.appendWarningLine testRun log.Message
                                 | TestLogLevel.Error -> TestRun.Output.appendErrorLine testRun log.Message
 
                             progress.TestLogs |> Array.iter (appendToTestRun testRun)
@@ -1882,6 +1881,13 @@ module Interactions =
                                 shouldDebug
 
                         mergeResults TrimMissing.Trim runResult.Data
+
+                        if Array.isEmpty runResult.Data then
+                            let message =
+                                $"WARNING: No tests ran. The test explorer might be out of sync. Try running a higher test group or refreshing the test explorer"
+
+                            window.showWarningMessage (message) |> ignore
+                            TestRun.Output.appendWarningLine testRun message
 
                     with ex ->
                         logger.Debug("Test run failed with exception", ex)
