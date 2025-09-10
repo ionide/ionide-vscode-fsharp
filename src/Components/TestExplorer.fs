@@ -1335,9 +1335,21 @@ module Interactions =
         let normalizeLineEndings str =
             RegularExpressions.Regex.Replace(str, @"\r\n|\n\r|\n|\r", "\r\n")
 
-        let appendOutputLine (testRun: TestRun) (message: string) =
-            // NOTE: New lines must be crlf https://code.visualstudio.com/api/extension-guides/testing#test-output
-            testRun.appendOutput (sprintf "%s\r\n" (normalizeLineEndings message))
+        module Output =
+            module private Ansi =
+                let yellow (text: string) = $"\u001B[33m{text}\u001B[0m"
+                let green (text: string) = $"\u001B[32m{text}\u001B[0m"
+                let red (text: string) = $"\u001B[31m{text}\u001B[0m"
+
+            let appendLine (testRun: TestRun) (message: string) =
+                // NOTE: New lines must be crlf https://code.visualstudio.com/api/extension-guides/testing#test-output
+                testRun.appendOutput (sprintf "%s\r\n" (normalizeLineEndings message))
+
+            let appendWarningLine (testRun: TestRun) (message: string) =
+                appendLine testRun (message |> Ansi.yellow)
+
+            let appendErrorLine (testRun: TestRun) (message: string) =
+                appendLine testRun (message |> Ansi.red)
 
         let appendOutputLineForTest (testRun: TestRun) (testItem) (message: string) =
             let message = sprintf "%s\r\n" (normalizeLineEndings message)
@@ -1578,7 +1590,7 @@ module Interactions =
                     (projectRunRequest.ShouldDebug |> DotnetCli.DebugTests.ofBool)
                     cancellationToken
 
-            TestRun.appendOutputLine testRun output
+            TestRun.Output.appendLine testRun output
 
             let testResults =
                 TrxParser.extractTrxResults trxPath |> Array.map trxResultToTestResult
@@ -1588,7 +1600,7 @@ module Interactions =
                     $"WARNING: No tests ran for project \"{projectPath}\". \r\nThe test explorer might be out of sync. Try running a higher test or refreshing the test explorer"
 
                 window.showWarningMessage (message) |> ignore
-                TestRun.appendOutputLine testRun message
+                TestRun.Output.appendWarningLine testRun message
             else
                 mergeResultsToExplorer
                     testRun
@@ -1619,7 +1631,7 @@ module Interactions =
                 let message =
                     $"❌ Error running tests: \n    project: {projectRunRequest.ProjectPath} \n\n    error:\n        {e.Message}"
 
-                TestRun.appendOutputLine testRun message
+                TestRun.Output.appendErrorLine testRun message
                 TestRun.showError testRun message projectRunRequest.Tests
         }
 
@@ -1721,7 +1733,7 @@ module Interactions =
 
                     if buildStatus.Code <> Some 0 then
                         TestRun.showError testRun "Project build failed" runnableTests
-                        TestRun.appendOutputLine testRun $"❌ Failed to build project: {projectPath}"
+                        TestRun.Output.appendErrorLine testRun $"❌ Failed to build project: {projectPath}"
                         return None
                     else
                         return Some projectRunRequest
@@ -1798,8 +1810,15 @@ module Interactions =
                         let onTestRunProgress (progress: TestRunProgress) =
                             showStarted progress.ActiveTests
                             mergeResults TrimMissing.NoTrim progress.TestResults
-                            let formatLog (log: TestLogMessage) = $"[{log.Level}] {log.Message}"
-                            progress.TestLogs |> Array.iter (formatLog >> TestRun.appendOutputLine testRun)
+
+                            let appendToTestRun testRun (log: TestLogMessage) =
+                                match log.Level with
+                                | TestLogLevel.Informational -> TestRun.Output.appendLine testRun log.Message
+                                | TestLogLevel.Warning ->
+                                    TestRun.Output.appendWarningLine testRun $"[WARN] {log.Message}"
+                                | TestLogLevel.Error -> TestRun.Output.appendErrorLine testRun $"[ERROR] {log.Message}"
+
+                            progress.TestLogs |> Array.iter (appendToTestRun testRun)
 
                         let onAttachDebugger (processId: int) =
                             VSCodeActions.launchDebugger (string processId)
@@ -2013,6 +2032,7 @@ module Interactions =
                     let onTestDiscoveryProgress (discoveryUpdate: TestDiscoveryUpdate) : unit =
                         let writeTestLog (log: TestLogMessage) =
                             let message = $"[Discover Tests] {log.Message}"
+
                             match log.Level with
                             | TestLogLevel.Warning -> logger.Warn(message)
                             | TestLogLevel.Error -> logger.Error(message)
