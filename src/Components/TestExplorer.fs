@@ -1341,6 +1341,11 @@ module Interactions =
                 let green (text: string) = $"\u001B[32m{text}\u001B[0m"
                 let red (text: string) = $"\u001B[31m{text}\u001B[0m"
 
+            module Symbols =
+                let testPassed = Ansi.green "Passed"
+                let testFailed = Ansi.red "Failed"
+                let testSkipped = Ansi.yellow "Skipped"
+
             let appendLine (testRun: TestRun) (message: string) =
                 // NOTE: New lines must be crlf https://code.visualstudio.com/api/extension-guides/testing#test-output
                 testRun.appendOutput (sprintf "%s\r\n" (normalizeLineEndings message))
@@ -1811,12 +1816,39 @@ module Interactions =
                             showStarted progress.ActiveTests
                             mergeResults TrimMissing.NoTrim progress.TestResults
 
+                            let appendTestResultToOutput (testResult: TestResultDTO) =
+                                match testResult.Outcome with
+                                | TestOutcomeDTO.Passed ->
+                                    TestRun.Output.appendLine
+                                        testRun
+                                        $"{TestRun.Output.Symbols.testPassed} {testResult.TestItem.FullName}"
+                                | TestOutcomeDTO.Failed ->
+                                    TestRun.Output.appendLine
+                                        testRun
+                                        $"{TestRun.Output.Symbols.testFailed} {testResult.TestItem.FullName}"
+                                | TestOutcomeDTO.Skipped ->
+                                    TestRun.Output.appendLine
+                                        testRun
+                                        $"{TestRun.Output.Symbols.testSkipped} {testResult.TestItem.FullName}"
+                                | TestOutcomeDTO.None ->
+                                    TestRun.Output.appendWarningLine
+                                        testRun
+                                        $"No outcome for {testResult.TestItem.FullName}"
+                                | TestOutcomeDTO.NotFound ->
+                                    TestRun.Output.appendWarningLine testRun $"NotFound {testResult.TestItem.FullName}"
+                                | _ ->
+                                    TestRun.Output.appendWarningLine
+                                        testRun
+                                        $"An unexpected test outcome was encountered for {testResult.TestItem.FullName}"
+
+                            progress.TestResults |> Array.iter appendTestResultToOutput
+
                             let appendToTestRun testRun (log: TestLogMessage) =
                                 match log.Level with
                                 | TestLogLevel.Informational -> TestRun.Output.appendLine testRun log.Message
                                 | TestLogLevel.Warning ->
-                                    TestRun.Output.appendWarningLine testRun $"[WARN] {log.Message}"
-                                | TestLogLevel.Error -> TestRun.Output.appendErrorLine testRun $"[ERROR] {log.Message}"
+                                    TestRun.Output.appendWarningLine testRun log.Message
+                                | TestLogLevel.Error -> TestRun.Output.appendErrorLine testRun log.Message
 
                             progress.TestLogs |> Array.iter (appendToTestRun testRun)
 
