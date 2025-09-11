@@ -649,7 +649,7 @@ module DotnetCli =
                     match tryGetDebugProcessId (string consoleOutput) with
                     | None -> ()
                     | Some processId ->
-                        VSCodeActions.launchDebugger processId
+                        VSCodeActions.launchDebugger processId |> ignore
                         isDebuggerStarted <- true
 
             Process.execWithCancel "dotnet" (ResizeArray(args)) (getEnv true) tryLaunchDebugger cancellationToken
@@ -1159,7 +1159,6 @@ module TestDiscovery =
             (replacementItem, withUri)
 
         let rec recurse (target: TestItemCollection) (withUri: TestItem array) : unit =
-
             let treeOnly, matched, _codeOnly =
                 ArrayExt.venn TestItem.getId TestItem.getId (target.TestItems()) withUri
 
@@ -1667,8 +1666,7 @@ module Interactions =
                         let message = $"Could not run tests: project not loaded. {projectPath}"
                         invalidOp message)
                 |> Option.defaultWith (fun () ->
-                    let message =
-                        $"Could not run tests: project does not found in workspace. {projectPath}"
+                    let message = $"Could not run tests: project not found in workspace. {projectPath}"
 
                     logger.Error(message)
                     invalidOp message)
@@ -1699,6 +1697,215 @@ module Interactions =
               ShouldDebug = shouldDebug
               HasIncludeFilter = hasIncludeFilter
               Tests = replaceProjectRootIfPresent tests })
+
+    let private discoverTests_WithLangaugeServer
+        testItemFactory
+        (rootTestCollection: TestItemCollection)
+        tryGetLocation
+        =
+        withProgress NoCancel
+        <| fun p progressCancelToken ->
+            promise {
+                let report message =
+                    logger.Info message
+
+                    p.report
+                        {| message = Some message
+                           increment = None |}
+
+                let mergeTestItemCollections (target: TestItem array) (addition: TestItem array) : TestItem array =
+                    let rec recurse (target: TestItem array) (addition: TestItem array) : TestItem array =
+                        let targetOnly, conficted, addedOnly =
+                            ArrayExt.venn TestItem.getId TestItem.getId target addition
+
+                        let mergeSingle (targetItem: TestItem, addedItem: TestItem) =
+                            let mergedChildren =
+                                recurse (targetItem.children.TestItems()) (addedItem.children.TestItems())
+
+                            addedItem.children.replace (ResizeArray mergedChildren)
+                            addedItem
+
+                        Array.concat [ targetOnly; addedOnly; conficted |> Array.map mergeSingle ]
+
+                    recurse target addition
+
+                let mutable discoveredTestsAccumulator: TestItem array =
+                    rootTestCollection.TestItems()
+
+                let mutable discoveredTestCount: int = 0
+
+                let onTestDiscoveryProgress (discoveryUpdate: TestDiscoveryUpdate) : unit =
+                    let writeTestLog (log: TestLogMessage) =
+                        let message = $"[Discover Tests] {log.Message}"
+
+                        match log.Level with
+                        | TestLogLevel.Warning -> logger.Warn(message)
+                        | TestLogLevel.Error -> logger.Error(message)
+                        | TestLogLevel.Informational -> logger.Info(message)
+
+                    try
+                        discoveryUpdate.TestLogs |> Array.iter writeTestLog
+
+                        let newItems =
+                            discoveryUpdate.Tests |> TestItem.ofTestDTOs testItemFactory tryGetLocation
+
+                        discoveredTestsAccumulator <- mergeTestItemCollections discoveredTestsAccumulator newItems
+                        discoveredTestCount <- discoveredTestCount + (discoveryUpdate.Tests |> Array.length)
+
+                        report $"Discovering tests: {discoveredTestCount} discovered"
+                        rootTestCollection.replace (ResizeArray discoveredTestsAccumulator)
+                    with e ->
+                        logger.Debug("Incremental test discovery update threw an exception", e)
+
+                report "Discovering tests"
+                let! discoveryResponse = LanguageService.discoverTests onTestDiscoveryProgress ()
+
+                let testItems =
+                    discoveryResponse.Data
+                    |> TestItem.ofTestDTOs testItemFactory tryGetLocation
+                    |> ResizeArray
+
+                rootTestCollection.replace (testItems)
+
+                if testItems |> Seq.length = 0 then
+                    window.showWarningMessage (
+                        $"No tests discovered. Make sure your projects are restored, built, and can be run with dotnet test. Discovery logs can be found in Output > F# - Test Adapter "
+                    )
+                    |> ignore
+            }
+
+    let private runTests_WithLanguageServer
+        mergeTestResultsToExplorer
+        (req: TestRunRequest)
+        testRun
+        projectRunRequests
+        =
+        promise {
+            try
+                let runnableTestsByProject =
+                    projectRunRequests
+                    |> Array.map (fun rr -> rr.ProjectPath, rr.Tests |> Array.collect TestItem.runnableChildren)
+                    |> Map
+
+                let expectedTestsById =
+                    runnableTestsByProject
+                    |> Map.values
+                    |> Seq.collect (Seq.map (fun t -> t.id, t))
+                    |> Map
+
+                let mergeResults (shouldTrim: TrimMissing) (resultDtos: TestResultDTO array) =
+                    let groups =
+                        resultDtos
+                        |> Array.groupBy (fun tr -> tr.TestItem.ProjectFilePath, tr.TestItem.TargetFramework)
+
+                    groups
+                    |> Array.iter (fun ((projPath, targetFramework), results) ->
+                        let expectedToRun =
+                            runnableTestsByProject
+                            |> Map.tryFind projPath
+                            |> Option.defaultValue Array.empty
+
+                        let actuallyRan: TestResult array = results |> Array.map TestResult.ofTestResultDTO
+
+                        mergeTestResultsToExplorer
+                            testRun
+                            projPath
+                            targetFramework
+                            shouldTrim
+                            expectedToRun
+                            actuallyRan)
+
+                let showStarted (testItems: TestItemDTO array) =
+                    try
+                        let groups = testItems |> Array.groupBy (fun t -> t.ProjectFilePath)
+
+                        groups
+                        |> Array.iter (fun (projPath, activeTests) ->
+                            let testIdsToStart =
+                                activeTests |> Array.map (fun t -> TestItem.constructId projPath t.FullName)
+
+                            let knownExplorerItems = testIdsToStart |> Array.choose expectedTestsById.TryFind
+                            knownExplorerItems |> TestRun.showStarted testRun)
+                    with ex ->
+                        logger.Debug("Threw error while mapping active test items to the explorer", ex)
+
+                let onTestRunProgress (progress: TestRunProgress) =
+                    showStarted progress.ActiveTests
+                    mergeResults TrimMissing.NoTrim progress.TestResults
+
+                    let appendTestResultToOutput (testResult: TestResultDTO) =
+                        match testResult.Outcome with
+                        | TestOutcomeDTO.Passed ->
+                            TestRun.Output.appendLine
+                                testRun
+                                $"{TestRun.Output.Symbols.testPassed} {testResult.TestItem.FullName}"
+                        | TestOutcomeDTO.Failed ->
+                            TestRun.Output.appendLine
+                                testRun
+                                $"{TestRun.Output.Symbols.testFailed} {testResult.TestItem.FullName}"
+                        | TestOutcomeDTO.Skipped ->
+                            TestRun.Output.appendLine
+                                testRun
+                                $"{TestRun.Output.Symbols.testSkipped} {testResult.TestItem.FullName}"
+                        | TestOutcomeDTO.None ->
+                            TestRun.Output.appendWarningLine testRun $"No outcome for {testResult.TestItem.FullName}"
+                        | TestOutcomeDTO.NotFound ->
+                            TestRun.Output.appendWarningLine testRun $"NotFound {testResult.TestItem.FullName}"
+                        | _ ->
+                            TestRun.Output.appendWarningLine
+                                testRun
+                                $"An unexpected test outcome was encountered for {testResult.TestItem.FullName}"
+
+                    progress.TestResults |> Array.iter appendTestResultToOutput
+
+                    let appendToTestRun testRun (log: TestLogMessage) =
+                        match log.Level with
+                        | TestLogLevel.Informational -> TestRun.Output.appendLine testRun log.Message
+                        | TestLogLevel.Warning -> TestRun.Output.appendWarningLine testRun log.Message
+                        | TestLogLevel.Error -> TestRun.Output.appendErrorLine testRun log.Message
+
+                    progress.TestLogs |> Array.iter (appendToTestRun testRun)
+
+                let onAttachDebugger (processId: int) =
+                    VSCodeActions.launchDebugger (string processId)
+
+                let filterExpression, projectSubset =
+                    match req.``include`` with
+                    | None -> None, None
+                    | Some selectedCases when Seq.isEmpty selectedCases -> None, None
+                    | Some selectedCases ->
+                        let filter =
+                            projectRunRequests
+                            |> Array.collect (fun rr -> rr.Tests)
+                            |> buildFilterExpression
+                            |> Some
+
+                        let projectSubset = projectRunRequests |> Array.map (fun p -> p.ProjectPath) |> Some
+                        filter, projectSubset
+
+                logger.Debug($"Test Filter Expression: {filterExpression}")
+
+                let shouldDebug = TestRunRequest.isDebugRequested req
+
+                let! runResult =
+                    LanguageService.runTests
+                        onTestRunProgress
+                        onAttachDebugger
+                        projectSubset
+                        filterExpression
+                        shouldDebug
+
+                mergeResults TrimMissing.Trim runResult.Data
+
+                if Array.isEmpty runResult.Data then
+                    let message =
+                        $"WARNING: No tests ran. The test explorer might be out of sync. Try running a higher test group or refreshing the test explorer"
+
+                    window.showWarningMessage (message) |> ignore
+                    TestRun.Output.appendWarningLine testRun message
+            with ex ->
+                logger.Debug("Test run failed with exception", ex)
+        }
 
     let runHandler
         (testController: TestController)
@@ -1764,139 +1971,13 @@ module Interactions =
 
                     ()
                 else
-                    try
-                        let runnableTestsByProject =
-                            projectRunRequests
-                            |> Array.map (fun rr -> rr.ProjectPath, rr.Tests |> Array.collect TestItem.runnableChildren)
-                            |> Map
-
-                        let expectedTestsById =
-                            runnableTestsByProject
-                            |> Map.values
-                            |> Seq.collect (Seq.map (fun t -> t.id, t))
-                            |> Map
-
-                        let mergeResults (shouldTrim: TrimMissing) (resultDtos: TestResultDTO array) =
-                            let groups =
-                                resultDtos
-                                |> Array.groupBy (fun tr -> tr.TestItem.ProjectFilePath, tr.TestItem.TargetFramework)
-
-                            groups
-                            |> Array.iter (fun ((projPath, targetFramework), results) ->
-                                let expectedToRun =
-                                    runnableTestsByProject
-                                    |> Map.tryFind projPath
-                                    |> Option.defaultValue Array.empty
-
-                                let actuallyRan: TestResult array = results |> Array.map TestResult.ofTestResultDTO
-
-                                mergeTestResultsToExplorer
-                                    testRun
-                                    projPath
-                                    targetFramework
-                                    shouldTrim
-                                    expectedToRun
-                                    actuallyRan)
-
-                        let showStarted (testItems: TestItemDTO array) =
-                            try
-                                let groups = testItems |> Array.groupBy (fun t -> t.ProjectFilePath)
-
-                                groups
-                                |> Array.iter (fun (projPath, activeTests) ->
-                                    let testIdsToStart =
-                                        activeTests |> Array.map (fun t -> TestItem.constructId projPath t.FullName)
-
-                                    let knownExplorerItems = testIdsToStart |> Array.choose expectedTestsById.TryFind
-                                    knownExplorerItems |> TestRun.showStarted testRun)
-                            with ex ->
-                                logger.Debug("Threw error while mapping active test items to the explorer", ex)
-
-                        let onTestRunProgress (progress: TestRunProgress) =
-                            showStarted progress.ActiveTests
-                            mergeResults TrimMissing.NoTrim progress.TestResults
-
-                            let appendTestResultToOutput (testResult: TestResultDTO) =
-                                match testResult.Outcome with
-                                | TestOutcomeDTO.Passed ->
-                                    TestRun.Output.appendLine
-                                        testRun
-                                        $"{TestRun.Output.Symbols.testPassed} {testResult.TestItem.FullName}"
-                                | TestOutcomeDTO.Failed ->
-                                    TestRun.Output.appendLine
-                                        testRun
-                                        $"{TestRun.Output.Symbols.testFailed} {testResult.TestItem.FullName}"
-                                | TestOutcomeDTO.Skipped ->
-                                    TestRun.Output.appendLine
-                                        testRun
-                                        $"{TestRun.Output.Symbols.testSkipped} {testResult.TestItem.FullName}"
-                                | TestOutcomeDTO.None ->
-                                    TestRun.Output.appendWarningLine
-                                        testRun
-                                        $"No outcome for {testResult.TestItem.FullName}"
-                                | TestOutcomeDTO.NotFound ->
-                                    TestRun.Output.appendWarningLine testRun $"NotFound {testResult.TestItem.FullName}"
-                                | _ ->
-                                    TestRun.Output.appendWarningLine
-                                        testRun
-                                        $"An unexpected test outcome was encountered for {testResult.TestItem.FullName}"
-
-                            progress.TestResults |> Array.iter appendTestResultToOutput
-
-                            let appendToTestRun testRun (log: TestLogMessage) =
-                                match log.Level with
-                                | TestLogLevel.Informational -> TestRun.Output.appendLine testRun log.Message
-                                | TestLogLevel.Warning -> TestRun.Output.appendWarningLine testRun log.Message
-                                | TestLogLevel.Error -> TestRun.Output.appendErrorLine testRun log.Message
-
-                            progress.TestLogs |> Array.iter (appendToTestRun testRun)
-
-                        let onAttachDebugger (processId: int) =
-                            VSCodeActions.launchDebugger (string processId)
-
-                        let filterExpression, projectSubset =
-                            match req.``include`` with
-                            | None -> None, None
-                            | Some selectedCases when Seq.isEmpty selectedCases -> None, None
-                            | Some selectedCases ->
-                                let filter =
-                                    projectRunRequests
-                                    |> Array.collect (fun rr -> rr.Tests)
-                                    |> buildFilterExpression
-                                    |> Some
-
-                                let projectSubset = projectRunRequests |> Array.map (fun p -> p.ProjectPath) |> Some
-                                filter, projectSubset
-
-                        logger.Debug($"Test Filter Expression: {filterExpression}")
-
-                        let shouldDebug = TestRunRequest.isDebugRequested req
-
-                        let! runResult =
-                            LanguageService.runTests
-                                onTestRunProgress
-                                onAttachDebugger
-                                projectSubset
-                                filterExpression
-                                shouldDebug
-
-                        mergeResults TrimMissing.Trim runResult.Data
-
-                        if Array.isEmpty runResult.Data then
-                            let message =
-                                $"WARNING: No tests ran. The test explorer might be out of sync. Try running a higher test group or refreshing the test explorer"
-
-                            window.showWarningMessage (message) |> ignore
-                            TestRun.Output.appendWarningLine testRun message
-
-                    with ex ->
-                        logger.Debug("Test run failed with exception", ex)
+                    do! runTests_WithLanguageServer mergeTestResultsToExplorer req testRun projectRunRequests
 
                 testRun.``end`` ()
             }
             |> (Promise.toThenable >> (!^))
 
-    let private discoverTestsWithDotnetCli
+    let private discoverTests_WithDotnetCli
         testItemFactory
         tryGetLocation
         makeTrxPath
@@ -2037,7 +2118,7 @@ module Interactions =
 
                 else if useLegacyDotnetCliIntegration then
                     do!
-                        discoverTestsWithDotnetCli
+                        discoverTests_WithDotnetCli
                             testItemFactory
                             tryGetLocation
                             makeTrxPath
@@ -2046,65 +2127,7 @@ module Interactions =
                             cancellationToken
                             builtTestProjects
                 else
-                    let mergeTestItemCollections (target: TestItem array) (addition: TestItem array) : TestItem array =
-                        let rec recurse (target: TestItem array) (addition: TestItem array) : TestItem array =
-                            let targetOnly, conficted, addedOnly =
-                                ArrayExt.venn TestItem.getId TestItem.getId target addition
-
-                            let mergeSingle (targetItem: TestItem, addedItem: TestItem) =
-                                let mergedChildren =
-                                    recurse (targetItem.children.TestItems()) (addedItem.children.TestItems())
-
-                                addedItem.children.replace (ResizeArray mergedChildren)
-                                addedItem
-
-                            Array.concat [ targetOnly; addedOnly; conficted |> Array.map mergeSingle ]
-
-                        recurse target addition
-
-                    let mutable discoveredTestsAccumulator: TestItem array =
-                        rootTestCollection.TestItems()
-
-                    let mutable discoveredTestCount: int = 0
-
-                    let onTestDiscoveryProgress (discoveryUpdate: TestDiscoveryUpdate) : unit =
-                        let writeTestLog (log: TestLogMessage) =
-                            let message = $"[Discover Tests] {log.Message}"
-
-                            match log.Level with
-                            | TestLogLevel.Warning -> logger.Warn(message)
-                            | TestLogLevel.Error -> logger.Error(message)
-                            | TestLogLevel.Informational -> logger.Info(message)
-
-                        try
-                            discoveryUpdate.TestLogs |> Array.iter writeTestLog
-
-                            let newItems =
-                                discoveryUpdate.Tests |> TestItem.ofTestDTOs testItemFactory tryGetLocation
-
-                            discoveredTestsAccumulator <- mergeTestItemCollections discoveredTestsAccumulator newItems
-                            discoveredTestCount <- discoveredTestCount + (discoveryUpdate.Tests |> Array.length)
-
-                            report $"Discovering tests: {discoveredTestCount} discovered"
-                            rootTestCollection.replace (ResizeArray discoveredTestsAccumulator)
-                        with e ->
-                            logger.Debug("Incremental test discovery update threw an exception", e)
-
-                    report "Discovering tests"
-                    let! discoveryResponse = LanguageService.discoverTests onTestDiscoveryProgress ()
-
-                    let testItems =
-                        discoveryResponse.Data
-                        |> TestItem.ofTestDTOs testItemFactory tryGetLocation
-                        |> ResizeArray
-
-                    rootTestCollection.replace (testItems)
-
-                    if testItems |> Seq.length = 0 then
-                        window.showWarningMessage (
-                            $"No tests discovered. Make sure your projects are restored, built, and can be run with dotnet test. Discovery logs can be found in Output > F# - Test Adapter "
-                        )
-                        |> ignore
+                    do! discoverTests_WithLangaugeServer testItemFactory rootTestCollection tryGetLocation
             }
 
     let tryMatchTestBySuffix (locationCache: CodeLocationCache) (testId: TestId) =
