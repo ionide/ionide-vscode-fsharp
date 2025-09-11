@@ -304,7 +304,9 @@ type TestResult =
       Expected: string option
       Actual: string option
       Timing: float
-      TestFramework: TestFrameworkId option }
+      TestFramework: TestFrameworkId option
+      ProjectFilePath: ProjectFilePath
+      TargetFramework: TargetFramework }
 
 module TestResult =
     let tryExtractExpectedAndActual (message: string option) =
@@ -324,7 +326,7 @@ module TestResult =
 
         expected, actual
 
-    let ofTestResultDTO (testResultDto: TestResultDTO) =
+    let ofTestResultDTO (testResultDto: TestResultDTO) : TestResult =
         let expected, actual = tryExtractExpectedAndActual testResultDto.ErrorMessage
 
         { FullTestName = testResultDto.TestItem |> TestItemDTO.getNormalizedFullName
@@ -335,7 +337,9 @@ module TestResult =
           Timing = testResultDto.Duration.Milliseconds
           TestFramework = testResultDto.TestItem.ExecutorUri |> TestFrameworkId.tryFromExecutorUri
           Expected = expected
-          Actual = actual }
+          Actual = actual
+          ProjectFilePath = testResultDto.TestItem.ProjectFilePath
+          TargetFramework = testResultDto.TestItem.TargetFramework }
 
 module Path =
 
@@ -1487,8 +1491,6 @@ module Interactions =
         (testItemFactory: TestItem.TestItemFactory)
         (tryGetLocation: TestId -> LocationRecord option)
         (testRun: TestRun)
-        (projectPath: ProjectPath)
-        (targetFramework: TargetFramework)
         (shouldDeleteMissing: bool)
         (expectedToRun: TestItem array)
         (testResults: TestResult array)
@@ -1503,18 +1505,19 @@ module Interactions =
             parentCollection.delete testWithoutResult.id
 
 
-        let getOrMakeHierarchyPath testFramework =
+        let getOrMakeHierarchyPath (testResult: TestResult) =
             let testItemFactory (ti: TestItem.TestItemBuilder) =
                 testItemFactory
                     { ti with
-                        testFramework = testFramework }
+                        testFramework = testResult.TestFramework }
 
             TestItem.getOrMakeHierarchyPath
                 rootTestCollection
                 testItemFactory
                 tryGetLocation
-                projectPath
-                targetFramework
+                testResult.ProjectFilePath
+                testResult.TargetFramework
+                testResult.FullTestName
 
         let treeItemComparable (t: TestItem) = TestItem.getFullName t.id
         let resultComparable (r: TestResult) = r.FullTestName
@@ -1529,12 +1532,15 @@ module Interactions =
 
         added
         |> Array.iter (fun additionalResult ->
-            let treeItem =
-                getOrMakeHierarchyPath additionalResult.TestFramework additionalResult.FullTestName
+            let treeItem = getOrMakeHierarchyPath additionalResult
 
             displayTestResultInExplorer testRun (treeItem, additionalResult))
 
-    let private trxResultToTestResult (trxResult: TrxParser.TestWithResult) =
+    let private trxResultToTestResult
+        (projectFilePath: ProjectFilePath)
+        (targetFramework: TargetFramework)
+        (trxResult: TrxParser.TestWithResult)
+        =
 
         let expected, actual =
             TestResult.tryExtractExpectedAndActual trxResult.UnitTestResult.Output.ErrorInfo.Message
@@ -1547,7 +1553,9 @@ module Interactions =
           Expected = expected
           Actual = actual
           Timing = trxResult.UnitTestResult.Duration.Milliseconds
-          TestFramework = TestFrameworkId.tryFromExecutorUri trxResult.UnitTest.TestMethod.AdapterTypeName }
+          TestFramework = TestFrameworkId.tryFromExecutorUri trxResult.UnitTest.TestMethod.AdapterTypeName
+          ProjectFilePath = projectFilePath
+          TargetFramework = targetFramework }
 
     type TrimMissing = bool
 
@@ -1555,8 +1563,7 @@ module Interactions =
         let Trim = true
         let NoTrim = false
 
-    type MergeTestResultsToExplorer =
-        TestRun -> ProjectPath -> TargetFramework -> TrimMissing -> TestItem array -> TestResult array -> unit
+    type MergeTestResultsToExplorer = TestRun -> TrimMissing -> TestItem array -> TestResult array -> unit
 
     let private runTestProject_withoutExceptionHandling
         (mergeResultsToExplorer: MergeTestResultsToExplorer)
@@ -1597,7 +1604,8 @@ module Interactions =
             TestRun.Output.appendLine testRun output
 
             let testResults =
-                TrxParser.extractTrxResults trxPath |> Array.map trxResultToTestResult
+                TrxParser.extractTrxResults trxPath
+                |> Array.map (trxResultToTestResult projectPath projectRunRequest.TargetFramework)
 
             if Array.isEmpty testResults then
                 let message =
@@ -1606,13 +1614,7 @@ module Interactions =
                 window.showWarningMessage (message) |> ignore
                 TestRun.Output.appendWarningLine testRun message
             else
-                mergeResultsToExplorer
-                    testRun
-                    projectPath
-                    projectRunRequest.TargetFramework
-                    TrimMissing.Trim
-                    runnableTests
-                    testResults
+                mergeResultsToExplorer testRun TrimMissing.Trim runnableTests testResults
         }
 
     let runTestProject
@@ -1776,44 +1778,25 @@ module Interactions =
 
     let private runTests_WithLanguageServer
         mergeTestResultsToExplorer
+        (rootTestCollection: TestItemCollection)
         (req: TestRunRequest)
         testRun
-        projectRunRequests
         =
         promise {
             try
-                let runnableTestsByProject =
-                    projectRunRequests
-                    |> Array.map (fun rr -> rr.ProjectPath, rr.Tests |> Array.collect TestItem.runnableChildren)
-                    |> Map
+                let expectedToRun =
+                    req.``include``
+                    |> Option.map Array.ofSeq
+                    |> Option.defaultValue (rootTestCollection.TestItems())
+                    |> Array.collect TestItem.runnableChildren
 
-                let expectedTestsById =
-                    runnableTestsByProject
-                    |> Map.values
-                    |> Seq.collect (Seq.map (fun t -> t.id, t))
-                    |> Map
+                let expectedTestsById = expectedToRun |> Array.map (fun t -> t.id, t) |> Map
 
                 let mergeResults (shouldTrim: TrimMissing) (resultDtos: TestResultDTO array) =
-                    let groups =
-                        resultDtos
-                        |> Array.groupBy (fun tr -> tr.TestItem.ProjectFilePath, tr.TestItem.TargetFramework)
+                    let actuallyRan: TestResult array =
+                        resultDtos |> Array.map TestResult.ofTestResultDTO
 
-                    groups
-                    |> Array.iter (fun ((projPath, targetFramework), results) ->
-                        let expectedToRun =
-                            runnableTestsByProject
-                            |> Map.tryFind projPath
-                            |> Option.defaultValue Array.empty
-
-                        let actuallyRan: TestResult array = results |> Array.map TestResult.ofTestResultDTO
-
-                        mergeTestResultsToExplorer
-                            testRun
-                            projPath
-                            targetFramework
-                            shouldTrim
-                            expectedToRun
-                            actuallyRan)
+                    mergeTestResultsToExplorer testRun shouldTrim expectedToRun actuallyRan
 
                 let showStarted (testItems: TestItemDTO array) =
                     try
@@ -1875,12 +1858,19 @@ module Interactions =
                     | Some selectedCases when Seq.isEmpty selectedCases -> None, None
                     | Some selectedCases ->
                         let filter =
-                            projectRunRequests
-                            |> Array.collect (fun rr -> rr.Tests)
+                            selectedCases
+                            |> Array.ofSeq
+                            |> Array.filter (fun t -> t.id |> TestItem.getFullName <> String.Empty)
                             |> buildFilterExpression
                             |> Some
 
-                        let projectSubset = projectRunRequests |> Array.map (fun p -> p.ProjectPath) |> Some
+                        let projectSubset =
+                            selectedCases
+                            |> Seq.map (TestItem.getId >> TestItem.getProjectPath)
+                            |> Seq.distinct
+                            |> Array.ofSeq
+                            |> Some
+
                         filter, projectSubset
 
                 logger.Debug($"Test Filter Expression: {filterExpression}")
@@ -1923,7 +1913,6 @@ module Interactions =
         if testController.items.size < 1. then
             !! testRun.``end`` ()
         else
-            let projectRunRequests = filtersToProjectRunRequests testController.items req
 
             let testItemFactory = TestItem.itemFactoryForController testController
 
@@ -1932,7 +1921,6 @@ module Interactions =
 
             let runTestProject =
                 runTestProject mergeTestResultsToExplorer makeTrxPath testRun _ct
-
 
             let buildProject testRun projectRunRequest =
                 promise {
@@ -1952,6 +1940,7 @@ module Interactions =
                 }
 
             promise {
+                let projectRunRequests = filtersToProjectRunRequests testController.items req
 
                 projectRunRequests
                 |> Array.collect (fun rr -> rr.Tests |> TestItem.runnableFromArray)
@@ -1971,7 +1960,7 @@ module Interactions =
 
                     ()
                 else
-                    do! runTests_WithLanguageServer mergeTestResultsToExplorer req testRun projectRunRequests
+                    do! runTests_WithLanguageServer mergeTestResultsToExplorer testController.items req testRun
 
                 testRun.``end`` ()
             }
