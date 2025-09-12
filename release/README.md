@@ -3,10 +3,10 @@
 
 _Part of the [Ionide](https://ionide.io) plugin suite._ Read detailed documentation at [Ionide docs page](https://ionide.io).
 
-[![Version](https://vsmarketplacebadges.dev/version/Ionide.Ionide-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp) [![Installs](https://vsmarketplacebadges.dev/downloads-short/Ionide.Ionide-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp)
-[![Rating](https://vsmarketplacebadges.dev/rating-star/Ionide.Ionide-fsharp.svg)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp)
-[![open collective backers](https://img.shields.io/opencollective/backers/ionide.svg?color=blue)](https://opencollective.com/ionide)
-[![open collective sponsors](https://img.shields.io/opencollective/sponsors/ionide.svg?color=blue)](https://opencollective.com/ionide)
+[![Version](https://vsmarketplacebadges.dev/version/Ionide.Ionide-fsharp.png)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp) [![Installs](https://vsmarketplacebadges.dev/downloads-short/Ionide.Ionide-fsharp.png)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp)
+[![Rating](https://vsmarketplacebadges.dev/rating-star/Ionide.Ionide-fsharp.png)](https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp)
+[![open collective backers](https://img.shields.io/opencollective/backers/ionide.png?color=blue)](https://opencollective.com/ionide)
+[![open collective sponsors](https://img.shields.io/opencollective/sponsors/ionide.png?color=blue)](https://opencollective.com/ionide)
 [![Open in Gitpod](https://img.shields.io/badge/Contribute%20with-Gitpod-908a85?logo=gitpod)](https://gitpod.io/#https://github.com/ionide/ionide-vscode-fsharp)
 
 You can support Ionide development on [Open Collective](https://opencollective.com/ionide).
@@ -115,9 +115,11 @@ You can also support Ionide development on [Open Collective](https://opencollect
 [Become a sponsor](https://opencollective.com/ionide) and get your logo on our README on Github, description in the VSCode marketplace and on [ionide.io](https://ionide.io) with a link to your site.
 
 <div align="center">
-    <a href="https://ionide.io/sponsors.html">
-        <img src="https://opencollective.com/ionide/tiers/silver-sponsor.svg?avatarHeight=120&width=1000&button=false"/>
+
+<a href="https://ionide.io/sponsors.html">
+        <img src="https://opencollective.com/ionide/tiers/silver-sponsor.png?avatarHeight=120&width=1000&button=false"/>
         <br/>
-        <img src="https://opencollective.com/ionide/tiers/bronze-sponsor.svg?avatarHeight=120&width=1000&button=false"/>
+        <img src="https://opencollective.com/ionide/tiers/bronze-sponsor.png?avatarHeight=120&width=1000&button=false"/>
     </a>
+
 </div>

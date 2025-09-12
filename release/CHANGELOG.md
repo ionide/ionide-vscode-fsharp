@@ -1,3 +1,7 @@
+### 7.27.1 - 12.09.2025
+
+* Fix a release problem on the VS Marketplace around the SVGs in the README file
+
 ### 7.27.0 - 10.09.2025
 
 * [implements file type filtering for Explorer](https://github.com/ionide/ionide-vscode-fsharp/pull/2104) [#2103](https://github.com/ionide/ionide-vscode-fsharp/issues/2103) from thatrajeevkr.
