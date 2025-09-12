@@ -11,6 +11,8 @@ open DTO
 module node = Node.Api
 
 module Fsi =
+    open System.Text.RegularExpressions
+
     module SdkScriptsNotify =
 
         open Ionide.VSCode.FSharp
@@ -495,13 +497,27 @@ module Fsi =
             return terminal
         }
 
+    let private commentRegex =
+        Regex(@"\/{2,3}.+\S+", RegexOptions.ECMAScript)
+
+    let private multilineCommentRegex =
+        Regex(@"\(\*[\s\S]*?\*\)", RegexOptions.ECMAScript)
+
+    // TODO: add support to detect terminal size? and reformat output
+    // not defined atm in typescript vscode...
+
     let private send (terminal: Terminal) (msg: string) =
-        let msgWithNewline = msg + (if msg.Contains "//" then "\n" else "") + ";;\n" // TODO: Useful ??
+        let noComments =
+            commentRegex.Replace(msg, "") |> fun s -> multilineCommentRegex.Replace(s, "")
+
+        let msgWithNewline =
+            noComments + (if noComments.Contains "//" then "\n" else "") + ";;\n" // TODO: Useful ??
+
         let linesCount = msgWithNewline |> Seq.filter ((=) '\n') |> Seq.length
 
         promise {
             terminal.sendText (msgWithNewline, false)
-            lastSelectionSent <- Some msg
+            lastSelectionSent <- Some noComments
 
             lastCurrentLine <-
                 match lastCurrentLine with
@@ -560,7 +576,13 @@ module Fsi =
 
                 let text = editor.document.getText range
 
-                do! send terminal text
+                // Skip comments
+                let textWithoutComments =
+                    text.Split('\n')
+                    |> Array.filter (fun line -> not (line.Trim().StartsWith("//")))
+                    |> String.concat "\n"
+
+                do! send terminal textWithoutComments
         }
 
     let private sendSelectionExtendedToWholeLine () =
