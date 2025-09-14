@@ -1993,11 +1993,12 @@ module Interactions =
                         successfullyBuiltRequests
                         |> (Promise.executeWithMaxParallel maxParallelTestProjects runTestProject)
 
-                    ()
+                    testRun.``end`` ()
                 else
                     do! runTests_WithLanguageServer mergeTestResultsToExplorer testController.items req testRun
+                    testRun.``end`` ()
+                    do! discoverTests_WithLangaugeServer testItemFactory testController.items tryGetLocation
 
-                testRun.``end`` ()
             }
             |> (Promise.toThenable >> (!^))
 
