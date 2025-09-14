@@ -1040,6 +1040,16 @@
         "when": "editorFocus \u0026\u0026 !findWidgetVisible \u0026\u0026 editorLangId == \u0027fsharp\u0027"
       },
       {
+        "command": "fsharp.explorer.moveUp",
+        "key": "alt\u002Bup",
+        "when": "focusedView == 'ionide.projectExplorerInActivity' \u007C\u007C focusedView == 'ionide.projectExplorer'"
+      },
+      {
+        "command": "fsharp.explorer.moveDown",
+        "key": "alt\u002Bdown",
+        "when": "focusedView == 'ionide.projectExplorerInActivity' \u007C\u007C focusedView == 'ionide.projectExplorer'"
+      },
+      {
         "command": "fsharp.generateDoc",
         "key": "alt\u002Bshift\u002Bj",
         "when": "editorFocus \u0026\u0026 editorLangId == \u0027fsharp\u0027"

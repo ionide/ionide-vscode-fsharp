@@ -935,6 +935,11 @@ module SolutionExplorer =
             None)
         |> context.Subscribe
 
+        let treeOptions = createEmpty<TreeViewOptions<Model>>
+        treeOptions.treeDataProvider <- provider
+        let treeView = window.createTreeView (treeViewId, treeOptions)
+        context.subscriptions.Add(unbox (box treeView))
+
         commands.registerCommand ("fsharp.NewProject", newProject |> objfy2)
         |> context.Subscribe
 
@@ -957,25 +962,27 @@ module SolutionExplorer =
 
         commands.registerCommand (
             "fsharp.explorer.moveUp",
-            objfy2 (fun m ->
-                match unbox m with
-                | File(_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileUpPath proj virtPath
-                | _ -> undefined
-                |> ignore
-
-                None)
+            objfy2 (
+                Option.ofObj
+                >> Option.map unbox
+                >> Option.orElseWith (fun () -> treeView.selection |> Seq.tryHead)
+                >> Option.iter (function
+                    | File(_, _, _, Some virtPath, proj) -> FsProjEdit.moveFileUpPath proj virtPath |> ignore
+                    | _ -> ())
+            )
         )
         |> context.Subscribe
 
         commands.registerCommand (
             "fsharp.explorer.moveDown",
-            objfy2 (fun m ->
-                match unbox m with
-                | File(_, _, name, Some virtPath, proj) -> FsProjEdit.moveFileDownPath proj virtPath
-                | _ -> undefined
-                |> ignore
-
-                None)
+            objfy2 (
+                Option.ofObj
+                >> Option.map unbox
+                >> Option.orElseWith (fun () -> treeView.selection |> Seq.tryHead)
+                >> Option.iter (function
+                    | File(_, _, _, Some virtPath, proj) -> FsProjEdit.moveFileDownPath proj virtPath |> ignore
+                    | _ -> ())
+            )
         )
         |> context.Subscribe
 
@@ -1153,11 +1160,6 @@ module SolutionExplorer =
                 | _ -> undefined)
         )
         |> context.Subscribe
-
-        let treeOptions = createEmpty<TreeViewOptions<Model>>
-        treeOptions.treeDataProvider <- provider
-        let treeView = window.createTreeView (treeViewId, treeOptions)
-        context.subscriptions.Add(unbox (box treeView))
 
         NodeReveal.activate context rootChanged.event treeView
 
