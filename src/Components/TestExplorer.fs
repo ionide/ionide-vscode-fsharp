@@ -276,7 +276,7 @@ module TestFrameworkId =
             None
 
 module TestItemDTO =
-    let getNormalizedFullName (dto: TestItemDTO) =
+    let getFullname_withNestedParamTests (dto: TestItemDTO) =
         match dto.ExecutorUri |> TestFrameworkId.tryFromExecutorUri with
         // NOTE: XUnit and MSTest don't include the theory case parameters in the FullyQualifiedName, but do include them in the DisplayName.
         //       Thus we need to append the DisplayName to differentiate the test cases
@@ -329,7 +329,7 @@ module TestResult =
     let ofTestResultDTO (testResultDto: TestResultDTO) : TestResult =
         let expected, actual = tryExtractExpectedAndActual testResultDto.ErrorMessage
 
-        { FullTestName = testResultDto.TestItem |> TestItemDTO.getNormalizedFullName
+        { FullTestName = testResultDto.TestItem |> TestItemDTO.getFullname_withNestedParamTests
           Outcome = testResultDto.Outcome |> TestResultOutcome.ofOutcomeDto
           Output = testResultDto.AdditionalOutput
           ErrorMessage = testResultDto.ErrorMessage
@@ -979,7 +979,7 @@ module TestItem =
         let mapDtosForProject ((projectPath, targetFramework), flatTests) =
             let testDtoToNamedItem (dto: TestItemDTO) =
                 {| Data = dto
-                   FullName = dto |> TestItemDTO.getNormalizedFullName |}
+                   FullName = dto |> TestItemDTO.getFullname_withNestedParamTests |}
 
             let namedHierarchies =
                 flatTests |> Array.map testDtoToNamedItem |> TestName.inferHierarchy
@@ -1426,7 +1426,42 @@ module Interactions =
                 builder.ToString()
 
         let testToFilterExpression (test: TestItem) =
-            let fullTestName = TestItem.getFullName test.id
+            let isProbableParameterizedTest (test: TestItem) =
+                match test.parent with
+                | None -> false
+                | Some parent ->
+                    let parentPlusParentheses =
+                        RegularExpressions.Regex($"{parent.label |> RegularExpressions.Regex.Escape}\s*\(")
+
+                    parentPlusParentheses.IsMatch(test.label)
+
+            let getFullNameOfParameterizedTest (test: TestItem) =
+                // NOTE: For xUnit and MSTest, we're nesting the the parameterized test cases under their method name,
+                //       but the cannonical fully qualified test name doesn't reflect this nesting, so we have to account for the parent
+                //       There might be a better way to handle this. Perhaps dynamically adding a cannonical unique test id field to TestItem
+                //       (like with TestFramework). Adding this to runnable TestItems would reduce edge cases and special behavior for running individual tests
+                let maybeGrandParent = test.parent |> Option.bind (fun t -> t.parent)
+
+                match maybeGrandParent with
+                | None -> TestItem.getFullName test.id
+                | Some grandParent ->
+                    TestName.appendSegment
+                        (TestItem.getFullName grandParent.id)
+                        { Text = test.label
+                          SeparatorBefore = string TestName.pathSeparator }
+
+            let getFilterPath (test: TestItem) =
+                if
+                    (test.TestFramework = TestFrameworkId.XUnit
+                     || test.TestFramework = TestFrameworkId.MsTest)
+                    && isProbableParameterizedTest test
+                then
+                    getFullNameOfParameterizedTest test
+                else
+                    TestItem.getFullName test.id
+
+
+            let fullTestName = getFilterPath test
             let escapedTestName = escapeFilterExpression fullTestName
 
             if escapedTestName.Contains(" ") && test.TestFramework = TestFrameworkId.NUnit then
