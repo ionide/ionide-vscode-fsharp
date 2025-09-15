@@ -14,28 +14,6 @@ open LanguageServer
 
 module node = Node.Api
 
-module Notifications =
-    type DocumentParsedEvent =
-        {
-            uri: string
-            version: float
-            /// BEWARE: Live object, might have changed since the parsing
-            document: TextDocument
-        }
-
-    let onDocumentParsedEmitter = vscode.EventEmitter.Create<DocumentParsedEvent>()
-    let onDocumentParsed = onDocumentParsedEmitter.event
-
-    let private tooltipRequestedEmitter = vscode.EventEmitter.Create<Position>()
-    let tooltipRequested = tooltipRequestedEmitter.event
-
-    let mutable notifyWorkspaceHandler
-        : Option<Choice<ProjectResult, ProjectLoadingResult, (string * ErrorData), string> -> unit> =
-        None
-
-    let testDetectedEmitter = vscode.EventEmitter.Create<TestForFile>()
-    let testDetected = testDetectedEmitter.event
-
 module LanguageService =
     open Fable.Import.LanguageServer.Client
 
@@ -603,8 +581,6 @@ Consider:
             workspace.createFileSystemWatcher (U2.Case1 "**/*.{fs,fsx}", true, true, false)
 
         let clientOpts =
-            let opts = createEmpty<Client.LanguageClientOptions>
-
             let mutable initFails = 0
 
             let initializationFailureHandler (error: U3<ResponseError, Exception, obj option>) =
@@ -648,8 +624,7 @@ Consider:
             synch.configurationSection <- Some !^ "FSharp"
             synch.fileEvents <- Some(!^ ResizeArray([ fileDeletedWatcher ]))
 
-            // this type needs to be updated on the bindings - DocumentSelector is a (string|DocumentFilter) [] now only.
-            // that's why we need to coerce it here.
+            let opts = createEmpty<Client.LanguageClientOptions>
             opts.documentSelector <- Some selector
             opts.synchronize <- Some synch
             opts.errorHandler <- Some errorHandling
@@ -661,6 +636,137 @@ Consider:
 
             opts.initializationOptions <- Some !^(Some initOpts)
             opts?markdown <- createObj [ "isTrusted" ==> true; "supportHtml" ==> true ]
+
+
+            let middleware =
+                Fable.Core.JsInterop.createObj
+                    [ "provideHover",
+                      box (
+                          System.Func<TextDocument, Position, CancellationToken, obj, ProviderResult<obj>>
+                              (fun doc pos cTok next ->
+                                  logger.Info(
+                                      "[hover] Checking if position %s in document %s is a known virtual document",
+                                      pos,
+                                      doc
+                                  )
+
+                                  match NestedLanguages.tryGetVirtualDocumentInDocAtPosition (doc, pos) with
+                                  | None -> next $ (doc, pos, cTok)
+                                  | Some(nestedDocUri, nestedLanguage) ->
+                                      logger.Info(
+                                          "[hover] Found virtual document %s with language %s",
+                                          nestedDocUri.toString (true),
+                                          nestedLanguage
+                                      )
+
+                                      promise {
+                                          let! doc = workspace.openTextDocument (nestedDocUri) |> Promise.ofThenable
+                                          let charRange = vscode.Range.Create(pos, pos.translate (characterDelta = 1))
+
+                                          let content =
+                                              doc
+                                                  .getText(charRange)
+                                                  .Split([| Environment.NewLine |], StringSplitOptions.None)
+
+                                          logger.Info(
+                                              "[hover] Virtual document %s has content '%j' at position %s",
+                                              nestedDocUri.toString (true),
+                                              content,
+                                              pos
+                                          )
+
+                                          let! results =
+                                              commands.executeCommand (
+                                                  "vscode.executeHoverProvider",
+                                                  unbox nestedDocUri,
+                                                  unbox pos
+                                              )
+                                              |> Promise.ofThenable
+                                              |> Promise.catch (fun e ->
+                                                  logger.Error("Error while executing hover provider: %o", e)
+                                                  None)
+
+                                          return results
+                                      }
+                                      |> Promise.toThenable
+                                      |> U2.Case2
+                                      |> Some)
+                      )
+                      "provideDocumentHighlights",
+                      box (
+                          System.Func<TextDocument, Position, CancellationToken, obj, ProviderResult<obj>>
+                              (fun doc pos cTok next ->
+                                  logger.Info(
+                                      "[highlights] Checking if position %s in document %s is a known virtual document",
+                                      pos,
+                                      doc.uri.toString (true)
+                                  )
+
+                                  match NestedLanguages.tryGetVirtualDocumentInDocAtPosition (doc, pos) with
+                                  | None -> next $ (doc, pos, cTok)
+                                  | Some(nestedDocUri, nestedLanguage) ->
+                                      logger.Info(
+                                          "[highlights] Found virtual document %s with language %s",
+                                          nestedDocUri.toString (true),
+                                          nestedLanguage
+                                      )
+
+
+                                      commands.executeCommand (
+                                          "vscode.executeDocumentHighlights",
+                                          unbox nestedDocUri,
+                                          unbox pos
+                                      )
+                                      |> Promise.ofThenable
+                                      |> Promise.catchEnd (fun e ->
+                                          logger.Error("Error while executing highlights: %o", e))
+                                      |> unbox)
+                      )
+                      "provideDocumentSemanticTokens",
+                      box (
+                          System.Func<TextDocument, CancellationToken, obj, ProviderResult<obj>>(fun doc cTok next ->
+                              logger.Info("Checking if document %s has any known virtual documents", doc.uri)
+
+                              match NestedLanguages.getAllVirtualDocsForDoc (doc) with
+                              | [||] -> next $ (doc, cTok)
+                              | nestedDocs ->
+                                  logger.Info("Found virtual documents %j", nestedDocs)
+                                  // call tokens for parent doc _plus_ all virtual docs
+                                  async {
+                                      let! (baseDocTokens: obj[]) =
+                                          Async.AwaitPromise(unbox (next $ (doc, cTok)): JS.Promise<obj[]>)
+
+                                      logger.Info("Got tokens for base doc")
+                                      let allTokens = ResizeArray(baseDocTokens)
+
+                                      for (nestedDocUri, language) in nestedDocs do
+                                          logger.Info("Getting tokens for %s", nestedDocUri.ToString())
+
+                                          let! tokens =
+                                              commands.executeCommand (
+                                                  "vscode.provideDocumentSemanticTokens",
+                                                  [| unbox nestedDocUri |]
+                                              )
+                                              |> Promise.ofThenable
+                                              |> Promise.catchEnd (fun e ->
+                                                  logger.Error("Error while executing getting tokens: %o", e))
+                                              |> unbox
+                                              |> Async.AwaitPromise
+
+                                          if not (isUndefined tokens) then
+                                              allTokens.AddRange(tokens)
+
+                                      let allTokens = allTokens.ToArray()
+                                      logger.Info("Got tokens for nested docs: %j", [| allTokens |])
+
+                                      return allTokens
+                                  }
+                                  |> Async.StartAsPromise
+                                  |> box
+                                  |> unbox)
+                      ) ]
+
+            opts?middleware <- middleware
 
             opts
 
@@ -1014,6 +1120,20 @@ Consider:
         )
 
         cl.onNotification ("fsharp/testDetected", (fun (a: TestForFile) -> Notifications.testDetectedEmitter.fire a))
+
+        Notifications.nestedLanguagesDetected.Invoke(fun languages ->
+            logger.Debug("Nested languages detected: %j", languages)
+            None)
+        |> ignore
+
+        cl.onNotification (
+            "fsharp/textDocument/nestedLanguages",
+            (fun (languages: NestedLanguagesForFile) ->
+                // create and manage virtual documents for the languages in the file given:
+                // * create synthetic document uri
+                // * add to map of synthetic documents with parent file/version key
+                Notifications.nestedLanguagesDetectedEmitter.fire languages)
+        )
 
     let start (c: ExtensionContext) =
         promise {
