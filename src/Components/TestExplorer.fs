@@ -1930,6 +1930,12 @@ module Interactions =
                     TestRun.Output.appendWarningLine testRun message
             with ex ->
                 logger.Debug("Test run failed with exception", ex)
+                TestRun.Output.appendErrorLine testRun $"The test run errored {Environment.NewLine}{string ex}"
+
+                window.showErrorMessage (
+                    "Test run errored. See TestResults or Output > F# - Test Adapter for more info"
+                )
+                |> ignore
         }
 
     let runHandler
