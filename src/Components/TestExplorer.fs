@@ -766,8 +766,10 @@ module TestItem =
     let constructProjectRootId (projectPath: ProjectPath) : TestId = constructId projectPath ""
 
     let private componentizeId (testId: TestId) : (ProjectPath * FullTestName) =
+        // IMPORTANT: the fullname should be last and we should limit the number of substrings
+        //            to prevent incorrently splitting tests names with -- in them
         let split =
-            testId.Split(separator = [| idSeparator |], options = StringSplitOptions.None)
+            testId.Split(separator = [| idSeparator |], count = 2, options = StringSplitOptions.None)
 
         (split.[0], split.[1])
 
