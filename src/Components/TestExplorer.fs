@@ -1737,7 +1737,7 @@ module Interactions =
               HasIncludeFilter = hasIncludeFilter
               Tests = replaceProjectRootIfPresent tests })
 
-    let private discoverTests_WithLangaugeServer
+    let private discoverTests_WithLanguageServer
         testItemFactory
         (rootTestCollection: TestItemCollection)
         tryGetLocation
@@ -2005,7 +2005,7 @@ module Interactions =
                 else
                     do! runTests_WithLanguageServer mergeTestResultsToExplorer testController.items req testRun
                     testRun.``end`` ()
-                    do! discoverTests_WithLangaugeServer testItemFactory testController.items tryGetLocation
+                    do! discoverTests_WithLanguageServer testItemFactory testController.items tryGetLocation
 
             }
             |> (Promise.toThenable >> (!^))
@@ -2160,7 +2160,7 @@ module Interactions =
                             cancellationToken
                             builtTestProjects
                 else
-                    do! discoverTests_WithLangaugeServer testItemFactory rootTestCollection tryGetLocation
+                    do! discoverTests_WithLanguageServer testItemFactory rootTestCollection tryGetLocation
             }
 
     let tryMatchTestBySuffix (locationCache: CodeLocationCache) (testId: TestId) =
