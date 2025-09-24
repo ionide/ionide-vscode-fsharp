@@ -237,7 +237,9 @@ module TestResultOutcome =
         | TestOutcomeDTO.Skipped -> TestResultOutcome.Skipped
         | TestOutcomeDTO.None -> TestResultOutcome.NotExecuted
         | TestOutcomeDTO.NotFound -> TestResultOutcome.NotExecuted
-        | _ -> failwith $"Unknown value for TestOutcomeDTO: {outcomeDto}. The language server may have changed its possible values."
+        | _ ->
+            failwith
+                $"Unknown value for TestOutcomeDTO: {outcomeDto}. The language server may have changed its possible values."
 
 
 type TestFrameworkId = string
@@ -1729,11 +1731,7 @@ module Interactions =
               HasIncludeFilter = hasIncludeFilter
               Tests = replaceProjectRootIfPresent tests })
 
-    let private discoverTests_WithLanguageServer
-        testItemFactory
-        (rootTestCollection: TestItemCollection)
-        tryGetLocation
-        =
+    let discoverTests_WithLanguageServer testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation =
         withProgress NoCancel
         <| fun p progressCancelToken ->
             promise {
@@ -2319,16 +2317,19 @@ let activate (context: ExtensionContext) =
                 let initialTests = trxTests workspaceProjects
                 initialTests |> Array.iter testController.items.add
 
-            let cancellationTokenSource = vscode.CancellationTokenSource.Create()
-            // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
-            Interactions.refreshTestList
-                testItemFactory
-                testController.items
-                tryGetLocation
-                makeTrxPath
-                useLegacyDotnetCliIntegration
-                cancellationTokenSource.token
-            |> Promise.start
+                let cancellationTokenSource = vscode.CancellationTokenSource.Create()
+                // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
+                Interactions.refreshTestList
+                    testItemFactory
+                    testController.items
+                    tryGetLocation
+                    makeTrxPath
+                    useLegacyDotnetCliIntegration
+                    cancellationTokenSource.token
+                |> Promise.start
+            else
+                Interactions.discoverTests_WithLanguageServer testItemFactory testController.items tryGetLocation
+                |> Promise.start
 
         None)
     |> unbox
