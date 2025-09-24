@@ -237,6 +237,7 @@ module TestResultOutcome =
         | TestOutcomeDTO.Skipped -> TestResultOutcome.Skipped
         | TestOutcomeDTO.None -> TestResultOutcome.NotExecuted
         | TestOutcomeDTO.NotFound -> TestResultOutcome.NotExecuted
+        | _ -> failwith $"Unknown value for TestOutcomeDTO: {outcomeDto}. The language server may have changed its possible values."
 
 
 type TestFrameworkId = string
