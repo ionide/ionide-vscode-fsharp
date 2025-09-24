@@ -1550,8 +1550,10 @@ module Interactions =
                 testResult.TargetFramework
                 testResult.FullTestName
 
-        let treeItemComparable (t: TestItem) = TestItem.getFullName t.id
-        let resultComparable (r: TestResult) = r.FullTestName
+        let treeItemComparable (t: TestItem) = TestItem.getId t
+
+        let resultComparable (r: TestResult) =
+            TestItem.constructId r.ProjectFilePath r.FullTestName
 
         let missing, expected, added =
             ArrayExt.venn treeItemComparable resultComparable expectedToRun testResults
