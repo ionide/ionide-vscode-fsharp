@@ -85,15 +85,6 @@ module Option =
         option |> Option.iter f
         option
 
-    let tryFallback f opt =
-        match opt with
-        | Some _ -> opt
-        | None -> f ()
-
-    let tryFallbackValue fallbackOpt opt =
-        match opt with
-        | Some _ -> opt
-        | None -> fallbackOpt
 
 module CancellationToken =
     let mergeTokens (tokens: CancellationToken list) =
@@ -322,7 +313,7 @@ module TestResult =
                     Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
                     |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
 
-                tryFind "Expected:", tryFind "But was:" |> Option.tryFallbackValue (tryFind "Actual:")
+                tryFind "Expected:", tryFind "But was:" |> Option.orElse (tryFind "Actual:")
 
         expected, actual
 
@@ -964,7 +955,7 @@ module TestItem =
                 let codeLocation =
                     namedNode.Data
                     |> Option.bind tryDtoToLocation
-                    |> Option.tryFallback (fun _ -> tryGetLocation id)
+                    |> Option.orElseWith (fun _ -> tryGetLocation id)
 
                 itemFactory
                     { id = id
@@ -2196,7 +2187,7 @@ module Interactions =
 
             let tryMatchDisplacedTest (testId: ResultBasedTestId) : TestItem option =
                 displacedFragmentMapCache.TryGet(testId)
-                |> Option.tryFallback (fun () -> tryMatchTestBySuffix locationCache testId)
+                |> Option.orElseWith (fun () -> tryMatchTestBySuffix locationCache testId)
                 |> Option.tee (fun matchedId -> displacedFragmentMapCache[testId] <- matchedId)
                 |> Option.bind (fun matchedId -> TestItem.tryGetById matchedId testsFromCode)
                 |> Option.tee (fun matchedTest ->
