@@ -38,7 +38,7 @@ NUGET
       FSharp.Core (>= 4.7.2)
 GIT
   remote: https://github.com/ionide/ionide-fsgrammar.git
-     (be3c51d2c28d3aaacd89ecd067e766bebe387f89)
+     (0cb968a4b8fdb2e0656b95342cdffbeff04a1248)
 GITHUB
   remote: ionide/ionide-vscode-helpers
     src/Fable.Import.Showdown.fs (8e81bc03f11f07b8e0811b3d4598eadc78f32f2f)
