@@ -1047,12 +1047,12 @@
       {
         "command": "fsharp.explorer.moveUp",
         "key": "alt\u002Bup",
-        "when": "focusedView == 'ionide.projectExplorerInActivity' \u007C\u007C focusedView == 'ionide.projectExplorer'"
+        "when": "focusedView == \u0027ionide.projectExplorerInActivity\u0027 || focusedView == \u0027ionide.projectExplorer\u0027"
       },
       {
         "command": "fsharp.explorer.moveDown",
         "key": "alt\u002Bdown",
-        "when": "focusedView == 'ionide.projectExplorerInActivity' \u007C\u007C focusedView == 'ionide.projectExplorer'"
+        "when": "focusedView == \u0027ionide.projectExplorerInActivity\u0027 || focusedView == \u0027ionide.projectExplorer\u0027"
       },
       {
         "command": "fsharp.generateDoc",
@@ -1868,5 +1868,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.27.1"
+  "version": "7.28.0"
 }
