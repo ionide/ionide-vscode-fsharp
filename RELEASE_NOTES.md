@@ -1,3 +1,10 @@
+### 7.28.0 - 27.09.2025
+
+* Update to FSAC 0.79.2. Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.79.2) for more details.
+* [Add #warnon grammar](https://github.com/ionide/ionide-fsgrammar/pull/232) (thanks @Martin521!)
+* [add keybindings for move file up/down](https://github.com/ionide/ionide-vscode-fsharp/pull/2105) (Thanks @pods!)
+* [Migrate the Test Explorer to use FSAutoComplete / VSTest](https://github.com/ionide/ionide-vscode-fsharp/pull/2106) (Thanks @farlee2121!)
+
 ### 7.27.1 - 12.09.2025
 
 * Fix a release problem on the VS Marketplace around the SVGs in the README file
