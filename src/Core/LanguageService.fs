@@ -94,6 +94,11 @@ module LanguageService =
             { start: Fable.Import.VSCode.Vscode.Position
               ``end``: Fable.Import.VSCode.Vscode.Position }
 
+        type TestRunRequest =
+            { LimitToProjects: string array option
+              TestCaseFilter: string option
+              AttachDebugger: bool }
+
     type Uri with
 
         member uri.ToDocumentUri = uri.ToString()
@@ -594,6 +599,57 @@ Consider:
 
     let fsiSdk () =
         promise { return Environment.configFsiSdkFilePath () }
+
+    let discoverTests onDiscoveryProgress () =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            cl.onNotification (
+                "test/testDiscoveryUpdate",
+                (fun (notification: Types.PlainNotification) ->
+                    let parsed = ofJson<TestDiscoveryUpdate> notification.content
+                    onDiscoveryProgress parsed)
+            )
+
+            cl.sendRequest ("test/discoverTests", ())
+            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<DiscoverTestsResult>)
+
+    type ProcessId = int
+    type DidDebuggerAttach = bool
+
+    let runTests
+        (onTestRunProgress: TestRunProgress -> unit)
+        (onAttachDebugger: ProcessId -> JS.Promise<bool>)
+        (projectSubset: string array option)
+        (testCaseFilter: string option)
+        (attachDebugger: bool)
+        =
+        match client with
+        | None -> Promise.empty
+        | Some cl ->
+            cl.onNotification (
+                "test/testRunProgressUpdate",
+                (fun (notification: Types.PlainNotification) ->
+                    let parsed = ofJson<TestRunProgress> notification.content
+                    onTestRunProgress parsed)
+            )
+
+            cl.onRequest (
+                "test/processWaitingForDebugger",
+                (fun (notification: Types.PlainNotification) ->
+                    promise {
+                        let parsed = ofJson<int> notification.content
+                        return! onAttachDebugger parsed
+                    })
+            )
+
+            let request: Types.TestRunRequest =
+                { LimitToProjects = projectSubset
+                  TestCaseFilter = testCaseFilter
+                  AttachDebugger = attachDebugger }
+
+            cl.sendRequest ("test/runTests", request)
+            |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<RunTestsResult>)
 
     let private createClient (opts: Executable) =
 

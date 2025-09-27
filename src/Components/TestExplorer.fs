@@ -79,6 +79,13 @@ module Dict =
     let tryGet (d: Collections.Generic.IDictionary<'key, 'value>) (key) : 'value option =
         if d.ContainsKey(key) then Some d[key] else None
 
+module Option =
+
+    let tee (f: 'a -> unit) (option: 'a option) =
+        option |> Option.iter f
+        option
+
+
 module CancellationToken =
     let mergeTokens (tokens: CancellationToken list) =
         let tokenSource = vscode.CancellationTokenSource.Create()
@@ -220,6 +227,19 @@ type TestResultOutcome =
     | NotExecuted
     | Failed
     | Passed
+    | Skipped
+
+module TestResultOutcome =
+    let ofOutcomeDto (outcomeDto: TestOutcomeDTO) =
+        match outcomeDto with
+        | TestOutcomeDTO.Failed -> TestResultOutcome.Failed
+        | TestOutcomeDTO.Passed -> TestResultOutcome.Passed
+        | TestOutcomeDTO.Skipped -> TestResultOutcome.Skipped
+        | TestOutcomeDTO.None -> TestResultOutcome.NotExecuted
+        | TestOutcomeDTO.NotFound -> TestResultOutcome.NotExecuted
+        | _ ->
+            failwith
+                $"Unknown value for TestOutcomeDTO: {outcomeDto}. The language server may have changed its possible values."
 
 
 type TestFrameworkId = string
@@ -237,6 +257,38 @@ module TestFrameworkId =
     [<Literal>]
     let Expecto = "Expecto"
 
+    let tryFromExecutorUri adapterTypeName =
+        if String.startWith "executor://nunit" adapterTypeName then
+            Some NUnit
+        else if String.startWith "executor://mstest" adapterTypeName then
+            Some MsTest
+        else if String.startWith "executor://xunit" adapterTypeName then
+            Some XUnit
+        else if String.startWith "executor://yolodev" adapterTypeName then
+            Some Expecto
+        else
+            None
+
+module TestItemDTO =
+    let getFullname_withNestedParamTests (dto: TestItemDTO) =
+        match dto.ExecutorUri |> TestFrameworkId.tryFromExecutorUri with
+        // NOTE: XUnit and MSTest don't include the theory case parameters in the FullyQualifiedName, but do include them in the DisplayName.
+        //       Thus we need to append the DisplayName to differentiate the test cases
+        | Some TestFrameworkId.MsTest ->
+            if dto.FullName.EndsWith(dto.DisplayName) then
+                dto.FullName
+            else
+                dto.FullName + "." + dto.DisplayName
+        | Some TestFrameworkId.XUnit ->
+            // NOTE: XUnit includes the FullyQualifiedName in the DisplayName.
+            //       But it doesn't nest theory cases, just appends the case parameters
+            if dto.DisplayName <> dto.FullName then
+                let theoryCaseFragment = dto.DisplayName.Split('.') |> Array.last
+                dto.FullName + "." + theoryCaseFragment
+            else
+                dto.FullName
+        | _ -> dto.FullName
+
 type TestResult =
     { FullTestName: string
       Outcome: TestResultOutcome
@@ -246,7 +298,42 @@ type TestResult =
       Expected: string option
       Actual: string option
       Timing: float
-      TestFramework: TestFrameworkId option }
+      TestFramework: TestFrameworkId option
+      ProjectFilePath: ProjectFilePath
+      TargetFramework: TargetFramework }
+
+module TestResult =
+    let tryExtractExpectedAndActual (message: string option) =
+        let expected, actual =
+            match message with
+            | None -> None, None
+            | Some message ->
+                let lines =
+                    message.Split([| "\r\n"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
+                    |> Array.map (fun n -> n.TrimStart())
+
+                let tryFind (startsWith: string) =
+                    Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
+                    |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
+
+                tryFind "Expected:", tryFind "But was:" |> Option.orElse (tryFind "Actual:")
+
+        expected, actual
+
+    let ofTestResultDTO (testResultDto: TestResultDTO) : TestResult =
+        let expected, actual = tryExtractExpectedAndActual testResultDto.ErrorMessage
+
+        { FullTestName = testResultDto.TestItem |> TestItemDTO.getFullname_withNestedParamTests
+          Outcome = testResultDto.Outcome |> TestResultOutcome.ofOutcomeDto
+          Output = testResultDto.AdditionalOutput
+          ErrorMessage = testResultDto.ErrorMessage
+          ErrorStackTrace = testResultDto.ErrorStackTrace
+          Timing = testResultDto.Duration.Milliseconds
+          TestFramework = testResultDto.TestItem.ExecutorUri |> TestFrameworkId.tryFromExecutorUri
+          Expected = expected
+          Actual = actual
+          ProjectFilePath = testResultDto.TestItem.ProjectFilePath
+          TargetFramework = testResultDto.TestItem.TargetFramework }
 
 module Path =
 
@@ -276,18 +363,6 @@ module Path =
 
 module TrxParser =
 
-    let adapterTypeNameToTestFramework adapterTypeName =
-        if String.startWith "executor://nunit" adapterTypeName then
-            Some TestFrameworkId.NUnit
-        else if String.startWith "executor://mstest" adapterTypeName then
-            Some TestFrameworkId.MsTest
-        else if String.startWith "executor://xunit" adapterTypeName then
-            Some TestFrameworkId.XUnit
-        else if String.startWith "executor://yolodev" adapterTypeName then
-            Some TestFrameworkId.Expecto
-        else
-            None
-
     type Execution = { Id: string }
 
     type TestMethod =
@@ -304,7 +379,7 @@ module TrxParser =
             // IMPORTANT: XUnit and MSTest don't include the parameterized test case data in the TestMethod.Name
             //    but NUnit and MSTest don't use fully qualified names in UnitTest.Name.
             //    Therefore, we have to conditionally build this full name based on the framework
-            match self.TestMethod.AdapterTypeName |> adapterTypeNameToTestFramework with
+            match self.TestMethod.AdapterTypeName |> TestFrameworkId.tryFromExecutorUri with
             | Some TestFrameworkId.NUnit -> TestName.fromPathAndTestName self.TestMethod.ClassName self.TestMethod.Name
             | Some TestFrameworkId.MsTest -> TestName.fromPathAndTestName self.TestMethod.ClassName self.Name
             | _ -> self.Name
@@ -431,6 +506,20 @@ module TrxParser =
         |> TestName.inferHierarchy
 
 
+module VSCodeActions =
+    let launchDebugger (processId: string) =
+        let launchRequest: DebugConfiguration =
+            {| name = ".NET Core Attach"
+               ``type`` = "coreclr"
+               request = "attach"
+               processId = processId |}
+            |> box
+            |> unbox
+
+        let folder = workspace.workspaceFolders.Value.[0]
+
+        Vscode.debug.startDebugging (Some folder, U2.Case2 launchRequest)
+        |> Promise.ofThenable
 
 
 module DotnetCli =
@@ -505,30 +594,6 @@ module DotnetCli =
         else
             None
 
-    let private launchDebugger processId =
-        let launchRequest: DebugConfiguration =
-            {| name = ".NET Core Attach"
-               ``type`` = "coreclr"
-               request = "attach"
-               processId = processId |}
-            |> box
-            |> unbox
-
-        let folder = workspace.workspaceFolders.Value.[0]
-
-        promise {
-            let! _ =
-                Vscode.debug.startDebugging (Some folder, U2.Case2 launchRequest)
-                |> Promise.ofThenable
-
-            // NOTE: Have to wait or it'll continue before the debugger reaches the stop on entry point.
-            //       That'll leave the debugger in a confusing state where it shows it's attached but
-            //       no breakpoints are hit and the breakpoints show as disabled
-            do! Promise.sleep 2000
-            Vscode.commands.executeCommand ("workbench.action.debug.continue") |> ignore
-        }
-        |> ignore
-
     type DebugTests =
         | Debug
         | NoDebug
@@ -562,7 +627,13 @@ module DotnetCli =
             let childEnv = parentEnv
             //NOTE: Important to include VSTEST_HOST_DEBUG=0 when not debugging to remove stale values
             //      that may cause the debugger to wait and hang
-            childEnv?VSTEST_HOST_DEBUG <- (if enableTestHostDebugger then 1 else 0)
+            if enableTestHostDebugger then
+                childEnv?VSTEST_HOST_DEBUG <- 1
+                childEnv?VSTEST_DEBUG_NOBP <- 1
+            else
+                childEnv?VSTEST_HOST_DEBUG <- 0
+                childEnv?VSTEST_DEBUG_NOBP <- 0
+
             childEnv |> box |> Some
 
         match shouldDebug with
@@ -576,7 +647,7 @@ module DotnetCli =
                     match tryGetDebugProcessId (string consoleOutput) with
                     | None -> ()
                     | Some processId ->
-                        launchDebugger processId
+                        VSCodeActions.launchDebugger processId |> ignore
                         isDebuggerStarted <- true
 
             Process.execWithCancel "dotnet" (ResizeArray(args)) (getEnv true) tryLaunchDebugger cancellationToken
@@ -679,8 +750,6 @@ type CodeLocationCache() =
                 locationCache.Remove(kvp.Key) |> ignore
 
 
-
-
 module TestItem =
 
     let private idSeparator = " -- "
@@ -691,8 +760,10 @@ module TestItem =
     let constructProjectRootId (projectPath: ProjectPath) : TestId = constructId projectPath ""
 
     let private componentizeId (testId: TestId) : (ProjectPath * FullTestName) =
+        // IMPORTANT: the fullname should be last and we should limit the number of substrings
+        //            to prevent incorrently splitting tests names with -- in them
         let split =
-            testId.Split(separator = [| idSeparator |], options = StringSplitOptions.None)
+            testId.Split(separator = [| idSeparator |], count = 2, options = StringSplitOptions.None)
 
         (split.[0], split.[1])
 
@@ -705,6 +776,17 @@ module TestItem =
         projectPath
 
     let getId (t: TestItem) = t.id
+
+    let tryPick (f: TestItem -> Option<'u>) root =
+        let rec recurse testItem =
+            let searchResult = f testItem
+
+            if Option.isSome searchResult then
+                searchResult
+            else
+                testItem.children.TestItems() |> Array.tryPick recurse
+
+        recurse root
 
     let runnableChildren (root: TestItem) : TestItem array =
         // The goal is to collect here the actual runnable tests, they might be nested under a tree structure.
@@ -836,6 +918,81 @@ module TestItem =
               range = None
               children = children
               testFramework = None }
+
+
+    let ofTestDTOs testItemFactory tryGetLocation (flatTests: TestItemDTO array) =
+
+        let fromTestItemDTO
+            (constructId: FullTestName -> TestId)
+            (itemFactory: TestItemFactory)
+            (tryGetLocation: TestId -> LocationRecord option)
+            (hierarchy: TestName.NameHierarchy<TestItemDTO>)
+            : TestItem =
+            let toUri path =
+                try
+                    if String.IsNullOrEmpty path then
+                        None
+                    else
+                        vscode.Uri.parse ($"file:///{path}", true) |> Some
+                with e ->
+                    logger.Debug($"Failed to parse test location uri {path}", e)
+                    None
+
+            let toRange (rangeDto: TestFileRange) =
+                vscode.Range.Create(
+                    vscode.Position.Create(rangeDto.StartLine, 0),
+                    vscode.Position.Create(rangeDto.EndLine, 0)
+                )
+
+            let tryDtoToLocation (dto: TestItemDTO) : LocationRecord option =
+                match dto.CodeFilePath |> Option.bind toUri, dto.CodeLocationRange with
+                | Some path, Some range ->
+                    { Uri = path
+                      Range = toRange (range) |> Some }
+                    |> Some
+                | _ -> None
+
+            let rec recurse (namedNode: TestName.NameHierarchy<TestItemDTO>) =
+                let id = constructId namedNode.FullName
+
+                let codeLocation =
+                    namedNode.Data
+                    |> Option.bind tryDtoToLocation
+                    |> Option.orElseWith (fun _ -> tryGetLocation id)
+
+                itemFactory
+                    { id = id
+                      label = namedNode.Name
+                      uri = codeLocation |> LocationRecord.tryGetUri
+                      range = codeLocation |> LocationRecord.tryGetRange
+                      children = namedNode.Children |> Array.map recurse
+                      testFramework =
+                        namedNode.Data
+                        |> Option.bind (fun t -> t.ExecutorUri |> TestFrameworkId.tryFromExecutorUri) }
+
+            recurse hierarchy
+
+        let mapDtosForProject ((projectPath, targetFramework), flatTests) =
+            let testDtoToNamedItem (dto: TestItemDTO) =
+                {| Data = dto
+                   FullName = dto |> TestItemDTO.getFullname_withNestedParamTests |}
+
+            let namedHierarchies =
+                flatTests |> Array.map testDtoToNamedItem |> TestName.inferHierarchy
+
+            let projectChildTestItems =
+                namedHierarchies
+                |> Array.map (fromTestItemDTO (constructId projectPath) testItemFactory tryGetLocation)
+
+            fromProject testItemFactory projectPath targetFramework projectChildTestItems
+
+        let testDtosByProject =
+            flatTests |> Array.groupBy (fun dto -> dto.ProjectFilePath, dto.TargetFramework)
+
+        let testItemsByProject = testDtosByProject |> Array.map mapDtosForProject
+
+        testItemsByProject
+
 
     let isProjectItem (testId: TestId) =
         constructProjectRootId (getProjectPath testId) = testId
@@ -1002,7 +1159,6 @@ module TestDiscovery =
             (replacementItem, withUri)
 
         let rec recurse (target: TestItemCollection) (withUri: TestItem array) : unit =
-
             let treeOnly, matched, _codeOnly =
                 ArrayExt.venn TestItem.getId TestItem.getId (target.TestItems()) withUri
 
@@ -1100,7 +1256,7 @@ module TestDiscovery =
                             (fun nh ->
                                 nh.Data
                                 |> Option.bind (fun (trxDef: TrxParser.UnitTest) ->
-                                    TrxParser.adapterTypeNameToTestFramework trxDef.TestMethod.AdapterTypeName))
+                                    TestFrameworkId.tryFromExecutorUri trxDef.TestMethod.AdapterTypeName))
                             hierarchy
 
                     let testItemFactory (testItemBuilder: TestItem.TestItemBuilder) =
@@ -1115,6 +1271,52 @@ module TestDiscovery =
                 TestItem.fromProject testItemFactory projectPath project.Info.TargetFramework projectTests)
 
         treeItems
+
+    let private tryInferTestFrameworkFromPackage (project: Project) =
+
+        let detectablePackageToFramework =
+            dict
+                [ "Expecto", TestFrameworkId.Expecto
+                  "xunit.abstractions", TestFrameworkId.XUnit ]
+
+        let getPackageName (pr: PackageReference) = pr.Name
+
+        project.PackageReferences
+        |> Array.tryPick (getPackageName >> Dict.tryGet detectablePackageToFramework)
+
+    /// Does this project use a test framework where we can consistently discover test cases using `dotnet test --list-tests`
+    /// This requires the test library to print the fully-qualified test names
+    let canListTestCasesWithCli (project: Project) =
+        let librariesCapableOfListOnlyDiscovery =
+            set [ TestFrameworkId.Expecto; TestFrameworkId.XUnit ]
+
+        tryInferTestFrameworkFromPackage project
+        |> Option.map librariesCapableOfListOnlyDiscovery.Contains
+        |> Option.defaultValue false
+
+
+    /// Use `dotnet test --list-tests` to
+    let discoverTestsByCliListTests testItemFactory tryGetLocation cancellationToken (project: Project) =
+        promise {
+
+            let! testNames = DotnetCli.listTests project.Project project.Info.TargetFramework false cancellationToken
+
+            let detectedTestFramework = tryInferTestFrameworkFromPackage project
+
+            let testItemFactory (testItemBuilder: TestItem.TestItemBuilder) =
+                testItemFactory
+                    { testItemBuilder with
+                        testFramework = detectedTestFramework }
+
+            let testHierarchy =
+                testNames
+                |> Array.map (fun n -> {| FullName = n; Data = () |})
+                |> TestName.inferHierarchy
+                |> Array.map (TestItem.fromNamedHierarchy testItemFactory tryGetLocation project.Project)
+
+            return TestItem.fromProject testItemFactory project.Project project.Info.TargetFramework testHierarchy
+        }
+
 
 module Interactions =
     type ProjectRunRequest =
@@ -1132,9 +1334,26 @@ module Interactions =
         let normalizeLineEndings str =
             RegularExpressions.Regex.Replace(str, @"\r\n|\n\r|\n|\r", "\r\n")
 
-        let appendOutputLine (testRun: TestRun) (message: string) =
-            // NOTE: New lines must be crlf https://code.visualstudio.com/api/extension-guides/testing#test-output
-            testRun.appendOutput (sprintf "%s\r\n" (normalizeLineEndings message))
+        module Output =
+            module private Ansi =
+                let yellow (text: string) = $"\u001B[33m{text}\u001B[0m"
+                let green (text: string) = $"\u001B[32m{text}\u001B[0m"
+                let red (text: string) = $"\u001B[31m{text}\u001B[0m"
+
+            module Symbols =
+                let testPassed = Ansi.green "Passed"
+                let testFailed = Ansi.red "Failed"
+                let testSkipped = Ansi.yellow "Skipped"
+
+            let appendLine (testRun: TestRun) (message: string) =
+                // NOTE: New lines must be crlf https://code.visualstudio.com/api/extension-guides/testing#test-output
+                testRun.appendOutput (sprintf "%s\r\n" (normalizeLineEndings message))
+
+            let appendWarningLine (testRun: TestRun) (message: string) =
+                appendLine testRun (message |> Ansi.yellow)
+
+            let appendErrorLine (testRun: TestRun) (message: string) =
+                appendLine testRun (message |> Ansi.red)
 
         let appendOutputLineForTest (testRun: TestRun) (testItem) (message: string) =
             let message = sprintf "%s\r\n" (normalizeLineEndings message)
@@ -1203,7 +1422,42 @@ module Interactions =
                 builder.ToString()
 
         let testToFilterExpression (test: TestItem) =
-            let fullTestName = TestItem.getFullName test.id
+            let isProbableParameterizedTest (test: TestItem) =
+                match test.parent with
+                | None -> false
+                | Some parent ->
+                    let parentPlusParentheses =
+                        RegularExpressions.Regex($"{parent.label |> RegularExpressions.Regex.Escape}\s*\(")
+
+                    parentPlusParentheses.IsMatch(test.label)
+
+            let getFullNameOfParameterizedTest (test: TestItem) =
+                // NOTE: For xUnit and MSTest, we're nesting the the parameterized test cases under their method name,
+                //       but the cannonical fully qualified test name doesn't reflect this nesting, so we have to account for the parent
+                //       There might be a better way to handle this. Perhaps dynamically adding a cannonical unique test id field to TestItem
+                //       (like with TestFramework). Adding this to runnable TestItems would reduce edge cases and special behavior for running individual tests
+                let maybeGrandParent = test.parent |> Option.bind (fun t -> t.parent)
+
+                match maybeGrandParent with
+                | None -> TestItem.getFullName test.id
+                | Some grandParent ->
+                    TestName.appendSegment
+                        (TestItem.getFullName grandParent.id)
+                        { Text = test.label
+                          SeparatorBefore = string TestName.pathSeparator }
+
+            let getFilterPath (test: TestItem) =
+                if
+                    (test.TestFramework = TestFrameworkId.XUnit
+                     || test.TestFramework = TestFrameworkId.MsTest)
+                    && isProbableParameterizedTest test
+                then
+                    getFullNameOfParameterizedTest test
+                else
+                    TestItem.getFullName test.id
+
+
+            let fullTestName = getFilterPath test
             let escapedTestName = escapeFilterExpression fullTestName
 
             if escapedTestName.Contains(" ") && test.TestFramework = TestFrameworkId.NUnit then
@@ -1211,14 +1465,14 @@ module Interactions =
                 // Potentially we are going to run multiple tests that match this filter
                 let testPart = escapedTestName.Split(' ').[0]
                 $"(FullyQualifiedName~{testPart})"
+            // NOTE: using DisplayName allows single theory cases to be run for xUnit
             else if test.TestFramework = TestFrameworkId.XUnit then
-                // NOTE: using DisplayName allows single theory cases to be run for xUnit
                 let operator = if test.children.size = 0 then "=" else "~"
                 $"(DisplayName{operator}{escapedTestName})"
+            // NOTE: MSTest can't filter to parameterized test cases
+            //  Truncating before the case parameters will run all the theory cases
+            //  example parameterized test name -> `MsTestTests.TestClass.theoryTest (2,3,5)`
             else if test.TestFramework = TestFrameworkId.MsTest && String.endWith ")" fullTestName then
-                // NOTE: MSTest can't filter to parameterized test cases
-                //  Truncating before the case parameters will run all the theory cases
-                //  example parameterized test name -> `MsTestTests.TestClass.theoryTest (2,3,5)`
                 let truncateOnLast (separator: string) (toSplit: string) =
                     match toSplit.LastIndexOf(separator) with
                     | -1 -> toSplit
@@ -1240,6 +1494,7 @@ module Interactions =
 
         match testResult.Outcome with
         | TestResultOutcome.NotExecuted -> testRun.skipped testItem
+        | TestResultOutcome.Skipped -> testRun.skipped testItem
         | TestResultOutcome.Passed ->
             testResult.Output
             |> Option.iter (TestRun.appendOutputLineForTest testRun testItem)
@@ -1267,11 +1522,11 @@ module Interactions =
         (testItemFactory: TestItem.TestItemFactory)
         (tryGetLocation: TestId -> LocationRecord option)
         (testRun: TestRun)
-        (projectPath: ProjectPath)
-        (targetFramework: TargetFramework)
+        (shouldDeleteMissing: bool)
         (expectedToRun: TestItem array)
         (testResults: TestResult array)
         =
+
         let tryRemove (testWithoutResult: TestItem) =
             let parentCollection =
                 match testWithoutResult.parent with
@@ -1281,49 +1536,47 @@ module Interactions =
             parentCollection.delete testWithoutResult.id
 
 
-        let getOrMakeHierarchyPath testFramework =
+        let getOrMakeHierarchyPath (testResult: TestResult) =
             let testItemFactory (ti: TestItem.TestItemBuilder) =
                 testItemFactory
                     { ti with
-                        testFramework = testFramework }
+                        testFramework = testResult.TestFramework }
 
             TestItem.getOrMakeHierarchyPath
                 rootTestCollection
                 testItemFactory
                 tryGetLocation
-                projectPath
-                targetFramework
+                testResult.ProjectFilePath
+                testResult.TargetFramework
+                testResult.FullTestName
 
-        let treeItemComparable (t: TestItem) = TestItem.getFullName t.id
-        let resultComparable (r: TestResult) = r.FullTestName
+        let treeItemComparable (t: TestItem) = TestItem.getId t
+
+        let resultComparable (r: TestResult) =
+            TestItem.constructId r.ProjectFilePath r.FullTestName
 
         let missing, expected, added =
             ArrayExt.venn treeItemComparable resultComparable expectedToRun testResults
 
         expected |> Array.iter (displayTestResultInExplorer testRun)
-        missing |> Array.iter tryRemove
+
+        if shouldDeleteMissing then
+            missing |> Array.iter tryRemove
 
         added
         |> Array.iter (fun additionalResult ->
-            let treeItem =
-                getOrMakeHierarchyPath additionalResult.TestFramework additionalResult.FullTestName
+            let treeItem = getOrMakeHierarchyPath additionalResult
 
             displayTestResultInExplorer testRun (treeItem, additionalResult))
 
-    let private trxResultToTestResult (trxResult: TrxParser.TestWithResult) =
+    let private trxResultToTestResult
+        (projectFilePath: ProjectFilePath)
+        (targetFramework: TargetFramework)
+        (trxResult: TrxParser.TestWithResult)
+        =
+
         let expected, actual =
-            match trxResult.UnitTestResult.Output.ErrorInfo.Message with
-            | None -> None, None
-            | Some message ->
-                let lines =
-                    message.Split([| "\r\n"; "\n" |], StringSplitOptions.RemoveEmptyEntries)
-                    |> Array.map (fun n -> n.TrimStart())
-
-                let tryFind (startsWith: string) =
-                    Array.tryFind (fun (line: string) -> line.StartsWith(startsWith)) lines
-                    |> Option.map (fun line -> line.Replace(startsWith, "").TrimStart())
-
-                tryFind "Expected:", tryFind "But was:"
+            TestResult.tryExtractExpectedAndActual trxResult.UnitTestResult.Output.ErrorInfo.Message
 
         { FullTestName = trxResult.UnitTest.FullName
           Outcome = !!trxResult.UnitTestResult.Outcome
@@ -1333,10 +1586,17 @@ module Interactions =
           Expected = expected
           Actual = actual
           Timing = trxResult.UnitTestResult.Duration.Milliseconds
-          TestFramework = TrxParser.adapterTypeNameToTestFramework trxResult.UnitTest.TestMethod.AdapterTypeName }
+          TestFramework = TestFrameworkId.tryFromExecutorUri trxResult.UnitTest.TestMethod.AdapterTypeName
+          ProjectFilePath = projectFilePath
+          TargetFramework = targetFramework }
 
-    type MergeTestResultsToExplorer =
-        TestRun -> ProjectPath -> TargetFramework -> TestItem array -> TestResult array -> unit
+    type TrimMissing = bool
+
+    module TrimMissing =
+        let Trim = true
+        let NoTrim = false
+
+    type MergeTestResultsToExplorer = TestRun -> TrimMissing -> TestItem array -> TestResult array -> unit
 
     let private runTestProject_withoutExceptionHandling
         (mergeResultsToExplorer: MergeTestResultsToExplorer)
@@ -1374,19 +1634,20 @@ module Interactions =
                     (projectRunRequest.ShouldDebug |> DotnetCli.DebugTests.ofBool)
                     cancellationToken
 
-            TestRun.appendOutputLine testRun output
+            TestRun.Output.appendLine testRun output
 
             let testResults =
-                TrxParser.extractTrxResults trxPath |> Array.map trxResultToTestResult
+                TrxParser.extractTrxResults trxPath
+                |> Array.map (trxResultToTestResult projectPath projectRunRequest.TargetFramework)
 
             if Array.isEmpty testResults then
                 let message =
                     $"WARNING: No tests ran for project \"{projectPath}\". \r\nThe test explorer might be out of sync. Try running a higher test or refreshing the test explorer"
 
                 window.showWarningMessage (message) |> ignore
-                TestRun.appendOutputLine testRun message
+                TestRun.Output.appendWarningLine testRun message
             else
-                mergeResultsToExplorer testRun projectPath projectRunRequest.TargetFramework runnableTests testResults
+                mergeResultsToExplorer testRun TrimMissing.Trim runnableTests testResults
         }
 
     let runTestProject
@@ -1409,13 +1670,20 @@ module Interactions =
                 let message =
                     $"❌ Error running tests: \n    project: {projectRunRequest.ProjectPath} \n\n    error:\n        {e.Message}"
 
-                TestRun.appendOutputLine testRun message
+                TestRun.Output.appendErrorLine testRun message
                 TestRun.showError testRun message projectRunRequest.Tests
         }
 
+    module TestRunRequest =
+        let isDebugRequested (runRequest: TestRunRequest) =
+            runRequest.profile
+            |> Option.map (fun p -> p.kind = TestRunProfileKind.Debug)
+            |> Option.defaultValue false
 
-
-    let private filtersToProjectRunRequests (rootTestCollection: TestItemCollection) (runRequest: TestRunRequest) =
+    let private filtersToProjectRunRequests
+        (rootTestCollection: TestItemCollection)
+        (runRequest: TestRunRequest)
+        : ProjectRunRequest array =
         let testSelection =
             runRequest.``include``
             |> Option.map Array.ofSeq
@@ -1433,8 +1701,7 @@ module Interactions =
                         let message = $"Could not run tests: project not loaded. {projectPath}"
                         invalidOp message)
                 |> Option.defaultWith (fun () ->
-                    let message =
-                        $"Could not run tests: project does not found in workspace. {projectPath}"
+                    let message = $"Could not run tests: project not found in workspace. {projectPath}"
 
                     logger.Error(message)
                     invalidOp message)
@@ -1450,10 +1717,7 @@ module Interactions =
                         [| testItem |])
                 |> Array.distinctBy TestItem.getId
 
-            let shouldDebug =
-                runRequest.profile
-                |> Option.map (fun p -> p.kind = TestRunProfileKind.Debug)
-                |> Option.defaultValue false
+            let shouldDebug = TestRunRequest.isDebugRequested runRequest
 
             let hasIncludeFilter =
                 let isOnlyProjectSelected =
@@ -1469,10 +1733,210 @@ module Interactions =
               HasIncludeFilter = hasIncludeFilter
               Tests = replaceProjectRootIfPresent tests })
 
+    let discoverTests_WithLanguageServer testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation =
+        withProgress NoCancel
+        <| fun p progressCancelToken ->
+            promise {
+                let report message =
+                    logger.Info message
+
+                    p.report
+                        {| message = Some message
+                           increment = None |}
+
+                let mergeTestItemCollections (target: TestItem array) (addition: TestItem array) : TestItem array =
+                    let rec recurse (target: TestItem array) (addition: TestItem array) : TestItem array =
+                        let targetOnly, conficted, addedOnly =
+                            ArrayExt.venn TestItem.getId TestItem.getId target addition
+
+                        let mergeSingle (targetItem: TestItem, addedItem: TestItem) =
+                            let mergedChildren =
+                                recurse (targetItem.children.TestItems()) (addedItem.children.TestItems())
+
+                            addedItem.children.replace (ResizeArray mergedChildren)
+                            addedItem
+
+                        Array.concat [ targetOnly; addedOnly; conficted |> Array.map mergeSingle ]
+
+                    recurse target addition
+
+                let mutable discoveredTestsAccumulator: TestItem array =
+                    rootTestCollection.TestItems()
+
+                let mutable discoveredTestCount: int = 0
+
+                let onTestDiscoveryProgress (discoveryUpdate: TestDiscoveryUpdate) : unit =
+                    let writeTestLog (log: TestLogMessage) =
+                        let message = $"[Discover Tests] {log.Message}"
+
+                        match log.Level with
+                        | TestLogLevel.Warning -> logger.Warn(message)
+                        | TestLogLevel.Error -> logger.Error(message)
+                        | TestLogLevel.Informational -> logger.Info(message)
+
+                    try
+                        discoveryUpdate.TestLogs |> Array.iter writeTestLog
+
+                        let newItems =
+                            discoveryUpdate.Tests |> TestItem.ofTestDTOs testItemFactory tryGetLocation
+
+                        discoveredTestsAccumulator <- mergeTestItemCollections discoveredTestsAccumulator newItems
+                        discoveredTestCount <- discoveredTestCount + (discoveryUpdate.Tests |> Array.length)
+
+                        report $"Discovering tests: {discoveredTestCount} discovered"
+                        rootTestCollection.replace (ResizeArray discoveredTestsAccumulator)
+                    with e ->
+                        logger.Debug("Incremental test discovery update threw an exception", e)
+
+                report "Discovering tests"
+                let! discoveryResponse = LanguageService.discoverTests onTestDiscoveryProgress ()
+
+                let testItems =
+                    discoveryResponse.Data
+                    |> TestItem.ofTestDTOs testItemFactory tryGetLocation
+                    |> ResizeArray
+
+                rootTestCollection.replace (testItems)
+
+                if testItems |> Seq.length = 0 then
+                    window.showWarningMessage (
+                        $"No tests discovered. Make sure your projects are restored, built, and can be run with dotnet test. Discovery logs can be found in Output > F# - Test Adapter "
+                    )
+                    |> ignore
+            }
+
+    let private runTests_WithLanguageServer
+        mergeTestResultsToExplorer
+        (rootTestCollection: TestItemCollection)
+        (req: TestRunRequest)
+        testRun
+        =
+        promise {
+            try
+                let expectedToRun =
+                    req.``include``
+                    |> Option.map Array.ofSeq
+                    |> Option.defaultValue (rootTestCollection.TestItems())
+                    |> Array.collect TestItem.runnableChildren
+
+                let expectedTestsById = expectedToRun |> Array.map (fun t -> t.id, t) |> Map
+
+                let mergeResults (shouldTrim: TrimMissing) (resultDtos: TestResultDTO array) =
+                    let actuallyRan: TestResult array =
+                        resultDtos |> Array.map TestResult.ofTestResultDTO
+
+                    mergeTestResultsToExplorer testRun shouldTrim expectedToRun actuallyRan
+
+                let showStarted (testItems: TestItemDTO array) =
+                    try
+                        let groups = testItems |> Array.groupBy (fun t -> t.ProjectFilePath)
+
+                        groups
+                        |> Array.iter (fun (projPath, activeTests) ->
+                            let testIdsToStart =
+                                activeTests |> Array.map (fun t -> TestItem.constructId projPath t.FullName)
+
+                            let knownExplorerItems = testIdsToStart |> Array.choose expectedTestsById.TryFind
+                            knownExplorerItems |> TestRun.showStarted testRun)
+                    with ex ->
+                        logger.Debug("Threw error while mapping active test items to the explorer", ex)
+
+                let onTestRunProgress (progress: TestRunProgress) =
+                    showStarted progress.ActiveTests
+                    mergeResults TrimMissing.NoTrim progress.TestResults
+
+                    let appendTestResultToOutput (testResult: TestResultDTO) =
+                        match testResult.Outcome with
+                        | TestOutcomeDTO.Passed ->
+                            TestRun.Output.appendLine
+                                testRun
+                                $"{TestRun.Output.Symbols.testPassed} {testResult.TestItem.FullName}"
+                        | TestOutcomeDTO.Failed ->
+                            TestRun.Output.appendLine
+                                testRun
+                                $"{TestRun.Output.Symbols.testFailed} {testResult.TestItem.FullName}"
+                        | TestOutcomeDTO.Skipped ->
+                            TestRun.Output.appendLine
+                                testRun
+                                $"{TestRun.Output.Symbols.testSkipped} {testResult.TestItem.FullName}"
+                        | TestOutcomeDTO.None ->
+                            TestRun.Output.appendWarningLine testRun $"No outcome for {testResult.TestItem.FullName}"
+                        | TestOutcomeDTO.NotFound ->
+                            TestRun.Output.appendWarningLine testRun $"NotFound {testResult.TestItem.FullName}"
+                        | _ ->
+                            TestRun.Output.appendWarningLine
+                                testRun
+                                $"An unexpected test outcome was encountered for {testResult.TestItem.FullName}"
+
+                    progress.TestResults |> Array.iter appendTestResultToOutput
+
+                    let appendToTestRun testRun (log: TestLogMessage) =
+                        match log.Level with
+                        | TestLogLevel.Informational -> TestRun.Output.appendLine testRun log.Message
+                        | TestLogLevel.Warning -> TestRun.Output.appendWarningLine testRun log.Message
+                        | TestLogLevel.Error -> TestRun.Output.appendErrorLine testRun log.Message
+
+                    progress.TestLogs |> Array.iter (appendToTestRun testRun)
+
+                let onAttachDebugger (processId: int) =
+                    VSCodeActions.launchDebugger (string processId)
+
+                let filterExpression, projectSubset =
+                    match req.``include`` with
+                    | None -> None, None
+                    | Some selectedCases when Seq.isEmpty selectedCases -> None, None
+                    | Some selectedCases ->
+                        let filter =
+                            selectedCases
+                            |> Array.ofSeq
+                            |> Array.filter (fun t -> t.id |> TestItem.getFullName <> String.Empty)
+                            |> buildFilterExpression
+                            |> Some
+
+                        let projectSubset =
+                            selectedCases
+                            |> Seq.map (TestItem.getId >> TestItem.getProjectPath)
+                            |> Seq.distinct
+                            |> Array.ofSeq
+                            |> Some
+
+                        filter, projectSubset
+
+                logger.Debug($"Test Filter Expression: {filterExpression}")
+
+                let shouldDebug = TestRunRequest.isDebugRequested req
+
+                let! runResult =
+                    LanguageService.runTests
+                        onTestRunProgress
+                        onAttachDebugger
+                        projectSubset
+                        filterExpression
+                        shouldDebug
+
+                mergeResults TrimMissing.Trim runResult.Data
+
+                if Array.isEmpty runResult.Data then
+                    let message =
+                        $"WARNING: No tests ran. The test explorer might be out of sync. Try running a higher test group or refreshing the test explorer"
+
+                    window.showWarningMessage (message) |> ignore
+                    TestRun.Output.appendWarningLine testRun message
+            with ex ->
+                logger.Debug("Test run failed with exception", ex)
+                TestRun.Output.appendErrorLine testRun $"The test run errored {Environment.NewLine}{string ex}"
+
+                window.showErrorMessage (
+                    "Test run errored. See TestResults or Output > F# - Test Adapter for more info"
+                )
+                |> ignore
+        }
+
     let runHandler
         (testController: TestController)
         (tryGetLocation: TestId -> LocationRecord option)
         (makeTrxPath)
+        (useLegacyDotnetCliIntegration: bool)
         (req: TestRunRequest)
         (_ct: CancellationToken)
         : U2<Thenable<unit>, unit> =
@@ -1484,7 +1948,6 @@ module Interactions =
         if testController.items.size < 1. then
             !! testRun.``end`` ()
         else
-            let projectRunRequests = filtersToProjectRunRequests testController.items req
 
             let testItemFactory = TestItem.itemFactoryForController testController
 
@@ -1493,7 +1956,6 @@ module Interactions =
 
             let runTestProject =
                 runTestProject mergeTestResultsToExplorer makeTrxPath testRun _ct
-
 
             let buildProject testRun projectRunRequest =
                 promise {
@@ -1506,13 +1968,14 @@ module Interactions =
 
                     if buildStatus.Code <> Some 0 then
                         TestRun.showError testRun "Project build failed" runnableTests
-                        TestRun.appendOutputLine testRun $"❌ Failed to build project: {projectPath}"
+                        TestRun.Output.appendErrorLine testRun $"❌ Failed to build project: {projectPath}"
                         return None
                     else
                         return Some projectRunRequest
                 }
 
             promise {
+                let projectRunRequests = filtersToProjectRunRequests testController.items req
 
                 projectRunRequests
                 |> Array.collect (fun rr -> rr.Tests |> TestItem.runnableFromArray)
@@ -1525,19 +1988,108 @@ module Interactions =
 
                 let successfullyBuiltRequests = buildResults |> List.choose id
 
-                let! _ =
-                    successfullyBuiltRequests
-                    |> (Promise.executeWithMaxParallel maxParallelTestProjects runTestProject)
+                if useLegacyDotnetCliIntegration then
+                    let! _ =
+                        successfullyBuiltRequests
+                        |> (Promise.executeWithMaxParallel maxParallelTestProjects runTestProject)
 
-                testRun.``end`` ()
+                    testRun.``end`` ()
+                else
+                    do! runTests_WithLanguageServer mergeTestResultsToExplorer testController.items req testRun
+                    testRun.``end`` ()
+                    do! discoverTests_WithLanguageServer testItemFactory testController.items tryGetLocation
+
             }
             |> (Promise.toThenable >> (!^))
+
+    let private discoverTests_WithDotnetCli
+        testItemFactory
+        tryGetLocation
+        makeTrxPath
+        report
+        (rootTestCollection: TestItemCollection)
+        cancellationToken
+        builtTestProjects
+        =
+        promise {
+            let warn (message: string) =
+                logger.Warn(message)
+                window.showWarningMessage (message) |> ignore
+
+            let listDiscoveryProjects, trxDiscoveryProjects =
+                builtTestProjects |> List.partition TestDiscovery.canListTestCasesWithCli
+
+            let discoverTestsByListOnly project =
+                report $"Discovering tests for {project.Project}"
+                TestDiscovery.discoverTestsByCliListTests testItemFactory tryGetLocation cancellationToken project
+
+            let! listDiscoveredPerProject =
+                listDiscoveryProjects
+                |> ListExt.mapKeepInputAsync discoverTestsByListOnly
+                |> Promise.all
+
+            trxDiscoveryProjects
+            |> List.iter (ProjectPath.fromProject >> makeTrxPath >> Path.deleteIfExists)
+
+            let! _ =
+                trxDiscoveryProjects
+                |> Promise.executeWithMaxParallel maxParallelTestProjects (fun project ->
+                    let projectPath = project.Project
+                    report $"Discovering tests for {projectPath}"
+                    let trxPath = makeTrxPath projectPath |> Some
+
+                    DotnetCli.test
+                        projectPath
+                        project.Info.TargetFramework
+                        trxPath
+                        None
+                        DotnetCli.DebugTests.NoDebug
+                        cancellationToken)
+
+            let trxDiscoveredTests =
+                TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjects
+
+
+            let listDiscoveredTests = listDiscoveredPerProject |> Array.map snd
+            let newTests = Array.concat [ listDiscoveredTests; trxDiscoveredTests ]
+
+            report $"Discovered {newTests |> Array.sumBy (TestItem.runnableChildren >> Array.length)} tests"
+            rootTestCollection.replace (newTests |> ResizeArray)
+
+            if builtTestProjects |> List.length > 0 && Array.length newTests = 0 then
+                let message =
+                    "Detected test projects but no tests. Make sure your tests can be run with `dotnet test`"
+
+                window.showWarningMessage (message) |> ignore
+                logger.Warn(message)
+
+            else
+                let possibleDiscoveryFailures =
+                    Array.concat
+                        [ let getProjectTests (ti: TestItem) = ti.children.TestItems()
+
+                          listDiscoveredPerProject
+                          |> Array.filter (snd >> getProjectTests >> Array.isEmpty)
+                          |> Array.map (fst >> ProjectPath.fromProject)
+
+                          trxDiscoveryProjects
+                          |> Array.ofList
+                          |> Array.map ProjectPath.fromProject
+                          |> Array.filter (makeTrxPath >> Path.tryPath >> Option.isNone) ]
+
+                if (not << Array.isEmpty) possibleDiscoveryFailures then
+                    let projectList = String.Join("\n", possibleDiscoveryFailures)
+
+                    warn
+                        $"No tests discovered for the following projects. Make sure your tests can be run with `dotnet test` \n {projectList}"
+        }
 
     let refreshTestList
         testItemFactory
         (rootTestCollection: TestItemCollection)
         tryGetLocation
         makeTrxPath
+        useLegacyDotnetCliIntegration
         (cancellationToken: CancellationToken)
         =
 
@@ -1550,11 +2102,6 @@ module Interactions =
                     p.report
                         {| message = Some message
                            increment = None |}
-
-                let warn (message: string) =
-                    logger.Warn(message)
-                    window.showWarningMessage (message) |> ignore
-
 
                 let cancellationToken =
                     CancellationToken.mergeTokens [ cancellationToken; progressCancelToken ]
@@ -1594,114 +2141,18 @@ module Interactions =
                     window.showErrorMessage (message) |> ignore
                     logger.Error(message, buildFailures |> List.map ProjectPath.fromProject)
 
+                else if useLegacyDotnetCliIntegration then
+                    do!
+                        discoverTests_WithDotnetCli
+                            testItemFactory
+                            tryGetLocation
+                            makeTrxPath
+                            report
+                            rootTestCollection
+                            cancellationToken
+                            builtTestProjects
                 else
-                    let detectablePackageToFramework =
-                        dict
-                            [ "Expecto", TestFrameworkId.Expecto
-                              "xunit.abstractions", TestFrameworkId.XUnit ]
-
-                    let librariesCapableOfListOnlyDiscovery = set detectablePackageToFramework.Keys
-
-                    let listDiscoveryProjects, trxDiscoveryProjects =
-                        builtTestProjects
-                        |> List.partition (fun project ->
-                            project.PackageReferences
-                            |> Array.exists (fun pr -> librariesCapableOfListOnlyDiscovery |> Set.contains pr.Name))
-
-                    let discoverTestsByListOnly (project: Project) =
-                        promise {
-                            report $"Discovering tests for {project.Project}"
-
-                            let! testNames =
-                                DotnetCli.listTests project.Project project.Info.TargetFramework false cancellationToken
-
-                            let detectedTestFramework =
-                                let getPackageName (pr: PackageReference) = pr.Name
-
-                                project.PackageReferences
-                                |> Array.tryPick (getPackageName >> Dict.tryGet detectablePackageToFramework)
-
-                            let testItemFactory (testItemBuilder: TestItem.TestItemBuilder) =
-                                testItemFactory
-                                    { testItemBuilder with
-                                        testFramework = detectedTestFramework }
-
-                            let testHierarchy =
-                                testNames
-                                |> Array.map (fun n -> {| FullName = n; Data = () |})
-                                |> TestName.inferHierarchy
-                                |> Array.map (
-                                    TestItem.fromNamedHierarchy testItemFactory tryGetLocation project.Project
-                                )
-
-                            return
-                                TestItem.fromProject
-                                    testItemFactory
-                                    project.Project
-                                    project.Info.TargetFramework
-                                    testHierarchy
-                        }
-
-
-                    let! listDiscoveredPerProject =
-                        listDiscoveryProjects
-                        |> ListExt.mapKeepInputAsync discoverTestsByListOnly
-                        |> Promise.all
-
-                    trxDiscoveryProjects
-                    |> List.iter (ProjectPath.fromProject >> makeTrxPath >> Path.deleteIfExists)
-
-                    let! _ =
-                        trxDiscoveryProjects
-                        |> Promise.executeWithMaxParallel maxParallelTestProjects (fun project ->
-                            let projectPath = project.Project
-                            report $"Discovering tests for {projectPath}"
-                            let trxPath = makeTrxPath projectPath |> Some
-
-                            DotnetCli.test
-                                projectPath
-                                project.Info.TargetFramework
-                                trxPath
-                                None
-                                DotnetCli.DebugTests.NoDebug
-                                cancellationToken)
-
-                    let trxDiscoveredTests =
-                        TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath trxDiscoveryProjects
-
-
-                    let listDiscoveredTests = listDiscoveredPerProject |> Array.map snd
-                    let newTests = Array.concat [ listDiscoveredTests; trxDiscoveredTests ]
-
-                    report $"Discovered {newTests |> Array.sumBy (TestItem.runnableChildren >> Array.length)} tests"
-                    rootTestCollection.replace (newTests |> ResizeArray)
-
-                    if testProjectCount > 0 && Array.length newTests = 0 then
-                        let message =
-                            "Detected test projects but no tests. Make sure your tests can be run with `dotnet test`"
-
-                        window.showWarningMessage (message) |> ignore
-                        logger.Warn(message)
-
-                    else
-                        let possibleDiscoveryFailures =
-                            Array.concat
-                                [ let getProjectTests (ti: TestItem) = ti.children.TestItems()
-
-                                  listDiscoveredPerProject
-                                  |> Array.filter (snd >> getProjectTests >> Array.isEmpty)
-                                  |> Array.map (fst >> ProjectPath.fromProject)
-
-                                  trxDiscoveryProjects
-                                  |> Array.ofList
-                                  |> Array.map ProjectPath.fromProject
-                                  |> Array.filter (makeTrxPath >> Path.tryPath >> Option.isNone) ]
-
-                        if (not << Array.isEmpty) possibleDiscoveryFailures then
-                            let projectList = String.Join("\n", possibleDiscoveryFailures)
-
-                            warn
-                                $"No tests discovered for the following projects. Make sure your tests can be run with `dotnet test` \n {projectList}"
+                    do! discoverTests_WithLanguageServer testItemFactory rootTestCollection tryGetLocation
             }
 
     let tryMatchTestBySuffix (locationCache: CodeLocationCache) (testId: TestId) =
@@ -1709,17 +2160,6 @@ module Interactions =
             testId.EndsWith(TestItem.getFullName locatedTestId)
 
         locationCache.GetKnownTestIds() |> Seq.tryFind (matcher testId)
-
-    module Option =
-
-        let tee (f: 'a -> unit) (option: 'a option) =
-            option |> Option.iter f
-            option
-
-        let tryFallback f opt =
-            match opt with
-            | Some _ -> opt
-            | None -> f ()
 
     let tryGetLocation (locationCache: CodeLocationCache) testId =
         let cached = locationCache.GetById testId
@@ -1748,7 +2188,7 @@ module Interactions =
 
             let tryMatchDisplacedTest (testId: ResultBasedTestId) : TestItem option =
                 displacedFragmentMapCache.TryGet(testId)
-                |> Option.tryFallback (fun () -> tryMatchTestBySuffix locationCache testId)
+                |> Option.orElseWith (fun () -> tryMatchTestBySuffix locationCache testId)
                 |> Option.tee (fun matchedId -> displacedFragmentMapCache[testId] <- matchedId)
                 |> Option.bind (fun matchedId -> TestItem.tryGetById matchedId testsFromCode)
                 |> Option.tee (fun matchedTest ->
@@ -1787,6 +2227,9 @@ module Mailbox =
 
 let activate (context: ExtensionContext) =
 
+    let useLegacyDotnetCliIntegration =
+        Configuration.get false "FSharp.TestExplorer.UseLegacyDotnetCliIntegration"
+
     let testController =
         tests.createTestController ("fsharp-test-controller", "F# Test Controller")
 
@@ -1804,7 +2247,8 @@ let activate (context: ExtensionContext) =
 
     let tryGetLocation = Interactions.tryGetLocation locationCache
 
-    let runHandler = Interactions.runHandler testController tryGetLocation makeTrxPath
+    let runHandler =
+        Interactions.runHandler testController tryGetLocation makeTrxPath useLegacyDotnetCliIntegration
 
     testController.createRunProfile ("Run F# Tests", TestRunProfileKind.Run, runHandler, true)
     |> unbox
@@ -1839,9 +2283,22 @@ let activate (context: ExtensionContext) =
 
 
     let refreshHandler cancellationToken =
-        Interactions.refreshTestList testItemFactory testController.items tryGetLocation makeTrxPath cancellationToken
+        promise {
+            try
+                do!
+                    Interactions.refreshTestList
+                        testItemFactory
+                        testController.items
+                        tryGetLocation
+                        makeTrxPath
+                        useLegacyDotnetCliIntegration
+                        cancellationToken
+            with e ->
+                logger.Error("Ionide test discovery threw an exception", e)
+        }
         |> Promise.toThenable
         |> (!^)
+
 
     testController.refreshHandler <- Some refreshHandler
 
@@ -1854,22 +2311,27 @@ let activate (context: ExtensionContext) =
         if shouldAutoDiscoverTests && not hasInitiatedDiscovery then
             hasInitiatedDiscovery <- true
 
-            let trxTests =
-                TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath
+            if useLegacyDotnetCliIntegration then
+                let trxTests =
+                    TestDiscovery.discoverFromTrx testItemFactory tryGetLocation makeTrxPath
 
-            let workspaceProjects = Project.getLoaded ()
-            let initialTests = trxTests workspaceProjects
-            initialTests |> Array.iter testController.items.add
+                let workspaceProjects = Project.getLoaded ()
+                let initialTests = trxTests workspaceProjects
+                initialTests |> Array.iter testController.items.add
 
-            let cancellationTokenSource = vscode.CancellationTokenSource.Create()
-            // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
-            Interactions.refreshTestList
-                testItemFactory
-                testController.items
-                tryGetLocation
-                makeTrxPath
-                cancellationTokenSource.token
-            |> Promise.start
+                let cancellationTokenSource = vscode.CancellationTokenSource.Create()
+                // NOTE: Trx results can be partial if the last test run was filtered, so also queue a refresh to make sure we discover all tests
+                Interactions.refreshTestList
+                    testItemFactory
+                    testController.items
+                    tryGetLocation
+                    makeTrxPath
+                    useLegacyDotnetCliIntegration
+                    cancellationTokenSource.token
+                |> Promise.start
+            else
+                Interactions.discoverTests_WithLanguageServer testItemFactory testController.items tryGetLocation
+                |> Promise.start
 
         None)
     |> unbox

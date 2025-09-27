@@ -368,6 +368,57 @@ module DTO =
         { file: string
           tests: TestAdapterEntry[] }
 
+    type TestFileRange = { StartLine: int; EndLine: int }
+
+    type TestItemDTO =
+        {
+            FullName: string
+            DisplayName: string
+            /// Identifies the test adapter that ran the tests
+            /// Example: executor://xunit/VsTestRunner2/netcoreapp
+            /// Used for determining the test library, which effects how tests names are broken down
+            ExecutorUri: string
+            ProjectFilePath: string
+            TargetFramework: string
+            CodeFilePath: string option
+            CodeLocationRange: TestFileRange option
+        }
+
+    [<RequireQualifiedAccess>]
+    type TestOutcomeDTO =
+        | Failed = 0
+        | Passed = 1
+        | Skipped = 2
+        | None = 3
+        | NotFound = 4
+
+    type TestResultDTO =
+        { TestItem: TestItemDTO
+          Outcome: TestOutcomeDTO
+          ErrorMessage: string option
+          ErrorStackTrace: string option
+          AdditionalOutput: string option
+          Duration: System.TimeSpan }
+
+    [<Fable.Core.StringEnum(Fable.Core.CaseRules.None)>]
+    [<RequireQualifiedAccess>]
+    type TestLogLevel =
+        | Informational
+        | Warning
+        | Error
+
+    type TestLogMessage =
+        { Level: TestLogLevel; Message: string }
+
+    type TestDiscoveryUpdate =
+        { Tests: TestItemDTO array
+          TestLogs: TestLogMessage array }
+
+    type TestRunProgress =
+        { TestLogs: TestLogMessage array
+          TestResults: TestResultDTO array
+          ActiveTests: TestItemDTO array }
+
     type Result<'T> = { Kind: string; Data: 'T }
 
     type HelptextResult = Result<Helptext>
@@ -396,6 +447,8 @@ module DTO =
     type FSharpLiterateResult = Result<string>
     type PipelineHintsResult = Result<PipelineHint array>
     type TestResult = Result<TestForFile>
+    type DiscoverTestsResult = Result<TestItemDTO array>
+    type RunTestsResult = Result<TestResultDTO array>
 
 
     module DotnetNew =
