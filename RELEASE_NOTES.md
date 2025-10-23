@@ -1,3 +1,7 @@
+### 7.28.2 - 23.10.2025
+
+* Update to FSAC 0.80.1 Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.80.1) for more details.
+
 ### 7.28.1 - 19.10.2025
 
 * Update to FSAC 0.80.0 Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.80.0) for more details.
