@@ -85,7 +85,6 @@
             "\t${2:body-expression}"
         ]
     },
-
     // records, discriminated unions, classes, structs
     "record": {
         "prefix": "record",
@@ -137,11 +136,11 @@
     "unit-of-measure": {
         "prefix": "unit-of-measure",
         "description": "Floating point and signed integer values in F# can have associated units of measure, which are typically used to indicate length, volume, mass, and so on. By using quantities with units, you enable the compiler to verify that arithmetic relationships have the correct units, which helps prevent programming errors.",
-        "body" : [
+        "body": [
             "[<Measure>] type ${1:unit-name} = ${2:unit-symbol}"
         ]
     },
-    "class" : {
+    "class": {
         "prefix": "class",
         "description": "Classes represent the fundamental description of .NET object types; the class is the primary type concept that supports object-oriented programming in F#",
         "body": [
@@ -150,7 +149,7 @@
             "\tmember this.${5:member-name2} = ${6:member-expression2}"
         ]
     },
-    "class-abstract" : {
+    "class-abstract": {
         "prefix": "abstract-class",
         "description": "Classes represent the fundamental description of .NET object types; the class is the primary type concept that supports object-oriented programming in F#",
         "body": [
@@ -160,13 +159,28 @@
             "\tabstract member this.${5:member-name2} : ${6:member-type2}"
         ]
     },
-    "interface" : {
+    "interface": {
         "prefix": "interface",
         "description": "Interfaces are a way to define a set of operations that a type must implement. An interface is a type that is completely abstract, containing only signatures of operations that must be implemented by a type that implements the interface.",
         "body": [
             "type ${1:interface-name} =",
             "\tabstract ${2:member-name1} : ${3:member-type2}",
             "\tabstract ${4:member-name1} : ${5:member-type2}"
+        ]
+    },
+    // Analyzers
+    "FSharp.Analyzer Ignore": {
+        "prefix": "analyzer-ignore",
+        "description": "Ignore F# Analyzer warning",
+        "body": [
+            "// fsharpanalyzer: ${1|ignore-line,ignore-line-next,ignore-region-start,ignore-file|} ${2:analyzer-code}"
+        ]
+    },
+    "FSharp.Analyzer Ignore region-end": {
+        "prefix": "analyzer-ignore-region-end",
+        "description": "Ignore F# Analyzer warning region end",
+        "body": [
+            "// fsharpanalyzer: ignore-region-end"
         ]
     }
 }
