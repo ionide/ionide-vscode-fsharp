@@ -1,3 +1,7 @@
+### 7.28.3 - 23.10.2025
+
+* [F# snippets: adds analyzer ignore snippets](https://github.com/ionide/ionide-vscode-fsharp/pull/2110) (thanks @TheAngryByrd!)
+
 ### 7.28.2 - 23.10.2025
 
 * Update to FSAC 0.80.1 Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.80.1) for more details.
