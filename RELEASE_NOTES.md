@@ -1,3 +1,7 @@
+### 7.29.0 - 12-11-2025
+
+* Update to FSAC 0.81.0 Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.81.0) for more details. This brings F# 10 and .NET 10 support to Ionide!
+
 ### 7.28.3 - 23.10.2025
 
 * [F# snippets: adds analyzer ignore snippets](https://github.com/ionide/ionide-vscode-fsharp/pull/2110) (thanks @TheAngryByrd!)
