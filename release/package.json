@@ -1757,6 +1757,27 @@
         }
       }
     ],
+    "semanticTokenTypes": [
+      {
+        "id": "cexpr",
+        "superType": "keyword",
+        "description": "A computation expression"
+      }
+    ],
+    "semanticTokenModifiers": [
+      {
+        "id": "mutable",
+        "description": "A mutable variable or property"
+      },
+      {
+        "id": "disposable",
+        "description": "A disposable variable or type"
+      },
+      {
+        "id": "extension",
+        "description": "An extension method"
+      }
+    ],
     "semanticTokenScopes": [
       {
         "language": "fsharp",
@@ -1764,11 +1785,31 @@
           "cexpr": [
             "keyword.control.fsharp"
           ],
-          "disposable": [
-            "variable.fsharp.mutable"
+
+          "variable": [
+            "variable.other.readonly.fsharp"
           ],
-          "mutable": [
-            "variable.fsharp.mutable"
+          "variable.readonly": [
+            "variable.other.constant.fsharp"
+          ],
+          "variable.mutable": [
+            "entity.name.function.mutable_variable.fsharp"
+          ],
+          "variable.disposable": [
+            "entity.name.function.disposable_variable.fsharp"
+          ],
+
+          "property": [
+            "variable.other.property.may_mutable.fsharp"
+          ],
+          "property.readonly": [
+            "variable.other.constant.property.fsharp"
+          ],
+          "property.mutable": [
+            "entity.name.function.mutable_property.fsharp"
+          ],
+          "method.extension": [
+            "entity.name.function.extension_method.fsharp"
           ],
           "operator": [
             "keyword.symbol.fsharp"
