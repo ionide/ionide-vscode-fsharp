@@ -1803,7 +1803,7 @@
             "variable.other.property.may_mutable.fsharp"
           ],
           "property.readonly": [
-            "variable.other.property.fsharp"
+            "variable.other.constant.property.fsharp"
           ],
           "property.mutable": [
             "entity.name.function.mutable_property.fsharp"
