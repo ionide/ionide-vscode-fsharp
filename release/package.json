@@ -1785,7 +1785,6 @@
           "cexpr": [
             "keyword.control.fsharp"
           ],
-
           "variable": [
             "variable.other.readonly.fsharp"
           ],
@@ -1798,7 +1797,6 @@
           "variable.disposable": [
             "entity.name.function.disposable_variable.fsharp"
           ],
-
           "property": [
             "variable.other.property.may_mutable.fsharp"
           ],
@@ -1909,5 +1907,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.29.0"
+  "version": "7.30.0"
 }
