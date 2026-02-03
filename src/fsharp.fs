@@ -50,6 +50,7 @@ let private doActivate (context: ExtensionContext) : JS.Promise<Api> =
     let tryActivate label activationFn =
         fun ctx ->
             try
+                logger.Debug $"Activating feature '{label}'"
                 activationFn ctx
             with ex ->
                 logger.Error $"Error while activating feature '{label}': {ex}"
@@ -60,7 +61,7 @@ let private doActivate (context: ExtensionContext) : JS.Promise<Api> =
     |> Promise.onSuccess (fun _ ->
         let progressOpts = createEmpty<ProgressOptions>
         progressOpts.location <- U2.Case1 ProgressLocation.Window
-        logger.Debug "Activating features"
+        logger.Debug "Activating features..."
 
         window.withProgress (
             progressOpts,
