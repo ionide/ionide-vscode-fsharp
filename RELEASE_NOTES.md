@@ -1,9 +1,15 @@
-### 7.30.0 - 07-12-2025
+
+### 7.31.1 - 05.02.2025
+
+* [Add more Debug logs when activating features])https://github.com/ionide/ionide-vscode-fsharp/pull/2124) (thanks @64J0!)
+* Update to FSAC 0.83.0 Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.83.0) for more details.
+
+### 7.30.0 - 07.12.2025
 
 * [Update semantic token mappings](https://github.com/ionide/ionide-vscode-fsharp/pull/2114) (thanks @ijklam!)
 * Update to FSAC 0.82.0 Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.82.0) for more details.
 
-### 7.29.0 - 12-11-2025
+### 7.29.0 - 12.11.2025
 
 * Update to FSAC 0.81.0 Check out the [release notes](https://github.com/fsharp/FsAutoComplete/releases/tag/v0.81.0) for more details. This brings F# 10 and .NET 10 support to Ionide!
 
