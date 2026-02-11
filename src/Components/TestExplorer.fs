@@ -290,7 +290,8 @@ module TestItemDTO =
                     if dto.DisplayName.StartsWith(dto.FullName) then
                         dto.DisplayName.Substring(dto.FullName.Length)
                     else
-                        // Fallback: if DisplayName doesn't start with FullName, use the last segment
+                        // Fallback: if DisplayName doesn't start with FullName (unexpected case),
+                        // use the old behavior. This may still have issues with floating point parameters.
                         dto.DisplayName.Split('.') |> Array.last
 
                 dto.FullName + "." + theoryCaseFragment
