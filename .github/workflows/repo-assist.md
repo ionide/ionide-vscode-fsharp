@@ -26,7 +26,7 @@ network:
   - dotnet
   - node
   - python
-  - rust  
+  - rust
 
 safe-outputs:
   add-comment:
@@ -53,11 +53,11 @@ safe-outputs:
   add-labels:
     allowed: [bug, enhancement, "help wanted", "good first issue", "spam", "off topic", documentation, question, duplicate, wontfix, "needs triage", "needs investigation", "breaking change", performance, security, refactor]
     max: 30
-    target: "*" 
+    target: "*"
   remove-labels:
     allowed: [bug, enhancement, "help wanted", "good first issue", "spam", "off topic", documentation, question, duplicate, wontfix, "needs triage", "needs investigation", "breaking change", performance, security, refactor]
     max: 5
-    target: "*" 
+    target: "*"
 
 tools:
   web-fetch:
@@ -74,7 +74,7 @@ steps:
       persist-credentials: false
 
 engine: copilot
-source: githubnext/agentics/workflows/repo-assist.md@595b7a9c567ba4dce05ca824aec6e74b4dc545b8
+source: githubnext/agentics/workflows/repo-assist.md@de40494d3f62516449f458c4f8d8d2fe370708fe
 ---
 
 # Repo Assist
@@ -93,7 +93,14 @@ Always be:
 
 ## Memory
 
-Use persistent repo memory to track: issues already commented on (with timestamps to detect new human activity), fix attempts and outcomes, improvement ideas already submitted, a short to-do list, a **backlog cursor** so each run continues where the previous one left off, and **which tasks were last run** (with timestamps) to support round-robin scheduling.
+Use persistent repo memory to track:
+
+- issues already commented on (with timestamps to detect new human activity)
+- fix attempts and outcomes, improvement ideas already submitted, a short to-do list
+- a **backlog cursor** so each run continues where the previous one left off
+- **which tasks were last run** (with timestamps) to support round-robin scheduling
+- the last time you performed certain periodic tasks (dependency updates, release preparation) to enforce frequency limits
+- previously checked off items (checked off by maintainer) in the Monthly Activity Summary to maintain an accurate pending actions list for maintainers
 
 Read memory at the **start** of every run; update it at the **end**.
 
@@ -211,7 +218,7 @@ Maintain a single open issue titled `[Repo Assist] Monthly Activity {YYYY}-{MM}`
 
    ## Suggested Actions for Maintainer
 
-   Based on current repository state, consider these **pending** actions (excludes items already actioned):
+   **Comprehensive list** of all pending actions requiring maintainer attention (excludes items already actioned and checked off). Reread the issue you're updating before you update it — there may be new checkbox adjustments since your last update that require you to adjust the suggested actions. List **all** the comments, PRs, and issues that need attention and haven't yet been checked off in previous editions of the Monthly Activity Summary, with direct links. Use memory to keep track of checked off items. Be concise — one line per item., repeating the format lines as necessary:
 
    * [ ] **Review PR** #<number>: <summary> — [Review](<link>)
    * [ ] **Check comment** #<number>: Repo Assist commented — verify guidance is helpful — [View](<link>)
@@ -233,7 +240,13 @@ Maintain a single open issue titled `[Repo Assist] Monthly Activity {YYYY}-{MM}`
    - Always use the exact format above. If the existing body uses a different format, rewrite it entirely.
    - **Actively remove completed items** from "Suggested Actions" — do not tick them `[x]`; delete the line when actioned. The checklist contains only pending items.
    - Use `* [ ]` checkboxes in "Suggested Actions". Never use plain bullets there.
-4. Use repo memory for the activity log. For suggested actions, only include items still needing maintainer attention with direct links. Keep all entries to one line.
+4. **Comprehensive suggested actions**: The "Suggested Actions for Maintainer" section must be a **complete list** of all pending items requiring maintainer attention, including:
+   - All open Repo Assist PRs needing review or merge
+   - **All Repo Assist comments** that haven't been acknowledged by a maintainer (use "Check comment" for each)
+   - Issues that should be closed (duplicates, resolved, etc.)
+   - PRs that should be closed (stale, superseded, etc.)
+   - Any strategic suggestions (goals, priorities)
+   Use repo memory and the activity log to compile this list. Include direct links for every item. Keep entries to one line each.
 5. Do not update the activity issue if nothing was done in the current run.
 
 ## Guidelines
