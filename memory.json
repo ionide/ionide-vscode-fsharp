@@ -12,8 +12,8 @@
     "task10_proactive": "2026-02-22",
     "task11_monthly": "2026-02-22"
   },
-  "issue_backlog_cursor": 1947,
-  "label_backlog_cursor": "complete",
+  "issue_backlog_cursor": 1981,
+  "label_backlog_cursor": "in_progress",
   "monthly_activity_issue": {
     "number": 2130,
     "month": "2026-02"
@@ -44,7 +44,11 @@
     "2012": "2026-02-22",
     "1991": "2026-02-22",
     "1875": "2026-02-22",
-    "1798": "2026-02-22"
+    "1798": "2026-02-22",
+    "1964": "2026-02-22",
+    "1956": "2026-02-22",
+    "1981": "2026-02-22",
+    "1980": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -65,21 +69,21 @@
       "pr_number": 2129,
       "branch": "repo-assist/fix-issue-2117-test-uri-linux",
       "date": "2026-02-22",
-      "note": "One-line fix: vscode.Uri.parse('file:///'+path) -> vscode.Uri.file(path). CI pending (0 checks reported)."
+      "note": "One-line fix: vscode.Uri.parse('file:///'+path) -> vscode.Uri.file(path). CI pending."
     },
     "2007_2013": {
       "status": "pr_created",
       "pr_number": 2133,
       "branch": "repo-assist/fix-test-name-separator-hierarchy",
       "date": "2026-02-22",
-      "note": "Fix: splitSegmentsWithKnownLeaf uses DisplayName as hint to avoid splitting on . or + within test names. CI pending (0 checks reported)."
+      "note": "Fix: splitSegmentsWithKnownLeaf uses DisplayName as hint to avoid splitting on . or + within test names."
     },
     "1991": {
       "status": "pr_created",
-      "pr_number": null,
+      "pr_number": 2134,
       "branch": "repo-assist/fix-list-tests-timeout-1991",
       "date": "2026-02-22",
-      "note": "Fix: 60-second safety timeout on dotnet test --list-tests. Uses CancellationToken.mergeTokens + setTimeout to cancel after 60s if process hangs."
+      "note": "Fix: 60-second safety timeout on dotnet test --list-tests."
     }
   },
   "proposed_improvements": [
@@ -94,14 +98,14 @@
       "date": "2026-02-22"
     },
     {
-      "description": "Fix Test Explorer hierarchy for test names containing . or + (affects #2007, #2013, #1960)",
+      "description": "Fix Test Explorer hierarchy for test names containing . or + (affects #2007, #2013)",
       "pr_number": 2133,
       "pr_branch": "repo-assist/fix-test-name-separator-hierarchy",
       "date": "2026-02-22"
     },
     {
       "description": "Fix: 60-second safety timeout to dotnet test --list-tests (affects #1991)",
-      "pr_number": null,
+      "pr_number": 2134,
       "pr_branch": "repo-assist/fix-list-tests-timeout-1991",
       "date": "2026-02-22"
     }
@@ -110,47 +114,43 @@
   "notes": [
     "Issue #2122: dotnet path wrong on Ubuntu - upstream FSAC issue",
     "Issue #2125: region folding - FSAC folding provider doesn't support //#region markers",
-    "Issue #2118: Option.bind breakpoint issue - well-explained by TheAngryByrd + baronfel (upstream .NET debugger/sequence points). No further comment needed.",
     "Issue #2116: parentheses highlight entire expression - commented pointing to FSAC UnnecessaryParentheses range fix needed upstream",
     "Issue #2111: No test projects found error - commented with workaround (AutoDiscoverTestsOnLoad:false) and root cause (FSAC AdaptiveServerState.fs#L2715)",
-    "Issue #2101: inlay hint max length - well-handled, no need to comment; labeled enhancement",
     "Issue #2123: operator tooltip not shown for operators starting with '.' - likely FSAC upstream issue",
     "Issue #2126: xUnit test names garbled with float InlineData - Copilot PR #2127 exists (draft, stale since Feb 11)",
     "Issue #2121: LineLens crash on rapid setting toggle - asked for stack trace",
     "Issue #2108: do! on partially applied function shows no error - upstream FCS/FSAC issue",
-    "Issue #2115: Cannot go to definition in .NET 10 Devcontainer - asked reporter to share their PR (from Dec 2025 comment saying they created a PR)",
-    "Issue #1960: Test host crashes with duplicate test method names - labeled bug; related to segmentRegex issue; Martin521 already identified root cause",
-    "Issue #2099: Bad indentation in list comprehension - labeled bug; MangelMaxime correctly directed to Fantomas",
+    "Issue #2115: Cannot go to definition in .NET 10 Devcontainer - asked reporter to share their PR",
+    "Issue #1960: Test host crashes with duplicate test method names - labeled bug",
+    "Issue #2099: Bad indentation in list comprehension - labeled bug; directed to Fantomas",
     "Issue #2086: MSBuild project graph MSB0001 error - suggested disabling FSharp.enableMSBuildProjectGraph",
     "Issue #2046: Non-ASCII Windows username prevents Ionide from starting - suggested --extensions-dir workaround",
-    "Issue #2041: Go to test source not shown for C# test files - explained C# test source nav not supported",
-    "Issue #2073: Missing |null annotation in tooltip - baronfel has active FSAC PR #1353; well-handled",
-    "PR #2049: FSI ignore comments - waiting on author jkone27 to respond to vzarytovskii suggestion",
+    "Issue #2041: Go to test source not shown for C# test files - explained C# not supported",
+    "PR #2049: FSI ignore comments - waiting on author jkone27",
     "PR #2079: draft POC for different base paths - TheAngryByrd, stale since Apr 2025",
-    "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI: 0 checks (may not run on external branches)",
-    "PR #2131: Repo Assist fix for VS Code engine version - CI: 0 checks (may not run on external branches)",
-    "PR #2133: Repo Assist fix for test hierarchy (.+separator) - CI: 0 checks (may not run on external branches)",
-    "PR (branch: fix-list-tests-timeout-1991): Repo Assist fix for dotnet test --list-tests timeout - pending PR creation",
-    "Issue #1892: new tests not recognized until project reload - commented with Refresh button workaround; added help wanted label",
+    "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI: 0 checks",
+    "PR #2131: Repo Assist fix for VS Code engine version - CI: 0 checks",
+    "PR #2133: Repo Assist fix for test hierarchy (.+separator) - CI: 0 checks",
+    "PR #2134: Repo Assist fix for dotnet test --list-tests timeout - CI: 0 checks",
+    "Issue #1892: new tests not recognized until project reload - commented with Refresh workaround",
     "Issue #2007: Expecto '+' in test names creates false hierarchy - FIX PR #2133 submitted",
     "Issue #2013: '.' in test names creates extra hierarchy nodes - FIX PR #2133 submitted",
     "Task 8: Last release was 7.31.1 on 2026-02-05. No release needed.",
-    "Issue #2119: DotRush as alternative - commented explaining requiredExtensions check vs coreclr debugger adapter; awaiting maintainer decision",
-    "Issue #2078: Test Discovery breaking design-time builds - well-discussed by contributors; baronfel+farlee2121 agree on fix approach (separate BaseIntermediateOutputPath). No Repo Assist comment needed.",
-    "Issue #2069: TestingPlatformDotnetTestSupport - 15 comments, extensively discussed. Incompatible with Ionide's dotnet test approach. No comment needed.",
-    "Issue #2020: Test Runner shows workload updates - commented pointing to getEnv in dotnetTest in TestExplorer.fs; suggested DOTNET_CLI_WORKLOADS_UPDATE_NOTIFY_DISABLE=1; awaiting baronfel confirmation of exact env var name.",
-    "getOrMakeHierarchyPath (line 1098) still uses splitSegments (no display name available from TestResult/TRX) - could be improved in future but requires adding DisplayName to TestResult",
-    "Issue #2120: FreeBSD - no type hints. Asked for diagnostics (F# output panel, .NET SDK, VS Code build type). FreeBSD not officially supported.",
-    "Issue #2053: .fsi syntax highlighting broken by unparenthesized tuples - grammar is from ionide/ionide-fsgrammar; commented redirecting to that repo",
-    "CI: 0 check runs on Repo Assist PR branches - likely repo CI only runs on approved PRs or main branch pushes. Normal behavior for security.",
-    "Issue #1986: Unreferenced assembly errors for basic types (System.String etc) - commented suggesting update to 7.31.1, clear FSAC cache, check .fsproj SDK declaration. No maintainer comments.",
-    "Issue #2044: fsi.SendSelection not found - commented with troubleshooting steps (reload window, check activation, verify keybinding command ID 'fsharp.sendSelectionToFsi'). No maintainer comments.",
-    "Issue #2011: Error highlighting on method calls - MangelMaxime identified as FSAC upstream semantic token range bug. Well-handled, no Repo Assist comment needed.",
-    "Issue #2037: Weird interpolated string highlighting - baronfel already investigated, reporter clarified scope. Well-handled, no Repo Assist comment needed.",
-    "Issue #2009: No default debug configuration - TheAngryByrd+roboz0r provided detailed workarounds. Well-handled, no Repo Assist comment needed.",
-    "Issue #2012: FSI Watcher not displaying - the watcher is EXPERIMENTAL and requires FSharp.addFsiWatcher:true setting. Commented explaining the setup steps. Fixed likely user error (prompt dismissed).",
-    "Issue #1991: Refresh tests stuck when project has no tests - dotnet test --list-tests hangs on empty test projects. Commented with workarounds (Cancel button, AutoDiscoverTestsOnLoad:false). Root cause: process never fires close event for empty test projects. FIX PR submitted (fix-list-tests-timeout-1991).",
-    "Issue #1875: Remote SSH 'No typecheck results' - commented with diagnostic steps (F# output panel, .NET SDK in PATH for non-interactive sessions, dotnetRoot config). 0 prior comments, reporter vilinski",
-    "Issue #1798: Casing mismatch on Windows (.fsproj vs filesystem) - commented explaining FSAC path normalization limitation; suggested fixing casing in .fsproj. 0 prior comments, reporter da9l"
+    "Issue #2119: DotRush as alternative - commented explaining requiredExtensions check",
+    "Issue #2020: Test Runner shows workload updates - commented pointing to getEnv in TestExplorer.fs",
+    "Issue #2120: FreeBSD - no type hints. Asked for diagnostics.",
+    "Issue #2053: .fsi syntax highlighting broken - redirected to ionide/ionide-fsgrammar",
+    "CI: 0 check runs on Repo Assist PR branches - likely repo CI only runs on approved PRs.",
+    "Issue #1986: Unreferenced assembly errors - commented suggesting update to 7.31.1",
+    "Issue #2044: fsi.SendSelection not found - commented with troubleshooting steps",
+    "Issue #2012: FSI Watcher not displaying - commented explaining FSharp.addFsiWatcher:true",
+    "Issue #1991: Refresh tests stuck - fix PR #2134 submitted",
+    "Issue #1875: Remote SSH No typecheck results - commented with diagnostic steps",
+    "Issue #1798: Casing mismatch on Windows - commented explaining FSAC path normalization",
+    "Issue #1964: Navigate to symbol doesn't work - asked if still reproducible in current version",
+    "Issue #1956: Unrecoverable crashes with long backtick identifiers - commented suggesting update to 7.31.1 and upstream FSAC filing",
+    "Issue #1981: Sticky scroll pins attribute instead of declaration - redirected to ionide/ionide-fsgrammar",
+    "Issue #1980: DU/module collision in completions - identified as upstream FSAC issue",
+    "LABEL NOTE: Previous bulk labeling run (Run 6) noted as applied but many issues confirmed unlabeled. Labels now re-applied to 1953,1954,1956,1962,1963,1965,1966,1968,1969,1976,1977,1979,1980,1981,1984,2018"
   ]
 }
