@@ -12,7 +12,7 @@
     "task10_proactive": "2026-02-22",
     "task11_monthly": "2026-02-22"
   },
-  "issue_backlog_cursor": 2133,
+  "issue_backlog_cursor": 1947,
   "label_backlog_cursor": "complete",
   "monthly_activity_issue": {
     "number": 2130,
@@ -42,7 +42,9 @@
     "1986": "2026-02-22",
     "2044": "2026-02-22",
     "2012": "2026-02-22",
-    "1991": "2026-02-22"
+    "1991": "2026-02-22",
+    "1875": "2026-02-22",
+    "1798": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -71,6 +73,13 @@
       "branch": "repo-assist/fix-test-name-separator-hierarchy",
       "date": "2026-02-22",
       "note": "Fix: splitSegmentsWithKnownLeaf uses DisplayName as hint to avoid splitting on . or + within test names. CI pending (0 checks reported)."
+    },
+    "1991": {
+      "status": "pr_created",
+      "pr_number": null,
+      "branch": "repo-assist/fix-list-tests-timeout-1991",
+      "date": "2026-02-22",
+      "note": "Fix: 60-second safety timeout on dotnet test --list-tests. Uses CancellationToken.mergeTokens + setTimeout to cancel after 60s if process hangs."
     }
   },
   "proposed_improvements": [
@@ -88,6 +97,12 @@
       "description": "Fix Test Explorer hierarchy for test names containing . or + (affects #2007, #2013, #1960)",
       "pr_number": 2133,
       "pr_branch": "repo-assist/fix-test-name-separator-hierarchy",
+      "date": "2026-02-22"
+    },
+    {
+      "description": "Fix: 60-second safety timeout to dotnet test --list-tests (affects #1991)",
+      "pr_number": null,
+      "pr_branch": "repo-assist/fix-list-tests-timeout-1991",
       "date": "2026-02-22"
     }
   ],
@@ -115,6 +130,7 @@
     "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI: 0 checks (may not run on external branches)",
     "PR #2131: Repo Assist fix for VS Code engine version - CI: 0 checks (may not run on external branches)",
     "PR #2133: Repo Assist fix for test hierarchy (.+separator) - CI: 0 checks (may not run on external branches)",
+    "PR (branch: fix-list-tests-timeout-1991): Repo Assist fix for dotnet test --list-tests timeout - pending PR creation",
     "Issue #1892: new tests not recognized until project reload - commented with Refresh button workaround; added help wanted label",
     "Issue #2007: Expecto '+' in test names creates false hierarchy - FIX PR #2133 submitted",
     "Issue #2013: '.' in test names creates extra hierarchy nodes - FIX PR #2133 submitted",
@@ -133,6 +149,8 @@
     "Issue #2037: Weird interpolated string highlighting - baronfel already investigated, reporter clarified scope. Well-handled, no Repo Assist comment needed.",
     "Issue #2009: No default debug configuration - TheAngryByrd+roboz0r provided detailed workarounds. Well-handled, no Repo Assist comment needed.",
     "Issue #2012: FSI Watcher not displaying - the watcher is EXPERIMENTAL and requires FSharp.addFsiWatcher:true setting. Commented explaining the setup steps. Fixed likely user error (prompt dismissed).",
-    "Issue #1991: Refresh tests stuck when project has no tests - dotnet test --list-tests hangs on empty test projects. Commented with workarounds (Cancel button, AutoDiscoverTestsOnLoad:false). Root cause: process never fires close event for empty test projects."
+    "Issue #1991: Refresh tests stuck when project has no tests - dotnet test --list-tests hangs on empty test projects. Commented with workarounds (Cancel button, AutoDiscoverTestsOnLoad:false). Root cause: process never fires close event for empty test projects. FIX PR submitted (fix-list-tests-timeout-1991).",
+    "Issue #1875: Remote SSH 'No typecheck results' - commented with diagnostic steps (F# output panel, .NET SDK in PATH for non-interactive sessions, dotnetRoot config). 0 prior comments, reporter vilinski",
+    "Issue #1798: Casing mismatch on Windows (.fsproj vs filesystem) - commented explaining FSAC path normalization limitation; suggested fixing casing in .fsproj. 0 prior comments, reporter da9l"
   ]
 }
