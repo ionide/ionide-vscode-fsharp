@@ -32,7 +32,8 @@
     "2041": "2026-02-22",
     "2007": "2026-02-22",
     "2013": "2026-02-22",
-    "1892": "2026-02-22"
+    "1892": "2026-02-22",
+    "2119": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -109,6 +110,8 @@
     "Issue #2007: Expecto '+' in test names creates false hierarchy - FIX PR #2133 submitted",
     "Issue #2013: '.' in test names creates extra hierarchy nodes - FIX PR #2133 submitted",
     "Task 8: Last release was 7.31.1 on 2026-02-05. No release needed.",
+    "Issue #2119: DotRush as alternative - commented explaining requiredExtensions check vs coreclr debugger adapter; awaiting maintainer decision",
+    "Issue #2078: Test Discovery breaking design-time builds - well-discussed by contributors; baronfel+farlee2121 agree on fix approach (separate BaseIntermediateOutputPath). No Repo Assist comment needed.",
     "getOrMakeHierarchyPath still uses splitSegments (no display name available from TestResult) - could be improved in future"
   ]
 }
