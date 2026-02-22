@@ -54,6 +54,13 @@
       "branch": "repo-assist/fix-issue-2117-test-uri-linux",
       "date": "2026-02-22",
       "note": "One-line fix: vscode.Uri.parse('file:///'+path) -> vscode.Uri.file(path). Build not possible due to no network/node_modules."
+    },
+    "2007_2013": {
+      "status": "pr_created_pending",
+      "pr_number": null,
+      "branch": "repo-assist/fix-test-name-separator-hierarchy",
+      "date": "2026-02-22",
+      "note": "Fix: splitSegmentsWithKnownLeaf uses DisplayName as hint to avoid splitting on . or + within test names. Also simplified tryGetById to recursive ID search. PR number unknown until downstream step processes patch."
     }
   },
   "proposed_improvements": [
@@ -66,6 +73,13 @@
     {
       "description": "Filed issue #2132: Update @types/vscode from 1.52 to current",
       "date": "2026-02-22"
+    },
+    {
+      "description": "Fix Test Explorer hierarchy for test names containing . or + (affects #2007, #2013, #1960)",
+      "pr_number": null,
+      "pr_branch": "repo-assist/fix-test-name-separator-hierarchy",
+      "date": "2026-02-22",
+      "note": "PR number unknown - pending downstream patch processing"
     }
   ],
   "welcomed_contributors": [],
@@ -92,9 +106,10 @@
     "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI still pending",
     "PR #2131: Repo Assist fix for VS Code engine version - CI pending (metadata-only change)",
     "Issue #1892: new tests not recognized until project reload - commented with Refresh button workaround; added help wanted label; root cause: full test discovery only runs at project load/explicit refresh",
-    "segmentRegex root cause: TestExplorer.fs line 128 uses @'([+\\.]?)([^+\\.]+)' - treats + and . as separators. Affects #1960, #2007, #2013. Fix needs to distinguish structural separators from test name characters. Complex to fix safely without tests.",
-    "Issue #2007: Expecto '+' in test names creates false hierarchy - segmentRegex treats '+' as separator. Expecto uses '+' both as structural separator (from getNameSeparator line 881) AND test names can contain '+'.",
-    "Issue #2013: '.' in test names creates extra hierarchy nodes - NUnit test method foo.bar splits to foo+bar hierarchy",
-    "Task 8: Last release was 7.31.1 on 2026-02-05. No release needed."
+    "segmentRegex root cause: TestExplorer.fs line 128 uses @'([+\\.]?)([^+\\.]+)' - treats + and . as separators. Fix: inferHierarchyWithDisplayNames uses DisplayName as leaf hint via splitSegmentsWithKnownLeaf. Applied in mapDtosForProject. tryGetById simplified to recursive ID search.",
+    "Issue #2007: Expecto '+' in test names creates false hierarchy - FIX PR submitted (branch: repo-assist/fix-test-name-separator-hierarchy)",
+    "Issue #2013: '.' in test names creates extra hierarchy nodes - FIX PR submitted (same PR as #2007 fix)",
+    "Task 8: Last release was 7.31.1 on 2026-02-05. No release needed.",
+    "getOrMakeHierarchyPath still uses splitSegments (no display name available from TestResult) - could be improved in future"
   ]
 }
