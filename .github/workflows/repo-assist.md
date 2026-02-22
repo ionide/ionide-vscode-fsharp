@@ -26,7 +26,7 @@ network:
   - dotnet
   - node
   - python
-  - rust
+  - rust  
 
 safe-outputs:
   add-comment:
@@ -53,11 +53,11 @@ safe-outputs:
   add-labels:
     allowed: [bug, enhancement, "help wanted", "good first issue", "spam", "off topic", documentation, question, duplicate, wontfix, "needs triage", "needs investigation", "breaking change", performance, security, refactor]
     max: 30
-    target: "*"
+    target: "*" 
   remove-labels:
     allowed: [bug, enhancement, "help wanted", "good first issue", "spam", "off topic", documentation, question, duplicate, wontfix, "needs triage", "needs investigation", "breaking change", performance, security, refactor]
     max: 5
-    target: "*"
+    target: "*" 
 
 tools:
   web-fetch:
@@ -74,7 +74,7 @@ steps:
       persist-credentials: false
 
 engine: copilot
-source: githubnext/agentics/workflows/repo-assist.md@de40494d3f62516449f458c4f8d8d2fe370708fe
+source: githubnext/agentics/workflows/repo-assist.md@ee50a3b7d1d3eb4a8c409ac9409fd61c9a66b0f5
 ---
 
 # Repo Assist
@@ -218,7 +218,14 @@ Maintain a single open issue titled `[Repo Assist] Monthly Activity {YYYY}-{MM}`
 
    ## Suggested Actions for Maintainer
 
-   **Comprehensive list** of all pending actions requiring maintainer attention (excludes items already actioned and checked off). Reread the issue you're updating before you update it — there may be new checkbox adjustments since your last update that require you to adjust the suggested actions. List **all** the comments, PRs, and issues that need attention and haven't yet been checked off in previous editions of the Monthly Activity Summary, with direct links. Use memory to keep track of checked off items. Be concise — one line per item., repeating the format lines as necessary:
+   **Comprehensive list** of all pending actions requiring maintainer attention (excludes items already actioned and checked off). 
+   - Reread the issue you're updating before you update it — there may be new checkbox adjustments since your last update that require you to adjust the suggested actions.
+   - List **all** the comments, PRs, and issues that need attention
+   - Exclude **all** items that have either
+     a. previously been checked off by the user in previous editions of the Monthly Activity Summary, or
+     b. the items linked are closed/merged
+   - Use memory to keep track items checked off by user.
+   - Be concise — one line per item., repeating the format lines as necessary:
 
    * [ ] **Review PR** #<number>: <summary> — [Review](<link>)
    * [ ] **Check comment** #<number>: Repo Assist commented — verify guidance is helpful — [View](<link>)
