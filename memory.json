@@ -12,7 +12,7 @@
     "task10_proactive": "2026-02-22",
     "task11_monthly": "2026-02-22"
   },
-  "issue_backlog_cursor": 2041,
+  "issue_backlog_cursor": 2007,
   "label_backlog_cursor": "complete",
   "monthly_activity_issue": {
     "number": 2130,
@@ -29,7 +29,9 @@
     "2115": "2026-02-22",
     "2086": "2026-02-22",
     "2046": "2026-02-22",
-    "2041": "2026-02-22"
+    "2041": "2026-02-22",
+    "2007": "2026-02-22",
+    "2013": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -91,6 +93,12 @@
     "Task 8: Last release was 7.31.1 on 2026-02-05. Only 1 merged PR since (#2128, CI workflow add) - no release needed",
     "release/package.json engines.vscode was ^0.10.0, now in PR #2131 to set to ^1.52.0",
     "Run 6: Completed full label backlog pass - all currently open issues now have at least one standard label (bug/enhancement/performance). label_backlog_cursor set to 'complete' meaning a full pass has been done once.",
-    "Run 7: Triaged #2086, #2046, #2041 from mid-range backlog. Next cursor: #2041."
+    "Run 7: Triaged #2086, #2046, #2041 from mid-range backlog. Next cursor: #2041.",
+    "Run 8: Triaged #2007 and #2013 - both are caused by segmentRegex in TestExplorer.fs treating '+' and '.' as hierarchy separators. Root cause identified, commented on both issues.",
+    "Issue #2007: Expecto '+' in test names creates false hierarchy - root cause: segmentRegex @'([+\\.]?)([^+\\.]+)' in TestExplorer.fs",
+    "Issue #2013: '.' in test names creates extra hierarchy nodes - same segmentRegex root cause",
+    "Issue #2026: Case-only module rename breaks Ionide - already acknowledged by TheAngryByrd as a confirmed bug; no need to comment",
+    "Issue #2039: vscode extension update breaks debugging - labeled 'upstream - csharp extension'; 2 comments, well-handled",
+    "Issue #2035: v7.21.0 intellisense issues - labeled 'bug' and 'upstream - FCS issue'; 12 comments, well-handled"
   ]
 }
