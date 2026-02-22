@@ -12,7 +12,7 @@
     "task10_proactive": "2026-02-22",
     "task11_monthly": "2026-02-22"
   },
-  "issue_backlog_cursor": 1981,
+  "issue_backlog_cursor": 2062,
   "label_backlog_cursor": "in_progress",
   "monthly_activity_issue": {
     "number": 2130,
@@ -48,7 +48,10 @@
     "1964": "2026-02-22",
     "1956": "2026-02-22",
     "1981": "2026-02-22",
-    "1980": "2026-02-22"
+    "1980": "2026-02-22",
+    "2062": "2026-02-22",
+    "2060": "2026-02-22",
+    "2045": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -151,6 +154,9 @@
     "Issue #1956: Unrecoverable crashes with long backtick identifiers - commented suggesting update to 7.31.1 and upstream FSAC filing",
     "Issue #1981: Sticky scroll pins attribute instead of declaration - redirected to ionide/ionide-fsgrammar",
     "Issue #1980: DU/module collision in completions - identified as upstream FSAC issue",
-    "LABEL NOTE: Previous bulk labeling run (Run 6) noted as applied but many issues confirmed unlabeled. Labels now re-applied to 1953,1954,1956,1962,1963,1965,1966,1968,1969,1976,1977,1979,1980,1981,1984,2018"
+    "LABEL NOTE: Previous bulk labeling run (Run 6) noted as applied but many issues confirmed unlabeled. Labels now re-applied to 1953,1954,1956,1962,1963,1965,1966,1968,1969,1976,1977,1979,1980,1981,1984,2018",
+    "Issue #2062: FSI and Intellisense freeze - suggested update to 7.31.1, restart language server, test with Copilot disabled",
+    "Issue #2060: Watcher.fsx breaks FSI value inspection (since 7.23) - asked about promised fix status; no PR ever filed",
+    "Issue #2045: xunit.v3 debug breakpoints not hit - explained out-of-process model change in v3; suggested Test Explorer 'Debug Tests'"
   ]
 }
