@@ -12,7 +12,7 @@
     "task10_proactive": "2026-02-22",
     "task11_monthly": "2026-02-22"
   },
-  "issue_backlog_cursor": 1892,
+  "issue_backlog_cursor": 1986,
   "label_backlog_cursor": "complete",
   "monthly_activity_issue": {
     "number": 2130,
@@ -33,7 +33,8 @@
     "2007": "2026-02-22",
     "2013": "2026-02-22",
     "1892": "2026-02-22",
-    "2119": "2026-02-22"
+    "2119": "2026-02-22",
+    "2020": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -112,6 +113,8 @@
     "Task 8: Last release was 7.31.1 on 2026-02-05. No release needed.",
     "Issue #2119: DotRush as alternative - commented explaining requiredExtensions check vs coreclr debugger adapter; awaiting maintainer decision",
     "Issue #2078: Test Discovery breaking design-time builds - well-discussed by contributors; baronfel+farlee2121 agree on fix approach (separate BaseIntermediateOutputPath). No Repo Assist comment needed.",
+    "Issue #2069: TestingPlatformDotnetTestSupport - 15 comments, extensively discussed. Incompatible with Ionide's dotnet test approach. No comment needed.",
+    "Issue #2020: Test Runner shows workload updates - commented pointing to getEnv in dotnetTest in TestExplorer.fs; suggested DOTNET_CLI_WORKLOADS_UPDATE_NOTIFY_DISABLE=1; awaiting baronfel confirmation of exact env var name.",
     "getOrMakeHierarchyPath still uses splitSegments (no display name available from TestResult) - could be improved in future"
   ]
 }
