@@ -12,8 +12,8 @@
     "task10_proactive": "2026-02-22",
     "task11_monthly": "2026-02-22"
   },
-  "issue_backlog_cursor": 2111,
-  "label_backlog_cursor": 2111,
+  "issue_backlog_cursor": 2108,
+  "label_backlog_cursor": 2101,
   "monthly_activity_issue": {
     "number": 2130,
     "month": "2026-02"
@@ -24,7 +24,9 @@
     "2125": "2026-02-22",
     "2123": "2026-02-22",
     "2121": "2026-02-22",
-    "2126": "2026-02-22"
+    "2126": "2026-02-22",
+    "2108": "2026-02-22",
+    "2115": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -34,7 +36,7 @@
     "2049": "2026-02-22",
     "2079": "2026-02-22"
   },
-  "labelled_issues": [2125, 2121, 2120, 2119, 2117, 2115, 2089, 2077, 2118, 2116, 2111],
+  "labelled_issues": [2125, 2121, 2120, 2119, 2117, 2115, 2089, 2077, 2118, 2116, 2111, 1960, 2099, 2101],
   "fix_attempts": {
     "2117": {
       "status": "pr_created",
@@ -63,14 +65,18 @@
     "Issue #2118: Option.bind breakpoint issue - 4 comments, likely upstream .NET debugger issue",
     "Issue #2116: parentheses highlight entire expression - labeled bug; discussion between nojaf and brianrourkeboll on VS Code diagnostic UX",
     "Issue #2111: No test projects found error - labeled help wanted; Numpsy pointed to FSAC code; workaround: disable AutoDiscoverTestsOnLoad",
-    "Issue #2101: inlay hint max length - 5 comments, baronfel gave detailed guidance to nkosi23/thatrajeevkr; well-handled, no need to comment",
+    "Issue #2101: inlay hint max length - 5 comments, baronfel gave detailed guidance to nkosi23/thatrajeevkr; well-handled, no need to comment; labeled enhancement",
     "Issue #2123: operator tooltip not shown for operators starting with '.' - likely FSAC upstream issue",
     "Issue #2126: xUnit test names garbled with float InlineData - Copilot PR #2127 exists (draft, stale since Feb 11)",
     "Issue #2121: LineLens crash on rapid setting toggle - asked for stack trace",
+    "Issue #2108: do! on partially applied function shows no error - upstream FCS/FSAC issue; suggested filing upstream",
+    "Issue #2115: Cannot go to definition in .NET 10 Devcontainer - reporter says they created a PR but it's not findable; asked them to share the link",
+    "Issue #1960: Test host crashes with duplicate test method names - labeled bug",
+    "Issue #2099: Bad indentation in list comprehension - labeled bug",
     "PR #2049: FSI ignore comments - waiting on author jkone27 to respond to vzarytovskii suggestion",
     "PR #2079: draft POC for different base paths - TheAngryByrd, stale since Apr 2025",
-    "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI pending as of run 4",
-    "PR #2131: Repo Assist fix for VS Code engine version - CI pending as of run 4",
+    "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI still pending",
+    "PR #2131: Repo Assist fix for VS Code engine version - CI pending (metadata-only change)",
     "Task 8: Last release was 7.31.1 on 2026-02-05. Only 1 merged PR since (#2128, CI workflow add) - no release needed",
     "release/package.json engines.vscode was ^0.10.0, now in PR #2131 to set to ^1.52.0"
   ]
