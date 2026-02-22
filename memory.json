@@ -3,13 +3,13 @@
   "tasks_last_run": {
     "task1_triage": "2026-02-22",
     "task2_fix": "2026-02-22",
+    "task4_deps": "2026-02-22",
     "task6_stale_prs": "2026-02-22",
     "task7_labels": "2026-02-22",
-    "task11_monthly": "2026-02-22",
-    "task4_deps": null,
-    "task8_release": null,
     "task9_welcome": "2026-02-22",
-    "task10_proactive": null
+    "task10_proactive": "2026-02-22",
+    "task11_monthly": "2026-02-22",
+    "task8_release": null
   },
   "issue_backlog_cursor": 2125,
   "label_backlog_cursor": 2075,
@@ -21,7 +21,9 @@
     "2117": "2026-02-22",
     "2122": "2026-02-22",
     "2125": "2026-02-22",
-    "2123": "2026-02-22"
+    "2123": "2026-02-22",
+    "2121": "2026-02-22",
+    "2126": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -31,7 +33,7 @@
     "2049": "2026-02-22",
     "2079": "2026-02-22"
   },
-  "labelled_issues": [2125, 2121, 2120, 2119, 2117, 2115, 2089, 2077],
+  "labelled_issues": [2125, 2121, 2120, 2119, 2117, 2115, 2089, 2077, 2118],
   "fix_attempts": {
     "2117": {
       "status": "pr_created",
@@ -41,8 +43,18 @@
       "note": "One-line fix: vscode.Uri.parse('file:///'+path) -> vscode.Uri.file(path). Build not possible due to no network/node_modules."
     }
   },
+  "proposed_improvements": [
+    {
+      "description": "Fix VS Code engine version in release/package.json from ^0.10.0 to ^1.52.0",
+      "pr_branch": "repo-assist/improve-vscode-engine-version",
+      "date": "2026-02-22"
+    },
+    {
+      "description": "Filed issue: Update @types/vscode from 1.52 to current",
+      "date": "2026-02-22"
+    }
+  ],
   "welcomed_contributors": [],
-  "proposed_improvements": [],
   "notes": [
     "Issue #2122: dotnet path wrong on Ubuntu - upstream FSAC issue",
     "Issue #2125: region folding - FSAC folding provider doesn't support //#region markers",
@@ -51,9 +63,12 @@
     "Issue #2101: inlay hint max length - 5 comments, member Krzysztof-Cieslak filed it",
     "Issue #2123: operator tooltip not shown for operators starting with '.' - likely FSAC upstream issue",
     "Issue #2126: xUnit test names garbled with float InlineData - Copilot PR #2127 exists (draft, stale since Feb 11)",
-    "PR #2049: FSI ignore comments - waiting on author jkone27 to respond to vzarytovskii suggestion (strip to '//' to preserve line numbers)",
+    "Issue #2121: LineLens crash on rapid setting toggle - asked for stack trace",
+    "PR #2049: FSI ignore comments - waiting on author jkone27 to respond to vzarytovskii suggestion",
     "PR #2079: draft POC for different base paths - TheAngryByrd, stale since Apr 2025",
+    "PR #2129: Repo Assist fix for test URI on Linux/Mac - awaiting CI and review",
     "Last release: 7.31.1 on 2026-02-05. Only 1 merged PR since (#2128, CI workflow) - no release needed",
-    "Task 9 (welcome): No new contributors in last 24 hours on 2026-02-22"
+    "Task 4 run: Found release/package.json has engines.vscode = ^0.10.0 (very old). Created PR to fix to ^1.52.0. Also filed issue about updating @types/vscode from 1.52 to current (~1.97).",
+    "release/package.json engines.vscode was ^0.10.0, now in PR to set to ^1.52.0"
   ]
 }
