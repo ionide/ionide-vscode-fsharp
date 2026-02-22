@@ -53,14 +53,14 @@
       "pr_number": 2129,
       "branch": "repo-assist/fix-issue-2117-test-uri-linux",
       "date": "2026-02-22",
-      "note": "One-line fix: vscode.Uri.parse('file:///'+path) -> vscode.Uri.file(path). Build not possible due to no network/node_modules."
+      "note": "One-line fix: vscode.Uri.parse('file:///'+path) -> vscode.Uri.file(path). CI pending."
     },
     "2007_2013": {
-      "status": "pr_created_pending",
-      "pr_number": null,
+      "status": "pr_created",
+      "pr_number": 2133,
       "branch": "repo-assist/fix-test-name-separator-hierarchy",
       "date": "2026-02-22",
-      "note": "Fix: splitSegmentsWithKnownLeaf uses DisplayName as hint to avoid splitting on . or + within test names. Also simplified tryGetById to recursive ID search. PR number unknown until downstream step processes patch."
+      "note": "Fix: splitSegmentsWithKnownLeaf uses DisplayName as hint to avoid splitting on . or + within test names. CI pending."
     }
   },
   "proposed_improvements": [
@@ -76,10 +76,9 @@
     },
     {
       "description": "Fix Test Explorer hierarchy for test names containing . or + (affects #2007, #2013, #1960)",
-      "pr_number": null,
+      "pr_number": 2133,
       "pr_branch": "repo-assist/fix-test-name-separator-hierarchy",
-      "date": "2026-02-22",
-      "note": "PR number unknown - pending downstream patch processing"
+      "date": "2026-02-22"
     }
   ],
   "welcomed_contributors": [],
@@ -103,12 +102,12 @@
     "Issue #2073: Missing |null annotation in tooltip - baronfel has active FSAC PR #1353; well-handled",
     "PR #2049: FSI ignore comments - waiting on author jkone27 to respond to vzarytovskii suggestion",
     "PR #2079: draft POC for different base paths - TheAngryByrd, stale since Apr 2025",
-    "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI still pending",
+    "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI pending",
     "PR #2131: Repo Assist fix for VS Code engine version - CI pending (metadata-only change)",
-    "Issue #1892: new tests not recognized until project reload - commented with Refresh button workaround; added help wanted label; root cause: full test discovery only runs at project load/explicit refresh",
-    "segmentRegex root cause: TestExplorer.fs line 128 uses @'([+\\.]?)([^+\\.]+)' - treats + and . as separators. Fix: inferHierarchyWithDisplayNames uses DisplayName as leaf hint via splitSegmentsWithKnownLeaf. Applied in mapDtosForProject. tryGetById simplified to recursive ID search.",
-    "Issue #2007: Expecto '+' in test names creates false hierarchy - FIX PR submitted (branch: repo-assist/fix-test-name-separator-hierarchy)",
-    "Issue #2013: '.' in test names creates extra hierarchy nodes - FIX PR submitted (same PR as #2007 fix)",
+    "PR #2133: Repo Assist fix for test hierarchy (.+separator) - CI pending",
+    "Issue #1892: new tests not recognized until project reload - commented with Refresh button workaround; added help wanted label",
+    "Issue #2007: Expecto '+' in test names creates false hierarchy - FIX PR #2133 submitted",
+    "Issue #2013: '.' in test names creates extra hierarchy nodes - FIX PR #2133 submitted",
     "Task 8: Last release was 7.31.1 on 2026-02-05. No release needed.",
     "getOrMakeHierarchyPath still uses splitSegments (no display name available from TestResult) - could be improved in future"
   ]
