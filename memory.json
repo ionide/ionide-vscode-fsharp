@@ -40,7 +40,9 @@
     "2116": "2026-02-22",
     "2053": "2026-02-22",
     "1986": "2026-02-22",
-    "2044": "2026-02-22"
+    "2044": "2026-02-22",
+    "2012": "2026-02-22",
+    "1991": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -130,7 +132,7 @@
     "Issue #2011: Error highlighting on method calls - MangelMaxime identified as FSAC upstream semantic token range bug. Well-handled, no Repo Assist comment needed.",
     "Issue #2037: Weird interpolated string highlighting - baronfel already investigated, reporter clarified scope. Well-handled, no Repo Assist comment needed.",
     "Issue #2009: No default debug configuration - TheAngryByrd+roboz0r provided detailed workarounds. Well-handled, no Repo Assist comment needed.",
-    "Issue #2012: FSI Watcher not displaying anything - only one confirming comment; no maintainer response yet. Could investigate further.",
-    "Issue #1991: Refresh tests stuck with no tests in project - farlee2121 asked for repro; no response. Could investigate further."
+    "Issue #2012: FSI Watcher not displaying - the watcher is EXPERIMENTAL and requires FSharp.addFsiWatcher:true setting. Commented explaining the setup steps. Fixed likely user error (prompt dismissed).",
+    "Issue #1991: Refresh tests stuck when project has no tests - dotnet test --list-tests hangs on empty test projects. Commented with workarounds (Cancel button, AutoDiscoverTestsOnLoad:false). Root cause: process never fires close event for empty test projects."
   ]
 }
