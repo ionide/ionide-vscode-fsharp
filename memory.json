@@ -13,7 +13,7 @@
     "task11_monthly": "2026-02-22"
   },
   "issue_backlog_cursor": 2108,
-  "label_backlog_cursor": 2101,
+  "label_backlog_cursor": "complete",
   "monthly_activity_issue": {
     "number": 2130,
     "month": "2026-02"
@@ -36,7 +36,11 @@
     "2049": "2026-02-22",
     "2079": "2026-02-22"
   },
-  "labelled_issues": [2125, 2121, 2120, 2119, 2117, 2115, 2089, 2077, 2118, 2116, 2111, 1960, 2099, 2101],
+  "labelled_issues": [2125, 2121, 2120, 2119, 2117, 2115, 2089, 2077, 2118, 2116, 2111, 1960, 2099, 2101,
+    1688, 1697, 1774, 1791, 1793, 1798, 1803, 1804, 1811, 1821, 1835, 1838, 1839, 1854, 1857, 1859, 1867,
+    1875, 1876, 1882, 1884, 1886, 1892, 1915, 1917, 1941, 1949, 1953, 1954, 1956, 1961, 1962, 1963, 1964,
+    1965, 1966, 1968, 1969, 1970, 1972, 1976, 1977, 1979, 1980, 1981, 1984, 1986, 1991, 1996, 1997, 2009,
+    2010, 2011, 2012, 2013, 2018, 2037, 2038, 2041, 2044, 2045, 2046, 2053, 2060, 2062, 2068, 2073, 2086],
   "fix_attempts": {
     "2117": {
       "status": "pr_created",
@@ -70,7 +74,7 @@
     "Issue #2126: xUnit test names garbled with float InlineData - Copilot PR #2127 exists (draft, stale since Feb 11)",
     "Issue #2121: LineLens crash on rapid setting toggle - asked for stack trace",
     "Issue #2108: do! on partially applied function shows no error - upstream FCS/FSAC issue; suggested filing upstream",
-    "Issue #2115: Cannot go to definition in .NET 10 Devcontainer - reporter says they created a PR but it's not findable; asked them to share the link",
+    "Issue #2115: Cannot go to definition in .NET 10 Devcontainer - reporter serefarikan says they created a PR but link not provided; asked them to share",
     "Issue #1960: Test host crashes with duplicate test method names - labeled bug",
     "Issue #2099: Bad indentation in list comprehension - labeled bug",
     "PR #2049: FSI ignore comments - waiting on author jkone27 to respond to vzarytovskii suggestion",
@@ -78,6 +82,7 @@
     "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI still pending",
     "PR #2131: Repo Assist fix for VS Code engine version - CI pending (metadata-only change)",
     "Task 8: Last release was 7.31.1 on 2026-02-05. Only 1 merged PR since (#2128, CI workflow add) - no release needed",
-    "release/package.json engines.vscode was ^0.10.0, now in PR #2131 to set to ^1.52.0"
+    "release/package.json engines.vscode was ^0.10.0, now in PR #2131 to set to ^1.52.0",
+    "Run 6: Completed full label backlog pass - all 68+ unlabelled open issues from #1504 to #2086 now have standard labels (bug/enhancement/performance). label_backlog_cursor set to 'complete' meaning a full pass has been done once."
   ]
 }
