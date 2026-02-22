@@ -2,3 +2,5 @@
 
 # keep in sync with .editorconfig
 *.fs text eol=crlf
+
+.github/workflows/*.lock.yml linguist-generated=true merge=ours
