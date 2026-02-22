@@ -12,7 +12,7 @@
     "task10_proactive": "2026-02-22",
     "task11_monthly": "2026-02-22"
   },
-  "issue_backlog_cursor": 2120,
+  "issue_backlog_cursor": 2133,
   "label_backlog_cursor": "complete",
   "monthly_activity_issue": {
     "number": 2130,
@@ -37,7 +37,8 @@
     "2020": "2026-02-22",
     "2120": "2026-02-22",
     "2111": "2026-02-22",
-    "2116": "2026-02-22"
+    "2116": "2026-02-22",
+    "2053": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -58,14 +59,14 @@
       "pr_number": 2129,
       "branch": "repo-assist/fix-issue-2117-test-uri-linux",
       "date": "2026-02-22",
-      "note": "One-line fix: vscode.Uri.parse('file:///'+path) -> vscode.Uri.file(path). CI pending."
+      "note": "One-line fix: vscode.Uri.parse('file:///'+path) -> vscode.Uri.file(path). CI pending (0 checks reported)."
     },
     "2007_2013": {
       "status": "pr_created",
       "pr_number": 2133,
       "branch": "repo-assist/fix-test-name-separator-hierarchy",
       "date": "2026-02-22",
-      "note": "Fix: splitSegmentsWithKnownLeaf uses DisplayName as hint to avoid splitting on . or + within test names. CI pending."
+      "note": "Fix: splitSegmentsWithKnownLeaf uses DisplayName as hint to avoid splitting on . or + within test names. CI pending (0 checks reported)."
     }
   },
   "proposed_improvements": [
@@ -107,9 +108,9 @@
     "Issue #2073: Missing |null annotation in tooltip - baronfel has active FSAC PR #1353; well-handled",
     "PR #2049: FSI ignore comments - waiting on author jkone27 to respond to vzarytovskii suggestion",
     "PR #2079: draft POC for different base paths - TheAngryByrd, stale since Apr 2025",
-    "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI pending",
-    "PR #2131: Repo Assist fix for VS Code engine version - CI pending (metadata-only change)",
-    "PR #2133: Repo Assist fix for test hierarchy (.+separator) - CI pending",
+    "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI: 0 checks (may not run on external branches)",
+    "PR #2131: Repo Assist fix for VS Code engine version - CI: 0 checks (may not run on external branches)",
+    "PR #2133: Repo Assist fix for test hierarchy (.+separator) - CI: 0 checks (may not run on external branches)",
     "Issue #1892: new tests not recognized until project reload - commented with Refresh button workaround; added help wanted label",
     "Issue #2007: Expecto '+' in test names creates false hierarchy - FIX PR #2133 submitted",
     "Issue #2013: '.' in test names creates extra hierarchy nodes - FIX PR #2133 submitted",
@@ -120,6 +121,7 @@
     "Issue #2020: Test Runner shows workload updates - commented pointing to getEnv in dotnetTest in TestExplorer.fs; suggested DOTNET_CLI_WORKLOADS_UPDATE_NOTIFY_DISABLE=1; awaiting baronfel confirmation of exact env var name.",
     "getOrMakeHierarchyPath (line 1098) still uses splitSegments (no display name available from TestResult/TRX) - could be improved in future but requires adding DisplayName to TestResult",
     "Issue #2120: FreeBSD - no type hints. Asked for diagnostics (F# output panel, .NET SDK, VS Code build type). FreeBSD not officially supported.",
-    "Future: file FsAutoComplete upstream issue for UnnecessaryParentheses diagnostic range (#2116)"
+    "Issue #2053: .fsi syntax highlighting broken by unparenthesized tuples - grammar is from ionide/ionide-fsgrammar; commented redirecting to that repo",
+    "CI: 0 check runs on Repo Assist PR branches - likely repo CI only runs on approved PRs or main branch pushes. Normal behavior for security."
   ]
 }
