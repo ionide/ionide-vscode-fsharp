@@ -1,0 +1,44 @@
+{
+  "last_run": "2026-02-22",
+  "tasks_last_run": {
+    "task1_triage": "2026-02-22",
+    "task2_fix": "2026-02-22",
+    "task7_labels": "2026-02-22",
+    "task11_monthly": "2026-02-22",
+    "task4_deps": null,
+    "task6_stale_prs": null,
+    "task8_release": null,
+    "task9_welcome": null,
+    "task10_proactive": null
+  },
+  "issue_backlog_cursor": 2075,
+  "label_backlog_cursor": 2075,
+  "monthly_activity_issue": {
+    "month": "2026-02",
+    "status": "created_this_run",
+    "note": "created via safeoutputs; will need to find the issue number next run"
+  },
+  "commented_issues": {
+    "2117": "2026-02-22",
+    "2122": "2026-02-22",
+    "2125": "2026-02-22"
+  },
+  "labelled_issues": [2125, 2121, 2120, 2119, 2117, 2115, 2089, 2077],
+  "fix_attempts": {
+    "2117": {
+      "status": "pr_created",
+      "branch": "repo-assist/fix-issue-2117-test-uri-linux",
+      "date": "2026-02-22",
+      "note": "One-line fix: vscode.Uri.parse('file:///'+path) -> vscode.Uri.file path. Build not possible due to no network/node_modules."
+    }
+  },
+  "welcomed_contributors": [],
+  "proposed_improvements": [],
+  "notes": [
+    "Issue #2122: dotnet path wrong on Ubuntu - upstream FSAC issue",
+    "Issue #2125: region folding - FSAC folding provider doesn't support //#region markers",
+    "Issue #2118: Option.bind breakpoint issue - 4 comments, likely upstream .NET debugger issue",
+    "Issue #2116: parentheses highlight entire expression - 3 comments, contributor nojaf reported",
+    "Issue #2101: inlay hint max length - 5 comments, member Krzysztof-Cieslak filed it"
+  ]
+}
