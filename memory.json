@@ -12,7 +12,7 @@
     "task10_proactive": "2026-02-22",
     "task11_monthly": "2026-02-22"
   },
-  "issue_backlog_cursor": 2108,
+  "issue_backlog_cursor": 2041,
   "label_backlog_cursor": "complete",
   "monthly_activity_issue": {
     "number": 2130,
@@ -26,7 +26,10 @@
     "2121": "2026-02-22",
     "2126": "2026-02-22",
     "2108": "2026-02-22",
-    "2115": "2026-02-22"
+    "2115": "2026-02-22",
+    "2086": "2026-02-22",
+    "2046": "2026-02-22",
+    "2041": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -77,12 +80,17 @@
     "Issue #2115: Cannot go to definition in .NET 10 Devcontainer - reporter serefarikan says they created a PR but link not provided; asked them to share",
     "Issue #1960: Test host crashes with duplicate test method names - labeled bug",
     "Issue #2099: Bad indentation in list comprehension - labeled bug",
+    "Issue #2086: MSBuild project graph MSB0001 error - suggested disabling FSharp.enableMSBuildProjectGraph",
+    "Issue #2046: Non-ASCII Windows username prevents Ionide from starting - suggested --extensions-dir workaround",
+    "Issue #2041: Go to test source not shown for C# test files - explained C# test source nav not supported (F#-first design)",
+    "Issue #2073: Missing |null annotation in tooltip - baronfel has active FSAC PR #1353; well-handled",
     "PR #2049: FSI ignore comments - waiting on author jkone27 to respond to vzarytovskii suggestion",
     "PR #2079: draft POC for different base paths - TheAngryByrd, stale since Apr 2025",
     "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI still pending",
     "PR #2131: Repo Assist fix for VS Code engine version - CI pending (metadata-only change)",
     "Task 8: Last release was 7.31.1 on 2026-02-05. Only 1 merged PR since (#2128, CI workflow add) - no release needed",
     "release/package.json engines.vscode was ^0.10.0, now in PR #2131 to set to ^1.52.0",
-    "Run 6: Completed full label backlog pass - all 68+ unlabelled open issues from #1504 to #2086 now have standard labels (bug/enhancement/performance). label_backlog_cursor set to 'complete' meaning a full pass has been done once."
+    "Run 6: Completed full label backlog pass - all currently open issues now have at least one standard label (bug/enhancement/performance). label_backlog_cursor set to 'complete' meaning a full pass has been done once.",
+    "Run 7: Triaged #2086, #2046, #2041 from mid-range backlog. Next cursor: #2041."
   ]
 }
