@@ -35,7 +35,9 @@
     "1892": "2026-02-22",
     "2119": "2026-02-22",
     "2020": "2026-02-22",
-    "2120": "2026-02-22"
+    "2120": "2026-02-22",
+    "2111": "2026-02-22",
+    "2116": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -89,8 +91,8 @@
     "Issue #2122: dotnet path wrong on Ubuntu - upstream FSAC issue",
     "Issue #2125: region folding - FSAC folding provider doesn't support //#region markers",
     "Issue #2118: Option.bind breakpoint issue - well-explained by TheAngryByrd + baronfel (upstream .NET debugger/sequence points). No further comment needed.",
-    "Issue #2116: parentheses highlight entire expression - labeled bug",
-    "Issue #2111: No test projects found error - labeled help wanted; workaround: disable AutoDiscoverTestsOnLoad",
+    "Issue #2116: parentheses highlight entire expression - commented pointing to FSAC UnnecessaryParentheses range fix needed upstream",
+    "Issue #2111: No test projects found error - commented with workaround (AutoDiscoverTestsOnLoad:false) and root cause (FSAC AdaptiveServerState.fs#L2715)",
     "Issue #2101: inlay hint max length - well-handled, no need to comment; labeled enhancement",
     "Issue #2123: operator tooltip not shown for operators starting with '.' - likely FSAC upstream issue",
     "Issue #2126: xUnit test names garbled with float InlineData - Copilot PR #2127 exists (draft, stale since Feb 11)",
@@ -117,6 +119,7 @@
     "Issue #2069: TestingPlatformDotnetTestSupport - 15 comments, extensively discussed. Incompatible with Ionide's dotnet test approach. No comment needed.",
     "Issue #2020: Test Runner shows workload updates - commented pointing to getEnv in dotnetTest in TestExplorer.fs; suggested DOTNET_CLI_WORKLOADS_UPDATE_NOTIFY_DISABLE=1; awaiting baronfel confirmation of exact env var name.",
     "getOrMakeHierarchyPath (line 1098) still uses splitSegments (no display name available from TestResult/TRX) - could be improved in future but requires adding DisplayName to TestResult",
-    "Issue #2120: FreeBSD - no type hints. Asked for diagnostics (F# output panel, .NET SDK, VS Code build type). FreeBSD not officially supported."
+    "Issue #2120: FreeBSD - no type hints. Asked for diagnostics (F# output panel, .NET SDK, VS Code build type). FreeBSD not officially supported.",
+    "Future: file FsAutoComplete upstream issue for UnnecessaryParentheses diagnostic range (#2116)"
   ]
 }
