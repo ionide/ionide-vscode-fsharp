@@ -38,7 +38,9 @@
     "2120": "2026-02-22",
     "2111": "2026-02-22",
     "2116": "2026-02-22",
-    "2053": "2026-02-22"
+    "2053": "2026-02-22",
+    "1986": "2026-02-22",
+    "2044": "2026-02-22"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -122,6 +124,13 @@
     "getOrMakeHierarchyPath (line 1098) still uses splitSegments (no display name available from TestResult/TRX) - could be improved in future but requires adding DisplayName to TestResult",
     "Issue #2120: FreeBSD - no type hints. Asked for diagnostics (F# output panel, .NET SDK, VS Code build type). FreeBSD not officially supported.",
     "Issue #2053: .fsi syntax highlighting broken by unparenthesized tuples - grammar is from ionide/ionide-fsgrammar; commented redirecting to that repo",
-    "CI: 0 check runs on Repo Assist PR branches - likely repo CI only runs on approved PRs or main branch pushes. Normal behavior for security."
+    "CI: 0 check runs on Repo Assist PR branches - likely repo CI only runs on approved PRs or main branch pushes. Normal behavior for security.",
+    "Issue #1986: Unreferenced assembly errors for basic types (System.String etc) - commented suggesting update to 7.31.1, clear FSAC cache, check .fsproj SDK declaration. No maintainer comments.",
+    "Issue #2044: fsi.SendSelection not found - commented with troubleshooting steps (reload window, check activation, verify keybinding command ID 'fsharp.sendSelectionToFsi'). No maintainer comments.",
+    "Issue #2011: Error highlighting on method calls - MangelMaxime identified as FSAC upstream semantic token range bug. Well-handled, no Repo Assist comment needed.",
+    "Issue #2037: Weird interpolated string highlighting - baronfel already investigated, reporter clarified scope. Well-handled, no Repo Assist comment needed.",
+    "Issue #2009: No default debug configuration - TheAngryByrd+roboz0r provided detailed workarounds. Well-handled, no Repo Assist comment needed.",
+    "Issue #2012: FSI Watcher not displaying anything - only one confirming comment; no maintainer response yet. Could investigate further.",
+    "Issue #1991: Refresh tests stuck with no tests in project - farlee2121 asked for repro; no response. Could investigate further."
   ]
 }
