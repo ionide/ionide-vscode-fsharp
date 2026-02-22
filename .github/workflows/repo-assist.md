@@ -24,6 +24,9 @@ network:
   allowed:
   - defaults
   - dotnet
+  - node
+  - python
+  - rust  
 
 safe-outputs:
   add-comment:
