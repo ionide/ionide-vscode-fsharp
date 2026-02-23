@@ -12,7 +12,7 @@
     "task10_proactive": "2026-02-22",
     "task11_monthly": "2026-02-23"
   },
-  "issue_backlog_cursor": 2089,
+  "issue_backlog_cursor": 1867,
   "label_backlog_cursor": "done",
   "monthly_activity_issue": {
     "number": 2130,
@@ -53,7 +53,9 @@
     "2060": "2026-02-22",
     "2045": "2026-02-22",
     "2066": "2026-02-22",
-    "2089": "2026-02-23"
+    "2089": "2026-02-23",
+    "1867": "2026-02-23",
+    "1803": "2026-02-23"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -71,11 +73,12 @@
     1309],
   "fix_attempts": {
     "2117": {
-      "status": "pr_created",
+      "status": "pr_merged",
       "pr_number": 2129,
       "branch": "repo-assist/fix-issue-2117-test-uri-linux",
       "date": "2026-02-22",
-      "note": "One-line fix: vscode.Uri.parse('file:///'+path) -> vscode.Uri.file(path). CI pending."
+      "merged_date": "2026-02-23",
+      "note": "One-line fix: vscode.Uri.parse('file:///'+path) -> vscode.Uri.file(path). Merged by Krzysztof-Cieslak."
     },
     "2007_2013": {
       "status": "pr_created",
@@ -97,7 +100,8 @@
       "description": "Fix VS Code engine version in release/package.json from ^0.10.0 to ^1.52.0",
       "pr_number": 2131,
       "pr_branch": "repo-assist/improve-vscode-engine-version",
-      "date": "2026-02-22"
+      "date": "2026-02-22",
+      "status": "merged_2026-02-23"
     },
     {
       "description": "Filed issue #2132: Update @types/vscode from 1.52 to current",
@@ -123,7 +127,7 @@
     "Issue #2116: parentheses highlight entire expression - commented pointing to FSAC UnnecessaryParentheses range fix needed upstream",
     "Issue #2111: No test projects found error - commented with workaround (AutoDiscoverTestsOnLoad:false) and root cause (FSAC AdaptiveServerState.fs#L2715)",
     "Issue #2123: operator tooltip not shown for operators starting with '.' - likely FSAC upstream issue",
-    "Issue #2126: xUnit test names garbled with float InlineData - Copilot PR #2127 exists (draft, stale since Feb 11)",
+    "Issue #2126: xUnit test names garbled with float InlineData - Copilot PR #2127 exists (draft)",
     "Issue #2121: LineLens crash on rapid setting toggle - asked for stack trace",
     "Issue #2108: do! on partially applied function shows no error - upstream FCS/FSAC issue",
     "Issue #2115: Cannot go to definition in .NET 10 Devcontainer - asked reporter to share their PR",
@@ -132,20 +136,17 @@
     "Issue #2086: MSBuild project graph MSB0001 error - suggested disabling FSharp.enableMSBuildProjectGraph",
     "Issue #2046: Non-ASCII Windows username prevents Ionide from starting - suggested --extensions-dir workaround",
     "Issue #2041: Go to test source not shown for C# test files - explained C# not supported",
-    "PR #2049: FSI ignore comments - waiting on author jkone27",
-    "PR #2079: draft POC for different base paths - TheAngryByrd, stale since Apr 2025",
-    "PR #2129: Repo Assist fix for test URI on Linux/Mac - CI: 0 checks",
-    "PR #2131: Repo Assist fix for VS Code engine version - CI: 0 checks",
-    "PR #2133: Repo Assist fix for test hierarchy (.+separator) - CI: 0 checks",
-    "PR #2134: Repo Assist fix for dotnet test --list-tests timeout - CI: 0 checks",
+    "PR #2127: Fix xUnit float InlineData test names (Copilot draft) - still open, last updated Feb 11 2026",
+    "PR #2129: Merged 2026-02-23 by Krzysztof-Cieslak",
+    "PR #2131: Merged 2026-02-23 by Krzysztof-Cieslak",
+    "PR #2133: Repo Assist fix for test hierarchy (.+separator) - still open draft",
+    "PR #2134: Repo Assist fix for dotnet test --list-tests timeout - still open draft",
     "Issue #1892: new tests not recognized until project reload - commented with Refresh workaround",
     "Issue #2007: Expecto '+' in test names creates false hierarchy - FIX PR #2133 submitted",
     "Issue #2013: '.' in test names creates extra hierarchy nodes - FIX PR #2133 submitted",
-    "Task 8: Last release was 7.31.1 on 2026-02-05. No release needed.",
-    "Issue #2119: DotRush as alternative - commented explaining requiredExtensions check",
-    "Issue #2020: Test Runner shows workload updates - commented pointing to getEnv in TestExplorer.fs",
-    "Issue #2120: FreeBSD - no type hints. Asked for diagnostics.",
-    "Issue #2053: .fsi syntax highlighting broken - redirected to ionide/ionide-fsgrammar",
+    "Issue #2089: changeWorkspace popup - explained dialog behavior and workarounds",
+    "Issue #1867: duplicate fsharp.explorer.renameFile - no duplicate found in current code; commented suggesting close",
+    "Issue #1803: FSI rename loses module qualifier in .fsx - upstream FsAutoComplete issue; directed to file there",
     "CI: 0 check runs on Repo Assist PR branches - likely repo CI only runs on approved PRs.",
     "Issue #1986: Unreferenced assembly errors - commented suggesting update to 7.31.1",
     "Issue #2044: fsi.SendSelection not found - commented with troubleshooting steps",
@@ -157,15 +158,15 @@
     "Issue #1956: Unrecoverable crashes with long backtick identifiers - commented suggesting update to 7.31.1 and upstream FSAC filing",
     "Issue #1981: Sticky scroll pins attribute instead of declaration - redirected to ionide/ionide-fsgrammar",
     "Issue #1980: DU/module collision in completions - identified as upstream FSAC issue",
-    "LABEL NOTE: Previous bulk labeling run noted as applied. Labels applied in bulk to 80+ issues.",
     "Issue #2062: FSI and Intellisense freeze - suggested update to 7.31.1, restart language server, test with Copilot disabled",
-    "Issue #2060: Watcher.fsx breaks FSI value inspection (since 7.23) - asked about promised fix status; no PR ever filed",
-    "Issue #2045: xunit.v3 debug breakpoints not hit - explained out-of-process model change in v3; suggested Test Explorer 'Debug Tests'",
-    "Issue #2066: namespace+module mixing intellisense gap - identified as upstream FCS completion bug; suggested filing at dotnet/fsharp",
+    "Issue #2060: Watcher.fsx breaks FSI value inspection (since 7.23) - asked about promised fix status",
+    "Issue #2045: xunit.v3 debug breakpoints not hit - explained out-of-process model change in v3",
+    "Issue #2066: namespace+module mixing intellisense gap - identified as upstream FCS completion bug",
     "Issue #1309: Can Ionide debug fsx scripts - labeled question",
-    "Issue #2089: changeWorkspace popup - explained dialog only appears with multiple .sln files; choice is remembered via extensionWorkspaceState; workarounds: FSharp.workspacePath, FSharp.excludeProjectDirectories, FSharp.workspaceModePeekDeepLevel",
-    "Issue #2078: Test Discovery can break design time builds - has good discussion from baronfel/farlee2121; fix = separate BaseIntermediateOutputPath/BaseOutputPath for test discovery builds",
-    "Issue #2118: breakpoint in Option.bind - has good answer from baronfel explaining sequence points; no need to comment",
-    "Issue #2101: Remove inlay hint max length - has detailed guidance from baronfel; two contributors interested (nkosi23, thatrajeevkr); no PR created as of 2026-02-23"
+    "Issue #2019: changeWorkspace popup - explained dialog behavior; workarounds: FSharp.workspacePath",
+    "Issue #2118: breakpoint in Option.bind - has good answer from baronfel",
+    "Issue #2101: Remove inlay hint max length - upstream FSAC issue; baronfel has detailed guidance; nkosi23+thatrajeevkr interested",
+    "Task 8: Last release was 7.31.1 on 2026-02-05. No release needed (only infra changes since then).",
+    "Stale PRs waiting on maintainer review (not nudgeable): #2015, #2000, #1998, #1988, #1973, #1959, #1957, #1955, #1903, #1931, #1684, #1614, #1832"
   ]
 }
