@@ -1,18 +1,18 @@
 {
-  "last_run": "2026-02-22",
+  "last_run": "2026-02-23",
   "tasks_last_run": {
-    "task1_triage": "2026-02-22",
+    "task1_triage": "2026-02-23",
     "task2_fix": "2026-02-22",
     "task4_deps": "2026-02-22",
-    "task5_maintain_prs": "2026-02-22",
+    "task5_maintain_prs": "2026-02-23",
     "task6_stale_prs": "2026-02-22",
     "task7_labels": "2026-02-22",
     "task8_release": "2026-02-22",
     "task9_welcome": "2026-02-22",
     "task10_proactive": "2026-02-22",
-    "task11_monthly": "2026-02-22"
+    "task11_monthly": "2026-02-23"
   },
-  "issue_backlog_cursor": 2066,
+  "issue_backlog_cursor": 2089,
   "label_backlog_cursor": "done",
   "monthly_activity_issue": {
     "number": 2130,
@@ -52,7 +52,8 @@
     "2062": "2026-02-22",
     "2060": "2026-02-22",
     "2045": "2026-02-22",
-    "2066": "2026-02-22"
+    "2066": "2026-02-22",
+    "2089": "2026-02-23"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -161,6 +162,10 @@
     "Issue #2060: Watcher.fsx breaks FSI value inspection (since 7.23) - asked about promised fix status; no PR ever filed",
     "Issue #2045: xunit.v3 debug breakpoints not hit - explained out-of-process model change in v3; suggested Test Explorer 'Debug Tests'",
     "Issue #2066: namespace+module mixing intellisense gap - identified as upstream FCS completion bug; suggested filing at dotnet/fsharp",
-    "Issue #1309: Can Ionide debug fsx scripts - labeled question"
+    "Issue #1309: Can Ionide debug fsx scripts - labeled question",
+    "Issue #2089: changeWorkspace popup - explained dialog only appears with multiple .sln files; choice is remembered via extensionWorkspaceState; workarounds: FSharp.workspacePath, FSharp.excludeProjectDirectories, FSharp.workspaceModePeekDeepLevel",
+    "Issue #2078: Test Discovery can break design time builds - has good discussion from baronfel/farlee2121; fix = separate BaseIntermediateOutputPath/BaseOutputPath for test discovery builds",
+    "Issue #2118: breakpoint in Option.bind - has good answer from baronfel explaining sequence points; no need to comment",
+    "Issue #2101: Remove inlay hint max length - has detailed guidance from baronfel; two contributors interested (nkosi23, thatrajeevkr); no PR created as of 2026-02-23"
   ]
 }
