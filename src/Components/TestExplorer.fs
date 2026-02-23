@@ -933,7 +933,7 @@ module TestItem =
                     if String.IsNullOrEmpty path then
                         None
                     else
-                        vscode.Uri.parse ($"file:///{path}", true) |> Some
+                        vscode.Uri.file path |> Some
                 with e ->
                     logger.Debug($"Failed to parse test location uri {path}", e)
                     None
