@@ -4,7 +4,7 @@
     "task1_triage": "2026-02-24",
     "task2_fix": "2026-02-22",
     "task4_deps": "2026-02-22",
-    "task5_maintain_prs": "2026-02-23",
+    "task5_maintain_prs": "2026-02-24",
     "task6_stale_prs": "2026-02-22",
     "task7_labels": "2026-02-24",
     "task8_release": "2026-02-24",
@@ -12,7 +12,7 @@
     "task10_proactive": "2026-02-22",
     "task11_monthly": "2026-02-24"
   },
-  "issue_backlog_cursor": 2077,
+  "issue_backlog_cursor": 2101,
   "label_backlog_cursor": "done",
   "monthly_activity_issue": {
     "number": 2130,
@@ -56,7 +56,8 @@
     "2089": "2026-02-23",
     "1867": "2026-02-23",
     "1803": "2026-02-23",
-    "2077": "2026-02-24"
+    "2077": "2026-02-24",
+    "2101": "2026-02-24"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -71,7 +72,7 @@
     1875, 1876, 1882, 1884, 1886, 1892, 1915, 1917, 1941, 1949, 1953, 1954, 1956, 1961, 1962, 1963, 1964,
     1965, 1966, 1968, 1969, 1970, 1972, 1976, 1977, 1979, 1980, 1981, 1984, 1986, 1991, 1996, 1997, 2009,
     2010, 2011, 2012, 2013, 2018, 2037, 2038, 2041, 2044, 2045, 2046, 2053, 2060, 2062, 2068, 2073, 2086,
-    1309],
+    1309, 2078],
   "fix_attempts": {
     "2117": {
       "status": "pr_merged",
@@ -174,12 +175,13 @@
     "Issue #1309: Can Ionide debug fsx scripts - labeled question",
     "Issue #2019: changeWorkspace popup - explained dialog behavior; workarounds: FSharp.workspacePath",
     "Issue #2118: breakpoint in Option.bind - has good answer from baronfel",
-    "Issue #2101: Remove inlay hint max length - upstream FSAC issue; baronfel has detailed guidance; nkosi23+thatrajeevkr interested; labeled good first issue + help wanted 2026-02-24",
+    "Issue #2101: Remove inlay hint max length - upstream FSAC issue; baronfel has detailed guidance; nkosi23+thatrajeevkr interested; labeled good first issue + help wanted 2026-02-24. Commented 2026-02-24 with code pointers.",
     "Task 8: Last release was 7.31.1 on 2026-02-05. Release prep PR #2135 created for 7.31.2 on 2026-02-24.",
     "Stale PRs waiting on maintainer review (not nudgeable): #2015, #2000, #1998, #1988, #1973, #1959, #1957, #1955, #1903, #1931, #1684, #1614, #1832",
     "Issue #2077: Inlay hint broken with Unicode paths - commented 2026-02-24 suggesting URI encoding mismatch as root cause, related to #1520",
     "Issue #2068: linting doesn't work - 9 comments, active discussion, already well-covered",
     "Issue #2069: TestingPlatformDotnetTestSupport makes tests non-discoverable - 15 comments, active discussion",
-    "Issue #2073: Missing | null annotation from tooltip - baronfel has open PR in FsAutoComplete #1353; not commented"
+    "Issue #2073: Missing | null annotation from tooltip - baronfel has open PR in FsAutoComplete #1353; not commented",
+    "Issue #2078: Test discovery breaks design-time builds - labeled help wanted+needs investigation. PR #2079 by TheAngryByrd is draft PoC. Primary fix is in FSAC."
   ]
 }
