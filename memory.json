@@ -7,7 +7,7 @@
     "task5_maintain_prs": "2026-02-23",
     "task6_stale_prs": "2026-02-22",
     "task7_labels": "2026-02-24",
-    "task8_release": "2026-02-22",
+    "task8_release": "2026-02-24",
     "task9_welcome": "2026-02-22",
     "task10_proactive": "2026-02-22",
     "task11_monthly": "2026-02-24"
@@ -119,6 +119,12 @@
       "pr_number": 2134,
       "pr_branch": "repo-assist/fix-list-tests-timeout-1991",
       "date": "2026-02-22"
+    },
+    {
+      "description": "Release preparation 7.31.2: bump version + RELEASE_NOTES for #2129 and #2131",
+      "pr_number": 2135,
+      "pr_branch": "repo-assist/release-v7.31.2",
+      "date": "2026-02-24"
     }
   ],
   "welcomed_contributors": [],
@@ -143,6 +149,7 @@
     "PR #2131: Merged 2026-02-23 by Krzysztof-Cieslak",
     "PR #2133: Repo Assist fix for test hierarchy (.+separator) - still open draft",
     "PR #2134: Repo Assist fix for dotnet test --list-tests timeout - still open draft",
+    "PR #2135: Repo Assist release prep 7.31.2 - created 2026-02-24 draft",
     "Issue #1892: new tests not recognized until project reload - commented with Refresh workaround",
     "Issue #2007: Expecto '+' in test names creates false hierarchy - FIX PR #2133 submitted",
     "Issue #2013: '.' in test names creates extra hierarchy nodes - FIX PR #2133 submitted",
@@ -168,7 +175,7 @@
     "Issue #2019: changeWorkspace popup - explained dialog behavior; workarounds: FSharp.workspacePath",
     "Issue #2118: breakpoint in Option.bind - has good answer from baronfel",
     "Issue #2101: Remove inlay hint max length - upstream FSAC issue; baronfel has detailed guidance; nkosi23+thatrajeevkr interested; labeled good first issue + help wanted 2026-02-24",
-    "Task 8: Last release was 7.31.1 on 2026-02-05. No release needed (only infra changes since then).",
+    "Task 8: Last release was 7.31.1 on 2026-02-05. Release prep PR #2135 created for 7.31.2 on 2026-02-24.",
     "Stale PRs waiting on maintainer review (not nudgeable): #2015, #2000, #1998, #1988, #1973, #1959, #1957, #1955, #1903, #1931, #1684, #1614, #1832",
     "Issue #2077: Inlay hint broken with Unicode paths - commented 2026-02-24 suggesting URI encoding mismatch as root cause, related to #1520",
     "Issue #2068: linting doesn't work - 9 comments, active discussion, already well-covered",
