@@ -1,18 +1,18 @@
 {
-  "last_run": "2026-02-23",
+  "last_run": "2026-02-24",
   "tasks_last_run": {
-    "task1_triage": "2026-02-23",
+    "task1_triage": "2026-02-24",
     "task2_fix": "2026-02-22",
     "task4_deps": "2026-02-22",
     "task5_maintain_prs": "2026-02-23",
     "task6_stale_prs": "2026-02-22",
-    "task7_labels": "2026-02-22",
+    "task7_labels": "2026-02-24",
     "task8_release": "2026-02-22",
     "task9_welcome": "2026-02-22",
     "task10_proactive": "2026-02-22",
-    "task11_monthly": "2026-02-23"
+    "task11_monthly": "2026-02-24"
   },
-  "issue_backlog_cursor": 1867,
+  "issue_backlog_cursor": 2077,
   "label_backlog_cursor": "done",
   "monthly_activity_issue": {
     "number": 2130,
@@ -55,7 +55,8 @@
     "2066": "2026-02-22",
     "2089": "2026-02-23",
     "1867": "2026-02-23",
-    "1803": "2026-02-23"
+    "1803": "2026-02-23",
+    "2077": "2026-02-24"
   },
   "commented_prs": {
     "2049": "2026-02-22",
@@ -121,6 +122,7 @@
     }
   ],
   "welcomed_contributors": [],
+  "checked_off_by_maintainer": ["1867", "1803"],
   "notes": [
     "Issue #2122: dotnet path wrong on Ubuntu - upstream FSAC issue",
     "Issue #2125: region folding - FSAC folding provider doesn't support //#region markers",
@@ -132,7 +134,7 @@
     "Issue #2108: do! on partially applied function shows no error - upstream FCS/FSAC issue",
     "Issue #2115: Cannot go to definition in .NET 10 Devcontainer - asked reporter to share their PR",
     "Issue #1960: Test host crashes with duplicate test method names - labeled bug",
-    "Issue #2099: Bad indentation in list comprehension - labeled bug; directed to Fantomas",
+    "Issue #2099: Bad indentation in list comprehension - MangelMaxime directed to Fantomas; resolved by maintainer",
     "Issue #2086: MSBuild project graph MSB0001 error - suggested disabling FSharp.enableMSBuildProjectGraph",
     "Issue #2046: Non-ASCII Windows username prevents Ionide from starting - suggested --extensions-dir workaround",
     "Issue #2041: Go to test source not shown for C# test files - explained C# not supported",
@@ -145,8 +147,8 @@
     "Issue #2007: Expecto '+' in test names creates false hierarchy - FIX PR #2133 submitted",
     "Issue #2013: '.' in test names creates extra hierarchy nodes - FIX PR #2133 submitted",
     "Issue #2089: changeWorkspace popup - explained dialog behavior and workarounds",
-    "Issue #1867: duplicate fsharp.explorer.renameFile - no duplicate found in current code; commented suggesting close",
-    "Issue #1803: FSI rename loses module qualifier in .fsx - upstream FsAutoComplete issue; directed to file there",
+    "Issue #1867: duplicate fsharp.explorer.renameFile - no duplicate found in current code; commented suggesting close. Maintainer checked off.",
+    "Issue #1803: FSI rename loses module qualifier in .fsx - upstream FsAutoComplete issue; directed to file there. Maintainer checked off.",
     "CI: 0 check runs on Repo Assist PR branches - likely repo CI only runs on approved PRs.",
     "Issue #1986: Unreferenced assembly errors - commented suggesting update to 7.31.1",
     "Issue #2044: fsi.SendSelection not found - commented with troubleshooting steps",
@@ -165,8 +167,12 @@
     "Issue #1309: Can Ionide debug fsx scripts - labeled question",
     "Issue #2019: changeWorkspace popup - explained dialog behavior; workarounds: FSharp.workspacePath",
     "Issue #2118: breakpoint in Option.bind - has good answer from baronfel",
-    "Issue #2101: Remove inlay hint max length - upstream FSAC issue; baronfel has detailed guidance; nkosi23+thatrajeevkr interested",
+    "Issue #2101: Remove inlay hint max length - upstream FSAC issue; baronfel has detailed guidance; nkosi23+thatrajeevkr interested; labeled good first issue + help wanted 2026-02-24",
     "Task 8: Last release was 7.31.1 on 2026-02-05. No release needed (only infra changes since then).",
-    "Stale PRs waiting on maintainer review (not nudgeable): #2015, #2000, #1998, #1988, #1973, #1959, #1957, #1955, #1903, #1931, #1684, #1614, #1832"
+    "Stale PRs waiting on maintainer review (not nudgeable): #2015, #2000, #1998, #1988, #1973, #1959, #1957, #1955, #1903, #1931, #1684, #1614, #1832",
+    "Issue #2077: Inlay hint broken with Unicode paths - commented 2026-02-24 suggesting URI encoding mismatch as root cause, related to #1520",
+    "Issue #2068: linting doesn't work - 9 comments, active discussion, already well-covered",
+    "Issue #2069: TestingPlatformDotnetTestSupport makes tests non-discoverable - 15 comments, active discussion",
+    "Issue #2073: Missing | null annotation from tooltip - baronfel has open PR in FsAutoComplete #1353; not commented"
   ]
 }
