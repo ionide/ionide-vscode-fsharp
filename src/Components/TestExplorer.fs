@@ -1126,11 +1126,12 @@ module ProjectExt =
         Project.getInWorkspace () |> List.map getPath
 
     let isTestProject (project: Project) =
-        let testProjectIndicators =
-            set [ "Microsoft.TestPlatform.TestHost"; "Microsoft.NET.Test.Sdk" ]
-
-        project.PackageReferences
-        |> Array.exists (fun pr -> Set.contains pr.Name testProjectIndicators)
+        // Use the IsTestProject MSBuild property from FsAutoComplete.
+        // This respects explicit <IsTestProject>false</IsTestProject> overrides in project files
+        // (fixes #1970: paket-shared projects with test SDK packages incorrectly treated as test projects).
+        // The property is set to true by Microsoft.NET.Test.Sdk targets when test SDK packages are present,
+        // so this replaces the manual package-reference check with the authoritative MSBuild value.
+        project.Info.IsTestProject
 
 
 type CodeBasedTestId = TestId
