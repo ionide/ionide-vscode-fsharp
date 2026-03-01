@@ -698,14 +698,35 @@ module DotnetCli =
         promise {
             let additionalArgs = if not shouldBuild then [| "--no-build" |] else Array.empty
 
+            // Safety timeout: if `dotnet test --list-tests` hangs (e.g. on an empty test
+            // project), cancel the process after 60 seconds so discovery doesn't block
+            // indefinitely.  See https://github.com/ionide/ionide-vscode-fsharp/issues/1991
+            let listTestsTimeoutMs = 60_000.
+            let timeoutSource = vscode.CancellationTokenSource.Create()
+
+            let timeoutHandle =
+                setTimeout
+                    (fun () ->
+                        logger.Warn(
+                            $"dotnet test --list-tests timed out after {listTestsTimeoutMs}ms for {projectPath}. Treating as no tests found."
+                        )
+
+                        timeoutSource.cancel ())
+                    listTestsTimeoutMs
+
+            let mergedToken =
+                CancellationToken.mergeTokens [ cancellationToken; timeoutSource.token ]
+
             let! _, stdOutput, _ =
                 dotnetTest
-                    cancellationToken
+                    mergedToken
                     projectPath
                     targetFramework
                     None
                     NoDebug
                     [| "--list-tests"; yield! additionalArgs |]
+
+            clearTimeout timeoutHandle
 
             let testNames =
                 stdOutput
