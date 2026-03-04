@@ -137,6 +137,30 @@ module TestName =
             { Text = m.Groups[2].Value
               SeparatorBefore = m.Groups[1].Value })
 
+    /// Splits test name segments using a known display name as a hint for the leaf segment.
+    /// This avoids splitting on "." or "+" characters that appear within the test name itself
+    /// (e.g., Expecto test names like "a + b = c" or NUnit method names like "foo.bar").
+    let splitSegmentsWithKnownLeaf (displayName: string) (fullTestName: FullTestName) =
+        let tryWithSep (sep: string) =
+            let suffix = sep + displayName
+
+            if fullTestName.Length > suffix.Length && fullTestName.EndsWith(suffix) then
+                let modulePrefix = fullTestName.[..fullTestName.Length - suffix.Length - 1]
+
+                let prefixSegments =
+                    [ for x in segmentRegex.Matches(modulePrefix) -> x ]
+                    |> List.map (fun m ->
+                        { Text = m.Groups[2].Value
+                          SeparatorBefore = m.Groups[1].Value })
+
+                Some(prefixSegments @ [ { Text = displayName; SeparatorBefore = sep } ])
+            else
+                None
+
+        tryWithSep "."
+        |> Option.orElseWith (fun () -> tryWithSep "+")
+        |> Option.defaultWith (fun () -> splitSegments fullTestName)
+
     let appendSegment (parentPath: FullTestName) (segment: Segment) : FullTestName =
         $"{parentPath}{segment.SeparatorBefore}{segment.Text}"
 
@@ -204,6 +228,49 @@ module TestName =
 
             Array.concat [ mappedTerminals; mappedIntermediate ]
 
+
+        namedData |> Array.map withRelativePath |> recurse ""
+
+    /// Like inferHierarchy, but uses the display name of each item to avoid splitting on separators
+    /// within the leaf test name (e.g., Expecto "a + b = c" or NUnit method name "foo.bar").
+    let inferHierarchyWithDisplayNames
+        (namedData: {| FullName: string; Data: 't; DisplayName: string |} array)
+        : NameHierarchy<'t> array =
+
+        let withRelativePath (named: {| FullName: string; Data: 't; DisplayName: string |}) =
+            { data = named.Data
+              relativePath = splitSegmentsWithKnownLeaf named.DisplayName named.FullName }
+
+        let popTopPath data =
+            { data with
+                relativePath = data.relativePath.Tail }
+
+        let rec recurse (parentPath: string) defsWithRelativePath : NameHierarchy<'t> array =
+            let terminalNodes, intermediateNodes =
+                defsWithRelativePath |> Array.partition (fun d -> d.relativePath.Length = 1)
+
+            let mappedTerminals =
+                terminalNodes
+                |> Array.map (fun terminal ->
+                    let segment = terminal.relativePath.Head
+
+                    { Name = segment.Text
+                      FullName = appendSegment parentPath segment
+                      Data = Some terminal.data
+                      Children = [||] })
+
+            let mappedIntermediate =
+                intermediateNodes
+                |> Array.groupBy (fun d -> d.relativePath.Head)
+                |> Array.map (fun (groupSegment, children) ->
+                    let fullName = appendSegment parentPath groupSegment
+
+                    { Name = groupSegment.Text
+                      Data = None
+                      FullName = appendSegment parentPath groupSegment
+                      Children = recurse fullName (children |> Array.map popTopPath) })
+
+            Array.concat [ mappedTerminals; mappedIntermediate ]
 
         namedData |> Array.map withRelativePath |> recurse ""
 
@@ -974,11 +1041,14 @@ module TestItem =
 
         let mapDtosForProject ((projectPath, targetFramework), flatTests) =
             let testDtoToNamedItem (dto: TestItemDTO) =
+                let fullName = dto |> TestItemDTO.getFullname_withNestedParamTests
+
                 {| Data = dto
-                   FullName = dto |> TestItemDTO.getFullname_withNestedParamTests |}
+                   FullName = fullName
+                   DisplayName = dto.DisplayName |}
 
             let namedHierarchies =
-                flatTests |> Array.map testDtoToNamedItem |> TestName.inferHierarchy
+                flatTests |> Array.map testDtoToNamedItem |> TestName.inferHierarchyWithDisplayNames
 
             let projectChildTestItems =
                 namedHierarchies
@@ -1012,37 +1082,12 @@ module TestItem =
             [| fromProject testItemFactory projectPath project.Info.TargetFramework fileTests |])
 
     let tryGetById (testId: TestId) (rootCollection: TestItem array) : TestItem option =
-        let projectPath, fullTestName = componentizeId testId
+        // Search recursively by exact ID match, avoiding the need to parse test name separators.
+        let rec searchItem (item: TestItem) =
+            if item.id = testId then Some item
+            else item.children.TestItems() |> Array.tryPick searchItem
 
-        let rec recurse
-            (collection: TestItemCollection)
-            (parentPath: FullTestName)
-            (remainingPath: TestName.Segment list)
-            =
-
-            let currentLabel, remainingPath =
-                match remainingPath with
-                | currentLabel :: remainingPath -> (currentLabel, remainingPath)
-                | [] -> TestName.Segment.empty, []
-
-            let fullName = TestName.appendSegment parentPath currentLabel
-            let id = constructId projectPath fullName
-            let existingItem = collection.get (id)
-
-            match existingItem with
-            | None -> None
-            | Some existingItem ->
-                if remainingPath <> [] then
-                    recurse existingItem.children fullName remainingPath
-                else
-                    Some existingItem
-
-
-        let pathSegments = TestName.splitSegments fullTestName
-
-        rootCollection
-        |> Array.tryFind (fun ti -> ti.id = constructProjectRootId projectPath)
-        |> Option.bind (fun projectRoot -> recurse projectRoot.children "" pathSegments)
+        rootCollection |> Array.tryPick searchItem
 
 
     let getOrMakeHierarchyPath
