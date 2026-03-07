@@ -2119,13 +2119,15 @@ module Interactions =
 
                 let! buildOutcomePerProject =
                     testProjects
-                    |> Promise.mapExecuteForAll (fun project ->
+                    |> List.map (fun project ->
                         promise {
                             let projectPath = project.Project
                             logger.Info($"Building {projectPath}")
                             let! processExit = MSBuild.invokeMSBuildWithCancel projectPath "Build" cancellationToken
                             return (project, processExit)
                         })
+                    |> Promise.all
+                    |> Promise.map List.ofArray
 
 
 
