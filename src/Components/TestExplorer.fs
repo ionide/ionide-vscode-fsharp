@@ -101,9 +101,20 @@ module CancellationToken =
 
         tokenSource.token
 
+
+
 type TestId = string
 type ProjectPath = string
 type TargetFramework = string
+
+module Project =
+    let testPathSubDir = ".ionide-test"
+    let getOutputPaths () =
+        let objOutputPath = node.path.join [|  "obj" ; testPathSubDir  ; node.path.sep|]
+        let baseIntermediateOutputPath  = $"/p:BaseIntermediateOutputPath={objOutputPath}"
+        let binOutputPath = node.path.join [|  "bin" ; testPathSubDir; node.path.sep |]
+        let baseOutputPath  = $"/p:BaseOutputPath={binOutputPath}"
+        [baseIntermediateOutputPath; baseOutputPath]
 
 module ProjectPath =
     let inline ofString str = str
@@ -580,8 +591,9 @@ module DotnetCli =
 
     let restore
         (projectPath: string)
+        args
         : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
-        Process.exec "dotnet" (ResizeArray([| "restore"; projectPath |]))
+        Process.exec "dotnet" (ResizeArray([| "restore"; projectPath; yield! args |]))
 
     let private debugProcessIdRegex = RegularExpressions.Regex(@"Process Id: (.*),")
 
@@ -698,6 +710,8 @@ module DotnetCli =
         promise {
             let additionalArgs = if not shouldBuild then [| "--no-build" |] else Array.empty
 
+            let basePathArgs  = Project.getOutputPaths ()
+
             let! _, stdOutput, _ =
                 dotnetTest
                     cancellationToken
@@ -705,7 +719,7 @@ module DotnetCli =
                     targetFramework
                     None
                     NoDebug
-                    [| "--list-tests"; yield! additionalArgs |]
+                    [| "--list-tests"; yield! additionalArgs; yield! basePathArgs; "/p:BuildProjectReferences=false" |]
 
             let testNames =
                 stdOutput
@@ -1963,8 +1977,11 @@ module Interactions =
                     let runnableTests = TestItem.runnableFromArray projectRunRequest.Tests
 
                     let projectPath = projectRunRequest.ProjectPath
-                    let! _ = DotnetCli.restore projectPath
-                    let! buildStatus = MSBuild.invokeMSBuildWithCancel projectPath "Build" _ct
+                    let basePathArgs = Project.getOutputPaths ()
+
+                    let! _ = DotnetCli.restore projectPath basePathArgs
+
+                    let! buildStatus = MSBuild.invokeMSBuildWithCancel projectPath "Build" _ct basePathArgs
 
                     if buildStatus.Code <> Some 0 then
                         TestRun.showError testRun "Project build failed" runnableTests
@@ -2123,7 +2140,11 @@ module Interactions =
                         promise {
                             let projectPath = project.Project
                             logger.Info($"Building {projectPath}")
-                            let! processExit = MSBuild.invokeMSBuildWithCancel projectPath "Build" cancellationToken
+
+                            let basePathArgs = Project.getOutputPaths ()
+
+
+                            let! processExit = MSBuild.invokeMSBuildWithCancel projectPath "Build" cancellationToken basePathArgs
                             return (project, processExit)
                         })
 
