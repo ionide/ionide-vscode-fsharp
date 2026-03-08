@@ -42,6 +42,7 @@ safe-outputs:
     draft: true
     title-prefix: "[Repo Assist] "
     labels: [automation, repo-assist]
+    protected-files: fallback-to-issue
     max: 4
   push-to-pull-request-branch:
     target: "*"
@@ -98,10 +99,23 @@ steps:
       repo_assist_prs = sum(1 for p in prs if p['title'].startswith('[Repo Assist]'))
       other_prs       = sum(1 for p in prs if not p['title'].startswith('[Repo Assist]'))
 
+      task_names = {
+          1:  'Issue Labelling',
+          2:  'Issue Investigation and Comment',
+          3:  'Issue Investigation and Fix',
+          4:  'Engineering Investments',
+          5:  'Coding Improvements',
+          6:  'Maintain Repo Assist PRs',
+          7:  'Stale PR Nudges',
+          8:  'Performance Improvements',
+          9:  'Testing Improvements',
+          10: 'Take the Repository Forward',
+      }
+
       weights = {
-          1:  1   + unlabelled,
-          2:  3   + 0.3 * open_issues,
-          3:  3   + 0.3 * open_issues,
+          1:  1   + 3 * unlabelled,
+          2:  3   + 1 * open_issues,
+          3:  3   + 0.7 * open_issues,
           4:  5   + 0.2 * open_issues,
           5:  5   + 0.1 * open_issues,
           6:  float(repo_assist_prs),
@@ -136,13 +150,14 @@ steps:
       print('Task weights:')
       for t, w in weights.items():
           tag = ' <-- SELECTED' if t in chosen else ''
-          print(f'  Task {t:2d}: weight {w:6.1f}{tag}')
+          print(f'  Task {t:2d} ({task_names[t]}): weight {w:6.1f}{tag}')
       print()
-      print(f'Selected tasks for this run: Task {chosen[0]} and Task {chosen[1]}')
+      print(f'Selected tasks for this run: Task {chosen[0]} ({task_names[chosen[0]]}) and Task {chosen[1]} ({task_names[chosen[1]]})')
 
       result = {
           'open_issues': open_issues, 'unlabelled_issues': unlabelled,
           'repo_assist_prs': repo_assist_prs, 'other_prs': other_prs,
+          'task_names': task_names,
           'weights': {str(k): round(v, 2) for k, v in weights.items()},
           'selected_tasks': chosen,
       }
@@ -150,7 +165,7 @@ steps:
           json.dump(result, f, indent=2)
       EOF
 
-source: githubnext/agentics/workflows/repo-assist.md@8e6d7c86bba37371d2d0eee1a23563db3e561eb5
+source: githubnext/agentics/workflows/repo-assist.md@346204513ecfa08b81566450d7d599556807389f
 ---
 
 # Repo Assist
@@ -194,9 +209,10 @@ Read memory at the **start** of every run; update it at the **end**.
 
 Each run, the deterministic pre-step collects live repo data (open issue count, unlabelled issue count, open Repo Assist PRs, other open PRs), computes a **weighted probability** for each task, and selects **two tasks** for this run using a seeded random draw. The weights and selected tasks are printed in the workflow logs. You will find the selection in `/tmp/gh-aw/task_selection.json`.
 
-**Read the task selection**: at the start of your run, read `/tmp/gh-aw/task_selection.json` and confirm the two selected tasks in your opening reasoning. Execute **those two tasks** (plus the mandatory Task 11).
+**Read the task selection**: at the start of your run, read `/tmp/gh-aw/task_selection.json` and confirm the two selected tasks in your opening reasoning. Execute **those two tasks** (plus the mandatory Task 11). If there's really nothing to do for a selected task, do not force yourself to do it - try any other different task instead that looks most useful.
 
 The weighting scheme naturally adapts to repo state:
+
 - When unlabelled issues pile up, Task 1 (labelling) dominates.
 - When there are many open issues, Tasks 2 and 3 (commenting and fixing) get more weight.
 - As the backlog clears, Tasks 4–10 (engineering, improvements, nudges, forward progress) draw more evenly.
@@ -230,7 +246,7 @@ Update memory with labels applied and cursor position.
 1. Review issues labelled `bug`, `help wanted`, or `good first issue`, plus any identified as fixable during investigation.
 2. For each fixable issue:
    a. Check memory — skip if you've already tried and the attempt is still open. Never create duplicate PRs.
-   b. Create a fresh branch off `main`: `repo-assist/fix-issue-<N>-<desc>`.
+   b. Create a fresh branch off the default branch of the repository: `repo-assist/fix-issue-<N>-<desc>`.
    c. Implement a minimal, surgical fix. Do not refactor unrelated code.
    d. **Build and test (required)**: do not create a PR if the build fails or tests fail due to your changes. If tests fail due to infrastructure, create the PR but document it.
    e. Add a test for the bug if feasible; re-run tests.
@@ -255,7 +271,7 @@ Study the codebase and make clearly beneficial, low-risk improvements. **Be high
 
 Good candidates: code clarity and readability, removing dead code, API usability, documentation gaps, reducing duplication.
 
-Check memory for already-submitted ideas; do not re-propose them. Create a fresh branch `repo-assist/improve-<desc>` off `main`, implement the improvement, build and test (same requirements as Task 3), then create a draft PR with AI disclosure, rationale, and Test Status section. If not ready to implement, file an issue instead. Update memory.
+Check memory for already-submitted ideas; do not re-propose them. Create a fresh branch `repo-assist/improve-<desc>` off the default branch of the repository, implement the improvement, build and test (same requirements as Task 3), then create a draft PR with AI disclosure, rationale, and Test Status section. If not ready to implement, file an issue instead. Update memory.
 
 ### Task 6: Maintain Repo Assist PRs
 
