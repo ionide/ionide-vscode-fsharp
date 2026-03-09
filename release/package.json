@@ -719,16 +719,6 @@
           "description": "Controls if type-annotation inlay hints will be displayed for bindings.",
           "type": "boolean"
         },
-        "FSharp.inlineValues.enabled": {
-          "default": false,
-          "description": "Enables rendering all kinds of hints inline with your code. Currently supports pipelineHints, which are like LineLenses that appear along each step of a chain of piped expressions",
-          "type": "boolean"
-        },
-        "FSharp.inlineValues.prefix": {
-          "default": "  // ",
-          "description": "The prefix used when rendering inline values.",
-          "type": "string"
-        },
         "FSharp.interfaceStubGeneration": {
           "default": true,
           "description": "Enables a codefix that generates missing interface members when inside of an interface implementation expression",
