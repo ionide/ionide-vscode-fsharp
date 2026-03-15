@@ -2330,8 +2330,11 @@ let activate (context: ExtensionContext) =
                     cancellationTokenSource.token
                 |> Promise.start
             else
-                Interactions.discoverTests_WithLanguageServer testItemFactory testController.items tryGetLocation
-                |> Promise.start
+                let testProjects = Project.getLoaded () |> List.filter ProjectExt.isTestProject
+
+                if not (List.isEmpty testProjects) then
+                    Interactions.discoverTests_WithLanguageServer testItemFactory testController.items tryGetLocation
+                    |> Promise.start
 
         None)
     |> unbox
