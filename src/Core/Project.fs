@@ -317,8 +317,8 @@ module Project =
         let setContext (context: ExtensionContext) =
             extensionWorkspaceState <- Some context.workspaceState
 
-        let private parse (value: string) =
-            let fullPath = node.path.resolve (workspace.rootPath.Value, value)
+        let private parseWithBase (basePath: string) (value: string) =
+            let fullPath = node.path.resolve (basePath, value)
 
             if value.ToLowerInvariant().EndsWith(".sln") then
                 ConfiguredWorkspace.Solution fullPath
@@ -340,16 +340,39 @@ module Project =
                 with _ ->
                     false
 
+        /// Returns all candidate base paths for resolving a relative workspace path.
+        /// In a multi-folder workspace, rootPath is the first folder. We try all
+        /// workspace folders so that a relative path like "backend/app.sln" works
+        /// even when the F# folder is not the first workspace folder.
+        let private candidateBasePaths () =
+            let rootPaths = workspace.rootPath |> Option.toList
+
+            let folderPaths =
+                workspace.workspaceFolders
+                |> Option.map (fun folders -> folders |> Seq.toList |> List.map (fun f -> f.uri.fsPath))
+                |> Option.defaultValue []
+
+            (rootPaths @ folderPaths) |> List.distinct
+
         let private parseAndValidate (config: string option) =
             match config with
             | None
             | Some "" -> None
             | Some ws ->
-                let configured = parse ws
+                let candidates = candidateBasePaths ()
 
-                if pathExists configured then
-                    Some configured
-                else
+                let found =
+                    candidates
+                    |> List.tryPick (fun basePath ->
+                        let configured = parseWithBase basePath ws
+                        if pathExists configured then Some configured else None)
+
+                match found with
+                | Some _ -> found
+                | None ->
+                    let firstBase = candidates |> List.tryHead |> Option.defaultValue ""
+                    let configured = parseWithBase firstBase ws
+
                     logger.Warn(
                         "Ignoring configured workspace '%s' as the file or directory can't be resolved (From '%s')",
                         ws,
