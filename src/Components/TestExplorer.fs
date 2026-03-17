@@ -625,6 +625,8 @@ module DotnetCli =
         let getEnv enableTestHostDebugger =
             let parentEnv = Node.Api.``process``.env
             let childEnv = parentEnv
+            // Suppress "Workload updates are available" noise in test output (see #2020)
+            childEnv?DOTNET_CLI_WORKLOADS_UPDATE_NOTIFY_DISABLE <- "1"
             //NOTE: Important to include VSTEST_HOST_DEBUG=0 when not debugging to remove stale values
             //      that may cause the debugger to wait and hang
             if enableTestHostDebugger then
