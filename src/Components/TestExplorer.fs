@@ -30,12 +30,14 @@ module ArrayExt =
         : ('Left array * ('Left * 'Right) array * 'Right array) =
         let leftIdMap =
             left
+            |> Array.distinctBy leftIdf // guard against duplicate IDs (e.g. xUnit MemberData with no unique display name)
             |> Array.map (fun l -> (leftIdf l, l))
             |> dict
             |> Collections.Generic.Dictionary
 
         let rightIdMap =
             right
+            |> Array.distinctBy rightIdf // guard against duplicate IDs (e.g. xUnit MemberData with no unique display name)
             |> Array.map (fun r -> (rightIdf r, r))
             |> dict
             |> Collections.Generic.Dictionary
@@ -281,9 +283,11 @@ module TestItemDTO =
                 dto.FullName + "." + dto.DisplayName
         | Some TestFrameworkId.XUnit ->
             // NOTE: XUnit includes the FullyQualifiedName in the DisplayName.
-            //       But it doesn't nest theory cases, just appends the case parameters
-            if dto.DisplayName <> dto.FullName then
-                let theoryCaseFragment = dto.DisplayName.Split('.') |> Array.last
+            //       But it doesn't nest theory cases, just appends the case parameters.
+            //       We use Substring rather than Split('.') to avoid splitting on dots inside
+            //       float parameters (e.g. "0.5") or record ToString values.
+            if dto.DisplayName.StartsWith(dto.FullName) && dto.DisplayName.Length > dto.FullName.Length then
+                let theoryCaseFragment = dto.DisplayName.Substring(dto.FullName.Length)
                 dto.FullName + "." + theoryCaseFragment
             else
                 dto.FullName

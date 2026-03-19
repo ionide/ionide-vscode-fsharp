@@ -365,6 +365,15 @@ let initTargets () =
                 r.Errors |> List.iter (Trace.tracefn "%s")
                 failwith "Error running fantomas")
 
+    // TypeCheck: runs Fable compilation only (no webpack) to quickly verify F# type correctness.
+    // Faster than the full Build target — useful for CI checks that only need type-checking.
+    Target.create "TypeCheck" (fun _ ->
+        Fable.run
+            { Fable.DefaultArgs with
+                Command = Fable.Build
+                Debug = false
+                Webpack = Fable.WithoutWebpack })
+
     Target.create "Default" ignore
     Target.create "Build" ignore
     Target.create "BuildDev" ignore
@@ -377,6 +386,8 @@ let buildTargetTree () =
 
     "YarnInstall" ==>! "RunScript"
     "DotNetRestore" ==>! "RunScript"
+
+    "DotNetRestore" ==>! "TypeCheck"
 
     "Clean" ==> "Format" ==> "RunScript" ==> "CopyGrammar" ==> "CopySchemas"
     ==>! "Default"
