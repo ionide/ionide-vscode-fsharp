@@ -129,6 +129,10 @@ module InfoPanel =
                 let types =
                     res.DeclaredTypes
                     |> List.filter (not << String.IsNullOrWhiteSpace)
+                    // Compiler-generated names start with '<' (e.g. <>c__DisplayClass, <MethodName>d__0)
+                    // or contain '@' (F# closure types like MatchClosure@123).
+                    // These are never useful to show in the Info Panel.
+                    |> List.filter (fun t -> not (t.StartsWith("<") || t.Contains("@")))
                     |> List.distinct
                     |> fsharpBlock
 
