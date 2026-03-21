@@ -833,6 +833,11 @@
           "description": "Automatically shows solution explorer on plugin startup",
           "type": "boolean"
         },
+        "FSharp.showTypeCheckingProgress": {
+          "default": true,
+          "description": "Show progress indicator in the status bar while the F# compiler is type-checking your code. Disable to suppress the spinner for a less distracting editing experience.",
+          "type": "boolean"
+        },
         "FSharp.showProjectExplorerIn": {
           "default": "fsharp",
           "description": "Set the activity (left bar) where the project explorer view will be displayed. If \u0060explorer\u0060, then the project explorer will be a collapsible tab in the main explorer view, a sibling to the file system explorer. If \u0060fsharp\u0060, a new activity with the F# logo will be added and the project explorer will be rendered in this activity.Requires restart.",

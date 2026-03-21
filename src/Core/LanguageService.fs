@@ -718,6 +718,13 @@ Consider:
             opts.initializationOptions <- Some !^(Some initOpts)
             opts?markdown <- createObj [ "isTrusted" ==> true; "supportHtml" ==> true ]
 
+            let showTypeCheckingProgress = "FSharp.showTypeCheckingProgress" |> Configuration.get true
+
+            if not showTypeCheckingProgress then
+                let progressMiddleware = createEmpty<Client.Middleware>
+                progressMiddleware?handleWorkDoneProgress <- (fun _ _ _ -> ())
+                opts.middleware <- Some progressMiddleware
+
             opts
 
         let cl = LanguageClient("FSharp", "F#", options, clientOpts, false)
