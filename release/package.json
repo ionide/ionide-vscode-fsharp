@@ -1762,6 +1762,11 @@
         "id": "cexpr",
         "superType": "keyword",
         "description": "A computation expression"
+      },
+      {
+        "id": "module",
+        "superType": "namespace",
+        "description": "An F# module name"
       }
     ],
     "semanticTokenModifiers": [
@@ -1811,6 +1816,9 @@
           ],
           "operator": [
             "keyword.symbol.fsharp"
+          ],
+          "module": [
+            "entity.name.namespace.fsharp"
           ]
         }
       }
