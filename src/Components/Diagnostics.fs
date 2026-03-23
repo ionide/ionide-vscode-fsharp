@@ -110,7 +110,15 @@ Error: %A
 
     let writeToFile (text: string) =
         promise {
-            let path = node.path.join (workspace.rootPath.Value, "Diagnostic info")
+            let workspaceRoot =
+                workspace.rootPath
+                |> Option.defaultWith (fun () ->
+                    workspace.workspaceFolders
+                    |> Option.bind (fun folders ->
+                        if folders.Count > 0 then Some(string folders.[0].uri.fsPath) else None)
+                    |> Option.defaultValue (node.os.tmpdir ()))
+
+            let path = node.path.join (workspaceRoot, "Diagnostic info")
             let newFile = vscode.Uri.parse ("untitled:" + path)
             let! document = newFile |> workspace.openTextDocument
 
