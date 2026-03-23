@@ -26,14 +26,24 @@ module LanguageConfiguration =
                     <| ResizeArray<OnEnterRule>(
                         [|
                            // Doc single-line comment
-                           // Example: ///
+                           // Example: /// comment
                            jsOptions<OnEnterRule> (fun rule ->
                                rule.action <-
                                    jsOptions<EnterAction> (fun action ->
                                        action.indentAction <- IndentAction.None
                                        action.appendText <- Some "/// ")
 
-                               rule.beforeText <- Regex("^\s*\/{3}.*$"))
+                               rule.beforeText <- Regex("""^\s*\/\/\/.*$"""))
+
+                           // Regular single-line comment (but not doc comment)
+                           // Example: // comment
+                           jsOptions<OnEnterRule> (fun rule ->
+                               rule.action <-
+                                   jsOptions<EnterAction> (fun action ->
+                                       action.indentAction <- IndentAction.None
+                                       action.appendText <- Some "// ")
+
+                               rule.beforeText <- Regex("""^\s*\/\/[^\/].*$"""))
 
                            |]
                     ))
