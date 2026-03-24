@@ -954,6 +954,43 @@ Consider:
                     let fsacEnvVars =
                         [ yield! fsacEnvVars
 
+                          // Propagate DOTNET_ROOT to FSAC when not already set in the process environment.
+                          // Priority: 1) explicit FSharp.dotnetRoot setting; 2) auto-detected from the
+                          // resolved dotnet binary path (following symlinks).
+                          //
+                          // This fixes test discovery (and other FSAC functionality) on Linux distributions
+                          // where dotnet is installed to a non-standard path and accessed via a symlink.
+                          // For example, Ubuntu packages install dotnet at /usr/lib/dotnet/dotnet but the
+                          // PATH entry /usr/bin/dotnet is a symlink.  FSAC's internal fallback hard-codes
+                          // /usr/share/dotnet (the Microsoft install location), which doesn't exist on
+                          // Ubuntu – causing VSTestWrapper to crash when discovering tests.
+                          //
+                          // See: https://github.com/ionide/ionide-vscode-fsharp/issues/2122
+                          // See: https://github.com/ionide/ionide-vscode-fsharp/issues/1996
+                          let dotnetRootAlreadySet =
+                              Node.Util.Object.keys node.``process``.env
+                              |> Seq.exists (fun k -> k = "DOTNET_ROOT")
+
+                          if not dotnetRootAlreadySet then
+                              match Configuration.tryGet "FSharp.dotnetRoot" with
+                              | Some dotnetRoot ->
+                                  // User has explicitly configured dotnetRoot – propagate it unchanged.
+                                  yield "DOTNET_ROOT", box dotnetRoot
+                              | None ->
+                                  // Attempt to resolve the dotnet binary path through any symlinks so we can
+                                  // derive the real DOTNET_ROOT directory.  We only set DOTNET_ROOT when the
+                                  // resolved path differs from the input (i.e. dotnet was a symlink), because
+                                  // if there is no symlink the binary is already in the correct root directory
+                                  // and FSAC can find it via the standard PATH-based fallback.
+                                  let resolvedDotnet: string =
+                                      try
+                                          emitJsExpr dotnet "require('fs').realpathSync($0)"
+                                      with _ ->
+                                          dotnet
+
+                                  if resolvedDotnet <> dotnet then
+                                      yield "DOTNET_ROOT", box (node.path.dirname resolvedDotnet)
+
                           if useDatas then
                               // DATAS and affinitization/heap management seem to be mutually exclusive, so we enforce that here.
                               yield "DOTNET_GCDynamicAdaptationMode", box (boolToInt useDatas) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#dynamic-adaptation-to-application-sizes-datas
