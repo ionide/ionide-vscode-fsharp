@@ -365,6 +365,18 @@ let initTargets () =
                 r.Errors |> List.iter (Trace.tracefn "%s")
                 failwith "Error running fantomas")
 
+    // FormatCheck: verify formatting without modifying files.
+    // Useful for CI to catch unformatted code without making changes.
+    // Run `dotnet run --project build -- -t Format` locally to fix any issues.
+    Target.create "FormatCheck" (fun _ ->
+        DotNet.exec id "fantomas" "--check src build"
+        |> fun r ->
+            if r.OK then
+                ()
+            else
+                r.Errors |> List.iter (Trace.tracefn "%s")
+                failwith "Formatting check failed. Run `dotnet run --project build -- -t Format` to fix.")
+
     Target.create "Default" ignore
     Target.create "Build" ignore
     Target.create "BuildDev" ignore
@@ -377,6 +389,8 @@ let buildTargetTree () =
 
     "YarnInstall" ==>! "RunScript"
     "DotNetRestore" ==>! "RunScript"
+
+    "DotNetRestore" ==>! "FormatCheck"
 
     "Clean" ==> "Format" ==> "RunScript" ==> "CopyGrammar" ==> "CopySchemas"
     ==>! "Default"
