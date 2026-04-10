@@ -260,15 +260,11 @@ Consider:
             cl.sendRequest ("fsharp/documentation", req)
             |> Promise.map checkNotificationAndCast<Result<DocumentationDescription>>
 
-    let documentationForSymbol xmlSig assembly =
+    let documentationForSymbol (request: DocumentationForSymbolRequest) =
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req =
-                { DocumentationForSymbolRequest.Assembly = assembly
-                  XmlSig = xmlSig }
-
-            cl.sendRequest ("fsharp/documentationSymbol", req)
+            cl.sendRequest ("fsharp/documentationSymbol", request)
             |> Promise.map checkNotificationAndCast<Result<DocumentationDescription>>
 
     let signature (uri: Uri) line col =
