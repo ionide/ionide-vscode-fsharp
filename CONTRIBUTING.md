@@ -1,16 +1,26 @@
 # How to contribute
 
-Please take a moment to review this document in order to make the contribution process easy and effective for everyone involved!
+Ionide is primarily maintained through agentic development under human guidance. Maintainers discuss
+proposed work and then direct coding agents to make the complete change, including implementation,
+tests, documentation, and other affected files.
 
-For Getting Started instructions, see:
+## Start With an Issue
 
-- [**Building** and **Running** Ionide Locally](#getting-started)
-- [Submitting **Pull Requests**](#pull-requests)
+We generally prefer contributions as [GitHub issues] rather than pull requests. Search for an
+existing report first and follow the [bug report](#bug-reports) or
+[feature request](#feature-requests) guidance below. Issues may include proposed changes, patches, or
+links to forks or branches. Maintainers may refine the scope and assign the issue to an agent to
+implement and validate the complete change.
 
-For issue reporting, use [Github Issues](https://github.com/ionide/ionide-vscode-fsharp/issues) and follow the procedures documented here:
+## Repo Assist
 
-- [Submitting **Bug Reports**](#bug-reports)
-- [Submitting **Feature Requests**](#feature-requests)
+[Repo Assist] is an automated AI assistant that runs regularly in this repository. It may triage or
+respond to issues, investigate bugs, suggest improvements, and attempt implementations as draft pull
+requests. Its work is identified as automated and remains subject to human review; Repo Assist does
+not merge pull requests or make final maintenance decisions.
+
+Maintainers can invoke Repo Assist with `/repo-assist <instructions>` for a specific agentic task,
+such as investigating an issue, preparing a fix, adding tests, or updating documentation.
 
 Personal support request (or getting contribution help) should be discussed on [F# Software Foundation Slack](https://fsharp.org/guides/slack/) or [the F# Discord](https://discord.gg/R6n7c54).
 
@@ -165,17 +175,14 @@ Remove the settings from steps 3 and 4 to go back to FSAC bundled in Ionide exte
 
 ## Pull requests
 
-Good pull requests - patches, improvements, new features - are a fantastic
-help. They should remain focused in scope and avoid containing unrelated
-commits.
+Every pull request must have a matching issue that has been discussed with the maintainers. Link the
+pull request to that issue, keep it focused in scope, and avoid unrelated commits.
 
 **IMPORTANT**: By submitting a patch, you agree that your work will be
 licensed under the license used by the project.
 
-If you have any large pull request in mind (e.g. implementing features,
-refactoring code, etc), **please ask first** otherwise you risk spending
-a lot of time working on something that the project's developers might
-not want to merge into the project.
+Maintainers may close a pull request and use the issue as the basis for an agent-produced
+implementation instead. The submitted analysis and code remain valuable inputs to that work.
 
 Please adhere to the coding conventions in the project (indentation,
 accurate comments, etc.).
@@ -236,6 +243,8 @@ Please provide as much detail and context as possible.
 [nodejs]: https://nodejs.org/en/download/
 [yarn]: https://yarnpkg.com/en/docs/install
 [vscode]: https://code.visualstudio.com/Download
+[GitHub issues]: https://github.com/ionide/ionide-vscode-fsharp/issues
+[Repo Assist]: https://github.com/githubnext/agentics/blob/main/docs/repo-assist.md
 
 
 ## Release
