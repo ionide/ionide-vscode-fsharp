@@ -107,6 +107,7 @@ module Project =
 
             sln.Items |> Array.collect getProjs |> Array.toList
         | Some(WorkspacePeekFound.Directory dir) -> dir.Fsprojs |> Array.toList
+        | Some(WorkspacePeekFound.Fsproj fsproj) -> [ fsproj.Fsproj ]
 
 
     let getNotLoaded () =
@@ -251,6 +252,7 @@ module Project =
             match loadedWorkspace with
             | None -> Array.empty
             | Some(WorkspacePeekFound.Directory dir) -> dir.Fsprojs
+            | Some(WorkspacePeekFound.Fsproj fsproj) -> [| fsproj.Fsproj |]
             | Some(WorkspacePeekFound.Solution sln) -> sln.Items |> Array.collect foldFsproj |> Array.map fst
 
         let loadingInProgress p =
@@ -308,6 +310,7 @@ module Project =
     type ConfiguredWorkspace =
         | Solution of path: string
         | Directory of path: string
+        | Fsproj of path: string
 
     module private CurrentWorkspaceConfiguration =
         let private key = "FSharp.workspacePath"
@@ -322,6 +325,8 @@ module Project =
 
             if value.ToLowerInvariant().EndsWith(".sln") then
                 ConfiguredWorkspace.Solution fullPath
+            else if value.ToLowerInvariant().EndsWith(".fsproj") then
+                ConfiguredWorkspace.Fsproj fullPath
             else
                 ConfiguredWorkspace.Directory fullPath
 
@@ -331,6 +336,12 @@ module Project =
                 try
                     let stats = node.fs.statSync (U2.Case1 dir)
                     not (isNull stats) && (stats.isDirectory ())
+                with _ ->
+                    false
+            | ConfiguredWorkspace.Fsproj fsproj ->
+                try
+                    let stats = node.fs.statSync (U2.Case1 fsproj)
+                    not (isNull stats) && (stats.isFile ())
                 with _ ->
                     false
             | ConfiguredWorkspace.Solution sln ->
@@ -373,6 +384,7 @@ module Project =
             match value with
             | ConfiguredWorkspace.Solution path -> path
             | ConfiguredWorkspace.Directory path -> path
+            | ConfiguredWorkspace.Fsproj path -> path
 
         let private isConfiguredInWorkspace () =
             match getStringFromWorkspaceConfig () with
@@ -400,6 +412,7 @@ module Project =
         let setFromPeek (value: WorkspacePeekFound) =
             match value with
             | WorkspacePeekFound.Directory dir -> ConfiguredWorkspace.Directory dir.Directory
+            | WorkspacePeekFound.Fsproj fsproj -> ConfiguredWorkspace.Fsproj fsproj.Fsproj
             | WorkspacePeekFound.Solution sln -> ConfiguredWorkspace.Solution sln.Path
             |> set
 
@@ -419,6 +432,7 @@ module Project =
             | ConfiguredWorkspace.Directory valueDir, WorkspacePeekFound.Directory peekDir ->
                 removeEndSlash valueDir = removeEndSlash peekDir.Directory
             | ConfiguredWorkspace.Solution valueSln, WorkspacePeekFound.Solution peekSln -> valueSln = peekSln.Path
+            | ConfiguredWorkspace.Fsproj valueFsproj, WorkspacePeekFound.Fsproj peekFsproj -> valueFsproj = peekFsproj.Fsproj
             | _ -> false
 
         let tryFind (value: ConfiguredWorkspace option) (found: WorkspacePeekFound list) =
@@ -443,6 +457,12 @@ module Project =
                 let item = createEmpty<QuickPickItem>
                 item.label <- sprintf "%s%s" check dir.Directory
                 item.description <- Some(sprintf "Directory with %i projects" dir.Fsprojs.Length)
+                item
+            | WorkspacePeekFound.Fsproj fsproj ->
+                let relative = node.path.relative (workspace.rootPath.Value, fsproj.Fsproj)
+                let item = createEmpty<QuickPickItem>
+                item.label <- sprintf "%s%s" check relative
+                item.description <- Some(sprintf "Single project")
                 item
             | WorkspacePeekFound.Solution sln ->
                 let relative = node.path.relative (workspace.rootPath.Value, sln.Path)
@@ -556,12 +576,12 @@ module Project =
                 return []
             else
                 let! ws = LanguageService.workspacePeek workspace.rootPath.Value deepLevel (excluded |> List.ofArray)
-
                 return
                     ws.Found
                     |> Array.sortBy (fun x ->
                         match x with
                         | WorkspacePeekFound.Solution sln -> countProjectsInSln sln
+                        | WorkspacePeekFound.Fsproj _ -> 0
                         | WorkspacePeekFound.Directory _ -> -1)
                     |> Array.rev
                     |> List.ofArray
@@ -572,33 +592,39 @@ module Project =
             let! ws = workspacePeek ()
             let configured = CurrentWorkspaceConfiguration.get ()
             let configuredPeek = CurrentWorkspaceConfiguration.tryFind configured ws
+            let! choosen = pickFSACWorkspace ws None
+            return choosen
 
-            match configuredPeek with
-            | Some peek ->
-                // If a workspace is configured, use it
-                return Some peek
-            | None ->
+            // TODO: Rewrite this so that the sln isn't always chosen, maybe add a config?
+            
+            // match configuredPeek with
+            // | Some peek ->
+            //     // If a workspace is configured, use it
+            //     return Some peek
+            // | None ->
+                
                 // prefer the sln, load directly the first one, otherwise ask
-                let slns =
-                    ws
-                    |> List.choose (fun x ->
-                        match x with
-                        | WorkspacePeekFound.Solution _ -> Some x
-                        | _ -> None)
+                // let slns =
+                //     ws
+                //     |> List.choose (fun x ->
+                //         match x with
+                //         | WorkspacePeekFound.Solution _ -> Some x
+                //         | _ -> None)
 
-                let! choosen =
-                    match slns with
-                    | [] ->
-                        ws
-                        |> List.tryPick (fun x ->
-                            match x with
-                            | WorkspacePeekFound.Directory _ -> Some x
-                            | _ -> None)
-                        |> Promise.lift
-                    | [ sln ] -> Promise.lift (Some sln)
-                    | _ -> pickFSACWorkspace ws None
+                // let! choosen =
+                //     match slns with
+                //     | [] ->
+                //         ws
+                //         |> List.tryPick (fun x ->
+                //             match x with
+                //             | WorkspacePeekFound.Directory _ -> Some x
+                //             | _ -> None)
+                //         |> Promise.lift
+                //     | [ sln ] -> Promise.lift (Some sln)
+                //     | _ -> pickFSACWorkspace ws None
 
-                return choosen
+                // let! choosen = pickFSACWorkspace ws None
+                // return choosen
         }
 
     let handleProjectParsedNotification res =
@@ -650,10 +676,12 @@ module Project =
         let projs =
             match x with
             | WorkspacePeekFound.Directory dir -> dir.Fsprojs
+            | WorkspacePeekFound.Fsproj fsproj -> [| fsproj.Fsproj |]
             | WorkspacePeekFound.Solution sln -> sln.Items |> Array.collect foldFsproj |> Array.map fst
 
         match x with
         | WorkspacePeekFound.Solution _ -> setAnyProjectContext true
+        | WorkspacePeekFound.Fsproj _ -> setAnyProjectContext false
         | WorkspacePeekFound.Directory _ when not (projs |> Array.isEmpty) -> setAnyProjectContext true
         | _ -> ()
 
