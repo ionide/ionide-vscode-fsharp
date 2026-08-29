@@ -12,10 +12,10 @@ module LanguageConfiguration =
         jsOptions<IndentationRule> (fun o ->
             o.increaseIndentPattern <-
                 Regex(
-                    """^(\s*(module|type|let|static member|member)\b.*=\s*)$|^(\s*(with get|and set)\b.*=.*)$|^(\s*(if|elif|then|else|static member|member)).*$"""
+                    """^(\s*(module|type|let|static member|member)\b.*=\s*)$|^(\s*(with get|and set)\b.*=.*)$|^(\s*(if|elif|then|else|static member|member|\(\*)).*$"""
                 )
 
-            o.decreaseIndentPattern <- Regex("""^(\s*(else|elif|and)).*$"""))
+            o.decreaseIndentPattern <- Regex("""^(\s*(else|elif|and|\*\))).*$"""))
 
     let setLanguageConfiguration (triggerNotification: bool) =
         // Config always setted
