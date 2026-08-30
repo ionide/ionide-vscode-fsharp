@@ -1986,9 +1986,9 @@ module Interactions =
                 let! buildResults =
                     projectRunRequests
                     |> List.ofArray
-                    |> Promise.mapExecuteForAll (buildProject testRun)
+                    |> Promise.executeWithMaxParallel maxParallelTestProjects (buildProject testRun)
 
-                let successfullyBuiltRequests = buildResults |> List.choose id
+                let successfullyBuiltRequests = buildResults |> Array.choose id |> List.ofArray
 
                 if useLegacyDotnetCliIntegration then
                     let! _ =
