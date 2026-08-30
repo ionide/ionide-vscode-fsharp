@@ -1,4 +1,9 @@
 
+### 7.31.2 - 24.02.2026
+
+* [Fix test location URI construction on Linux/Mac](https://github.com/ionide/ionide-vscode-fsharp/pull/2129) — use `vscode.Uri.file` instead of `vscode.Uri.parse` to avoid invalid four-slash URIs on Linux/Mac, fixing test discovery in the Test Explorer
+* [Fix minimum VS Code engine version in release package.json](https://github.com/ionide/ionide-vscode-fsharp/pull/2131) — update the `engines.vscode` field from `^0.10.0` to `^1.52.0` for accurate Marketplace metadata
+
 ### 7.31.1 - 05.02.2025
 
 * [Add more Debug logs when activating features])https://github.com/ionide/ionide-vscode-fsharp/pull/2124) (thanks @64J0!)
