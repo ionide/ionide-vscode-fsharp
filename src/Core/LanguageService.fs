@@ -951,8 +951,21 @@ Consider:
                         | Some i -> Some i
                         | None -> if isdotnet8 then Some 2 else None
 
+                    // If FSharp.dotnetRoot is configured and DOTNET_ROOT is not already set in the
+                    // process environment, propagate it so the FSAC process can locate the runtime.
+                    // This is important when dotnet is installed via conda/micromamba where DOTNET_ROOT
+                    // is only set when the virtual environment is activated.
+                    // See: https://github.com/ionide/ionide-vscode-fsharp/issues/1996
+                    let dotnetRootInEnv =
+                        Node.Util.Object.keys node.``process``.env
+                        |> Seq.exists (fun k -> k = "DOTNET_ROOT")
+
                     let fsacEnvVars =
                         [ yield! fsacEnvVars
+
+                          match Configuration.tryGet "FSharp.dotnetRoot" with
+                          | Some dotnetRoot when not dotnetRootInEnv -> yield "DOTNET_ROOT", box dotnetRoot
+                          | _ -> ()
 
                           if useDatas then
                               // DATAS and affinitization/heap management seem to be mutually exclusive, so we enforce that here.
