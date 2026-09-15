@@ -283,7 +283,17 @@ module TestItemDTO =
             // NOTE: XUnit includes the FullyQualifiedName in the DisplayName.
             //       But it doesn't nest theory cases, just appends the case parameters
             if dto.DisplayName <> dto.FullName then
-                let theoryCaseFragment = dto.DisplayName.Split('.') |> Array.last
+                // The DisplayName includes the FullName as a prefix, so we extract the parameter portion
+                // Example: FullName="MyModule.MyTest", DisplayName="MyModule.MyTest(x: 0.5, y: 0.25)"
+                // We need to extract "(x: 0.5, y: 0.25)" not just "25)" as would happen with Split('.')
+                let theoryCaseFragment =
+                    if dto.DisplayName.StartsWith(dto.FullName) then
+                        dto.DisplayName.Substring(dto.FullName.Length)
+                    else
+                        // Fallback: if DisplayName doesn't start with FullName (unexpected case),
+                        // use the old behavior. This may still have issues with floating point parameters.
+                        dto.DisplayName.Split('.') |> Array.last
+
                 dto.FullName + "." + theoryCaseFragment
             else
                 dto.FullName
