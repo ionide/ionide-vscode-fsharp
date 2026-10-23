@@ -1,4 +1,16 @@
 
+### 8.0.0 - 23.10.2026
+
+* Update to FSAC 0.86.0. **Ionide now needs the .NET 10 runtime.** FsAutoComplete runs on .NET 10 only, and the .NET 10 SDK includes this runtime. Your projects can still use the .NET 8 or 9 SDK, for example through a `global.json`, and target `net8.0`, `net9.0` or any other framework, as long as the .NET 10 runtime is installed. FSAC only loads analyzers built against FSharp.Analyzers.SDK 0.41, such as Ionide.Analyzers 0.20.0 and G-Research.FSharp.Analyzers 0.26.0. Check out the release notes for [0.84.0](https://github.com/ionide/FsAutoComplete/releases/tag/v0.84.0), [0.85.0](https://github.com/ionide/FsAutoComplete/releases/tag/v0.85.0), [0.85.1](https://github.com/ionide/FsAutoComplete/releases/tag/v0.85.1), [0.85.2](https://github.com/ionide/FsAutoComplete/releases/tag/v0.85.2), [0.85.3](https://github.com/ionide/FsAutoComplete/releases/tag/v0.85.3), [0.85.4](https://github.com/ionide/FsAutoComplete/releases/tag/v0.85.4) and [0.86.0](https://github.com/ionide/FsAutoComplete/releases/tag/v0.86.0) for more details.
+* Ionide checks for the .NET 10 runtime before it starts FSAC. When it is missing, an error lists the runtimes it found and links to the .NET 10 download and the .NET installation guide.
+* FSAC always runs on the .NET 10 runtime, so its garbage collector defaults no longer depend on the SDK your workspace pins. DATAS (`FSharp.fsac.gc.useDatas`) is on by default, and setting it to `false` now turns DATAS off. The .NET 8 defaults for `FSharp.fsac.gc.heapCount` and `FSharp.fsac.gc.noAffinitize` are gone.
+* Ionide no longer sets `DOTNET_ROLL_FORWARD` or `DOTNET_ROLL_FORWARD_TO_PRERELEASE` when it starts FSAC, so the processes FSAC starts, like test hosts, no longer inherit them. FSAC runs on .NET 10 when it is installed, and otherwise on a newer version, including previews such as .NET 11 RC 2.
+* [Fix test location URI construction on Linux/Mac](https://github.com/ionide/ionide-vscode-fsharp/pull/2129)
+* [Fix minimum VS Code engine version in extension manifest](https://github.com/ionide/ionide-vscode-fsharp/pull/2131)
+* [Suppress workload update notifications in test output](https://github.com/ionide/ionide-vscode-fsharp/pull/2155)
+* [Filter compiler-generated types from Info Panel declared types list](https://github.com/ionide/ionide-vscode-fsharp/pull/2157)
+* [Handle a missing workspace root path in FSI and Diagnostics commands](https://github.com/ionide/ionide-vscode-fsharp/pull/2162)
+
 ### 7.31.1 - 05.02.2025
 
 * [Add more Debug logs when activating features])https://github.com/ionide/ionide-vscode-fsharp/pull/2124) (thanks @64J0!)
