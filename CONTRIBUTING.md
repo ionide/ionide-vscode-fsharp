@@ -21,7 +21,7 @@ First things first! In order to build & develop Ionide locally, you'll need to i
 ### Prerequisites
 
 - [Visual Studio Code][vscode]
-- [.NET 7][dotnet]
+- [.NET 10][dotnet]
 - [Node.js][nodejs]
 - [Yarn][yarn]
 
@@ -144,7 +144,7 @@ Most Ionide bugs are actually from there. This repo only stores the glue code be
     ```bash
     git clone https://github.com/YOUR_GITHUB_USER/FsAutoComplete.git
     ```
-2. Follow the [FSAC build instructions](https://github.com/fsharp/FsAutoComplete#building-and-testing) and copy the dll output from the output log, it should be a path inside the FSAC repo ending with `src/FsAutoComplete/bin/Release/net6.0/fsautocomplete.dll`. (Alternatively, delete the `net6.0/fsautocomplete.dll` part and it will also work.) Note that `Release` may be substituted with `Debug` if you build with that configuration instead. Also, note that `net6.0` may be replaced with another .NET version like `net7.0` as FsAutoComplete targets a newer .NET version.
+2. Follow the [FSAC build instructions](https://github.com/fsharp/FsAutoComplete#building-and-testing) and copy the dll output from the output log, it should be a path inside the FSAC repo ending with `src/FsAutoComplete/bin/Release/net10.0/fsautocomplete.dll`. (Alternatively, delete the `net10.0/fsautocomplete.dll` part and it will also work.) Note that `Release` may be substituted with `Debug` if you build with that configuration instead. Also, note that `net10.0` may be replaced with another .NET version if FsAutoComplete targets a newer .NET version.
 3. In the instance of VSCode that you have Ionide open, open settings (`CMD ,` or `Ctrl ,` by default), and find the section `FSharp > Fsac: Net Core Dll Path` and paste the output you copied from step 3.
 4. Now find the section `FSharp > Fsac: Attach Debugger` and check the check box.
 5. Close settings
@@ -158,7 +158,7 @@ Remove the settings from steps 3 and 4 to go back to FSAC bundled in Ionide exte
 
 ### FSAC Dependencies
 
-- [.NET 6][dotnet]
+- [.NET 10][dotnet]
 - [Node.js][nodejs]
 - [Yarn][yarn]
 - [Visual Studio Code][vscode]
@@ -218,7 +218,7 @@ Do `Ctrl+Shift+P > F#: Get info for diagnostics`, this will open a file with som
 > * Arch: **x64**
 > * VSCode: **1.23.1**
 > * Runtime: **netcore**
-> * Dotnet version: **2.1.103**
+> * Dotnet version: **10.0.100**
 > <!-- You can also linked the FSAC log file into your issue -->
 > <!-- Use `Ctrl+P > "F#: Get FSAC logs"` commands to get file location -->
 

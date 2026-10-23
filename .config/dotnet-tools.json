@@ -3,22 +3,25 @@
   "isRoot": true,
   "tools": {
     "paket": {
-      "version": "8.0.3",
+      "version": "12.0.0-alpha002",
       "commands": [
         "paket"
-      ]
+      ],
+      "rollForward": false
     },
     "fantomas": {
       "version": "6.2.1",
       "commands": [
         "fantomas"
-      ]
+      ],
+      "rollForward": false
     },
     "fable": {
-      "version": "4.2.2",
+      "version": "4.29.0",
       "commands": [
         "fable"
-      ]
+      ],
+      "rollForward": false
     }
   }
 }

@@ -237,6 +237,93 @@ Consider:
                     | Some semver -> return Core.Ok semver
         }
 
+    /// runs `dotnet --list-runtimes` to find the versions of the installed Microsoft.NETCore.App runtimes.
+    let netCoreRuntimeVersions (dotnet: string) =
+        promise {
+            // Not Process.exec: it joins the stdout chunks with a newline, and a chunk can end in the middle of a line.
+            let! (error: obj option), stdout =
+                Promise.create (fun resolve _ ->
+                    let stdout = ResizeArray()
+
+                    Process.spawn dotnet (ResizeArray [ "--list-runtimes" ])
+                    |> Process.onOutput (fun chunk -> stdout.Add(string chunk))
+                    |> Process.onErrorOutput ignore // drain stderr, a full pipe would block the process
+                    |> Process.onError (fun e -> resolve (Some e, ""))
+                    |> Process.onClose (fun _ _ -> resolve (None, String.concat "" stdout))
+                    |> ignore)
+
+            match error with
+            | Some e -> return Core.Error $"error while invoking: {e?message}"
+            | None ->
+                // lines look like `Microsoft.NETCore.App 10.0.13 [/usr/share/dotnet/shared/Microsoft.NETCore.App]`
+                return
+                    stdout.Split([| '\n' |])
+                    |> Array.choose (fun line ->
+                        let line = line.Trim()
+
+                        if line.StartsWith "Microsoft.NETCore.App " then
+                            semver.parse (Some(U2.Case1(line.Split([| ' ' |]).[1])))
+                        else
+                            None)
+                    |> Core.Ok
+        }
+
+    /// FSAC only starts when a .NET runtime with at least the major version of its target framework is installed.
+    /// Tells the user how to install that runtime when it is missing, and returns whether FSAC can start.
+    /// When the installed runtimes can't be determined, FSAC is allowed to try.
+    let ensureRuntimeForFsac (dotnet: string) (fsacTfm: string) =
+        let requiredMajor =
+            if fsacTfm.StartsWith "netcoreapp" || not (fsacTfm.StartsWith "net") then
+                None
+            else
+                match Int32.TryParse(fsacTfm.Substring(3).Split([| '.' |]).[0]) with
+                | (true, major) -> Some major
+                | _ -> None
+
+        promise {
+            match requiredMajor with
+            | None -> return true
+            | Some requiredMajor ->
+                match! netCoreRuntimeVersions dotnet with
+                | Error e ->
+                    printfn $"Could not list the installed .NET runtimes: {e}"
+                    return true
+                | Ok runtimes when runtimes.Length = 0 -> return true
+                | Ok runtimes when runtimes |> Array.exists (fun v -> int v.major >= requiredMajor) -> return true
+                | Ok runtimes ->
+                    let installed = runtimes |> Array.map (fun v -> v.raw) |> String.concat ", "
+                    let downloadUrl = $"https://dotnet.microsoft.com/download/dotnet/{requiredMajor}.0"
+                    let installDocsUrl = "https://learn.microsoft.com/dotnet/core/install/"
+                    let download = $"Download .NET {requiredMajor}"
+                    let installDocs = "Installation guide"
+
+                    let msg =
+                        $"Ionide needs the .NET {requiredMajor} runtime to run the F# language server, but '{dotnet}' only has these runtimes: {installed}. Install .NET {requiredMajor} (the SDK includes the runtime) and restart VS Code. If .NET {requiredMajor} is installed somewhere else, point the 'FSharp.dotnetRoot' setting to it."
+
+                    printfn $"{msg}"
+
+                    // don't wait for the user to pick an option, FSAC can't start either way
+                    promise {
+                        let! selection = window.showErrorMessage (msg, download, installDocs)
+
+                        let url =
+                            match selection with
+                            | Some s when s = download -> Some downloadUrl
+                            | Some s when s = installDocs -> Some installDocsUrl
+                            | _ -> None
+
+                        match url with
+                        | Some url ->
+                            let! _ = env.openExternal (vscode.Uri.parse url)
+                            ()
+                        | None -> ()
+                    }
+                    |> Promise.catch (fun e -> printfn $"Could not open the .NET install link: %A{e}")
+                    |> ignore
+
+                    return false
+        }
+
 
     let f1Help (uri: Uri) line col =
         match client with
@@ -770,8 +857,12 @@ Consider:
             let gcNoAffinitize =
                 "Fsharp.fsac.gc.noAffinitize" |> Configuration.tryGet |> Option.bind tryBool
 
+            // VS Code returns 0 for an integer setting that isn't set
             let gcHeapCount =
-                "FSharp.fsac.gc.heapCount" |> Configuration.tryGet |> Option.bind tryInt
+                "FSharp.fsac.gc.heapCount"
+                |> Configuration.tryGet
+                |> Option.bind tryInt
+                |> Option.filter (fun count -> count > 0)
 
             let parallelReferenceResolution =
                 "FSharp.fsac.parallelReferenceResolution" |> Configuration.get false
@@ -872,7 +963,7 @@ Consider:
                 | 2, 0 -> "netcoreapp2.0"
                 | n, _ -> $"net{n}.0"
 
-            let discoverDotnetArgs () =
+            let discoverDotnetArgs dotnet =
                 promise {
 
                     let! sdkVersionAtRootPath = sdkVersion ()
@@ -888,34 +979,17 @@ Consider:
                         let fsacTfm, fsacPath = fsacPathForTfm sdkTfm
                         printfn "Parsed TFM to fsac path: %s" fsacPath
 
-                        let userDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
+                        let! canStart = ensureRuntimeForFsac dotnet fsacTfm
 
-                        let hasUserRollForward =
-                            userDotnetArgs
-                            |> Array.tryFindIndex (fun a -> a = "--roll-forward")
-                            |> Option.map (fun _ -> true)
-                            |> Option.defaultValue false
+                        if not canStart then
+                            failwith $"No .NET runtime found to run FSAC, which targets {fsacTfm}"
 
-                        let hasUserFxVersion =
-                            userDotnetArgs
-                            |> Array.tryFindIndex (fun a -> a = "--fx-version")
-                            |> Option.map (fun _ -> true)
-                            |> Option.defaultValue false
+                        let args = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
 
-                        let shouldApplyImplicitRollForward =
-                            not (hasUserFxVersion || hasUserRollForward) && sdkTfm <> fsacTfm // if the SDK doesn't match one of our FSAC TFMs, then we're in compat mode
-
-                        let args = userDotnetArgs
-
-                        let envVariables =
-                            [ if shouldApplyImplicitRollForward then
-                                  "DOTNET_ROLL_FORWARD", box "LatestMajor"
-                              match sdkVersion.prerelease with
-                              | null -> ()
-                              | pres when Seq.length pres > 0 -> "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1
-                              | _ -> () ]
-
-                        return args, envVariables, fsacPath, sdkVersion
+                        // No DOTNET_ROLL_FORWARD(_TO_PRERELEASE) here: FSAC's runtimeconfig already rolls forward to
+                        // newer majors, and the host only picks a preview runtime when no release fits.
+                        // The variables would also leak into the processes FSAC starts, like test hosts.
+                        return args, fsacPath
                 }
 
             /// Converts true to 1 and false to 0
@@ -924,41 +998,22 @@ Consider:
 
             let spawnNetCore dotnet : JS.Promise<Executable> =
                 promise {
-                    let! (fsacDotnetArgs, fsacEnvVars, fsacPath, sdkVersion) = discoverDotnetArgs ()
-                    // Only set DOTNET_GCHeapCount if we're on .NET 7 or higher
-                    // .NET 6 has some issues with this env var on linux
-                    // https://github.com/ionide/ionide-vscode-fsharp/issues/1899
+                    let! (fsacDotnetArgs, fsacPath) = discoverDotnetArgs dotnet
+                    // FSAC runs on the .NET 10 runtime, whatever SDK the workspace pins,
+                    // so the GC defaults don't depend on the SDK version.
 
-                    let versionSupportingDATASGCMode = (semver.parse (Some(U2.Case1 "9.0.0"))).Value
-                    let isdotnet8 = sdkVersion.major = 8
+                    // datas is on by default for server GC since .NET 9
+                    let useDatas = gcServerUseDatas |> Option.defaultValue true
 
-                    let isNet9orHigher =
-                        semver.cmp (U2.Case2 sdkVersion, Operator.GTE, U2.Case2 versionSupportingDATASGCMode)
-
-                    // datas is on by 9
-                    let useDatas =
-                        match gcServerUseDatas with
-                        | Some b -> b
-                        | None -> isNet9orHigher
-
-                    let gcNoAffinitize =
-                        match gcNoAffinitize with
-                        | Some b -> b
-                        | None -> isdotnet8 || not useDatas // no need to affinitize on 9 because Datas
-
-                    let gcHeapCount =
-                        match gcHeapCount with
-                        | Some i -> Some i
-                        | None -> if isdotnet8 then Some 2 else None
+                    let gcNoAffinitize = gcNoAffinitize |> Option.defaultValue false
 
                     let fsacEnvVars =
-                        [ yield! fsacEnvVars
+                        [ // always set, the .NET 10 runtime turns DATAS on for server GC when this is missing
+                          yield "DOTNET_GCDynamicAdaptationMode", box (boolToInt useDatas) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#dynamic-adaptation-to-application-sizes-datas
 
-                          if useDatas then
-                              // DATAS and affinitization/heap management seem to be mutually exclusive, so we enforce that here.
-                              yield "DOTNET_GCDynamicAdaptationMode", box (boolToInt useDatas) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#dynamic-adaptation-to-application-sizes-datas
-                          else
-                              // it doesn't really make sense to set GCNoAffinitize without setting GCHeapCount
+                          // DATAS and affinitization/heap management seem to be mutually exclusive, so we enforce that here.
+                          if not useDatas then
+                              // it doesn't really make sense to set GCNoAffinitize without setting GCHeapCount, 0 is the runtime default
                               yield "DOTNET_GCNoAffinitize", box (boolToInt gcNoAffinitize) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#affinitize
 
                               yield!

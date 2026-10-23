@@ -20,7 +20,14 @@ You find a version of this plugin pre-packaged with the FOSS debugger from Samsu
 
 # Requirements
 
-* .NET 8.0/9.0 SDK - https://dotnet.microsoft.com/download
+* .NET 10 runtime - https://dotnet.microsoft.com/download/dotnet/10.0
+
+  Ionide runs its language server (FsAutoComplete) on the .NET 10 runtime only, so .NET 8 or .NET 9 on their own are not enough.
+  The .NET 10 SDK includes this runtime.
+
+* .NET SDK 8.0 or later, to load your projects - https://dotnet.microsoft.com/download
+
+  A `global.json` can pin the .NET 8 or .NET 9 SDK, and your projects can target `net8.0`, `net9.0` or any other framework.
 
 * VS Code C# plugin - Ionide's debugging capabilities rely on either the [Omnisharp](https://github.com/OmniSharp/omnisharp-vscode) debugger or [netcoredbg](https://github.com/muhammadsammy/free-omnisharp-vscode).
 

@@ -309,7 +309,14 @@ let initTargets () =
 
 
     Target.create "CopyFSACNetcore" (fun _ ->
-        let tfms = [ "net8.0"; "net9.0" ]
+        let tfms = [ "net10.0" ]
+
+        // remove FSAC builds of TFMs we no longer ship, an old build would win the TFM probe
+        if Directory.Exists "release/bin" then
+            for dir in Directory.GetDirectories("release/bin", "net*") do
+                if not (List.contains (Path.GetFileName dir) tfms) then
+                    Trace.tracefn $"Removing stale FSAC binaries in {dir}"
+                    Shell.deleteDir dir
 
         for tfm in tfms do
             let fsacBinNetcore = $"packages/fsac/fsautocomplete/tools/{tfm}/any"
@@ -319,7 +326,7 @@ let initTargets () =
                 Trace.tracefn $"Copying FSAC binaries from {fsacBinNetcore} to {releaseBinNetcore}"
                 copyFSACNetcore releaseBinNetcore fsacBinNetcore
             else
-                Trace.tracefn $"No FSAC binaries found for {tfm}")
+                failwith $"No FSAC binaries found for {tfm} in {fsacBinNetcore}")
 
     Target.create "CopyGrammar" (fun _ ->
         let fsgrammarDir = "paket-files/github.com/ionide/ionide-fsgrammar/grammars"
