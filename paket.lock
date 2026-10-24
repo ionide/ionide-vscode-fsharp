@@ -42,7 +42,6 @@ GIT
      (0cb968a4b8fdb2e0656b95342cdffbeff04a1248)
 GITHUB
   remote: ionide/ionide-vscode-helpers
-    src/Fable.Import.Showdown.fs (8e81bc03f11f07b8e0811b3d4598eadc78f32f2f)
     src/Fable.Import.VSCode.fs (8e81bc03f11f07b8e0811b3d4598eadc78f32f2f)
     src/Fable.Import.VSCode.LanguageServer.fs (8e81bc03f11f07b8e0811b3d4598eadc78f32f2f)
     src/Helpers.fs (8e81bc03f11f07b8e0811b3d4598eadc78f32f2f)
