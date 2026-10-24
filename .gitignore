@@ -84,3 +84,7 @@ fsacpath.txt
 
 # include vscode ui toolkit minified release file
 !release/toolkit.min.js
+
+# the smoke test, and the VS Code it downloads
+!test/smoke/*.js
+.vscode-test/

@@ -69,6 +69,9 @@ dotnet fsi build.fsx -p BuildDev
 - `Build`: the same build without the formatting check and the `.vsix`, for a quicker local build.
 - `BuildDev`: compiles with `DEBUG` defined and an unminified bundle.
 - `Watch`: rebuilds on every change, with `DEBUG` defined.
+- `Test`: builds the extension and smoke tests it: it downloads VS Code into `.vscode-test`, starts Ionide on `test/smoke/workspace` and waits until FSAC answers a hover. CI runs it after `Package`, and there it tests that build instead of building again. It opens a VS Code window while it runs.
+
+The smoke test is plain JavaScript in `test/smoke`, not F# compiled with Fable like the extension. For a single test, a second Fable project and a compile step before every test run did not seem worth it. When there are more tests, that is worth reconsidering.
 
 `dotnet fsi build.fsx -- -h` lists all pipelines.
 
@@ -163,7 +166,7 @@ Good pull requests (patches, improvements, new features) are a fantastic help. T
 
 If you have a large pull request in mind (e.g. implementing features, refactoring code, etc.), **please ask first**. Otherwise you risk spending a lot of time on something the project's developers might not want to merge.
 
-Please adhere to the coding conventions in the project (formatting, accurate comments, etc.). Before you open the pull request, run `dotnet fsi build.fsx`: CI runs the same `Package` pipeline on Linux, Windows and macOS, and fails on unformatted code.
+Please adhere to the coding conventions in the project (formatting, accurate comments, etc.). Before you open the pull request, run `dotnet fsi build.fsx`: CI runs the same `Package` pipeline on Linux, Windows and macOS, and fails on unformatted code. CI then runs the `Test` pipeline, which you can run with `dotnet fsi build.fsx -p Test`.
 
 ## Bug reports
 
