@@ -11,7 +11,7 @@ module XmlDoc =
             inherit XmlNode
         end
 
-    let private dom: obj = import "DOMParser" "xmldom"
+    let private dom: obj = import "DOMParser" "@xmldom/xmldom"
 
     let mkDoc (xmlContent: string) : XmlDoc =
         emitJsExpr (dom, xmlContent) "new $0().parseFromString($1)"

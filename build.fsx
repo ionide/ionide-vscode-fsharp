@@ -84,7 +84,18 @@ let lint =
 let restore =
     stage "restore" {
         run "dotnet tool restore"
-        run "yarn install"
+
+        // CI installs exactly what package-lock.json says, and fails when it is out of date
+        stage "npm ci" {
+            whenEnvVar "CI"
+            run "npm ci --no-audit --no-fund"
+        }
+
+        stage "npm install" {
+            whenNot { envVar "CI" }
+            run "npm install --no-audit --no-fund"
+        }
+
         run "dotnet restore src"
     }
 
@@ -185,7 +196,8 @@ pipeline "Package" {
 
     stage "vsce" {
         workingDir releaseDir
-        run $"npx @vscode/vsce package --out \"%s{tempDir}\""
+        // release/ has its own package.json, so point npx at the root one for the vsce in package-lock.json
+        run $"npx --yes=false --prefix \"%s{__SOURCE_DIRECTORY__}\" @vscode/vsce package --out \"%s{tempDir}\""
     }
 
     runIfOnlySpecified false
@@ -243,7 +255,7 @@ pipeline "Release" {
     }
 
     stage "marketplace" {
-        run (fun _ -> $"npx @vscode/vsce publish --packagePath \"%s{vsixPath releaseVersion.Value}\"")
+        run (fun _ -> $"npx --yes=false @vscode/vsce publish --packagePath \"%s{vsixPath releaseVersion.Value}\"")
     }
 
     runIfOnlySpecified true

@@ -16,6 +16,11 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # 0.9 requires a mime type in parseFromString and throws on malformed XML,
+      # see src/Imports/XPath.fs before moving to it
+      - dependency-name: "@xmldom/xmldom"
+        update-types: ["version-update:semver-minor"]
     groups:
       npm:
         patterns:
