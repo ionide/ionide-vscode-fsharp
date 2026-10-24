@@ -1,30 +1,24 @@
 name: Release
-on: 
+on:
   workflow_dispatch:
-    inputs:
-      username:
-        description: Github username of the person triggering the release
-        default: "Krzysztof-Cieslak"
-        required: true
-      email:
-        description: Email of the person triggering the release
-        default: "krzysztof_cieslak@windowslive.com"
-        required: true
+
+permissions:
+  contents: write
 
 jobs:
   release:
+    # the release target commits the version bump and pushes it to main
+    if: github.ref == 'refs/heads/main'
     # this workflow is the same as the build workflow, up until artifact upload + publish
     runs-on: windows-latest # can be any, just picked windows
 
     steps:
-    # manual triggers are detached HEADs, so we need to checkout the branch
-    # to actually create + push a commit later on in the workflow
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
       with:
-        ref: ${{ github.head_ref }}
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-    - uses: actions/setup-node@v3
+        global-json-file: global.json
+    - uses: actions/setup-node@v7
       with:
         node-version: '22'
         cache: 'yarn'
@@ -35,20 +29,20 @@ jobs:
     - name: Seed Paket git cache
       shell: bash
       run: git clone --mirror https://github.com/ionide/ionide-fsgrammar.git "${USERPROFILE:-$HOME}/.paket/git/db/ionide-fsgrammar"
-    - name: Run Test
+    - name: Build package
       run: dotnet run --project build -- -t BuildPackage
     - name: upload artifact package
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ionide-fsharp-vscode-ext
         path: release/
     - name: Publish Release
       env:
-        nuget-key: ${{ secrets.NUGET_KEY }}
-        github-user: ${{ github.event.inputs.username }}
+        # the version bump commit is authored by whoever triggered the release
+        github-user: ${{ github.actor }}
+        user-email: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         vsce-token: ${{ secrets.VSCE_TOKEN }}
-        user-email: ${{ github.event.inputs.email }}
       run: dotnet run --project build -- -t Release
     - name: Build OpenVsix package
       run: dotnet run --project build -- -t BuildPackageOpenVsix

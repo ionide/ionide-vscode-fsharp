@@ -3,37 +3,56 @@ name: Build Pull Requests
 on:
   push:
     branches:
-      - '*'
+      - main
   pull_request:
-    branches:
-      - '*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
 
     strategy:
       matrix:
-        # ubuntu build not supported in paket.dependencies for repo builds,
-        # need to add linux commands first
-        os: [windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false # we have timing issues on some OS, so we want them all to run
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v7
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+    - uses: actions/setup-node@v7
       with:
         node-version: '22'
         cache: 'yarn'
     - name: Restore tools
       run: dotnet tool restore
-    - run: yarn global add @vscode/vsce
     # Workaround for https://github.com/fsprojects/Paket/issues/4461: Paket 11 and later fail to
     # create the git cache for a git dependency, so seed it. Remove once Paket is fixed.
     - name: Seed Paket git cache
       shell: bash
       run: git clone --mirror https://github.com/ionide/ionide-fsgrammar.git "${USERPROFILE:-$HOME}/.paket/git/db/ionide-fsgrammar"
-    - name: Run Test
+    - name: Build
       run: dotnet run --project build -- -t Build
+
+  format:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+    - name: Restore tools
+      run: dotnet tool restore
+    - name: Check formatting
+      run: dotnet fantomas --check src build
