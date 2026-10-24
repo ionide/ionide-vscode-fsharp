@@ -9,7 +9,7 @@ nuget Fable.Browser.Dom
 
 nuget Fable.HtmlConverter
 
-nuget Thoth.Json 7.0
+nuget Thoth.Json
 
 git https://github.com/ionide/ionide-fsgrammar.git master
 
