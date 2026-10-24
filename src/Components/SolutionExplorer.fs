@@ -873,7 +873,7 @@ module SolutionExplorer =
                     res)
                 |> ResizeArray
 
-            let cwd = workspace.rootPath
+            let cwd = workspaceRootPath ()
 
             match cwd with
             | Some cwd ->
@@ -909,9 +909,9 @@ module SolutionExplorer =
                                     else if output.IsSome then
                                         output.Value + ".fsproj"
                                     else
-                                        (node.path.dirname workspace.rootPath.Value) + ".fsproj"
+                                        (node.path.dirname (workspaceRootPath ()).Value) + ".fsproj"
 
-                                let proj = node.path.join (workspace.rootPath.Value, dir, name, pname)
+                                let proj = node.path.join ((workspaceRootPath ()).Value, dir, name, pname)
                                 let args = [ "sln"; slnName; "add"; proj ]
 
                                 Project.execWithDotnet MSBuild.outputChannel (ResizeArray args) |> ignore

@@ -173,6 +173,16 @@ module Utils =
     [<Emit("$0 === undefined")>]
     let isUndefined (x: 'a) : bool = jsNative
 
+    /// The path of the first workspace folder, or None without a workspace.
+    /// This is what the deprecated `workspace.rootPath` returns.
+    let workspaceRootPath () : string option =
+        workspace.workspaceFolders
+        |> Option.bind (fun folders ->
+            if folders.Count > 0 then
+                Some folders.[0].uri.fsPath
+            else
+                None)
+
     type System.Collections.Generic.Dictionary<'key, 'value> with
 
         [<Emit("$0.has($1) ? $0.get($1) : null")>]

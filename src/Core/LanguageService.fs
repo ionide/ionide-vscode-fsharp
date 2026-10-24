@@ -242,7 +242,7 @@ Consider:
                     return Core.Error "Could not find 'dotnet'"
         }
 
-    /// runs `dotnet --version` in the current rootPath to determine the resolved sdk version from the global.json file.
+    /// runs `dotnet --version` in the workspace root to determine the resolved sdk version from the global.json file.
     let sdkVersion () =
         promise {
             let! dotnet = tryFindDotnet ()

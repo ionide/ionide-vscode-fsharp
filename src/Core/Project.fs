@@ -118,7 +118,7 @@ module Project =
         lst
 
     let isIgnored (path: string) =
-        let relativePath = node.path.relative (workspace.rootPath.Value, path)
+        let relativePath = node.path.relative ((workspaceRootPath ()).Value, path)
 
         let isSubDir p =
             let relativeToDir = node.path.relative (p, relativePath)
@@ -148,7 +148,7 @@ module Project =
                 with _ ->
                     [])
 
-        match workspace.rootPath with
+        match workspaceRootPath () with
         | None -> []
         | Some rootPath -> findProjs rootPath
 
@@ -173,7 +173,7 @@ module Project =
                 with _ ->
                     [])
 
-        match workspace.rootPath with
+        match workspaceRootPath () with
         | None -> []
         | Some rootPath -> rootPath |> findProjs
 
@@ -288,7 +288,7 @@ module Project =
                     with _ ->
                         [])
 
-        match workspace.rootPath with
+        match workspaceRootPath () with
         | None -> []
         | Some rootPath -> findProjs rootPath
 
@@ -316,7 +316,7 @@ module Project =
             extensionWorkspaceState <- Some context.workspaceState
 
         let private parse (value: string) =
-            let fullPath = node.path.resolve (workspace.rootPath.Value, value)
+            let fullPath = node.path.resolve ((workspaceRootPath ()).Value, value)
 
             if value.ToLowerInvariant().EndsWith(".sln") then
                 ConfiguredWorkspace.Solution fullPath
@@ -383,7 +383,7 @@ module Project =
 
             if isConfiguredInWorkspace () then
                 let relativePath =
-                    let raw = node.path.relative (workspace.rootPath.Value, configuredPath)
+                    let raw = node.path.relative ((workspaceRootPath ()).Value, configuredPath)
 
                     if not (node.path.isAbsolute raw) && not (raw.StartsWith "..") then
                         "./" + raw
@@ -443,7 +443,7 @@ module Project =
                 item.description <- Some(sprintf "Directory with %i projects" dir.Fsprojs.Length)
                 item
             | WorkspacePeekFound.Solution sln ->
-                let relative = node.path.relative (workspace.rootPath.Value, sln.Path)
+                let relative = node.path.relative ((workspaceRootPath ()).Value, sln.Path)
                 let item = createEmpty<QuickPickItem>
                 item.label <- sprintf "%s%s" check relative
                 item.description <- Some(sprintf "Solution with %i projects" (countProjectsInSln sln))
@@ -547,7 +547,7 @@ module Project =
 
             let wdir =
                 {
-                    WorkspacePeekFoundDirectory.Directory = workspace.rootPath.Value
+                    WorkspacePeekFoundDirectory.Directory = (workspaceRootPath ()).Value
                     Fsprojs = fsprojs |> Array.ofList
                 }
 
@@ -556,11 +556,11 @@ module Project =
 
     let private workspacePeek () =
         promise {
-            if None = workspace.rootPath then
+            if None = workspaceRootPath () then
                 return []
             else
                 let! ws =
-                    LanguageService.workspacePeek workspace.rootPath.Value deepLevel (excluded |> List.ofArray)
+                    LanguageService.workspacePeek (workspaceRootPath ()).Value deepLevel (excluded |> List.ofArray)
 
                 return
                     ws.Found
