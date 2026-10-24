@@ -1909,5 +1909,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "8.0.0"
+  "version": "8.0.1"
 }
