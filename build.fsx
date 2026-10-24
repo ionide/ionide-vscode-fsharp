@@ -11,6 +11,9 @@ open Fake.IO
 open Fake.IO.FileSystemOperators
 open Fun.Build
 
+// The relative paths below, and the file operations of the stages, resolve from the repository root.
+Directory.SetCurrentDirectory __SOURCE_DIRECTORY__
+
 let repository = "ionide/ionide-vscode-fsharp"
 let releaseDir = __SOURCE_DIRECTORY__ </> "release"
 let tempDir = __SOURCE_DIRECTORY__ </> "temp"
@@ -20,10 +23,10 @@ let fableOutDir = __SOURCE_DIRECTORY__ </> "out"
 let fsacTfms = [ "net10.0" ]
 
 /// The newest entry of RELEASE_NOTES.md: its version and the notes below its heading.
-/// The headings read `### 8.0.1 - 24.10.2026`.
+/// The headings read `### 8.0.1 - 24.10.2026`, the date is optional.
 let latestReleaseNotes () : string * string =
     let lines = File.ReadAllLines(__SOURCE_DIRECTORY__ </> "RELEASE_NOTES.md")
-    let heading = Regex @"^### (?<version>\S+) - "
+    let heading = Regex @"^###\s+(?<version>\d[^\s,]*)"
 
     let headings =
         lines
@@ -36,8 +39,16 @@ let latestReleaseNotes () : string * string =
             else
                 None)
 
+    // A heading above the newest release, such as `### Unreleased`, would release the previous version again.
+    let otherHeading = Regex @"^###\s"
+
     match Array.toList headings with
     | [] -> failwith "RELEASE_NOTES.md has no release entry."
+    | (start, _) :: _ when lines[.. start - 1] |> Array.exists otherHeading.IsMatch ->
+        let line = lines[.. start - 1] |> Array.findIndex otherHeading.IsMatch
+
+        failwith
+            $"RELEASE_NOTES.md: the heading on line %d{line + 1} is not a release heading, such as `### 8.0.2 - 24.10.2026`."
     | (start, version) :: rest ->
         let stop =
             match rest with
