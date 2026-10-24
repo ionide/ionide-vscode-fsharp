@@ -69,17 +69,23 @@ module LanguageService =
         type VersionedTextDocumentIdentifier = { Uri: DocumentUri; Version: float }
 
         type TextDocumentPositionParams =
-            { TextDocument: TextDocumentIdentifier
-              Position: Position }
+            {
+                TextDocument: TextDocumentIdentifier
+                Position: Position
+            }
 
         type VersionedTextDocumentPositionParams =
-            { TextDocument: VersionedTextDocumentIdentifier
-              Position: Position }
+            {
+                TextDocument: VersionedTextDocumentIdentifier
+                Position: Position
+            }
 
         type FileParams = { Project: TextDocumentIdentifier }
 
         type WorkspaceLoadParms =
-            { TextDocuments: TextDocumentIdentifier[] }
+            {
+                TextDocuments: TextDocumentIdentifier[]
+            }
 
         type HighlightingRequest =
             { TextDocument: TextDocumentIdentifier }
@@ -91,13 +97,17 @@ module LanguageService =
             { TextDocument: TextDocumentIdentifier }
 
         type LspRange =
-            { start: Fable.Import.VSCode.Vscode.Position
-              ``end``: Fable.Import.VSCode.Vscode.Position }
+            {
+                start: Fable.Import.VSCode.Vscode.Position
+                ``end``: Fable.Import.VSCode.Vscode.Position
+            }
 
         type TestRunRequest =
-            { LimitToProjects: string array option
-              TestCaseFilter: string option
-              AttachDebugger: bool }
+            {
+                LimitToProjects: string array option
+                TestCaseFilter: string option
+                AttachDebugger: bool
+            }
 
     type Uri with
 
@@ -129,13 +139,13 @@ module LanguageService =
 
     let selector: DocumentSelector =
         let fileSchemeFilter: DocumentFilter =
-            jsOptions<TextDocumentFilter> (fun f ->
+            jsOptions<TextDocumentFilter>(fun f ->
                 f.language <- Some "fsharp"
                 f.scheme <- Some "file")
             |> U2.Case1
 
         let untitledSchemeFilter: DocumentFilter =
-            jsOptions<TextDocumentFilter> (fun f ->
+            jsOptions<TextDocumentFilter>(fun f ->
                 f.language <- Some "fsharp"
                 f.scheme <- Some "untitled")
             |> U2.Case1
@@ -346,8 +356,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = uri.ToDocumentUri }
-                  Position = { Line = line; Character = col } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                    Position = { Line = line; Character = col }
+                }
 
             cl.sendRequest ("fsharp/f1Help", req)
             |> Promise.map checkNotificationAndCast<Result<string>>
@@ -357,8 +369,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = uri.ToDocumentUri }
-                  Position = { Line = line; Character = col } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                    Position = { Line = line; Character = col }
+                }
 
             cl.sendRequest ("fsharp/documentation", req)
             |> Promise.map checkNotificationAndCast<Result<DocumentationDescription>>
@@ -368,8 +382,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req =
-                { DocumentationForSymbolRequest.Assembly = assembly
-                  XmlSig = xmlSig }
+                {
+                    DocumentationForSymbolRequest.Assembly = assembly
+                    XmlSig = xmlSig
+                }
 
             cl.sendRequest ("fsharp/documentationSymbol", req)
             |> Promise.map checkNotificationAndCast<Result<DocumentationDescription>>
@@ -379,8 +395,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = uri.ToDocumentUri }
-                  Position = { Line = line; Character = col } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                    Position = { Line = line; Character = col }
+                }
 
             cl.sendRequest ("fsharp/signature", req)
             |> Promise.map checkNotificationAndCast<Result<string>>
@@ -390,8 +408,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = uri.ToDocumentUri }
-                  Position = { Line = line; Character = col } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                    Position = { Line = line; Character = col }
+                }
 
             cl.sendRequest ("fsharp/signatureData", req)
             |> Promise.map checkNotificationAndCast<SignatureDataResult>
@@ -401,10 +421,14 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.VersionedTextDocumentPositionParams =
-                { TextDocument =
-                    { Uri = fileUri.ToDocumentUri
-                      Version = version }
-                  Position = { Line = line; Character = col } }
+                {
+                    TextDocument =
+                        {
+                            Uri = fileUri.ToDocumentUri
+                            Version = version
+                        }
+                    Position = { Line = line; Character = col }
+                }
 
             cl.sendRequest ("fsharp/documentationGenerator", req)
             |> Promise.map (fun _ -> ())
@@ -413,7 +437,10 @@ Consider:
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req: Types.FileParams = { Project = { Uri = uri.ToDocumentUri } }
+            let req: Types.FileParams =
+                {
+                    Project = { Uri = uri.ToDocumentUri }
+                }
 
             cl.sendRequest ("fsharp/lineLens", req)
             |> Promise.map checkNotificationAndCast<Result<Symbols[]>>
@@ -429,7 +456,9 @@ Consider:
 
     let fsdn (signature: string) =
         let parse (ws: obj) =
-            { FsdnResponse.Functions = ws?Functions |> unbox }
+            {
+                FsdnResponse.Functions = ws?Functions |> unbox
+            }
 
         match client with
         | None -> Promise.empty
@@ -455,9 +484,11 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: DotnetNew.DotnetNewRunRequest =
-                { Template = template
-                  Output = output
-                  Name = name }
+                {
+                    Template = template
+                    Output = output
+                    Name = name
+                }
 
             cl.sendRequest ("fsharp/dotnetnewrun", req) |> Promise.map ignore
 
@@ -466,8 +497,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetProjectRequest =
-                { Target = target
-                  Reference = reference }
+                {
+                    Target = target
+                    Reference = reference
+                }
 
             cl.sendRequest ("fsharp/dotnetaddproject", req) |> Promise.map ignore
 
@@ -476,8 +509,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetProjectRequest =
-                { Target = target
-                  Reference = reference }
+                {
+                    Target = target
+                    Reference = reference
+                }
 
             cl.sendRequest ("fsharp/dotnetremoveproject", req) |> Promise.map ignore
 
@@ -486,8 +521,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetProjectRequest =
-                { Target = target
-                  Reference = reference }
+                {
+                    Target = target
+                    Reference = reference
+                }
 
             cl.sendRequest ("fsharp/dotnetaddsln", req) |> Promise.map ignore
 
@@ -496,8 +533,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFileRequest =
-                { FsProj = fsproj
-                  FileVirtualPath = file }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                }
 
             cl.sendRequest ("fsproj/moveFileUp", req) |> Promise.map ignore
 
@@ -506,8 +545,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFileRequest =
-                { FsProj = fsproj
-                  FileVirtualPath = file }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                }
 
             cl.sendRequest ("fsproj/moveFileDown", req) |> Promise.map ignore
 
@@ -516,9 +557,11 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFile2Request =
-                { FsProj = fsproj
-                  FileVirtualPath = file
-                  NewFile = newFile }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                    NewFile = newFile
+                }
 
             cl.sendRequest ("fsproj/addFileAbove", req) |> Promise.map ignore
 
@@ -527,9 +570,11 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFile2Request =
-                { FsProj = fsproj
-                  FileVirtualPath = file
-                  NewFile = newFile }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                    NewFile = newFile
+                }
 
             cl.sendRequest ("fsproj/addFileBelow", req) |> Promise.map ignore
 
@@ -538,8 +583,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFileRequest =
-                { FsProj = fsproj
-                  FileVirtualPath = file }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                }
 
             cl.sendRequest ("fsproj/addFile", req) |> Promise.map ignore
 
@@ -548,8 +595,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFileRequest =
-                { FsProj = fsproj
-                  FileVirtualPath = file }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                }
 
             cl.sendRequest ("fsproj/addExistingFile", req) |> Promise.map ignore
 
@@ -558,9 +607,11 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetRenameFileRequest =
-                { FsProj = fsproj
-                  OldFileVirtualPath = file
-                  NewFileName = newFile }
+                {
+                    FsProj = fsproj
+                    OldFileVirtualPath = file
+                    NewFileName = newFile
+                }
 
             cl.sendRequest ("fsproj/renameFile", req) |> Promise.map ignore
 
@@ -569,8 +620,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFileRequest =
-                { FsProj = fsproj
-                  FileVirtualPath = file }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                }
 
             cl.sendRequest ("fsproj/removeFile", req) |> Promise.map ignore
 
@@ -609,8 +662,10 @@ Consider:
                     let folderData: WorkspacePeekFoundSolutionItemKindFolder = data |> unbox
 
                     let folder: WorkspacePeekFoundSolutionItemKindFolder =
-                        { Files = folderData.Files
-                          Items = folderData.Items |> Array.choose mapItem }
+                        {
+                            Files = folderData.Files
+                            Items = folderData.Items |> Array.choose mapItem
+                        }
 
                     Some(WorkspacePeekFoundSolutionItemKind.Folder folder)
                 | "msbuildFormat" -> Some(WorkspacePeekFoundSolutionItemKind.MsbuildFormat(data |> unbox))
@@ -619,9 +674,11 @@ Consider:
             match mapItemKind f.Kind with
             | Some kind ->
                 Some
-                    { WorkspacePeekFoundSolutionItem.Guid = f.Guid
-                      Name = f.Name
-                      Kind = kind }
+                    {
+                        WorkspacePeekFoundSolutionItem.Guid = f.Guid
+                        Name = f.Name
+                        Kind = kind
+                    }
             | None -> None
 
         let mapFound (f: obj) : WorkspacePeekFound option =
@@ -631,23 +688,29 @@ Consider:
             | "directory" -> Some(WorkspacePeekFound.Directory(data |> unbox))
             | "solution" ->
                 let sln =
-                    { WorkspacePeekFoundSolution.Path = data?Path |> unbox
-                      Configurations = data?Configurations |> unbox
-                      Items = data?Items |> unbox |> Array.choose mapItem }
+                    {
+                        WorkspacePeekFoundSolution.Path = data?Path |> unbox
+                        Configurations = data?Configurations |> unbox
+                        Items = data?Items |> unbox |> Array.choose mapItem
+                    }
 
                 Some(WorkspacePeekFound.Solution sln)
             | _ -> None
 
         let parse (ws: obj) =
-            { WorkspacePeek.Found = ws?Found |> unbox |> Array.choose mapFound }
+            {
+                WorkspacePeek.Found = ws?Found |> unbox |> Array.choose mapFound
+            }
 
         match client with
         | None -> Promise.empty
         | Some cl ->
             let req =
-                { WorkspacePeekRequest.Directory = dir
-                  Deep = deep
-                  ExcludedDirs = excludedDirs |> Array.ofList }
+                {
+                    WorkspacePeekRequest.Directory = dir
+                    Deep = deep
+                    ExcludedDirs = excludedDirs |> Array.ofList
+                }
 
             cl.sendRequest ("fsharp/workspacePeek", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
@@ -659,7 +722,9 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.WorkspaceLoadParms =
-                { TextDocuments = projects |> List.map (fun s -> { Types.Uri = s }) |> List.toArray }
+                {
+                    TextDocuments = projects |> List.map (fun s -> { Types.Uri = s }) |> List.toArray
+                }
 
             cl.sendRequest ("fsharp/workspaceLoad", req) |> Promise.map ignore
 
@@ -675,7 +740,10 @@ Consider:
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req: Types.HighlightingRequest = { TextDocument = { Uri = uri.ToDocumentUri } }
+            let req: Types.HighlightingRequest =
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                }
 
             cl.sendRequest ("fsharp/highlighting", req)
             |> Promise.map (fun (res: obj) -> res?data)
@@ -685,7 +753,9 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.FSharpLiterateRequest =
-                { TextDocument = { Uri = uri.ToDocumentUri } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                }
 
             cl.sendRequest ("fsharp/fsharpLiterate", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<FSharpLiterateResult>)
@@ -695,7 +765,9 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.FSharpPipelineHintsRequest =
-                { TextDocument = { Uri = uri.ToDocumentUri } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                }
 
             cl.sendRequest ("fsharp/pipelineHint", req)
             |> Promise.map checkNotificationAndCast<PipelineHintsResult>
@@ -747,9 +819,11 @@ Consider:
             )
 
             let request: Types.TestRunRequest =
-                { LimitToProjects = projectSubset
-                  TestCaseFilter = testCaseFilter
-                  AttachDebugger = attachDebugger }
+                {
+                    LimitToProjects = projectSubset
+                    TestCaseFilter = testCaseFilter
+                    AttachDebugger = attachDebugger
+                }
 
             cl.sendRequest ("test/runTests", request)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<RunTestsResult>)
@@ -783,46 +857,50 @@ Consider:
             // So the handler is a plain JS object.
             let handlerResult (action: obj) (message: string option) : obj =
                 createObj
-                    [ "action" ==> action
-                      match message with
-                      | Some m -> "message" ==> m
-                      | None -> () ]
+                    [
+                        "action" ==> action
+                        match message with
+                        | Some m -> "message" ==> m
+                        | None -> ()
+                    ]
 
             let errorHandling: ErrorHandler =
                 createObj
-                    [ "closed"
-                      ==> Func<obj>(fun () ->
-                          // the client only calls this when the connection closes while it isn't stopping
-                          unexpectedServerStops <- unexpectedServerStops + 1
-                          restarts.Add(1)
+                    [
+                        "closed"
+                        ==> Func<obj>(fun () ->
+                            // the client only calls this when the connection closes while it isn't stopping
+                            unexpectedServerStops <- unexpectedServerStops + 1
+                            restarts.Add(1)
 
-                          if restarts |> Seq.length < 5 then
-                              logger.Error("The F# language server stopped unexpectedly, restarting it")
-                              restartingAfterUnexpectedStop <- true
-                              handlerResult CloseAction.Restart None
-                          else
-                              logger.Error("Server closed")
+                            if restarts |> Seq.length < 5 then
+                                logger.Error("The F# language server stopped unexpectedly, restarting it")
+                                restartingAfterUnexpectedStop <- true
+                                handlerResult CloseAction.Restart None
+                            else
+                                logger.Error("Server closed")
 
-                              handlerResult
-                                  CloseAction.DoNotRestart
-                                  (Some
-                                      "The F# language server stopped unexpectedly 5 times and will not be restarted. See the F# output for the cause, then run 'F#: Restart Language Service'."))
+                                handlerResult
+                                    CloseAction.DoNotRestart
+                                    (Some
+                                        "The F# language server stopped unexpectedly 5 times and will not be restarted. See the F# output for the cause, then run 'F#: Restart Language Service'."))
 
-                      "error"
-                      ==> Func<Exception, Message, float, obj>(fun error message count ->
-                          logger.Error($"Error from server: {error} {message} {count}")
+                        "error"
+                        ==> Func<Exception, Message, float, obj>(fun error message count ->
+                            logger.Error($"Error from server: {error} {message} {count}")
 
-                          if count < 3.0 then
-                              handlerResult ErrorAction.Continue None
-                          else
-                              handlerResult ErrorAction.Shutdown None) ]
+                            if count < 3.0 then
+                                handlerResult ErrorAction.Continue None
+                            else
+                                handlerResult ErrorAction.Shutdown None)
+                    ]
                 |> unbox
 
             let initOpts = createObj [ "AutomaticWorkspaceInit" ==> false ]
 
             let synch = createEmpty<Client.SynchronizeOptions>
-            synch.configurationSection <- Some !^ "FSharp"
-            synch.fileEvents <- Some(!^ ResizeArray([ fileDeletedWatcher ]))
+            synch.configurationSection <- Some !^"FSharp"
+            synch.fileEvents <- Some(!^ResizeArray([ fileDeletedWatcher ]))
 
             // this type needs to be updated on the bindings - DocumentSelector is a (string|DocumentFilter) [] now only.
             // that's why we need to coerce it here.
@@ -966,8 +1044,7 @@ Consider:
                 let baseName = node.path.basename folder
 
                 baseName.StartsWith("net")
-                && let stat = node.fs.statSync (!!folder) in
-                   stat.isDirectory ()
+                && let stat = node.fs.statSync (!!folder) in stat.isDirectory ()
 
             /// locates the FSAC dll and TFM for that dll given a host TFM
             let fsacPathForTfm (tfm: string) : string * string =
@@ -1033,10 +1110,12 @@ Consider:
                         // preview SDK (for example 11.0.100-rc.2) needs its own preview runtime, so allow it then.
                         // Only for preview SDKs: the variable also reaches the processes FSAC starts.
                         let envVariables =
-                            [ match sdkVersion.prerelease with
-                              | null -> ()
-                              | pres when Seq.length pres > 0 -> "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1
-                              | _ -> () ]
+                            [
+                                match sdkVersion.prerelease with
+                                | null -> ()
+                                | pres when Seq.length pres > 0 -> "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1
+                                | _ -> ()
+                            ]
 
                         return args, envVariables, fsacPath
                 }
@@ -1057,25 +1136,26 @@ Consider:
 
                     let fsacEnvVars =
                         [ // always set, the .NET 10 runtime turns DATAS on for server GC when this is missing
-                          yield "DOTNET_GCDynamicAdaptationMode", box (boolToInt useDatas) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#dynamic-adaptation-to-application-sizes-datas
+                            yield "DOTNET_GCDynamicAdaptationMode", box (boolToInt useDatas) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#dynamic-adaptation-to-application-sizes-datas
 
-                          // DATAS and affinitization/heap management seem to be mutually exclusive, so we enforce that here.
-                          if not useDatas then
-                              // it doesn't really make sense to set GCNoAffinitize without setting GCHeapCount, 0 is the runtime default
-                              yield "DOTNET_GCNoAffinitize", box (boolToInt gcNoAffinitize) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#affinitize
+                            // DATAS and affinitization/heap management seem to be mutually exclusive, so we enforce that here.
+                            if not useDatas then
+                                // it doesn't really make sense to set GCNoAffinitize without setting GCHeapCount, 0 is the runtime default
+                                yield "DOTNET_GCNoAffinitize", box (boolToInt gcNoAffinitize) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#affinitize
 
-                              yield!
-                                  gcHeapCount
-                                  |> Option.map (fun hc -> "DOTNET_GCHeapCount", box (hc.ToString("X")))
-                                  |> Option.toList // Requires hexadecimal value https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#heap-count
+                                yield!
+                                    gcHeapCount
+                                    |> Option.map (fun hc -> "DOTNET_GCHeapCount", box (hc.ToString("X")))
+                                    |> Option.toList // Requires hexadecimal value https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#heap-count
 
-                          yield "DOTNET_GCConserveMemory", box gcConserveMemory //https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory
-                          yield "DOTNET_GCServer", box (boolToInt gcServer) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#workstation-vs-server
+                            yield "DOTNET_GCConserveMemory", box gcConserveMemory //https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory
+                            yield "DOTNET_GCServer", box (boolToInt gcServer) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#workstation-vs-server
 
-                          if parallelReferenceResolution then
-                              yield "FCS_ParallelReferenceResolution", box "true"
+                            if parallelReferenceResolution then
+                                yield "FCS_ParallelReferenceResolution", box "true"
 
-                          yield! rollForwardEnvVars ]
+                            yield! rollForwardEnvVars
+                        ]
 
                     logger.Debug $"""FSAC (NETCORE): '%s{fsacPath}'"""
 
@@ -1099,29 +1179,31 @@ Consider:
                     let additionalFSACArgs = "FSharp.fsac.fsacArgs" |> Configuration.get [||]
 
                     let args =
-                        [ yield! fsacDotnetArgs
-                          yield fsacPath
-                          if fsacAttachDebugger then
-                              yield "--attachdebugger"
-                              yield "--wait-for-debugger"
-                          if enableProjectGraph then
-                              yield "--project-graph-enabled"
-                          if openTelemetryEnabled then
-                              yield "--otel-exporter-enabled"
-                          if verbose then
-                              yield "--verbose"
-                          if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0 then
-                              yield "--filter"
-                              yield! fsacSilencedLogs
-                          if useTransparentCompiler then
-                              yield "--use-fcs-transparent-compiler"
-                          match c.storageUri with
-                          | Some uri ->
-                              let storageDir = uri.fsPath
-                              yield "--state-directory"
-                              yield storageDir
-                          | None -> ()
-                          yield! additionalFSACArgs ]
+                        [
+                            yield! fsacDotnetArgs
+                            yield fsacPath
+                            if fsacAttachDebugger then
+                                yield "--attachdebugger"
+                                yield "--wait-for-debugger"
+                            if enableProjectGraph then
+                                yield "--project-graph-enabled"
+                            if openTelemetryEnabled then
+                                yield "--otel-exporter-enabled"
+                            if verbose then
+                                yield "--verbose"
+                            if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0 then
+                                yield "--filter"
+                                yield! fsacSilencedLogs
+                            if useTransparentCompiler then
+                                yield "--use-fcs-transparent-compiler"
+                            match c.storageUri with
+                            | Some uri ->
+                                let storageDir = uri.fsPath
+                                yield "--state-directory"
+                                yield storageDir
+                            | None -> ()
+                            yield! additionalFSACArgs
+                        ]
                         |> ResizeArray
 
                     let executable = createEmpty<Executable>
@@ -1167,9 +1249,11 @@ Consider:
                 |> Seq.tryFind (fun n -> n.document.uri.ToDocumentUri.ToLowerInvariant() = uri.ToLowerInvariant())
                 |> Option.iter (fun te ->
                     let ev =
-                        { Notifications.uri = uri
-                          Notifications.version = te.document.version
-                          Notifications.document = te.document }
+                        {
+                            Notifications.uri = uri
+                            Notifications.version = te.document.version
+                            Notifications.document = te.document
+                        }
 
                     Notifications.onDocumentParsedEmitter.fire ev))
         )

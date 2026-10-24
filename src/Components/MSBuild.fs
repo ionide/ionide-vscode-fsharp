@@ -64,8 +64,10 @@ module MSBuild =
                 (fun p ctok ->
                     promise {
                         let pm =
-                            {| message = Some $"Running MSBuild '{target}' target on '{project}'"
-                               increment = None |}
+                            {|
+                                message = Some $"Running MSBuild '{target}' target on '{project}'"
+                                increment = None
+                            |}
 
                         p.report pm
                         let! response = executeWithHost ()
@@ -73,22 +75,28 @@ module MSBuild =
                         match response.Code with
                         | Some 0 ->
                             p.report (
-                                {| message = Some "MSBuild completed successfully"
-                                   increment = None |}
+                                {|
+                                    message = Some "MSBuild completed successfully"
+                                    increment = None
+                                |}
                             )
 
                             return response
                         | Some code ->
                             p.report (
-                                {| message = Some $"MSBuild failed with code %d{code}"
-                                   increment = None |}
+                                {|
+                                    message = Some $"MSBuild failed with code %d{code}"
+                                    increment = None
+                                |}
                             )
 
                             return response
                         | None ->
                             p.report (
-                                {| message = Some "MSBuild failed with an unknown error"
-                                   increment = None |}
+                                {|
+                                    message = Some "MSBuild failed with an unknown error"
+                                    increment = None
+                                |}
                             )
 
                             return response
@@ -229,8 +237,10 @@ module MSBuild =
             let! (d: CompileResult) = LanguageService.compile project.Project
 
             return
-                { Code = Some d.Data.Code
-                  Signal = None }
+                {
+                    Code = Some d.Data.Code
+                    Signal = None
+                }
         }
 
     let private restoreMailBox =
@@ -247,8 +257,10 @@ module MSBuild =
                             progressOpts,
                             (fun p ctok ->
                                 let pm =
-                                    {| message = Some("Restoring " + path)
-                                       increment = None |}
+                                    {|
+                                        message = Some("Restoring " + path)
+                                        increment = None
+                                    |}
 
                                 p.report pm
 
@@ -363,9 +375,11 @@ module MSBuild =
         }
 
     let perProjectTasks =
-        [ "build", [], vscode.TaskGroup.Build, "Build"
-          "clean", [], vscode.TaskGroup.Clean, "Clean"
-          "msbuild", [ "/t:Rebuild" ], vscode.TaskGroup.Rebuild, "Rebuild" ]
+        [
+            "build", [], vscode.TaskGroup.Build, "Build"
+            "clean", [], vscode.TaskGroup.Clean, "Clean"
+            "msbuild", [ "/t:Rebuild" ], vscode.TaskGroup.Rebuild, "Rebuild"
+        ]
 
     let buildTaskListForProject (p: Project) : JS.Promise<MSBuildTask seq> =
         promise {
@@ -463,7 +477,8 @@ module MSBuild =
 
             override x.resolveTask(t: MSBuildTask, token: CancellationToken) =
                 logger.Info("resolving task %s", t.name)
-                ProviderResult.Some(U2.Case1 t) }
+                ProviderResult.Some(U2.Case1 t)
+        }
 
     let activate (context: ExtensionContext) =
         let unlessIgnored (path: string) f =
@@ -493,7 +508,7 @@ module MSBuild =
         let typedMsbuildCmd f projOpt =
             let p =
                 if JS.isDefined projOpt then
-                    Some(unbox<string> (projOpt))
+                    Some(unbox<string>(projOpt))
                 else
                     None
 

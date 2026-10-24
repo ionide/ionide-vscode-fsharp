@@ -57,7 +57,9 @@ module FsProjEdit =
                         | None -> Promise.empty
                     | None -> Promise.empty
             else
-                let! _ = window.showWarningMessage ("Can't find any project, run `dotnet new console -lang F#`")
+                let! _ =
+                    window.showWarningMessage ("Can't find any project, run `dotnet new console -lang F#`")
+
                 return ()
         }
 

@@ -45,10 +45,12 @@ module SolutionExplorer =
         | ProjectReference of parent: Model option ref * path: string * name: string * projectPath: string
 
     type NodeEntry =
-        { Key: string
-          FilePath: string
-          VirtualPath: string
-          mutable Children: NodeEntry list }
+        {
+            Key: string
+            FilePath: string
+            VirtualPath: string
+            mutable Children: NodeEntry list
+        }
 
     let inline pathCombine a b = a + node.path.sep + b
 
@@ -59,10 +61,12 @@ module SolutionExplorer =
             | [ key ], children when children |> List.exists (fun c -> c.Key = Uri.UnescapeDataString key) -> state
             | [ key ], _ ->
                 let x =
-                    { Key = Uri.UnescapeDataString key
-                      FilePath = filepath
-                      VirtualPath = virtualPath
-                      Children = [] }
+                    {
+                        Key = Uri.UnescapeDataString key
+                        FilePath = filepath
+                        VirtualPath = virtualPath
+                        Children = []
+                    }
 
                 state.Children <- x :: state.Children
                 state
@@ -72,10 +76,12 @@ module SolutionExplorer =
                 let dirPath = pathCombine state.FilePath dirName
 
                 let x =
-                    { Key = Uri.UnescapeDataString dirName
-                      FilePath = dirPath
-                      VirtualPath = virtualPath
-                      Children = [] }
+                    {
+                        Key = Uri.UnescapeDataString dirName
+                        FilePath = dirPath
+                        VirtualPath = virtualPath
+                        Children = []
+                    }
 
                 state.Children <- x :: state.Children
                 addhelper x xs
@@ -137,10 +143,12 @@ module SolutionExplorer =
         let projDir = dirName projPath
 
         let entry =
-            { Key = ""
-              FilePath = projDir
-              VirtualPath = ""
-              Children = [] }
+            {
+                Key = ""
+                FilePath = projDir
+                VirtualPath = ""
+                Children = []
+            }
 
         files |> List.iter (fun (virtualPath, path) -> add' entry virtualPath path)
 
@@ -406,10 +414,11 @@ module SolutionExplorer =
         | ProjectLanguageNotSupported _ -> []
         | Project(_, _, _, files, projs, refs, _, _) ->
             [
-              // SHOULD REFS BE DISPLAYED AT ALL? THOSE ARE RESOLVED BY MSBUILD REFS
-              yield refs
-              yield projs
-              yield! files ]
+                // SHOULD REFS BE DISPLAYED AT ALL? THOSE ARE RESOLVED BY MSBUILD REFS
+                yield refs
+                yield projs
+                yield! files
+            ]
         | PackageReferenceList(_, refs, _) -> refs
         | ProjectReferencesList(_, refs, _) -> refs
         | Folder(_, _, _, files, _) -> files |> List.rev
@@ -595,12 +604,10 @@ module SolutionExplorer =
                 with set (v: Event<_> option): unit = event <- v
 
             override this.resolveTreeItem
-                (
-                    item: TreeItem,
-                    element: Model,
-                    token: CancellationToken
-                ) : ProviderResult<TreeItem> =
-                Some(U2.Case1 item) }
+                (item: TreeItem, element: Model, token: CancellationToken)
+                : ProviderResult<TreeItem> =
+                Some(U2.Case1 item)
+        }
 
     module private ShowInActivity =
 
@@ -637,8 +644,10 @@ module SolutionExplorer =
                 | _ -> Configuration.get true autoCodeExplorerKey
 
         type private State =
-            { RootModel: Model
-              ModelPerFile: Map<string, Model> }
+            {
+                RootModel: Model
+                ModelPerFile: Map<string, Model>
+            }
 
         let private findModelFromUri (state: State option ref) (uri: Uri) =
             if uri.scheme = "file" && JS.isDefined uri.fsPath then
@@ -653,9 +662,11 @@ module SolutionExplorer =
                 match model with
                 | Some model ->
                     let options =
-                        {| select = Some true
-                           expand = Some(U2.Case1 false)
-                           focus = None |}
+                        {|
+                            select = Some true
+                            expand = Some(U2.Case1 false)
+                            focus = None
+                        |}
 
                     tree.reveal (model, options) |> ignore
                 | _ -> ()
@@ -704,8 +715,10 @@ module SolutionExplorer =
 
             let newState =
                 Some
-                    { RootModel = newValue
-                      ModelPerFile = modelPerFile }
+                    {
+                        RootModel = newValue
+                        ModelPerFile = modelPerFile
+                    }
 
             state.Value <- newState
 
@@ -1191,57 +1204,59 @@ module SolutionExplorer =
 
                     let info = proj.Info
 
-                    [ yield "<b>Status:</b> parsed correctly"
-                      yield ""
-                      yield sprintf "<b>Project</b>: %s" proj.Project
-                      yield ""
-                      yield sprintf "<b>Output Type</b>: %s" proj.OutputType
-                      yield sprintf "<b>Output</b>: %s" proj.Output
+                    [
+                        yield "<b>Status:</b> parsed correctly"
+                        yield ""
+                        yield sprintf "<b>Project</b>: %s" proj.Project
+                        yield ""
+                        yield sprintf "<b>Output Type</b>: %s" proj.OutputType
+                        yield sprintf "<b>Output</b>: %s" proj.Output
 
-                      yield ""
+                        yield ""
 
-                      yield sprintf "<b>Project Type</b>: .NET Sdk (dotnet/sdk)"
-                      yield ""
-                      yield sprintf "<b>Configuration</b>: %s" info.Configuration
-                      yield
-                          sprintf
-                              "<b>Target Framework</b>: %s (%s %s)"
-                              info.TargetFramework
-                              info.TargetFrameworkIdentifier
-                              info.TargetFrameworkVersion
-                      yield ""
-                      let boolToString x = if x then "yes" else "no"
-                      yield sprintf "<b>Restored successfully</b>: %s" (info.RestoreSuccess |> boolToString)
-                      yield ""
-                      let crossgen = not (info.TargetFrameworks |> Seq.isEmpty)
-                      yield sprintf "<b>Crossgen (multiple target frameworks)</b>: %s" (crossgen |> boolToString)
+                        yield sprintf "<b>Project Type</b>: .NET Sdk (dotnet/sdk)"
+                        yield ""
+                        yield sprintf "<b>Configuration</b>: %s" info.Configuration
+                        yield
+                            sprintf
+                                "<b>Target Framework</b>: %s (%s %s)"
+                                info.TargetFramework
+                                info.TargetFrameworkIdentifier
+                                info.TargetFrameworkVersion
+                        yield ""
+                        let boolToString x = if x then "yes" else "no"
+                        yield sprintf "<b>Restored successfully</b>: %s" (info.RestoreSuccess |> boolToString)
+                        yield ""
+                        let crossgen = not (info.TargetFrameworks |> Seq.isEmpty)
+                        yield sprintf "<b>Crossgen (multiple target frameworks)</b>: %s" (crossgen |> boolToString)
 
-                      if crossgen then
-                          yield
-                              "<b>NOTE: You're using multiple target frameworks. As of now you can't choose which target framework should be used by FSAC. Instead, the first target framework from the list is selected. To change the target framework used by FSAC, simply place it on the first position on the &lt;TargetFrameworks&gt; list.</b>"
+                        if crossgen then
+                            yield
+                                "<b>NOTE: You're using multiple target frameworks. As of now you can't choose which target framework should be used by FSAC. Instead, the first target framework from the list is selected. To change the target framework used by FSAC, simply place it on the first position on the &lt;TargetFrameworks&gt; list.</b>"
 
-                          yield
-                              "For more info see this issue: https://github.com/ionide/ionide-vscode-fsharp/issues/278"
+                            yield
+                                "For more info see this issue: https://github.com/ionide/ionide-vscode-fsharp/issues/278"
 
-                          yield "<ul>"
+                            yield "<ul>"
 
-                          for tfm in info.TargetFrameworks do
-                              yield sprintf "<li>%s</li>" tfm
+                            for tfm in info.TargetFrameworks do
+                                yield sprintf "<li>%s</li>" tfm
 
-                          yield "</ul>"
+                            yield "</ul>"
 
-                      yield ""
-                      yield "<b>Files</b>:"
-                      yield! files
-                      yield ""
-                      yield "<b>Project References</b>:"
-                      yield! projRefs
-                      yield ""
-                      yield "<b>Package References</b>:"
-                      yield! packageRefs
-                      yield ""
-                      yield "<b>Resolved References</b>:"
-                      yield! refs ]
+                        yield ""
+                        yield "<b>Files</b>:"
+                        yield! files
+                        yield ""
+                        yield "<b>Project References</b>:"
+                        yield! projRefs
+                        yield ""
+                        yield "<b>Package References</b>:"
+                        yield! packageRefs
+                        yield ""
+                        yield "<b>Resolved References</b>:"
+                        yield! refs
+                    ]
                     |> String.concat "<br />"
                 | _ -> "Failed to generate status report..."
 
@@ -1257,14 +1272,16 @@ module SolutionExplorer =
                     | m when m.Success ->
                         let version = m.Groups.[1].Value
 
-                        [ sprintf "A compatible SDK version for global.json version: <b>%s</b> was not found." version
-                          ""
-                          "If you haven't installed a compatible version on your computer, you can go to: <a href=\"https://dotnet.microsoft.com/download/archives\">https://dotnet.microsoft.com/download/archives</a> to download it."
-                          ""
-                          "<hr/>"
-                          "<b>Original error:</b>"
-                          ""
-                          error ]
+                        [
+                            sprintf "A compatible SDK version for global.json version: <b>%s</b> was not found." version
+                            ""
+                            "If you haven't installed a compatible version on your computer, you can go to: <a href=\"https://dotnet.microsoft.com/download/archives\">https://dotnet.microsoft.com/download/archives</a> to download it."
+                            ""
+                            "<hr/>"
+                            "<b>Original error:</b>"
+                            ""
+                            error
+                        ]
                     | _ -> [ error ]
 
                 [ "<b>Status:</b> failed to load"; ""; "<b>Error:</b>" ] @ errorMsg
@@ -1294,7 +1311,8 @@ module SolutionExplorer =
                             | Some(Project.ProjectLoadingState.LanguageNotSupported _path) -> viewLanguageNotSupported
                         | _ -> sprintf "Requested uri: %s" (uri.toString ())
 
-                    U2.Case1 message |> Some }
+                    U2.Case1 message |> Some
+            }
 
         workspace.registerTextDocumentContentProvider ("fsharp-workspace", wsProvider)
         |> context.Subscribe
