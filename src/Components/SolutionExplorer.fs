@@ -1516,12 +1516,34 @@ module SolutionExplorer =
                             )
                             |> ignore
                         else
-                            let projs = projects |> ResizeArray
-                            let! proj = window.showQuickPick (unbox projs)
+                            let root =
+                                workspace.rootPath
+                                |> Option.defaultValue ""
+                                |> fun p -> p.Replace('\\', '/')
+
+                            let makeRelative (path: string) =
+                                let normalized = path.Replace('\\', '/')
+
+                                if root <> "" && normalized.StartsWith(root + "/") then
+                                    normalized.Substring(root.Length + 1)
+                                else
+                                    path
+
+                            let projItems =
+                                projects
+                                |> List.map (fun p ->
+                                    let item = createEmpty<QuickPickItem>
+                                    item.label <- makeRelative p
+                                    item.description <- Some p
+                                    item)
+                                |> ResizeArray
+
+                            let! proj = window.showQuickPick (projItems |> U2.Case1)
 
                             match proj with
                             | Some proj ->
-                                let args = [ "sln"; name; "add"; proj ]
+                                let fullPath = proj.description |> Option.defaultValue proj.label
+                                let args = [ "sln"; name; "add"; fullPath ]
 
                                 Project.execWithDotnet MSBuild.outputChannel (ResizeArray args) |> ignore
                             | None -> ()
