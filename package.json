@@ -1,23 +1,18 @@
 {
   "name": "ionide-vscode-fsharp",
   "private": true,
-  "scripts": {
-    "gen:semver": "ts2fable node_modules/@types/semver/{classes,functions,internals,ranges}/*.d.ts  node_modules/@types/semver/index.d.ts src/Imports/Semver.fs"
-  },
   "dependencies": {
     "@xmldom/xmldom": "^0.8.15",
     "cross-spawn": "^7.0.6",
     "htmlparser2": "^4.1.0",
-    "semver": "^7.3.5",
+    "semver": "^7.8.5",
     "showdown": "^1.9.1",
     "vscode-languageclient": "^8.0.0",
     "xpath": "^0.0.33"
   },
   "devDependencies": {
-    "@types/semver": "^7.3.8",
     "@vscode/vsce": "^4.0.0",
-    "rolldown": "^1.2.15",
-    "ts2fable": "^0.8.0-build.618"
+    "rolldown": "^1.2.15"
   },
   "engines": {
     "node": ">=24.0.0"

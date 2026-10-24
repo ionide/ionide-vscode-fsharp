@@ -256,7 +256,7 @@ Consider:
                 | Some e -> return Core.Error $"error while invoking: {e.message}"
                 | None ->
                     let stdoutTrimmed = stdout.TrimEnd()
-                    let semver = semver.parse (Some(U2.Case1 stdoutTrimmed))
+                    let semver = semver.parse stdoutTrimmed
 
                     match semver with
                     | None -> return Core.Error $"unable to parse version string '{stdoutTrimmed}'"
@@ -288,7 +288,7 @@ Consider:
                         let line = line.Trim()
 
                         if line.StartsWith "Microsoft.NETCore.App " then
-                            semver.parse (Some(U2.Case1(line.Split([| ' ' |]).[1])))
+                            semver.parse (line.Split([| ' ' |]).[1])
                         else
                             None)
                     |> Core.Ok
@@ -1002,7 +1002,7 @@ Consider:
             let findBestTFM (availableTFMs: string seq) (tfm: string) =
                 let tfmToSemVer (t: string) =
                     t.Replace("netcoreapp", "").Replace("net", "").Split([| '.' |], 2)
-                    |> fun ver -> semver.parse (!! $"{ver[0]}.{ver[1]}.0")
+                    |> fun ver -> semver.parse $"{ver[0]}.{ver[1]}.0"
 
                 let tfmMap =
                     availableTFMs
@@ -1020,7 +1020,7 @@ Consider:
                     Seq.last availableTFMs
                 | Some ver ->
                     tfmMap
-                    |> Seq.skipWhile (fun (_, v) -> (semver.compare (!!v, !!ver)) = enum -1) // skip while fsac tfm is less than target tfm
+                    |> Seq.skipWhile (fun (_, v) -> semver.compare (v, ver) = -1) // skip while fsac tfm is less than target tfm
                     |> Seq.tryHead // get first fsac tfm that is greater than or equal to target tfm
                     |> Option.map fst
                     |> Option.defaultWith (fun () -> Seq.last availableTFMs)
