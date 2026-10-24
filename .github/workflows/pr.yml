@@ -40,19 +40,7 @@ jobs:
     - name: Seed Paket git cache
       shell: bash
       run: git clone --mirror https://github.com/ionide/ionide-fsgrammar.git "${USERPROFILE:-$HOME}/.paket/git/db/ionide-fsgrammar"
-    - name: Build
-      run: dotnet fsi build.fsx -p Build
-
-  format:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v7
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v6
-      with:
-        global-json-file: global.json
-    - name: Restore tools
-      run: dotnet tool restore
-    - name: Check formatting
-      run: dotnet fantomas check src build.fsx
+    # Package checks the formatting, builds and packages the .vsix, so a PR runs everything the
+    # release runs before it publishes.
+    - name: Build and package
+      run: dotnet fsi build.fsx -p Package
