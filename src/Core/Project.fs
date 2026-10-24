@@ -24,10 +24,8 @@ module Project =
         | NotRestored of path: string * error: string
         | LanguageNotSupported of path: string
 
-    let private emptyProjectsMap: Dictionary<ProjectFilePath, ProjectLoadingState> =
+    let private loadedProjects: Dictionary<ProjectFilePath, ProjectLoadingState> =
         Dictionary()
-
-    let mutable private loadedProjects = emptyProjectsMap
 
     let mutable private loadedWorkspace: WorkspacePeekFound option = None
 
@@ -180,7 +178,7 @@ module Project =
         | Some rootPath -> rootPath |> findProjs
 
     let private clearLoadedProjects () =
-        loadedProjects <- emptyProjectsMap
+        loadedProjects.Clear()
         setAnyProjectContext false
 
     let load comingFromRestore (path: string) =
@@ -642,6 +640,44 @@ module Project =
                 setAnyProjectContext true
         | None -> ()
 
+    /// FSAC fails the whole workspaceLoad request when it can't load any project, for example when MSBuild itself
+    /// fails to load. Without this, the projects stay in "Loading" and every editor request fails with
+    /// "Couldn't find ... in LoadedProjects".
+    let private reportWorkspaceLoadFailure (projs: string array) (unexpectedStopsBefore: int) (e: exn) =
+        let details = string e.Message
+
+        let report (summary: string) =
+            logger.Error($"Loading the workspace failed: %s{details}")
+
+            for p in projs do
+                match tryFindInWorkspace p with
+                | Some(ProjectLoadingState.Loaded _) -> ()
+                | _ -> updateInWorkspace p (ProjectLoadingState.Failed(p, summary))
+
+            loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
+
+            promise {
+                let showOutput = "Show output"
+                let! choice = window.showErrorMessage ($"F# projects could not be loaded: {summary}", showOutput)
+
+                if choice = Some showOutput then
+                    LanguageService.client
+                    |> Option.iter (fun cl -> cl.outputChannel.show (preserveFocus = true))
+            }
+            |> ignore
+
+        // The request also fails when the load stops early: -32097 when the connection closes, -32096 when the
+        // client isn't running, -32800 when the request is cancelled. Only a connection that closed because FSAC
+        // stopped by itself is a failure, not a stop or restart that was asked for, like closing VS Code.
+        match e?code |> unbox<int> with
+        | -32097 when LanguageService.unexpectedServerStopCount () <> unexpectedStopsBefore ->
+            // the client restarts FSAC, and restartedAfterUnexpectedStop loads the workspace again
+            report "the F# language server stopped while loading them. Ionide restarts it and loads them again."
+        | -32097
+        | -32096
+        | -32800 -> logger.Debug($"Loading the workspace did not complete: %s{details}")
+        | _ -> report (details.Split([| '\n' |]).[0].Trim())
+
     let private initWorkspaceHelper x =
         clearLoadedProjects ()
         loadedWorkspace <- Some x
@@ -657,7 +693,12 @@ module Project =
         | WorkspacePeekFound.Directory _ when not (projs |> Array.isEmpty) -> setAnyProjectContext true
         | _ -> ()
 
-        projs |> List.ofArray |> LanguageService.workspaceLoad |> Promise.map ignore
+        let unexpectedStopsBefore = LanguageService.unexpectedServerStopCount ()
+
+        projs
+        |> List.ofArray
+        |> LanguageService.workspaceLoad
+        |> Promise.catch (reportWorkspaceLoadFailure projs unexpectedStopsBefore)
 
 
     let initWorkspace () =
@@ -758,6 +799,17 @@ module Project =
 
                 ShowStatus.CreateOrShow(ProjectStatus.path, name) |> box |> Some)
         )
+        |> context.Subscribe
+
+        // a restarted FSAC starts without a workspace, so load it again
+        LanguageService.restartedAfterUnexpectedStop.Invoke(fun () ->
+            logger.Info("The F# language server restarted, loading the workspace again")
+
+            initWorkspace ()
+            |> Promise.catch (fun e -> logger.Error $"Error loading projects: %A{e}")
+            |> ignore
+
+            None)
         |> context.Subscribe
 
         initWorkspace ()

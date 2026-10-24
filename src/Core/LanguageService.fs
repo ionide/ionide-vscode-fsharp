@@ -105,6 +105,22 @@ module LanguageService =
 
     let mutable client: LanguageClient option = None
 
+    /// How often FSAC stopped without being asked to (a crash or an exit), so a failed request can tell that apart
+    /// from a stop or restart that was asked for.
+    let mutable private unexpectedServerStops = 0
+
+    /// A function rather than the mutable itself: Fable moves a single-use read of a module-level mutable to where
+    /// the value is used, which would turn a snapshot taken before a request into a read after it failed.
+    let unexpectedServerStopCount () = unexpectedServerStops
+
+    let mutable private restartingAfterUnexpectedStop = false
+
+    let private restartedAfterUnexpectedStopEmitter = vscode.EventEmitter.Create<unit>()
+
+    /// Fires when the client restarted FSAC by itself after it stopped unexpectedly.
+    /// The new FSAC has no workspace loaded yet.
+    let restartedAfterUnexpectedStop = restartedAfterUnexpectedStopEmitter.event
+
     let inline checkNotificationAndCast<'t> (response: Types.PlainNotification) : 't option =
         if isNullOrUndefined response then
             None
@@ -761,29 +777,46 @@ Consider:
 
             let restarts = new ResizeArray<_>()
 
-            let errorHandling =
-                {
+            // vscode-languageclient 8 expects { action, message } from the error handler, but the bindings still
+            // declare a bare CloseAction/ErrorAction, and Fable coerces an enum return value to an integer. The client
+            // reads `.action` of a bare number as undefined and then neither restarts nor reports a crashed server.
+            // So the handler is a plain JS object.
+            let handlerResult (action: obj) (message: string option) : obj =
+                createObj
+                    [ "action" ==> action
+                      match message with
+                      | Some m -> "message" ==> m
+                      | None -> () ]
 
-                  new ErrorHandler with
-                      member this.closed() : CloseAction =
+            let errorHandling: ErrorHandler =
+                createObj
+                    [ "closed"
+                      ==> Func<obj>(fun () ->
+                          // the client only calls this when the connection closes while it isn't stopping
+                          unexpectedServerStops <- unexpectedServerStops + 1
                           restarts.Add(1)
 
                           if restarts |> Seq.length < 5 then
-                              CloseAction.Restart
+                              logger.Error("The F# language server stopped unexpectedly, restarting it")
+                              restartingAfterUnexpectedStop <- true
+                              handlerResult CloseAction.Restart None
                           else
-
                               logger.Error("Server closed")
-                              CloseAction.DoNotRestart
 
-                      member this.error(error: Exception, message: Message, count: float) : ErrorAction =
+                              handlerResult
+                                  CloseAction.DoNotRestart
+                                  (Some
+                                      "The F# language server stopped unexpectedly 5 times and will not be restarted. See the F# output for the cause, then run 'F#: Restart Language Service'."))
+
+                      "error"
+                      ==> Func<Exception, Message, float, obj>(fun error message count ->
                           logger.Error($"Error from server: {error} {message} {count}")
 
                           if count < 3.0 then
-                              ErrorAction.Continue
+                              handlerResult ErrorAction.Continue None
                           else
-                              ErrorAction.Shutdown
-
-                }
+                              handlerResult ErrorAction.Shutdown None) ]
+                |> unbox
 
             let initOpts = createObj [ "AutomaticWorkspaceInit" ==> false ]
 
@@ -808,6 +841,15 @@ Consider:
             opts
 
         let cl = LanguageClient("FSharp", "F#", options, clientOpts, false)
+
+        cl.onDidChangeState.Invoke(fun e ->
+            if e.newState = State.Running && restartingAfterUnexpectedStop then
+                restartingAfterUnexpectedStop <- false
+                restartedAfterUnexpectedStopEmitter.fire ()
+
+            None)
+        |> ignore
+
         client <- Some cl
         cl
 
@@ -986,10 +1028,17 @@ Consider:
 
                         let args = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
 
-                        // No DOTNET_ROLL_FORWARD(_TO_PRERELEASE) here: FSAC's runtimeconfig already rolls forward to
-                        // newer majors, and the host only picks a preview runtime when no release fits.
-                        // The variables would also leak into the processes FSAC starts, like test hosts.
-                        return args, fsacPath
+                        // FSAC's runtimeconfig already rolls forward to the latest major, but the host skips preview
+                        // runtimes while a release runtime fits. FSAC loads MSBuild from the workspace SDK, and a
+                        // preview SDK (for example 11.0.100-rc.2) needs its own preview runtime, so allow it then.
+                        // Only for preview SDKs: the variable also reaches the processes FSAC starts.
+                        let envVariables =
+                            [ match sdkVersion.prerelease with
+                              | null -> ()
+                              | pres when Seq.length pres > 0 -> "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1
+                              | _ -> () ]
+
+                        return args, envVariables, fsacPath
                 }
 
             /// Converts true to 1 and false to 0
@@ -998,9 +1047,8 @@ Consider:
 
             let spawnNetCore dotnet : JS.Promise<Executable> =
                 promise {
-                    let! (fsacDotnetArgs, fsacPath) = discoverDotnetArgs dotnet
-                    // FSAC runs on the .NET 10 runtime, whatever SDK the workspace pins,
-                    // so the GC defaults don't depend on the SDK version.
+                    let! (fsacDotnetArgs, rollForwardEnvVars, fsacPath) = discoverDotnetArgs dotnet
+                    // FSAC runs on the .NET 10 runtime or later, so the GC defaults don't depend on the SDK version.
 
                     // datas is on by default for server GC since .NET 9
                     let useDatas = gcServerUseDatas |> Option.defaultValue true
@@ -1025,7 +1073,9 @@ Consider:
                           yield "DOTNET_GCServer", box (boolToInt gcServer) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#workstation-vs-server
 
                           if parallelReferenceResolution then
-                              yield "FCS_ParallelReferenceResolution", box "true" ]
+                              yield "FCS_ParallelReferenceResolution", box "true"
+
+                          yield! rollForwardEnvVars ]
 
                     logger.Debug $"""FSAC (NETCORE): '%s{fsacPath}'"""
 
