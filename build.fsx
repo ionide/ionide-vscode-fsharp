@@ -99,7 +99,8 @@ let restore =
         run "dotnet restore src"
     }
 
-let compile = stage "compile" { run (fable "--run webpack --mode=production") }
+let compile =
+    stage "compile" { run (fable "--run rolldown -c rolldown.config.mjs --minify") }
 
 let copyAssets =
     stage "assets" {
@@ -158,7 +159,7 @@ pipeline "BuildDev" {
     description "Build the extension with DEBUG defined and an unminified bundle"
     workingDir __SOURCE_DIRECTORY__
     restore
-    stage "compile" { run (fable "--define DEBUG --run webpack --mode=development") }
+    stage "compile" { run (fable "--define DEBUG --run rolldown -c rolldown.config.mjs") }
     runIfOnlySpecified true
 }
 
@@ -169,7 +170,7 @@ pipeline "Watch" {
 
     stage "watch" {
         run
-            "dotnet fable watch ./src/Ionide.FSharp.fsproj -s --outDir ./out --define DEBUG --runWatch webpack --mode=development"
+            "dotnet fable watch ./src/Ionide.FSharp.fsproj -s --outDir ./out --define DEBUG --runWatch rolldown -c rolldown.config.mjs --watch"
     }
 
     runIfOnlySpecified true
