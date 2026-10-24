@@ -589,7 +589,7 @@
           "maximum": 9
         },
         "FSharp.fsac.gc.heapCount": {
-          "markdownDescription": "Limits the number of [heaps](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals#the-managed-heap) created by the garbage collector. Applies to server garbage collection only. See [Middle Ground between Server and Workstation GC](https://devblogs.microsoft.com/dotnet/middle-ground-between-server-and-workstation-gc/) for more details. This can allow FSAC to still benefit from Server garbage collection while still limiting the number of heaps. Only applies when `FSharp.fsac.gc.useDatas` is off. Not set by default. Requires restart.",
+          "markdownDescription": "Limits the number of [heaps](https://learn.microsoft.com/en-us/dotnet/standard/garbage-collection/fundamentals#the-managed-heap) created by the garbage collector. Applies to server garbage collection only. See [Middle Ground between Server and Workstation GC](https://devblogs.microsoft.com/dotnet/middle-ground-between-server-and-workstation-gc/) for more details. This can allow FSAC to still benefit from Server garbage collection while still limiting the number of heaps. Only applies when \u0060FSharp.fsac.gc.useDatas\u0060 is off. Not set by default. Requires restart.",
           "type": "integer",
           "required": [
             "FSharp.fsac.gc.server"
@@ -598,7 +598,7 @@
         "Fsharp.fsac.gc.noAffinitize": {
           "default": false,
           "type": "boolean",
-          "markdownDescription": "When true, garbage collection threads are not [affinitized](https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#affinitize) to processors (an affinitized GC thread can only run on its specific CPU). Applies to server garbage collection only. See [GCNoAffinitize](https://learn.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/runtime/gcnoaffinitize-element#remarks) for more details. Only applies when `FSharp.fsac.gc.useDatas` is off. Defaults to false. Requires restart.",
+          "markdownDescription": "When true, garbage collection threads are not [affinitized](https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#affinitize) to processors (an affinitized GC thread can only run on its specific CPU). Applies to server garbage collection only. See [GCNoAffinitize](https://learn.microsoft.com/en-us/dotnet/framework/configure-apps/file-schema/runtime/gcnoaffinitize-element#remarks) for more details. Only applies when \u0060FSharp.fsac.gc.useDatas\u0060 is off. Defaults to false. Requires restart.",
           "required": [
             "FSharp.fsac.gc.server"
           ]
@@ -1909,5 +1909,5 @@
     "type": "git",
     "url": "https://github.com/ionide/ionide-vscode-fsharp.git"
   },
-  "version": "7.31.1"
+  "version": "8.0.0"
 }
