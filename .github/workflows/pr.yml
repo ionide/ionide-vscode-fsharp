@@ -31,8 +31,8 @@ jobs:
         global-json-file: global.json
     - uses: actions/setup-node@v7
       with:
-        node-version: '22'
-        cache: 'yarn'
+        node-version-file: '.tool-versions'
+        cache: 'npm'
     - name: Restore tools
       run: dotnet tool restore
     # Workaround for https://github.com/fsprojects/Paket/issues/4461: Paket 11 and later fail to

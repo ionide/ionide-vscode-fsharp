@@ -22,8 +22,7 @@ First things first! In order to build & develop Ionide locally, you'll need to i
 
 - [Visual Studio Code][vscode]
 - [.NET 10][dotnet]
-- [Node.js][nodejs]
-- [Yarn][yarn]
+- [Node.js][nodejs] 24 or later, which comes with npm
 
 ### First-Time Build
 
@@ -153,8 +152,7 @@ Remove the settings from steps 3 and 4 to go back to FSAC bundled in Ionide exte
 ### FSAC Dependencies
 
 - [.NET 10][dotnet]
-- [Node.js][nodejs]
-- [Yarn][yarn]
+- [Node.js][nodejs] 24 or later, which comes with npm
 - [Visual Studio Code][vscode]
 
 ## Pull requests
@@ -228,7 +226,6 @@ Please provide as much detail and context as possible.
 
 [dotnet]: https://dotnet.microsoft.com/en-us/download/dotnet/7.0
 [nodejs]: https://nodejs.org/en/download/
-[yarn]: https://yarnpkg.com/en/docs/install
 [vscode]: https://code.visualstudio.com/Download
 
 
