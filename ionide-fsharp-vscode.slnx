@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/.vscode/">
+    <File Path=".vscode/launch.json" />
+    <File Path=".vscode/tasks.json" />
+  </Folder>
+  <Folder Name="/release/">
+    <File Path="README.md" />
+    <File Path="release/language-configuration.json" />
+    <File Path="release/package.json" />
+    <File Path="RELEASE_NOTES.md" />
+  </Folder>
+  <Folder Name="/release/syntaxes/">
+    <File Path="release/syntaxes/fsharp.fsi.json" />
+    <File Path="release/syntaxes/fsharp.fsl.json" />
+    <File Path="release/syntaxes/fsharp.fsx.json" />
+    <File Path="release/syntaxes/fsharp.json" />
+  </Folder>
+  <Project Path="src/Ionide.FSharp.fsproj" />
+</Solution>
