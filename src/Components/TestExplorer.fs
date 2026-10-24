@@ -595,7 +595,7 @@ module DotnetCli =
 
             if not cancellationToken.isCancellationRequested then
                 let options = createEmpty<ExecOptions>
-                options.cwd <- workspace.rootPath
+                options.cwd <- workspaceRootPath ()
                 env |> Option.iter (fun env -> options?env <- env)
 
                 Promise.create (fun resolve reject ->
@@ -2325,7 +2325,7 @@ let activate (context: ExtensionContext) =
 
     let testItemFactory = TestItem.itemFactoryForController testController
     let locationCache = CodeLocationCache()
-    let workspaceRoot = workspace.rootPath.Value
+    let workspaceRoot = (workspaceRootPath ()).Value
 
     let storageUri =
         context.storageUri

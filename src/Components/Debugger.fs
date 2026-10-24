@@ -81,7 +81,7 @@ module Debugger =
 
     let setProgramPath project (cfg: LaunchJsonVersion2.RequestLaunch) =
         let relativeOutPath =
-            node.path.relative(workspace.rootPath.Value, project.Output).Replace("\\", "/")
+            node.path.relative((workspaceRootPath ()).Value, project.Output).Replace("\\", "/")
 
         let programPath = sprintf "${workspaceRoot}/%s" relativeOutPath
 
