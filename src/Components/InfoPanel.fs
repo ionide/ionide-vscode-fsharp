@@ -3,6 +3,7 @@ namespace Ionide.VSCode.FSharp
 open System
 open Fable.Core
 open Fable.Core.JsInterop
+open Fable.Import.VSCode
 open Fable.Import.VSCode.Vscode
 open Ionide.VSCode.Helpers
 open DTO
@@ -10,6 +11,50 @@ open DTO
 module node = Node.Api
 
 module InfoPanel =
+
+    let private logger =
+        ConsoleAndOutputChannelLogger(Some "InfoPanel", Level.DEBUG, Some defaultOutputChannel, Some Level.DEBUG)
+
+    [<Emit("(function() { return $0(Array.prototype.slice.call(arguments)); })")>]
+    let private variadicCommandHandler<'T> (_f: ResizeArray<obj> -> 'T) : obj = jsNative
+
+    type private ShowDocumentationRequest =
+        { XmlDocSig: string
+          AssemblyName: string
+          FileName: string option
+          Line: int option
+          Character: int option }
+
+    let private isShowDocumentationRequest (value: obj) =
+        not (isNullOrUndefined value)
+        && JS.isDefined value?XmlDocSig
+        && JS.isDefined value?AssemblyName
+
+    let private tryGetOptionalValue<'T> (value: obj) =
+        if isNullOrUndefined value then
+            None
+        else
+            Some(unbox<'T> value)
+
+    let private toShowDocumentationRequest (o: obj) : ShowDocumentationRequest =
+        { XmlDocSig = unbox o?XmlDocSig
+          AssemblyName = unbox o?AssemblyName
+          FileName = tryGetOptionalValue<string> o?FileName
+          Line = tryGetOptionalValue<int> o?Line
+          Character = tryGetOptionalValue<int> o?Character }
+
+    let private toDocumentationRequest (request: ShowDocumentationRequest) : DocumentationForSymbolRequest =
+        { XmlSig = request.XmlDocSig
+          Assembly = request.AssemblyName
+          FileName = request.FileName
+          Line = request.Line
+          Character = request.Character }
+
+    let private tryGetShowDocumentationRequest (value: obj) =
+        if isShowDocumentationRequest value then
+            Some(toShowDocumentationRequest value)
+        else
+            None
 
     let private isFsharpTextEditor (textEditor: TextEditor) =
         if JS.isDefined textEditor && JS.isDefined textEditor.document then
@@ -206,13 +251,14 @@ module InfoPanel =
             }
             |> ignore
 
-        let updateOnLink xmlSig assemblyName =
+        let updateOnLink request =
             promise {
-                let! res = LanguageService.documentationForSymbol xmlSig assemblyName
+                let! res = LanguageService.documentationForSymbol request
                 res |> Option.bind mapContent |> Option.iter setContent
             }
 
     let mutable private timer = None
+    let mutable private lastTooltipPosition: Position option = None
 
     let private clearTimer () =
         match timer with
@@ -263,16 +309,60 @@ module InfoPanel =
             Panel.update textEditor selection
         | None -> openPanel () |> ignore
 
-    let private showDocumentation o =
+    let private primeDocumentationContext (request: ShowDocumentationRequest) =
+        promise {
+            match request.FileName, request.Line, request.Character with
+            | Some fileName, Some line, Some character ->
+                let! _ = LanguageService.documentation (vscode.Uri.file fileName) line character
+                return ()
+            | _ ->
+                let textEditor = window.activeTextEditor.Value
+
+                let pos =
+                    match lastTooltipPosition with
+                    | Some pos -> Some pos
+                    | None when isFsharpTextEditor textEditor && textEditor.selections.Count > 0 ->
+                        Some textEditor.selections.[0].active
+                    | None -> None
+
+                match pos with
+                | Some pos when isFsharpTextEditor textEditor ->
+                    let doc = textEditor.document
+                    let! _ = LanguageService.documentation doc.uri (int pos.line) (int pos.character)
+                    return ()
+                | _ -> return ()
+        }
+
+    let private showDocumentation (args: ResizeArray<obj>) =
         // If the panel doesn't exist, open it
         // This happens when using click on "Open documentation" from inside
         // the tooltip
         promise {
-            match Panel.panel with
-            | Some _ -> ()
-            | None -> do! openPanel ()
+            let firstArg = if args.Count > 0 then args.[0] else null
 
-            do! Panel.updateOnLink !!o?XmlDocSig !!o?AssemblyName
+            let secondArg = if args.Count > 1 then args.[1] else null
+
+            try
+                match tryGetShowDocumentationRequest firstArg, tryGetShowDocumentationRequest secondArg with
+                | Some request, _
+                | None, Some request ->
+                    // An explicit documentation link click should pin the linked symbol
+                    // instead of immediately yielding back to cursor-driven updates.
+                    Panel.locked <- true
+                    Context.set "infoPanelLocked" true
+
+                    match Panel.panel with
+                    | Some _ -> ()
+                    | None -> do! openPanel ()
+
+                    match request.FileName, request.Line, request.Character with
+                    | Some _, Some _, Some _ -> ()
+                    | _ -> do! primeDocumentationContext request
+
+                    do! Panel.updateOnLink (toDocumentationRequest request)
+                | None, None -> ()
+            with ex ->
+                logger.Error("showDocumentation failed: %O", ex)
         }
 
     let private selectionChanged (event: TextEditorSelectionChangeEvent) =
@@ -291,6 +381,7 @@ module InfoPanel =
         ()
 
     let tooltipRequested (pos: Position) =
+        lastTooltipPosition <- Some pos
         let updateMode = "FSharp.infoPanelUpdate" |> Configuration.get "onCursorMove"
 
         if updateMode = "onHover" || updateMode = "both" then
@@ -331,7 +422,7 @@ module InfoPanel =
         commands.registerCommand ("fsharp.openInfoPanel.unlock", unlockPanel |> objfy2)
         |> context.Subscribe
 
-        commands.registerCommand ("fsharp.showDocumentation", showDocumentation |> objfy2)
+        commands.registerCommand ("fsharp.showDocumentation", variadicCommandHandler showDocumentation |> unbox)
         |> context.Subscribe
 
         if startLocked then
