@@ -24,13 +24,6 @@ module InfoPanel =
 
     module Panel =
 
-        let showdownOptions =
-            Fable.Import.Showdown.showdown.getDefaultOptions () :?> Fable.Import.Showdown.Showdown.ConverterOptions
-
-        showdownOptions.tables <- Some true
-
-        let showdown = Fable.Import.Showdown.showdown.Converter.Create(showdownOptions)
-
         let mutable panel: WebviewPanel option = None
 
         let mutable locked = false
@@ -38,7 +31,7 @@ module InfoPanel =
         let setContent str =
             panel
             |> Option.iter (fun p ->
-                let str = showdown.makeHtml str
+                let str = Marked.marked.parse (str, {| async = false |})
 
                 let str =
                     sprintf

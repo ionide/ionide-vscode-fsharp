@@ -5,8 +5,8 @@
     "@xmldom/xmldom": "^0.8.15",
     "cross-spawn": "^7.0.6",
     "htmlparser2": "^4.1.0",
+    "marked": "^18.1.1",
     "semver": "^7.8.5",
-    "showdown": "^1.9.1",
     "vscode-languageclient": "^8.0.0",
     "xpath": "^0.0.33"
   },
@@ -20,5 +20,10 @@
   },
   "allowScripts": {
     "@vscode/vsce-sign": false
+  },
+  "overrides": {
+    "@azure/identity": {
+      "@azure/msal-node": "^7.1.0"
+    }
   }
 }
