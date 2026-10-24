@@ -16,7 +16,8 @@ let private logger =
 let private requiredExtensions =
     [ "ms-dotnettools.csharp" // VSCode C# extension
       "anysphere.csharp" // Cursor C# extension
-      "muhammad-sammy.csharp" ] // Free/Libre C# extension
+      "muhammad-sammy.csharp" // Free/Libre C# extension
+      "nromanov.dotrush" ] // DotRush C# extension
 
 let private checkCSharpExtension () =
     requiredExtensions
