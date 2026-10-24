@@ -502,6 +502,11 @@
           "description": "EXPERIMENTAL. Enables F# analyzers for custom code diagnostics. Requires restart.",
           "type": "boolean"
         },
+        "FSharp.enableTestingPlatform": {
+          "default": false,
+          "description": "EXPERIMENTAL. Runs tests through the Microsoft.Testing.Platform server protocol for projects that set IsTestingPlatformApplication. Requires restart.",
+          "type": "boolean"
+        },
         "FSharp.enableMSBuildProjectGraph": {
           "default": false,
           "description": "EXPERIMENTAL. Enables support for loading workspaces with MsBuild\u0027s ProjectGraph. This can improve load times. Requires restart.",
