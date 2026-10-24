@@ -13,38 +13,46 @@ module node = Node.Api
 module LaunchJsonVersion2 =
 
     type RequestLaunch =
-        { name: string
-          ``type``: string
-          request: string
-          preLaunchTask: string option
-          program: string
-          args: string array
-          cwd: string
-          console: string
-          stopAtEntry: bool }
+        {
+            name: string
+            ``type``: string
+            request: string
+            preLaunchTask: string option
+            program: string
+            args: string array
+            cwd: string
+            console: string
+            stopAtEntry: bool
+        }
 
     let createRequestLaunch () =
-        { RequestLaunch.name = ".NET Core Launch (console)"
-          ``type`` = "coreclr"
-          request = "launch"
-          preLaunchTask = Some "build"
-          program = "${workspaceRoot}/bin/Debug/{targetFramework}/{projectName}.dll"
-          args = [||]
-          cwd = "${workspaceRoot}"
-          console = "externalTerminal"
-          stopAtEntry = false }
+        {
+            RequestLaunch.name = ".NET Core Launch (console)"
+            ``type`` = "coreclr"
+            request = "launch"
+            preLaunchTask = Some "build"
+            program = "${workspaceRoot}/bin/Debug/{targetFramework}/{projectName}.dll"
+            args = [||]
+            cwd = "${workspaceRoot}"
+            console = "externalTerminal"
+            stopAtEntry = false
+        }
 
     type RequestAttach =
-        { name: string
-          ``type``: string
-          request: string
-          processId: string }
+        {
+            name: string
+            ``type``: string
+            request: string
+            processId: string
+        }
 
     let createAttachLaunch () =
-        { RequestAttach.name = ".NET Core Attach"
-          ``type`` = "coreclr"
-          request = "attach"
-          processId = "${command:pickProcess}" }
+        {
+            RequestAttach.name = ".NET Core Attach"
+            ``type`` = "coreclr"
+            request = "attach"
+            processId = "${command:pickProcess}"
+        }
 
     let assertVersion2 (cfg: WorkspaceConfiguration) =
         promise {
@@ -159,7 +167,7 @@ module Debugger =
                 let! proj = window.showQuickPick (unbox<U2<ResizeArray<QuickPickItem>, _>> picks)
 
                 if JS.isDefined proj then
-                    let project = unbox<Project> (proj?data)
+                    let project = unbox<Project>(proj?data)
                     setDefaultProject project
                     return Some project
                 else
@@ -227,12 +235,8 @@ module Debugger =
             None
 
     let makeDebugConfigFor
-        (
-            name: string,
-            ls: LaunchSettingsConfiguration,
-            project: Project,
-            buildTaskOpt: Task option
-        ) : DebugConfiguration option =
+        (name: string, ls: LaunchSettingsConfiguration, project: Project, buildTaskOpt: Task option)
+        : DebugConfiguration option =
         if ls.commandName <> Some "Project" || ls.commandName = None then
             None
         else if project.OutputType <> "exe" then
@@ -261,8 +265,10 @@ module Debugger =
             match ls.launchBrowser with
             | Some true ->
                 c?serverReadyAction <-
-                    {| action = "openExternally"
-                       pattern = "\\bNow listening on:\\s+(https?://\\S+)" |} // TODO: make this pattern extendable?
+                    {|
+                        action = "openExternally"
+                        pattern = "\\bNow listening on:\\s+(https?://\\S+)"
+                    |} // TODO: make this pattern extendable?
             | _ -> ()
 
             if JS.isDefined ls.environmentVariables then
@@ -348,21 +354,23 @@ module Debugger =
                         let tasks =
                             projects
                             |> List.collect (fun (p: Project) ->
-                                [ let projectFile = node.path.basename p.Project
+                                [
+                                    let projectFile = node.path.basename p.Project
 
-                                  let buildTaskForProject =
-                                      msbuildTasks
-                                      |> Seq.tryFind (fun t ->
-                                          t.group = Some vscode.TaskGroup.Build && t.name = projectFile)
-                                  // emit configurations for any launchsettings for this project
-                                  match readSettingsForProject p with
-                                  | Some launchSettings ->
-                                      yield! configsForProject (p, launchSettings, buildTaskForProject)
-                                  | None -> ()
-                                  // emit a default configuration for this project if it is an executable
-                                  match defaultConfigForProject (p, buildTaskForProject) with
-                                  | Some p -> yield p
-                                  | None -> () ])
+                                    let buildTaskForProject =
+                                        msbuildTasks
+                                        |> Seq.tryFind (fun t ->
+                                            t.group = Some vscode.TaskGroup.Build && t.name = projectFile)
+                                    // emit configurations for any launchsettings for this project
+                                    match readSettingsForProject p with
+                                    | Some launchSettings ->
+                                        yield! configsForProject (p, launchSettings, buildTaskForProject)
+                                    | None -> ()
+                                    // emit a default configuration for this project if it is an executable
+                                    match defaultConfigForProject (p, buildTaskForProject) with
+                                    | Some p -> yield p
+                                    | None -> ()
+                                ])
 
                         return ResizeArray tasks
                     }
@@ -387,7 +395,8 @@ module Debugger =
                     token: option<CancellationToken>
                 ) =
                 logger.Info("Resolving subsituted launch settings configuration %O for %O", debugConfiguration, folder)
-                ProviderResult.Some(U2.Case1 debugConfiguration) }
+                ProviderResult.Some(U2.Case1 debugConfiguration)
+        }
 
     let activate (c: ExtensionContext) =
         commands.registerCommand ("fsharp.runDefaultProject", (buildAndRunDefault) |> objfy2)

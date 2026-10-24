@@ -6,67 +6,83 @@ module DTO =
     type Pos = { Line: int; Column: int }
 
     type ParseRequest =
-        { FileName: string
-          IsAsync: bool
-          Lines: string[]
-          Version: int }
+        {
+            FileName: string
+            IsAsync: bool
+            Lines: string[]
+            Version: int
+        }
 
     type ProjectRequest = { FileName: string }
 
     type DeclarationsRequest =
-        { FileName: string
-          Lines: string[]
-          Version: int }
+        {
+            FileName: string
+            Lines: string[]
+            Version: int
+        }
 
     type HelptextRequest = { Symbol: string }
 
     type PositionRequest =
-        { FileName: string
-          Line: int
-          Column: int
-          Filter: string }
+        {
+            FileName: string
+            Line: int
+            Column: int
+            Filter: string
+        }
 
     type CompletionRequest =
-        { FileName: string
-          SourceLine: string
-          Line: int
-          Column: int
-          Filter: string
-          IncludeKeywords: bool
-          IncludeExternal: bool
-          Version: int }
+        {
+            FileName: string
+            SourceLine: string
+            Line: int
+            Column: int
+            Filter: string
+            IncludeKeywords: bool
+            IncludeExternal: bool
+            Version: int
+        }
 
     type WorkspacePeekRequest =
-        { Directory: string
-          Deep: int
-          ExcludedDirs: string[] }
+        {
+            Directory: string
+            Deep: int
+            ExcludedDirs: string[]
+        }
 
     type RangesAtPositionRequest = { FileName: string; Positions: Pos[] }
 
     type WorkspaceLoadRequest =
-        { Files: string[]
-          DisableInMemoryProjectReferences: bool }
+        {
+            Files: string[]
+            DisableInMemoryProjectReferences: bool
+        }
 
     type DocumentationForSymbolRequest = { XmlSig: string; Assembly: string }
 
     type OverloadSignature = { Signature: string; Comment: string }
 
     type TooltipSignature =
-        { Signature: string
-          Comment: string
-          Footer: string }
+        {
+            Signature: string
+            Comment: string
+            Footer: string
+        }
 
     type DocumentationDescription =
-        { XmlKey: string
-          Constructors: string list
-          Fields: string list
-          Functions: string list
-          Interfaces: string list
-          Attributes: string list
-          DeclaredTypes: string list
-          Signature: string
-          Comment: string
-          FooterLines: string list }
+        {
+            XmlKey: string
+            Constructors: string list
+            Fields: string list
+            Functions: string list
+            Interfaces: string list
+            Attributes: string list
+            DeclaredTypes: string list
+            Signature: string
+            Comment: string
+            FooterLines: string list
+        }
 
     type Error =
         {
@@ -94,100 +110,128 @@ module DTO =
         { File: string; Line: int; Column: int }
 
     type Completion =
-        { Name: string
-          ReplacementText: string
-          Glyph: string
-          GlyphChar: string
-          NamespaceToOpen: string }
+        {
+            Name: string
+            ReplacementText: string
+            Glyph: string
+            GlyphChar: string
+            NamespaceToOpen: string
+        }
 
     type SymbolUse =
-        { FileName: string
-          StartLine: int
-          StartColumn: int
-          EndLine: int
-          EndColumn: int
-          IsFromDefinition: bool
-          IsFromAttribute: bool
-          IsFromComputationExpression: bool
-          IsFromDispatchSlotImplementation: bool
-          IsFromPattern: bool
-          IsFromType: bool }
+        {
+            FileName: string
+            StartLine: int
+            StartColumn: int
+            EndLine: int
+            EndColumn: int
+            IsFromDefinition: bool
+            IsFromAttribute: bool
+            IsFromComputationExpression: bool
+            IsFromDispatchSlotImplementation: bool
+            IsFromPattern: bool
+            IsFromType: bool
+        }
 
     type SymbolUses = { Name: string; Uses: SymbolUse array }
 
     type AdditionalEdit =
-        { Text: string
-          Line: int
-          Column: int
-          Type: string }
+        {
+            Text: string
+            Line: int
+            Column: int
+            Type: string
+        }
 
     type Helptext =
-        { Name: string
-          Overloads: OverloadSignature[][]
-          AdditionalEdit: AdditionalEdit }
+        {
+            Name: string
+            Overloads: OverloadSignature[][]
+            AdditionalEdit: AdditionalEdit
+        }
 
     type OverloadParameter =
-        { Name: string
-          CanonicalTypeTextForSorting: string
-          Display: string
-          Description: string }
+        {
+            Name: string
+            CanonicalTypeTextForSorting: string
+            Display: string
+            Description: string
+        }
 
     type Overload =
-        { Tip: OverloadSignature[][]
-          TypeText: string
-          Parameters: OverloadParameter[]
-          IsStaticArguments: bool }
+        {
+            Tip: OverloadSignature[][]
+            TypeText: string
+            Parameters: OverloadParameter[]
+            IsStaticArguments: bool
+        }
 
     type Method =
-        { Name: string
-          CurrentParameter: int
-          Overloads: Overload[] }
+        {
+            Name: string
+            CurrentParameter: int
+            Overloads: Overload[]
+        }
 
     type Range =
-        { StartColumn: int
-          StartLine: int
-          EndColumn: int
-          EndLine: int }
+        {
+            StartColumn: int
+            StartLine: int
+            EndColumn: int
+            EndLine: int
+        }
 
 
     type Symbol =
-        { UniqueName: string
-          Name: string
-          Glyph: string
-          GlyphChar: string
-          IsTopLevel: bool
-          Range: Range
-          BodyRange: Range
-          File: string
-          EnclosingEntity: string
-          IsAbstract: bool }
+        {
+            UniqueName: string
+            Name: string
+            Glyph: string
+            GlyphChar: string
+            IsTopLevel: bool
+            Range: Range
+            BodyRange: Range
+            File: string
+            EnclosingEntity: string
+            IsAbstract: bool
+        }
 
     type Symbols =
-        { Declaration: Symbol
-          Nested: Symbol[] }
+        {
+            Declaration: Symbol
+            Nested: Symbol[]
+        }
 
     type Fix =
-        { FromRange: Range
-          FromText: string
-          ToText: string }
+        {
+            FromRange: Range
+            FromText: string
+            ToText: string
+        }
 
     type Lint =
-        { Info: string
-          Input: string
-          Range: Range
-          Fix: Fix }
+        {
+            Info: string
+            Input: string
+            Range: Range
+            Fix: Fix
+        }
 
     type AnalyzerMsg =
-        { Type: string
-          Message: string
-          Code: string
-          Severity: string
-          Range: Range
-          Fixes: Fix[] }
+        {
+            Type: string
+            Message: string
+            Code: string
+            Severity: string
+            Range: Range
+            Fixes: Fix[]
+        }
 
     type AnalyzerResponse =
-        { File: string
-          Messages: AnalyzerMsg[] }
+        {
+            File: string
+            Messages: AnalyzerMsg[]
+        }
 
     type ProjectFilePath = string
     type SourceFilePath = string
@@ -196,63 +240,77 @@ module DTO =
     type ProjectLoading = { Project: ProjectFilePath }
 
     type ProjectResponseInfoDotnetSdk =
-        { IsTestProject: bool
-          Configuration: string
-          IsPackable: bool
-          TargetFramework: string
-          TargetFrameworkIdentifier: string
-          TargetFrameworkVersion: string
-          RestoreSuccess: bool
-          TargetFrameworks: string list
-          RunCmd: RunCmd option
-          IsPublishable: bool option }
+        {
+            IsTestProject: bool
+            Configuration: string
+            IsPackable: bool
+            TargetFramework: string
+            TargetFrameworkIdentifier: string
+            TargetFrameworkVersion: string
+            RestoreSuccess: bool
+            TargetFrameworks: string list
+            RunCmd: RunCmd option
+            IsPublishable: bool option
+        }
 
     and [<RequireQualifiedAccess>] RunCmd = { Command: string; Arguments: string }
 
     type ProjectResponseItem =
-        { Name: string
-          FilePath: string
-          VirtualPath: string
-          Metadata: Map<string, string> }
+        {
+            Name: string
+            FilePath: string
+            VirtualPath: string
+            Metadata: Map<string, string>
+        }
 
     type ProjectReference =
-        { RelativePath: string
-          ProjectFileName: string }
+        {
+            RelativePath: string
+            ProjectFileName: string
+        }
 
     type PackageReference =
-        { Name: string
-          Version: string
-          FullPath: string }
+        {
+            Name: string
+            Version: string
+            FullPath: string
+        }
 
     type Project =
-        { Project: ProjectFilePath
-          Files: SourceFilePath array
-          Output: string
-          References: ResolvedReferencePath array
-          ProjectReferences: ProjectReference array
-          PackageReferences: PackageReference array
-          Logs: Map<string, string>
-          OutputType: string
-          Info: ProjectResponseInfoDotnetSdk
-          Items: ProjectResponseItem array
-          AdditionalInfo: Map<string, string> }
+        {
+            Project: ProjectFilePath
+            Files: SourceFilePath array
+            Output: string
+            References: ResolvedReferencePath array
+            ProjectReferences: ProjectReference array
+            PackageReferences: PackageReference array
+            Logs: Map<string, string>
+            OutputType: string
+            Info: ProjectResponseInfoDotnetSdk
+            Items: ProjectResponseItem array
+            AdditionalInfo: Map<string, string>
+        }
 
     type FsdnRequest = { Signature: string }
 
     type OpenNamespace =
-        { Namespace: string
-          Name: string
-          Type: string
-          Line: int
-          Column: int
-          MultipleNames: bool }
+        {
+            Namespace: string
+            Name: string
+            Type: string
+            Line: int
+            Column: int
+            MultipleNames: bool
+        }
 
     type QualifySymbol = { Name: string; Qualifier: string }
 
     type ResolveNamespace =
-        { Opens: OpenNamespace[]
-          Qualifies: QualifySymbol[]
-          Word: string }
+        {
+            Opens: OpenNamespace[]
+            Qualifies: QualifySymbol[]
+            Word: string
+        }
 
     type UnionCaseGenerator = { Text: string; Position: Pos }
 
@@ -263,9 +321,11 @@ module DTO =
     type Parameter = { Name: string; Type: string }
 
     type SignatureData =
-        { OutputType: string
-          Parameters: Parameter list list
-          Generics: string list }
+        {
+            OutputType: string
+            Parameters: Parameter list list
+            Generics: string list
+        }
 
     type RangesAtPosition = { Ranges: Range list list }
 
@@ -279,43 +339,57 @@ module DTO =
         { Directory: string; Fsprojs: string[] }
 
     and WorkspacePeekFoundSolution =
-        { Path: string
-          Items: WorkspacePeekFoundSolutionItem[]
-          Configurations: WorkspacePeekFoundSolutionConfiguration[] }
+        {
+            Path: string
+            Items: WorkspacePeekFoundSolutionItem[]
+            Configurations: WorkspacePeekFoundSolutionConfiguration[]
+        }
 
     and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionItem =
-        { Guid: string
-          Name: string
-          Kind: WorkspacePeekFoundSolutionItemKind }
+        {
+            Guid: string
+            Name: string
+            Kind: WorkspacePeekFoundSolutionItemKind
+        }
 
     and WorkspacePeekFoundSolutionItemKind =
         | MsbuildFormat of WorkspacePeekFoundSolutionItemKindMsbuildFormat
         | Folder of WorkspacePeekFoundSolutionItemKindFolder
 
     and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionItemKindMsbuildFormat =
-        { Configurations: WorkspacePeekFoundSolutionConfiguration[] }
+        {
+            Configurations: WorkspacePeekFoundSolutionConfiguration[]
+        }
 
     and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionItemKindFolder =
-        { Items: WorkspacePeekFoundSolutionItem[]
-          Files: string[] }
+        {
+            Items: WorkspacePeekFoundSolutionItem[]
+            Files: string[]
+        }
 
     and [<RequireQualifiedAccess>] WorkspacePeekFoundSolutionConfiguration =
-        { Id: string
-          ConfigurationName: string
-          PlatformName: string }
+        {
+            Id: string
+            ConfigurationName: string
+            PlatformName: string
+        }
 
     type FsdnResponse = { Functions: string[] }
 
     type HighlightingRange =
-        { range: Fable.Import.VSCode.Vscode.Range
-          tokenType: string }
+        {
+            range: Fable.Import.VSCode.Vscode.Range
+            tokenType: string
+        }
 
     type HighlightingResponse = { highlights: HighlightingRange[] }
 
     type ResponseError<'T> =
-        { Code: int
-          Message: string
-          AdditionalData: 'T }
+        {
+            Code: int
+            Message: string
+            AdditionalData: 'T
+        }
 
     [<RequireQualifiedAccess>]
     type ErrorCodes =
@@ -343,30 +417,38 @@ module DTO =
     type UnusedOpens = { Declarations: Range[] }
 
     type SimplifiedNameData =
-        { RelativeName: string
-          UnnecessaryRange: Range }
+        {
+            RelativeName: string
+            UnnecessaryRange: Range
+        }
 
     type SimplifiedName = { Names: SimplifiedNameData[] }
 
     type CompileData = { Code: int }
 
     type PipelineHint =
-        { Line: int
-          Types: string[]
-          PrecedingNonPipeExprLine: int option }
+        {
+            Line: int
+            Types: string[]
+            PrecedingNonPipeExprLine: int option
+        }
 
     type TestAdapterEntry =
-        { name: string
-          range: Fable.Import.VSCode.Vscode.Range
-          childs: TestAdapterEntry[]
-          id: int
-          list: bool
-          ``type``: string
-          moduleType: string }
+        {
+            name: string
+            range: Fable.Import.VSCode.Vscode.Range
+            childs: TestAdapterEntry[]
+            id: int
+            list: bool
+            ``type``: string
+            moduleType: string
+        }
 
     type TestForFile =
-        { file: string
-          tests: TestAdapterEntry[] }
+        {
+            file: string
+            tests: TestAdapterEntry[]
+        }
 
     type TestFileRange = { StartLine: int; EndLine: int }
 
@@ -393,12 +475,14 @@ module DTO =
         | NotFound = 4
 
     type TestResultDTO =
-        { TestItem: TestItemDTO
-          Outcome: TestOutcomeDTO
-          ErrorMessage: string option
-          ErrorStackTrace: string option
-          AdditionalOutput: string option
-          Duration: System.TimeSpan }
+        {
+            TestItem: TestItemDTO
+            Outcome: TestOutcomeDTO
+            ErrorMessage: string option
+            ErrorStackTrace: string option
+            AdditionalOutput: string option
+            Duration: System.TimeSpan
+        }
 
     [<Fable.Core.StringEnum(Fable.Core.CaseRules.None)>]
     [<RequireQualifiedAccess>]
@@ -411,13 +495,17 @@ module DTO =
         { Level: TestLogLevel; Message: string }
 
     type TestDiscoveryUpdate =
-        { Tests: TestItemDTO array
-          TestLogs: TestLogMessage array }
+        {
+            Tests: TestItemDTO array
+            TestLogs: TestLogMessage array
+        }
 
     type TestRunProgress =
-        { TestLogs: TestLogMessage array
-          TestResults: TestResultDTO array
-          ActiveTests: TestItemDTO array }
+        {
+            TestLogs: TestLogMessage array
+            TestResults: TestResultDTO array
+            ActiveTests: TestItemDTO array
+        }
 
     type Result<'T> = { Kind: string; Data: 'T }
 
@@ -453,16 +541,20 @@ module DTO =
 
     module DotnetNew =
         type Template =
-            { Name: string
-              ShortName: string
-              Tags: string list }
+            {
+                Name: string
+                ShortName: string
+                Tags: string list
+            }
 
         type DotnetNewListRequest = { Query: string }
 
         type DotnetNewRunRequest =
-            { Template: string
-              Output: string option
-              Name: string option }
+            {
+                Template: string
+                Output: string option
+                Name: string option
+            }
 
         type DotnetNewListResponse = Result<Template list>
 
@@ -472,15 +564,21 @@ module DTO =
         type DotnetProjectRequest = { Target: string; Reference: string }
 
         type DotnetFileRequest =
-            { FsProj: string
-              FileVirtualPath: string }
+            {
+                FsProj: string
+                FileVirtualPath: string
+            }
 
         type DotnetFile2Request =
-            { FsProj: string
-              FileVirtualPath: string
-              NewFile: string }
+            {
+                FsProj: string
+                FileVirtualPath: string
+                NewFile: string
+            }
 
         type DotnetRenameFileRequest =
-            { FsProj: string
-              OldFileVirtualPath: string
-              NewFileName: string }
+            {
+                FsProj: string
+                OldFileVirtualPath: string
+                NewFileName: string
+            }

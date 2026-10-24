@@ -66,9 +66,11 @@ module Gitignore =
                 let! choice =
                     window.showInformationMessage (
                         "You are missing entries in your .gitignore for Ionide-specific data files. Would you like to add them?",
-                        [| Message.choice "Add entries"
-                           Message.choice "Ignore"
-                           Message.choice "Don't show again" |]
+                        [|
+                            Message.choice "Add entries"
+                            Message.choice "Ignore"
+                            Message.choice "Don't show again"
+                        |]
                     )
 
                 match choice with

@@ -139,7 +139,7 @@ module Project =
 
                     if excluded |> Array.contains s' then
                         []
-                    elif node.fs.statSync(U2.Case1 s).isDirectory () then
+                    elif node.fs.statSync(U2.Case1 s).isDirectory() then
                         findProjs (s)
                     else if s.EndsWith ".fsproj" then
                         [ s ]
@@ -164,7 +164,7 @@ module Project =
 
                     if excluded |> Array.contains s' then
                         []
-                    elif node.fs.statSync(U2.Case1 s).isDirectory () then
+                    elif node.fs.statSync(U2.Case1 s).isDirectory() then
                         findProjs (s)
                     elif s.EndsWith ".fsproj" || s.EndsWith ".csproj" || s.EndsWith ".vbproj" then
                         [ s ]
@@ -279,7 +279,7 @@ module Project =
 
                         if excluded |> Array.contains s' then
                             []
-                        elif node.fs.statSync(U2.Case1 s).isDirectory () then
+                        elif node.fs.statSync(U2.Case1 s).isDirectory() then
                             findProjs (s)
                         else if s.EndsWith "fsac.cache" then
                             [ s ]
@@ -357,10 +357,10 @@ module Project =
                     None
 
         let private getStringFromWorkspaceConfig () =
-            workspace.getConfiguration().get<string> (key)
+            workspace.getConfiguration().get<string>(key)
 
         let private getStringFromExtensionState () =
-            extensionWorkspaceState.Value.get<string> (key)
+            extensionWorkspaceState.Value.get<string>(key)
 
         let get () =
             match parseAndValidate (getStringFromWorkspaceConfig ()) with
@@ -500,11 +500,13 @@ module Project =
             fun args ->
                 let cmd =
                     ResizeArray(
-                        [ "run"
-                          "--project"
-                          project.Project
-                          if not (List.isEmpty args) then
-                              " -- " ]
+                        [
+                            "run"
+                            "--project"
+                            project.Project
+                            if not (List.isEmpty args) then
+                                " -- "
+                        ]
                         @ args
                     )
 
@@ -521,11 +523,13 @@ module Project =
             fun args ->
                 let cmd =
                     ResizeArray(
-                        [ "run"
-                          "--project"
-                          project.Project
-                          if not (List.isEmpty args) then
-                              " -- " ]
+                        [
+                            "run"
+                            "--project"
+                            project.Project
+                            if not (List.isEmpty args) then
+                                " -- "
+                        ]
                         @ args
                     )
 
@@ -542,8 +546,10 @@ module Project =
             let fsprojs = findAll ()
 
             let wdir =
-                { WorkspacePeekFoundDirectory.Directory = workspace.rootPath.Value
-                  Fsprojs = fsprojs |> Array.ofList }
+                {
+                    WorkspacePeekFoundDirectory.Directory = workspace.rootPath.Value
+                    Fsprojs = fsprojs |> Array.ofList
+                }
 
             return WorkspacePeekFound.Directory wdir
         }
@@ -553,7 +559,8 @@ module Project =
             if None = workspace.rootPath then
                 return []
             else
-                let! ws = LanguageService.workspacePeek workspace.rootPath.Value deepLevel (excluded |> List.ofArray)
+                let! ws =
+                    LanguageService.workspacePeek workspace.rootPath.Value deepLevel (excluded |> List.ofArray)
 
                 return
                     ws.Found
@@ -658,7 +665,9 @@ module Project =
 
             promise {
                 let showOutput = "Show output"
-                let! choice = window.showErrorMessage ($"F# projects could not be loaded: {summary}", showOutput)
+
+                let! choice =
+                    window.showErrorMessage ($"F# projects could not be loaded: {summary}", showOutput)
 
                 if choice = Some showOutput then
                     LanguageService.client

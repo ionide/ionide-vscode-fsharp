@@ -40,7 +40,8 @@ let run cmd args dir =
         { ExecParams.Empty with
             Program = cmd
             WorkingDir = dir
-            CommandLine = args }
+            CommandLine = args
+        }
 
     if Process.shellExec parms <> 0 then
         failwithf "Error while running '%s' with args: %s" cmd args
@@ -67,26 +68,30 @@ module Fable =
         | WithWebpack of args: string option
 
     type Args =
-        { Command: Command
-          Debug: bool
-          Experimental: bool
-          ProjectPath: string
-          OutDir: string option
-          Defines: string list
-          SourceMaps: bool
-          AdditionalFableArgs: string option
-          Webpack: Webpack }
+        {
+            Command: Command
+            Debug: bool
+            Experimental: bool
+            ProjectPath: string
+            OutDir: string option
+            Defines: string list
+            SourceMaps: bool
+            AdditionalFableArgs: string option
+            Webpack: Webpack
+        }
 
     let DefaultArgs =
-        { Command = Build
-          Debug = false
-          Experimental = false
-          ProjectPath = "./src/Ionide.FSharp.fsproj"
-          OutDir = Some "./out"
-          Defines = []
-          AdditionalFableArgs = None
-          SourceMaps = true
-          Webpack = WithoutWebpack }
+        {
+            Command = Build
+            Debug = false
+            Experimental = false
+            ProjectPath = "./src/Ionide.FSharp.fsproj"
+            OutDir = Some "./out"
+            Defines = []
+            AdditionalFableArgs = None
+            SourceMaps = true
+            Webpack = WithoutWebpack
+        }
 
     let private mkArgs args =
         let fableCmd =
@@ -164,10 +169,12 @@ let copyGrammar fsgrammarDir fsgrammarRelease =
 
     Shell.copyFiles
         fsgrammarRelease
-        [ fsgrammarDir </> "fsharp.fsi.json"
-          fsgrammarDir </> "fsharp.fsl.json"
-          fsgrammarDir </> "fsharp.fsx.json"
-          fsgrammarDir </> "fsharp.json" ]
+        [
+            fsgrammarDir </> "fsharp.fsi.json"
+            fsgrammarDir </> "fsharp.fsl.json"
+            fsgrammarDir </> "fsharp.fsx.json"
+            fsgrammarDir </> "fsharp.json"
+        ]
 
 let copySchemas fsschemaDir fsschemaRelease =
     Directory.ensure fsschemaRelease
@@ -287,7 +294,8 @@ let initTargets () =
             { Fable.DefaultArgs with
                 Command = Fable.Watch
                 Debug = true
-                Webpack = Fable.WithWebpack None })
+                Webpack = Fable.WithWebpack None
+            })
 
     Target.create "CopyDocs" (fun _ ->
         Shell.copyFiles "release" [ "README.md"; "LICENSE.md" ]
@@ -298,14 +306,16 @@ let initTargets () =
             { Fable.DefaultArgs with
                 Command = Fable.Build
                 Debug = false
-                Webpack = Fable.WithWebpack None })
+                Webpack = Fable.WithWebpack None
+            })
 
     Target.create "RunDevScript" (fun _ ->
         Fable.run
             { Fable.DefaultArgs with
                 Command = Fable.Build
                 Debug = true
-                Webpack = Fable.WithWebpack None })
+                Webpack = Fable.WithWebpack None
+            })
 
 
     Target.create "CopyFSACNetcore" (fun _ ->
@@ -372,6 +382,13 @@ let initTargets () =
                 r.Errors |> List.iter (Trace.tracefn "%s")
                 failwith "Error running fantomas")
 
+    Target.create "CheckFormat" (fun _ ->
+        let r = DotNet.exec id "fantomas" "--check src build"
+
+        if not r.OK then
+            r.Errors |> List.iter (Trace.tracefn "%s")
+            failwith "Some files are not formatted, run 'dotnet fantomas src build' to format them")
+
     Target.create "Default" ignore
     Target.create "Build" ignore
     Target.create "BuildDev" ignore
@@ -385,8 +402,7 @@ let buildTargetTree () =
     "YarnInstall" ==>! "RunScript"
     "DotNetRestore" ==>! "RunScript"
 
-    "Clean" ==> "Format" ==> "RunScript" ==> "CopyGrammar" ==> "CopySchemas"
-    ==>! "Default"
+    "Clean" ==> "RunScript" ==> "CopyGrammar" ==> "CopySchemas" ==>! "Default"
 
     "Clean"
     ==> "RunScript"
@@ -401,13 +417,15 @@ let buildTargetTree () =
     "YarnInstall" ==>! "Build"
     "DotNetRestore" ==>! "Build"
 
-    "Format"
-    ==> "Build"
+    "Build"
     ==> "SetVersion"
     ==> "BuildPackage"
     ==> "ReleaseGitHub"
     ==> "PublishToGallery"
     ==>! "Release"
+
+    "CheckFormat" ==>! "Release"
+    "CheckFormat" ?=> "Clean" |> ignore
 
     "YarnInstall" ==>! "Watch"
     "DotNetRestore" ==>! "Watch"

@@ -4,9 +4,7 @@ open Fable.Core
 open Fable.Core.JsInterop
 
 module XmlDoc =
-    type XmlNode =
-        class
-        end
+    type XmlNode = class end
 
     type XmlDoc =
         class
@@ -59,7 +57,7 @@ module XPath =
         member this.SelectString(xpath: string) : string =
             this.SelectStringRelative(xmlDoc, xpath)
 
-        member this.SelectStrings(xpath: string) : string array = !! this.SelectNodes($"string({xpath})")
+        member this.SelectStrings(xpath: string) : string array = !!this.SelectNodes($"string({xpath})")
 
         member this.TrySelectStringRelative(node: XmlDoc.XmlNode, xpath: string) : string option =
             let s = this.SelectStringRelative(node, xpath)
