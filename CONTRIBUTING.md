@@ -43,13 +43,8 @@ First things first! In order to build & develop Ionide locally, you'll need to i
     cd ionide-vscode-fsharp
     ```
 3. Then **build the project** by running the build script:
-    (on Mac/Linux)
     ```bash
-    ./build.sh
-    ```
-    (or on Windows)
-    ```bash
-    .\build.cmd
+    dotnet fsi build.fsx
     ```
 4. **Voilà!** You're ready to run Ionide.
 
@@ -57,37 +52,30 @@ First things first! In order to build & develop Ionide locally, you'll need to i
 
 Otherwise, check out the [Troubleshooting Build Failures](#troubleshooting-build-failures) guide.
 
-### Running a Full Build
+### Build Pipelines
 
-This should *always* be done __at least once after any clone/pull__.
+`build.fsx` is a [Fun.Build](https://github.com/slaveOftime/Fun.Build) script. Without arguments it runs the `Build` pipeline, which restores the packages, compiles the extension and copies everything into the `release` folder. Run it *at least once after any clone/pull*.
+
+Pick another pipeline with `-p`:
 
 ```bash
-./build.sh -t Build
-```
-(or on Windows)
-```bash
-.\build.cmd -t Build
+dotnet fsi build.fsx -p BuildDev
 ```
 
-This will re-install any necesssary packages and files.
+- `Build`: the full build, the default.
+- `BuildDev`: compiles with `DEBUG` defined and an unminified bundle.
+- `Watch`: rebuilds on every change, with `DEBUG` defined.
+- `Package`: checks the formatting, builds, and packages the extension as a `.vsix` in the `temp` folder.
+
+`dotnet fsi build.fsx -- -h` lists all pipelines.
+
+Format the code with `dotnet fantomas src build.fsx` before you open a pull request. CI fails on unformatted code.
 
 ### Troubleshooting Build Failures
-
-- If the `FsAutoComplete` dependency fails to build, you can re-run it manually:
-  ```bash
-    # browse to the FsAutoComplete source code folder
-    cd paket-files/github.com/fsharp/FsAutoComplete
-    # build FsAutoComplete (Mac/Linux)
-    ./build.sh LocalRelease
-    # build FsAutoComplete (Windows)
-    .\build.cmd LocalRelease
-  ```
 
 - If `dotnet restore` gives the error ` The tools version "14.0" is unrecognized`, then you need to install [msbuildtools2015][msbuildtools2015]
 
 - If `dotnet restore` gives the error `error MSB4126: The specified solution configuration "Debug|x64" is invalid`, there's a good chance you have the `Platform` environment variable set to "x64".  Unset the variable and try the restore command again.
-
-- If `./build.sh` gives errors, you may need to run `./build.sh -t Build` one time.
 
 
 ### Launching Ionide

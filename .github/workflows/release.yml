@@ -30,7 +30,7 @@ jobs:
       shell: bash
       run: git clone --mirror https://github.com/ionide/ionide-fsgrammar.git "${USERPROFILE:-$HOME}/.paket/git/db/ionide-fsgrammar"
     - name: Build package
-      run: dotnet run --project build -- -t BuildPackage
+      run: dotnet fsi build.fsx -p Package
     - name: upload artifact package
       uses: actions/upload-artifact@v7
       with:
@@ -39,13 +39,15 @@ jobs:
     - name: Publish Release
       env:
         # the version bump commit is authored by whoever triggered the release
-        github-user: ${{ github.actor }}
-        user-email: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
+        GIT_AUTHOR_NAME: ${{ github.actor }}
+        GIT_AUTHOR_EMAIL: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
+        GIT_COMMITTER_NAME: ${{ github.actor }}
+        GIT_COMMITTER_EMAIL: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        vsce-token: ${{ secrets.VSCE_TOKEN }}
-      run: dotnet run --project build -- -t Release
-    - name: Build OpenVsix package
-      run: dotnet run --project build -- -t BuildPackageOpenVsix
+        VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+      run: dotnet fsi build.fsx -p Release
+    - name: Point the extension pack at Open VSX
+      run: dotnet fsi build.fsx -p OpenVsx
     - name: Publish to Open VSX Registry
       uses: HaaLeo/publish-vscode-extension@v2
       id: publishToOpenVSX
