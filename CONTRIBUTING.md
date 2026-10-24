@@ -54,7 +54,15 @@ Otherwise, check out the [Troubleshooting Build Failures](#troubleshooting-build
 
 ### Build Pipelines
 
-`build.fsx` is a [Fun.Build](https://github.com/slaveOftime/Fun.Build) script. Without arguments it runs the `Build` pipeline, which restores the packages, compiles the extension and copies everything into the `release` folder. Run it *at least once after any clone/pull*.
+`build.fsx` is a [Fun.Build](https://github.com/slaveOftime/Fun.Build) script. Without arguments it runs the `Package` pipeline, the same as CI: it checks the formatting, builds the extension into the `release` folder, and packages it as a `.vsix` in the `temp` folder. Run it *at least once after any clone/pull*, and before you open a pull request.
+
+```bash
+dotnet fsi build.fsx
+```
+
+On Mac and Linux, `./build.fsx` works too.
+
+When the formatting check fails, format the code with `dotnet fantomas src build.fsx`.
 
 Pick another pipeline with `-p`:
 
@@ -62,14 +70,12 @@ Pick another pipeline with `-p`:
 dotnet fsi build.fsx -p BuildDev
 ```
 
-- `Build`: the full build, the default.
+- `Package`: the default, what CI runs.
+- `Build`: the same build without the formatting check and the `.vsix`, for a quicker local build.
 - `BuildDev`: compiles with `DEBUG` defined and an unminified bundle.
 - `Watch`: rebuilds on every change, with `DEBUG` defined.
-- `Package`: checks the formatting, builds, and packages the extension as a `.vsix` in the `temp` folder.
 
 `dotnet fsi build.fsx -- -h` lists all pipelines.
-
-Format the code with `dotnet fantomas src build.fsx` before you open a pull request. CI fails on unformatted code.
 
 ### Troubleshooting Build Failures
 
