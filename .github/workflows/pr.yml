@@ -41,7 +41,7 @@ jobs:
       shell: bash
       run: git clone --mirror https://github.com/ionide/ionide-fsgrammar.git "${USERPROFILE:-$HOME}/.paket/git/db/ionide-fsgrammar"
     - name: Build
-      run: dotnet run --project build -- -t Build
+      run: dotnet fsi build.fsx -p Build
 
   format:
     runs-on: ubuntu-latest
@@ -55,4 +55,4 @@ jobs:
     - name: Restore tools
       run: dotnet tool restore
     - name: Check formatting
-      run: dotnet fantomas --check src build
+      run: dotnet fantomas check src build.fsx

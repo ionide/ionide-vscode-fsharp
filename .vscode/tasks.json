@@ -6,30 +6,14 @@
     "type": "shell",
     "tasks": [
         {
-            "command": "${workspaceRoot}/build.sh",
-            "type": "shell",
-            "windows": {
-                "command": "${workspaceRoot}/build.cmd",
-                "type": "process" // some people have bash as default in windows
-            },
+            "command": "dotnet",
+            "type": "process",
             "label": "Extension Build",
-            "args": [],
-            "group": {
-                "isDefault": true,
-                "kind": "build"
-            }
-        },
-        {
-            "command": "${workspaceRoot}/build.sh",
-            "type": "shell",
-            "windows": {
-                "command": "${workspaceRoot}/build.cmd",
-                "type": "process" // some people have bash as default in windows
-            },
-            "label": "Extension Build (dev)",
             "args": [
-                "-t",
-                "BuildDev"
+                "fsi",
+                "build.fsx",
+                "-p",
+                "Build"
             ],
             "group": {
                 "isDefault": true,
@@ -37,29 +21,25 @@
             }
         },
         {
-            "command": "${workspaceRoot}/build.sh",
-            "type": "shell",
-            "windows": {
-                "command": "${workspaceRoot}/build.cmd",
-                "type": "process" // some people have bash as default in windows
-            },
-            "label": "Full Build",
+            "command": "dotnet",
+            "type": "process",
+            "label": "Extension Build (dev)",
             "args": [
-                "-t",
-                "Build"
+                "fsi",
+                "build.fsx",
+                "-p",
+                "BuildDev"
             ],
             "group": "build"
         },
         {
-            "command": "${workspaceRoot}/build.sh",
-            "type": "shell",
-            "windows": {
-                "command": "${workspaceRoot}/build.cmd",
-                "type": "process"
-            },
+            "command": "dotnet",
+            "type": "process",
             "label": "Watch",
             "args": [
-                "-t",
+                "fsi",
+                "build.fsx",
+                "-p",
                 "Watch"
             ],
             "isBackground": true,
