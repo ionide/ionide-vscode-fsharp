@@ -134,13 +134,13 @@ let copyAssets =
     }
 
 pipeline "Build" {
-    description "Build the extension into the release folder"
+    description "Build the extension into the release folder, without the lint and the .vsix"
     workingDir __SOURCE_DIRECTORY__
     clean
     restore
     compile
     copyAssets
-    runIfOnlySpecified false
+    runIfOnlySpecified true
 }
 
 pipeline "BuildDev" {
@@ -164,10 +164,10 @@ pipeline "Watch" {
     runIfOnlySpecified true
 }
 
-// Build the extension and package it as a .vsix in the temp folder, with the version of the
-// newest RELEASE_NOTES.md entry.
+// The default, and what CI runs: check the formatting, build the extension and package it as a
+// .vsix in the temp folder, with the version of the newest RELEASE_NOTES.md entry.
 pipeline "Package" {
-    description "Build the extension and package it as a .vsix in the temp folder"
+    description "Check the formatting, build the extension and package it as a .vsix in the temp folder"
     workingDir __SOURCE_DIRECTORY__
     lint
     clean
@@ -188,7 +188,7 @@ pipeline "Package" {
         run $"npx @vscode/vsce package --out \"%s{tempDir}\""
     }
 
-    runIfOnlySpecified true
+    runIfOnlySpecified false
 }
 
 /// Where to push the release commit and tag: the remote of the main repository, which is origin in CI.
