@@ -66,11 +66,11 @@ the project and submit pull requests.
 
 ### Building and Running
 
-See these instructions for [setting up your local dev environment](https://github.com/ionide/ionide-vscode-fsharp/blob/master/CONTRIBUTING.md#getting-started).
+See these instructions for [setting up your local dev environment](https://github.com/ionide/ionide-vscode-fsharp/blob/main/CONTRIBUTING.md#getting-started).
 
 ### Guidelines
 
-The [Contribution Guide](https://github.com/ionide/ionide-vscode-fsharp/blob/master/CONTRIBUTING.md) outlines the process and guidelines for getting a patch merged. By making expectations and process explicit, I hope it will make it easier for you to contribute!
+The [Contribution Guide](https://github.com/ionide/ionide-vscode-fsharp/blob/main/CONTRIBUTING.md) outlines the process and guidelines for getting a patch merged. By making expectations and process explicit, I hope it will make it easier for you to contribute!
 
 ### Releasing
 
@@ -96,4 +96,4 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 ## Copyright
 
-The library is available under [MIT license](https://github.com/ionide/ionide-vscode-fsharp/blob/master/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.
+The library is available under [MIT license](https://github.com/ionide/ionide-vscode-fsharp/blob/main/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.
