@@ -44,3 +44,14 @@ jobs:
     # release runs before it publishes.
     - name: Build and package
       run: dotnet fsi build.fsx -p Package
+    # The smoke test starts VS Code, which needs a display. The Linux runner has none, so it runs
+    # under xvfb there.
+    - name: Smoke test
+      timeout-minutes: 15
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          xvfb-run -a dotnet fsi build.fsx -p Test
+        else
+          dotnet fsi build.fsx -p Test
+        fi

@@ -11,6 +11,7 @@
     "xpath": "^0.0.33"
   },
   "devDependencies": {
+    "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^4.0.0",
     "rolldown": "^1.2.15"
   },

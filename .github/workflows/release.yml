@@ -31,6 +31,9 @@ jobs:
       run: git clone --mirror https://github.com/ionide/ionide-fsgrammar.git "${USERPROFILE:-$HOME}/.paket/git/db/ionide-fsgrammar"
     - name: Build package
       run: dotnet fsi build.fsx -p Package
+    - name: Smoke test
+      timeout-minutes: 15
+      run: dotnet fsi build.fsx -p Test
     - name: upload artifact package
       uses: actions/upload-artifact@v7
       with:

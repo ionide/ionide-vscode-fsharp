@@ -176,6 +176,24 @@ pipeline "Watch" {
     runIfOnlySpecified true
 }
 
+// Build the extension, then start it in a downloaded VS Code and wait for FSAC to answer a hover,
+// see test/smoke. On Linux without a display, run it under xvfb-run. CI runs it after Package, so
+// there it tests that build instead of building again.
+pipeline "Test" {
+    description "Build the extension and smoke test it in VS Code"
+    workingDir __SOURCE_DIRECTORY__
+
+    stage "build" {
+        whenNot { envVar "CI" }
+        restore
+        compile
+        copyAssets
+    }
+
+    stage "smoke" { run "node test/smoke/runTest.js" }
+    runIfOnlySpecified true
+}
+
 // The default, and what CI runs: check the formatting, build the extension and package it as a
 // .vsix in the temp folder, with the version of the newest RELEASE_NOTES.md entry.
 pipeline "Package" {
