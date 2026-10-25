@@ -1,3 +1,7 @@
+### 8.1.0 - 25.10.2026
+
+* Support `.slnx` solutions. Ionide now activates on a workspace with an `.slnx` file, reloads the workspace when one is created or changed, and accepts an `.slnx` file in `FSharp.workspacePath`. Before, an `.slnx` path in that setting was ignored. [#2183](https://github.com/ionide/ionide-vscode-fsharp/pull/2183)
+
 ### 8.0.1 - 24.10.2026
 
 * Fix FSAC failing to load projects when the workspace pins a preview SDK, such as .NET 11 RC 2 through a `global.json`, while the .NET 10 runtime is also installed. FSAC loads MSBuild from that SDK, so it has to run on the matching preview runtime. Ionide sets `DOTNET_ROLL_FORWARD_TO_PRERELEASE` again when the workspace SDK is a preview. The error was `Could not load file or assembly 'System.Runtime, Version=11.0.0.0'`. [#2182](https://github.com/ionide/ionide-vscode-fsharp/pull/2182)
