@@ -78,8 +78,10 @@ The smoke test is plain JavaScript in `test/smoke`, not F# compiled with Fable l
 To try a build in your everyday VS Code instead of the Extension Development Host, install the package from the `temp` folder:
 
 ```bash
-code --install-extension temp/Ionide-fsharp-<version>.vsix
+code --install-extension temp/Ionide-fsharp-0.0.0.vsix
 ```
+
+A local build is always version 0.0.0, the version in `release/package.json`. A CI build puts the version of `RELEASE_NOTES.md` in the package.
 
 ### Troubleshooting Build Failures
 
@@ -168,6 +170,8 @@ If you have a large pull request in mind (e.g. implementing features, refactorin
 
 Please adhere to the coding conventions in the project (formatting, accurate comments, etc.). Before you open the pull request, run `dotnet fsi build.fsx`: CI runs the same `Package` pipeline on Linux, Windows and macOS, and fails on unformatted code. CI then runs the `Test` pipeline, which you can run with `dotnet fsi build.fsx -p Test`.
 
+Add a line about your change to the `### Unreleased` section at the top of `RELEASE_NOTES.md`, and create that section when it is not there. Do not add a version heading: a merged version heading publishes a release, see [Release](#release).
+
 ## Bug reports
 
 A bug is either a _demonstrable problem_ that is caused by Ionide failing to provide the expected feature, or missing, unclear, or misleading documentation. Good bug reports are extremely helpful - thank you!
@@ -224,17 +228,16 @@ Feature requests are welcome and should be discussed on the issue tracker. But t
         3. Update the hash for all the files.
         4. Run `dotnet paket install`.
         5. Commit the `paket.dependencies` and `paket.lock`.
-2. Add the version and notes at the top of `RELEASE_NOTES.md`, under a heading like `### 8.0.2 - 24.10.2026` (the date is optional).
+2. Rename the `### Unreleased` section at the top of `RELEASE_NOTES.md` to the new version, such as `### 8.0.2 - 24.10.2026` (the date is optional), or add that heading with its notes.
     1. If possible, link the pull request of each change and mention its author.
     2. If updating FSAC, mention the FSAC version and link its release notes.
 
-    The build reads the version from the first heading. It fails when a `###` heading that is not a release, such as `### Unreleased`, sits above it.
-3. Commit `RELEASE_NOTES.md` and push it to `main` of https://github.com/ionide/ionide-vscode-fsharp.
-4. [Go to the Release workflow on GitHub Actions](https://github.com/ionide/ionide-vscode-fsharp/actions/workflows/release.yml).
-    1. Click `Run workflow` in the upper right, with `main` as the branch.
-    2. Click the `Run workflow` button in the dialog that pops up.
+    The build reads the version from the first release heading, below an `### Unreleased` section. It fails when another heading sits above it, such as `## 8.2.0` or `### Next`. It also fails when `### Unreleased` sits below it, or when a version has two headings. The pull request build also fails when the version is not of the form X.Y.Z, such as a prerelease `8.2.0-beta1`, or is older than the newest release.
+3. Open a pull request with the change to `RELEASE_NOTES.md`, and merge it into `main` of https://github.com/ionide/ionide-vscode-fsharp.
 
-The workflow runs the `Package` pipeline, then the `Release` pipeline: it commits the version bump in `release/package.json`, tags it, creates the GitHub release with the `.vsix`, and publishes that `.vsix` to the VS Code Marketplace. Last, it publishes to the Open VSX Registry.
+When `RELEASE_NOTES.md` changes on `main`, the [Release workflow](https://github.com/ionide/ionide-vscode-fsharp/actions/workflows/release.yml) checks whether its newest version has a tag. When it has none, the workflow runs the `Package` pipeline and the smoke test, publishes the `.vsix` to the VS Code Marketplace and the Open VSX Registry, and last tags the commit and creates the GitHub release with the `.vsix`. Changes that stay in `### Unreleased`, and fixes to the notes of a version that is already released, publish nothing.
+
+When a release fails part way, run the workflow again, with `Re-run failed jobs` or with `Run workflow` on `main`. The registries skip a version they already have.
 
 [dotnet]: https://dotnet.microsoft.com/download/dotnet/10.0
 [nodejs]: https://nodejs.org/en/download/

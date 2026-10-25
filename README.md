@@ -74,9 +74,9 @@ The [Contribution Guide](https://github.com/ionide/ionide-vscode-fsharp/blob/mai
 
 ### Releasing
 
-* Update `RELEASE_NOTES.md` with the new version number, date (DD.MM.YYYY format please), and brief release notes.
-* Push the change to the main branch
-* A maintainer can run the `release` workflow from Github's actions page at that point
+* Changes collect in the `### Unreleased` section at the top of `RELEASE_NOTES.md`.
+* To release, a pull request renames that section to the new version and date (DD.MM.YYYY format please).
+* When it is merged into the main branch, the `Release` workflow publishes the new version. See the [Contribution Guide](https://github.com/ionide/ionide-vscode-fsharp/blob/main/CONTRIBUTING.md#release).
 
 ### Imposter Syndrome Disclaimer
 
