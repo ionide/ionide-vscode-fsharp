@@ -318,7 +318,9 @@ module Project =
         let private parse (value: string) =
             let fullPath = node.path.resolve ((workspaceRootPath ()).Value, value)
 
-            if value.ToLowerInvariant().EndsWith(".sln") then
+            let lower = value.ToLowerInvariant()
+
+            if lower.EndsWith(".sln") || lower.EndsWith(".slnx") then
                 ConfiguredWorkspace.Solution fullPath
             else
                 ConfiguredWorkspace.Directory fullPath

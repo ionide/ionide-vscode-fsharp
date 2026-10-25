@@ -486,7 +486,7 @@ module MSBuild =
 
         let initWorkspace _n = Project.initWorkspace ()
 
-        let solutionWatcher = workspace.createFileSystemWatcher (U2.Case1 "**/*.sln")
+        let solutionWatcher = workspace.createFileSystemWatcher (U2.Case1 "**/*.{sln,slnx}")
 
         solutionWatcher.onDidCreate.Invoke(fun n -> unlessIgnored n.fsPath initWorkspace |> unbox)
         |> ignore
