@@ -12,7 +12,8 @@
     "workspaceContains:**/*.fs",
     "workspaceContains:**/*.fsproj",
     "workspaceContains:**/*.fsx",
-    "workspaceContains:**/*.sln"
+    "workspaceContains:**/*.sln",
+    "workspaceContains:**/*.slnx"
   ],
   "badges": [
     {
