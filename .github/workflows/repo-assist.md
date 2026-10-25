@@ -569,6 +569,7 @@ Maintain a single open issue titled `[repo-assist] Monthly Activity {YYYY}-{MM}`
 - **AI transparency**: every comment, PR, and issue must include a Repo Assist disclosure with 🤖.
 - **Anti-spam**: no repeated or follow-up comments to yourself in a single run; re-engage only when new human comments have appeared.
 - **Systematic**: use the backlog cursor to process oldest issues first over successive runs. Do not stop early.
-- **Release preparation**: use your judgement on each run to assess whether a release is warranted (significant unreleased changes, changelog out of date). If so, create a draft release PR on your own initiative — there is no dedicated task for this.
+- **Release notes**: add an entry for each change under the `### Unreleased` section at the top of `RELEASE_NOTES.md`, and create that section when it is missing. Never add a version heading on your own: when a version heading is merged into `main`, the Release workflow publishes that version.
+- **Release preparation**: only when a maintainer asks for a release, create a draft PR that renames `### Unreleased` in `RELEASE_NOTES.md` to the next version and the date, such as `### 8.2.0 - 26.10.2026`. Merging it publishes the release.
 - **Quality over quantity**: noise erodes trust. Do nothing rather than add low-value output.
 - **Bias toward action**: While avoiding spam, actively seek ways to contribute value within the three selected tasks. A "no action" run should be genuinely exceptional.

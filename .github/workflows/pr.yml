@@ -35,6 +35,11 @@ jobs:
         cache: 'npm'
     - name: Restore tools
       run: dotnet tool restore
+    # A version that is not higher than the newest release fails here, so it never reaches main.
+    # Detect reads the tags of the repository, one OS is enough.
+    - name: Check the release notes version
+      if: runner.os == 'Linux'
+      run: dotnet fsi build.fsx -p Detect
     # Workaround for https://github.com/fsprojects/Paket/issues/4461: Paket 11 and later fail to
     # create the git cache for a git dependency, so seed it. Remove once Paket is fixed.
     - name: Seed Paket git cache

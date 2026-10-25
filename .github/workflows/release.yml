@@ -1,19 +1,61 @@
 name: Release
+
+# RELEASE_NOTES.md drives releases. When main gets release notes whose newest version has no tag
+# yet, the release job builds and smoke tests the extension, publishes it to the VS Code
+# Marketplace and the Open VSX Registry, and last tags the commit and creates the GitHub release
+# with the .vsix. A `### Unreleased` section at the top of RELEASE_NOTES.md is never released.
+#
+# The tag is created last, and its absence is what starts a release. A run that failed part way
+# can run again: both registries skip a version they already have.
+#
+# Optionally, required reviewers on the `release` environment make a release wait for approval
+# before it publishes anything.
+
 on:
+  push:
+    branches: [main]
+    paths: [RELEASE_NOTES.md]
   workflow_dispatch:
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 permissions:
-  contents: write
+  contents: read
 
 jobs:
+  detect:
+    # a fork that syncs main would otherwise start a release that has no secrets
+    if: github.repository == 'ionide/ionide-vscode-fsharp' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.detect.outputs.version }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+    # fails when the newest version is not higher than the newest release
+    - name: Find the version to release
+      id: detect
+      run: dotnet fsi build.fsx -p Detect
+
   release:
-    # the release target commits the version bump and pushes it to main
-    if: github.ref == 'refs/heads/main'
-    # this workflow is the same as the build workflow, up until artifact upload + publish
+    needs: detect
+    if: needs.detect.outputs.version != ''
     runs-on: windows-latest # can be any, just picked windows
+    environment: release
+    permissions:
+      contents: write # to create the tag and the GitHub release
 
     steps:
     - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
     - name: Setup .NET
       uses: actions/setup-dotnet@v6
       with:
@@ -39,16 +81,10 @@ jobs:
       with:
         name: ionide-fsharp-vscode-ext
         path: release/
-    - name: Publish Release
+    - name: Publish to the VS Code Marketplace
       env:
-        # the version bump commit is authored by whoever triggered the release
-        GIT_AUTHOR_NAME: ${{ github.actor }}
-        GIT_AUTHOR_EMAIL: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
-        GIT_COMMITTER_NAME: ${{ github.actor }}
-        GIT_COMMITTER_EMAIL: ${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
-      run: dotnet fsi build.fsx -p Release
+      run: dotnet fsi build.fsx -p Marketplace
     - name: Point the extension pack at Open VSX
       run: dotnet fsi build.fsx -p OpenVsx
     - name: Publish to Open VSX Registry
@@ -57,3 +93,8 @@ jobs:
       with:
         packagePath: "./release"
         pat: ${{ secrets.OPEN_VSX_TOKEN }}
+        skipDuplicate: true
+    - name: Create the GitHub release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet fsi build.fsx -p GitHubRelease

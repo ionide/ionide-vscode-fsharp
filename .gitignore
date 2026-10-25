@@ -1,4 +1,8 @@
 release/bin
+# copies the build makes from the root of the repository
+release/CHANGELOG.md
+release/LICENSE.md
+release/README.md
 release/bin_ff
 release/bin_forge
 release/bin_profiler
