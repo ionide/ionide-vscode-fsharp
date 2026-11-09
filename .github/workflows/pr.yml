@@ -40,11 +40,6 @@ jobs:
     - name: Check the release notes version
       if: runner.os == 'Linux'
       run: dotnet fsi build.fsx -p Detect
-    # Workaround for https://github.com/fsprojects/Paket/issues/4461: Paket 11 and later fail to
-    # create the git cache for a git dependency, so seed it. Remove once Paket is fixed.
-    - name: Seed Paket git cache
-      shell: bash
-      run: git clone --mirror https://github.com/ionide/ionide-fsgrammar.git "${USERPROFILE:-$HOME}/.paket/git/db/ionide-fsgrammar"
     # Package checks the formatting, builds and packages the .vsix, so a PR runs everything the
     # release runs before it publishes.
     - name: Build and package
