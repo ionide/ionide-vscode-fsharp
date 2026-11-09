@@ -66,11 +66,6 @@ jobs:
         cache: 'npm'
     - name: Restore tools
       run: dotnet tool restore
-    # Workaround for https://github.com/fsprojects/Paket/issues/4461: Paket 11 and later fail to
-    # create the git cache for a git dependency, so seed it. Remove once Paket is fixed.
-    - name: Seed Paket git cache
-      shell: bash
-      run: git clone --mirror https://github.com/ionide/ionide-fsgrammar.git "${USERPROFILE:-$HOME}/.paket/git/db/ionide-fsgrammar"
     - name: Build package
       run: dotnet fsi build.fsx -p Package
     - name: Smoke test

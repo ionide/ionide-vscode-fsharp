@@ -85,11 +85,6 @@ A local build is always version 0.0.0, the version in `release/package.json`. A 
 
 ### Troubleshooting Build Failures
 
-- **Paket fails to restore `ionide-fsgrammar`.** Paket 11 and later fail to create the git cache for a git dependency on a machine that never restored it before ([fsprojects/Paket#4461](https://github.com/fsprojects/Paket/issues/4461)). Seed the cache once, then build again:
-    ```bash
-    git clone --mirror https://github.com/ionide/ionide-fsgrammar.git ~/.paket/git/db/ionide-fsgrammar
-    ```
-    On Windows, clone into `%USERPROFILE%\.paket\git\db\ionide-fsgrammar`.
 - **`npm install` warns about engines.** Check `node --version`. The build needs Node.js 24 or later.
 - **The formatting check fails.** Run `dotnet fantomas src build.fsx` and build again.
 
