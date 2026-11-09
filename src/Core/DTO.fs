@@ -3,6 +3,10 @@
 [<ReflectedDefinition>]
 module DTO =
 
+    module LSP =
+        type Position = { line: int; character: int }
+        type Range = { start: Position; ``end``: Position }
+
     type Pos = { Line: int; Column: int }
 
     type ParseRequest =
@@ -506,6 +510,12 @@ module DTO =
             TestResults: TestResultDTO array
             ActiveTests: TestItemDTO array
         }
+
+    type NestedLanguagesForFile =
+        { textDocument: {| uri: string; version: int |}
+          nestedLanguages:
+              {| language: string
+                 ranges: LSP.Range[] |}[] }
 
     type Result<'T> = { Kind: string; Data: 'T }
 
