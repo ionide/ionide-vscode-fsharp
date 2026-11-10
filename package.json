@@ -4,15 +4,15 @@
   "dependencies": {
     "@xmldom/xmldom": "^0.8.15",
     "cross-spawn": "^7.0.6",
-    "htmlparser2": "^4.1.0",
-    "marked": "^18.1.1",
+    "htmlparser2": "^12.0.0",
+    "marked": "^18.1.2",
     "semver": "^7.8.5",
-    "vscode-languageclient": "^8.0.0",
-    "xpath": "^0.0.33"
+    "vscode-languageclient": "^11.0.0",
+    "xpath": "^0.0.36"
   },
   "devDependencies": {
     "@vscode/test-electron": "^3.1.0",
-    "@vscode/vsce": "^4.0.0",
+    "@vscode/vsce": "^4.1.0",
     "rolldown": "^1.2.15"
   },
   "engines": {
