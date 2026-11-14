@@ -1,55 +1,95 @@
 name: Release
-on: 
+
+# RELEASE_NOTES.md drives releases. When main gets release notes whose newest version has no tag
+# yet, the release job builds and smoke tests the extension, publishes it to the VS Code
+# Marketplace and the Open VSX Registry, and last tags the commit and creates the GitHub release
+# with the .vsix. A `### Unreleased` section at the top of RELEASE_NOTES.md is never released.
+#
+# The tag is created last, and its absence is what starts a release. A run that failed part way
+# can run again: both registries skip a version they already have.
+#
+# Optionally, required reviewers on the `release` environment make a release wait for approval
+# before it publishes anything.
+
+on:
+  push:
+    branches: [main]
+    paths: [RELEASE_NOTES.md]
   workflow_dispatch:
-    inputs:
-      username:
-        description: Github username of the person triggering the release
-        default: "Krzysztof-Cieslak"
-        required: true
-      email:
-        description: Email of the person triggering the release
-        default: "krzysztof_cieslak@windowslive.com"
-        required: true
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 jobs:
+  detect:
+    # a fork that syncs main would otherwise start a release that has no secrets
+    if: github.repository == 'ionide/ionide-vscode-fsharp' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.detect.outputs.version }}
+    steps:
+    - uses: actions/checkout@v7
+      with:
+        persist-credentials: false
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        global-json-file: global.json
+    # fails when the newest version is not higher than the newest release
+    - name: Find the version to release
+      id: detect
+      run: dotnet fsi build.fsx -p Detect
+
   release:
-    # this workflow is the same as the build workflow, up until artifact upload + publish
+    needs: detect
+    if: needs.detect.outputs.version != ''
     runs-on: windows-latest # can be any, just picked windows
+    environment: release
+    permissions:
+      contents: write # to create the tag and the GitHub release
 
     steps:
-    # manual triggers are detached HEADs, so we need to checkout the branch
-    # to actually create + push a commit later on in the workflow
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v7
       with:
-        ref: ${{ github.head_ref }}
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-    - uses: actions/setup-node@v3
+        persist-credentials: false
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
       with:
-        node-version: '22'
-        cache: 'yarn'
+        global-json-file: global.json
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: '.tool-versions'
+        cache: 'npm'
     - name: Restore tools
       run: dotnet tool restore
-    - name: Run Test
-      run: dotnet run --project build -- -t BuildPackage
+    - name: Build package
+      run: dotnet fsi build.fsx -p Package
+    - name: Smoke test
+      timeout-minutes: 15
+      run: dotnet fsi build.fsx -p Test
     - name: upload artifact package
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ionide-fsharp-vscode-ext
         path: release/
-    - name: Publish Release
+    - name: Publish to the VS Code Marketplace
       env:
-        nuget-key: ${{ secrets.NUGET_KEY }}
-        github-user: ${{ github.event.inputs.username }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        vsce-token: ${{ secrets.VSCE_TOKEN }}
-        user-email: ${{ github.event.inputs.email }}
-      run: dotnet run --project build -- -t Release
-    - name: Build OpenVsix package
-      run: dotnet run --project build -- -t BuildPackageOpenVsix
+        VSCE_PAT: ${{ secrets.VSCE_TOKEN }}
+      run: dotnet fsi build.fsx -p Marketplace
+    - name: Point the extension pack at Open VSX
+      run: dotnet fsi build.fsx -p OpenVsx
     - name: Publish to Open VSX Registry
       uses: HaaLeo/publish-vscode-extension@v2
       id: publishToOpenVSX
       with:
         packagePath: "./release"
         pat: ${{ secrets.OPEN_VSX_TOKEN }}
+        skipDuplicate: true
+    - name: Create the GitHub release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet fsi build.fsx -p GitHubRelease

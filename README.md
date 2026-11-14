@@ -20,7 +20,14 @@ You find a version of this plugin pre-packaged with the FOSS debugger from Samsu
 
 # Requirements
 
-* .NET 8.0/9.0 SDK - https://dotnet.microsoft.com/download
+* .NET 10 runtime - https://dotnet.microsoft.com/download/dotnet/10.0
+
+  Ionide runs its language server (FsAutoComplete) on the .NET 10 runtime only, so .NET 8 or .NET 9 on their own are not enough.
+  The .NET 10 SDK includes this runtime.
+
+* .NET SDK 8.0 or later, to load your projects - https://dotnet.microsoft.com/download
+
+  A `global.json` can pin the .NET 8 or .NET 9 SDK, and your projects can target `net8.0`, `net9.0` or any other framework.
 
 * VS Code C# plugin - Ionide's debugging capabilities rely on either the [Omnisharp](https://github.com/OmniSharp/omnisharp-vscode) debugger or [netcoredbg](https://github.com/muhammadsammy/free-omnisharp-vscode).
 
@@ -59,17 +66,17 @@ the project and submit pull requests.
 
 ### Building and Running
 
-See these instructions for [setting up your local dev environment](https://github.com/ionide/ionide-vscode-fsharp/blob/master/CONTRIBUTING.md#getting-started).
+See these instructions for [setting up your local dev environment](https://github.com/ionide/ionide-vscode-fsharp/blob/main/CONTRIBUTING.md#getting-started).
 
 ### Guidelines
 
-The [Contribution Guide](https://github.com/ionide/ionide-vscode-fsharp/blob/master/CONTRIBUTING.md) outlines the process and guidelines for getting a patch merged. By making expectations and process explicit, I hope it will make it easier for you to contribute!
+The [Contribution Guide](https://github.com/ionide/ionide-vscode-fsharp/blob/main/CONTRIBUTING.md) outlines the process and guidelines for getting a patch merged. By making expectations and process explicit, I hope it will make it easier for you to contribute!
 
 ### Releasing
 
-* Update `RELEASE_NOTES.md` with the new version number, date (DD.MM.YYYY format please), and brief release notes.
-* Push the change to the main branch
-* A maintainer can run the `release` workflow from Github's actions page at that point
+* Changes collect in the `### Unreleased` section at the top of `RELEASE_NOTES.md`.
+* To release, a pull request renames that section to the new version and date (DD.MM.YYYY format please).
+* When it is merged into the main branch, the `Release` workflow publishes the new version. See the [Contribution Guide](https://github.com/ionide/ionide-vscode-fsharp/blob/main/CONTRIBUTING.md#release).
 
 ### Imposter Syndrome Disclaimer
 
@@ -89,4 +96,4 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 ## Copyright
 
-The library is available under [MIT license](https://github.com/ionide/ionide-vscode-fsharp/blob/master/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.
+The library is available under [MIT license](https://github.com/ionide/ionide-vscode-fsharp/blob/main/LICENSE.md), which allows modification and redistribution for both commercial and non-commercial purposes.

@@ -119,8 +119,10 @@ module TestName =
     let pathSeparator = '.'
 
     type Segment =
-        { Text: string
-          SeparatorBefore: string }
+        {
+            Text: string
+            SeparatorBefore: string
+        }
 
     module Segment =
         let empty = { Text = ""; SeparatorBefore = "" }
@@ -129,13 +131,17 @@ module TestName =
 
     let splitSegments (fullTestName: FullTestName) =
         let matches =
-            [ for x in segmentRegex.Matches(fullTestName) do
-                  x ]
+            [
+                for x in segmentRegex.Matches(fullTestName) do
+                    x
+            ]
 
         matches
         |> List.map (fun m ->
-            { Text = m.Groups[2].Value
-              SeparatorBefore = m.Groups[1].Value })
+            {
+                Text = m.Groups[2].Value
+                SeparatorBefore = m.Groups[1].Value
+            })
 
     let appendSegment (parentPath: FullTestName) (segment: Segment) : FullTestName =
         $"{parentPath}{segment.SeparatorBefore}{segment.Text}"
@@ -150,10 +156,12 @@ module TestName =
         { data: 't; relativePath: Segment list }
 
     type NameHierarchy<'t> =
-        { Data: 't option
-          FullName: FullTestName
-          Name: string
-          Children: NameHierarchy<'t> array }
+        {
+            Data: 't option
+            FullName: FullTestName
+            Name: string
+            Children: NameHierarchy<'t> array
+        }
 
     module NameHierarchy =
         let tryPick (f: NameHierarchy<'t> -> Option<'u>) root =
@@ -170,12 +178,15 @@ module TestName =
     let inferHierarchy (namedData: {| FullName: string; Data: 't |} array) : NameHierarchy<'t> array =
 
         let withRelativePath (named: {| FullName: string; Data: 't |}) =
-            { data = named.Data
-              relativePath = splitSegments named.FullName }
+            {
+                data = named.Data
+                relativePath = splitSegments named.FullName
+            }
 
         let popTopPath data =
             { data with
-                relativePath = data.relativePath.Tail }
+                relativePath = data.relativePath.Tail
+            }
 
         let rec recurse (parentPath: string) defsWithRelativePath : NameHierarchy<'t> array =
             let terminalNodes, intermediateNodes =
@@ -186,10 +197,12 @@ module TestName =
                 |> Array.map (fun terminal ->
                     let segment = terminal.relativePath.Head
 
-                    { Name = segment.Text
-                      FullName = appendSegment parentPath segment
-                      Data = Some terminal.data
-                      Children = [||] })
+                    {
+                        Name = segment.Text
+                        FullName = appendSegment parentPath segment
+                        Data = Some terminal.data
+                        Children = [||]
+                    })
 
             let mappedIntermediate =
                 intermediateNodes
@@ -197,10 +210,12 @@ module TestName =
                 |> Array.map (fun (groupSegment, children) ->
                     let fullName = appendSegment parentPath groupSegment
 
-                    { Name = groupSegment.Text
-                      Data = None
-                      FullName = appendSegment parentPath groupSegment
-                      Children = recurse fullName (children |> Array.map popTopPath) })
+                    {
+                        Name = groupSegment.Text
+                        Data = None
+                        FullName = appendSegment parentPath groupSegment
+                        Children = recurse fullName (children |> Array.map popTopPath)
+                    })
 
             Array.concat [ mappedTerminals; mappedIntermediate ]
 
@@ -211,7 +226,7 @@ type TestItemCollection with
 
     member x.TestItems() : TestItem array =
         let arr = ResizeArray<TestItem>()
-        x.forEach (fun t _ -> !! arr.Add(t))
+        x.forEach (fun t _ -> !!arr.Add(t))
         arr.ToArray()
 
 type TestController with
@@ -312,18 +327,20 @@ module TestResult =
     let ofTestResultDTO (testResultDto: TestResultDTO) : TestResult =
         let expected, actual = tryExtractExpectedAndActual testResultDto.ErrorMessage
 
-        { ServerId = Some testResultDto.TestItem.Id
-          FullTestName = testResultDto.TestItem.FullName
-          Outcome = testResultDto.Outcome |> TestResultOutcome.ofOutcomeDto
-          Output = testResultDto.AdditionalOutput
-          ErrorMessage = testResultDto.ErrorMessage
-          ErrorStackTrace = testResultDto.ErrorStackTrace
-          Timing = testResultDto.Duration.Milliseconds
-          TestFramework = testResultDto.TestItem.ExecutorUri |> TestFrameworkId.tryFromExecutorUri
-          Expected = expected
-          Actual = actual
-          ProjectFilePath = testResultDto.TestItem.ProjectFilePath
-          TargetFramework = testResultDto.TestItem.TargetFramework }
+        {
+            ServerId = Some testResultDto.TestItem.Id
+            FullTestName = testResultDto.TestItem.FullName
+            Outcome = testResultDto.Outcome |> TestResultOutcome.ofOutcomeDto
+            Output = testResultDto.AdditionalOutput
+            ErrorMessage = testResultDto.ErrorMessage
+            ErrorStackTrace = testResultDto.ErrorStackTrace
+            Timing = testResultDto.Duration.Milliseconds
+            TestFramework = testResultDto.TestItem.ExecutorUri |> TestFrameworkId.tryFromExecutorUri
+            Expected = expected
+            Actual = actual
+            ProjectFilePath = testResultDto.TestItem.ProjectFilePath
+            TargetFramework = testResultDto.TestItem.TargetFramework
+        }
 
 module Path =
 
@@ -356,14 +373,18 @@ module TrxParser =
     type Execution = { Id: string }
 
     type TestMethod =
-        { AdapterTypeName: string
-          ClassName: string
-          Name: string }
+        {
+            AdapterTypeName: string
+            ClassName: string
+            Name: string
+        }
 
     type UnitTest =
-        { Name: string
-          Execution: Execution
-          TestMethod: TestMethod }
+        {
+            Name: string
+            Execution: Execution
+            TestMethod: TestMethod
+        }
 
         member self.FullName =
             // IMPORTANT: XUnit and MSTest don't include the parameterized test case data in the TestMethod.Name
@@ -375,22 +396,30 @@ module TrxParser =
             | _ -> self.Name
 
     type ErrorInfo =
-        { Message: string option
-          StackTrace: string option }
+        {
+            Message: string option
+            StackTrace: string option
+        }
 
     type Output =
-        { StdOut: string option
-          ErrorInfo: ErrorInfo }
+        {
+            StdOut: string option
+            ErrorInfo: ErrorInfo
+        }
 
     type UnitTestResult =
-        { ExecutionId: string
-          Outcome: string
-          Duration: TimeSpan
-          Output: Output }
+        {
+            ExecutionId: string
+            Outcome: string
+            Duration: TimeSpan
+            Output: Output
+        }
 
     type TestWithResult =
-        { UnitTest: UnitTest
-          UnitTestResult: UnitTestResult }
+        {
+            UnitTest: UnitTest
+            UnitTestResult: UnitTestResult
+        }
 
     let makeTrxPath (workspaceRoot: string) (storageFolderPath: string) (projectPath: ProjectFilePath) : string =
         let relativeProjectPath = node.path.relative (workspaceRoot, projectPath)
@@ -422,12 +451,16 @@ module TrxParser =
             let testAdapter =
                 xpathSelector.SelectStringRelative(node, "t:TestMethod/@adapterTypeName")
 
-            { Name = fullTestName
-              Execution = { Id = executionId }
-              TestMethod =
-                { Name = testMethodName
-                  ClassName = className
-                  AdapterTypeName = testAdapter } }
+            {
+                Name = fullTestName
+                Execution = { Id = executionId }
+                TestMethod =
+                    {
+                        Name = testMethodName
+                        ClassName = className
+                        AdapterTypeName = testAdapter
+                    }
+            }
 
         xpathSelector.SelectNodes "/t:TestRun/t:TestDefinitions/t:UnitTest"
         |> Array.map extractTestDef
@@ -457,14 +490,20 @@ module TrxParser =
                 let success, ts = TimeSpan.TryParse(durationString)
                 if success then ts else TimeSpan.Zero
 
-            { ExecutionId = executionId
-              Outcome = outcome
-              Duration = durationSpan
-              Output =
-                { StdOut = outputMessage
-                  ErrorInfo =
-                    { StackTrace = errorStackTrace
-                      Message = errorInfoMessage } } }
+            {
+                ExecutionId = executionId
+                Outcome = outcome
+                Duration = durationSpan
+                Output =
+                    {
+                        StdOut = outputMessage
+                        ErrorInfo =
+                            {
+                                StackTrace = errorStackTrace
+                                Message = errorInfoMessage
+                            }
+                    }
+            }
 
         xpathSelector.SelectNodes "/t:TestRun/t:Results/t:UnitTestResult"
         |> Array.map extractRow
@@ -483,8 +522,10 @@ module TrxParser =
         let _, matched, _ = ArrayExt.venn trxDefId trxResId trxDefs trxResults
 
         let matchedToResult (testDef: UnitTest, testResult: UnitTestResult) : TestWithResult =
-            { UnitTest = testDef
-              UnitTestResult = testResult }
+            {
+                UnitTest = testDef
+                UnitTestResult = testResult
+            }
 
         let normalizedResults = matched |> Array.map matchedToResult
         normalizedResults
@@ -499,10 +540,12 @@ module TrxParser =
 module VSCodeActions =
     let launchDebugger (processId: string) =
         let launchRequest: DebugConfiguration =
-            {| name = ".NET Core Attach"
-               ``type`` = "coreclr"
-               request = "attach"
-               processId = processId |}
+            {|
+                name = ".NET Core Attach"
+                ``type`` = "coreclr"
+                request = "attach"
+                processId = processId
+            |}
             |> box
             |> unbox
 
@@ -540,7 +583,7 @@ module DotnetCli =
 
             if not cancellationToken.isCancellationRequested then
                 let options = createEmpty<ExecOptions>
-                options.cwd <- workspace.rootPath
+                options.cwd <- workspaceRootPath ()
                 env |> Option.iter (fun env -> options?env <- env)
 
                 Promise.create (fun resolve reject ->
@@ -601,13 +644,15 @@ module DotnetCli =
         : JS.Promise<Node.ChildProcess.ExecError option * StandardOutput * StandardError> =
 
         let args =
-            [| "test"
-               $"\"{projectPath}\""
-               $"--framework:\"{targetFramework}\""
-               if Option.isSome trxOutputPath then
-                   $"--logger:\"trx;LogFileName={trxOutputPath.Value}\""
-               "--noLogo"
-               yield! additionalArgs |]
+            [|
+                "test"
+                $"\"{projectPath}\""
+                $"--framework:\"{targetFramework}\""
+                if Option.isSome trxOutputPath then
+                    $"--logger:\"trx;LogFileName={trxOutputPath.Value}\""
+                "--noLogo"
+                yield! additionalArgs
+            |]
 
         let argString = String.Join(" ", args)
         logger.Debug($"Running `dotnet {argString}`")
@@ -893,13 +938,15 @@ module TestItem =
             let location = tryGetLocation id
 
             itemFactory
-                { id = id
-                  label = namedNode.Name
-                  uri = location |> LocationRecord.tryGetUri
-                  range = location |> LocationRecord.tryGetRange
-                  children = namedNode.Children |> Array.map recurse
-                  testFramework = None
-                  serverId = None }
+                {
+                    id = id
+                    label = namedNode.Name
+                    uri = location |> LocationRecord.tryGetUri
+                    range = location |> LocationRecord.tryGetRange
+                    children = namedNode.Children |> Array.map recurse
+                    testFramework = None
+                    serverId = None
+                }
 
         recurse hierarchy
 
@@ -930,13 +977,15 @@ module TestItem =
 
             let ti =
                 itemFactory
-                    { id = constructId projectPath fullName
-                      label = t.name
-                      uri = Some uri
-                      range = range
-                      children = t.childs |> Array.map (fun n -> recurse fullName (Some t.moduleType) n)
-                      testFramework = t?``type``
-                      serverId = None }
+                    {
+                        id = constructId projectPath fullName
+                        label = t.name
+                        uri = Some uri
+                        range = range
+                        children = t.childs |> Array.map (fun n -> recurse fullName (Some t.moduleType) n)
+                        testFramework = t?``type``
+                        serverId = None
+                    }
 
             ti
 
@@ -949,13 +998,15 @@ module TestItem =
         (children: TestItem array)
         : TestItem =
         testItemFactory
-            { id = constructProjectRootId projectPath
-              label = $"{Path.getNameOnly projectPath} ({targetFramework})"
-              uri = None
-              range = None
-              children = children
-              testFramework = None
-              serverId = None }
+            {
+                id = constructProjectRootId projectPath
+                label = $"{Path.getNameOnly projectPath} ({targetFramework})"
+                uri = None
+                range = None
+                children = children
+                testFramework = None
+                serverId = None
+            }
 
 
     let ofTestDTOs testItemFactory tryGetLocation (flatTests: TestItemDTO array) =
@@ -985,8 +1036,10 @@ module TestItem =
             let tryDtoToLocation (dto: TestItemDTO) : LocationRecord option =
                 match dto.CodeFilePath |> Option.bind toUri, dto.CodeLocationRange with
                 | Some path, Some range ->
-                    { Uri = path
-                      Range = toRange (range) |> Some }
+                    {
+                        Uri = path
+                        Range = toRange (range) |> Some
+                    }
                     |> Some
                 | _ -> None
 
@@ -999,15 +1052,17 @@ module TestItem =
                     |> Option.orElseWith (fun _ -> tryGetLocation id)
 
                 itemFactory
-                    { id = id
-                      label = namedNode.Name
-                      uri = codeLocation |> LocationRecord.tryGetUri
-                      range = codeLocation |> LocationRecord.tryGetRange
-                      children = namedNode.Children |> Array.map recurse
-                      testFramework =
-                        namedNode.Data
-                        |> Option.bind (fun t -> t.ExecutorUri |> TestFrameworkId.tryFromExecutorUri)
-                      serverId = namedNode.Data |> Option.map (fun dto -> dto.Id) }
+                    {
+                        id = id
+                        label = namedNode.Name
+                        uri = codeLocation |> LocationRecord.tryGetUri
+                        range = codeLocation |> LocationRecord.tryGetRange
+                        children = namedNode.Children |> Array.map recurse
+                        testFramework =
+                            namedNode.Data
+                            |> Option.bind (fun t -> t.ExecutorUri |> TestFrameworkId.tryFromExecutorUri)
+                        serverId = namedNode.Data |> Option.map (fun dto -> dto.Id)
+                    }
 
             recurse hierarchy
 
@@ -1042,13 +1097,15 @@ module TestItem =
                 |> Array.groupBy (fun dto -> dto.FullName)
                 |> Array.collect (fun (fullName, named) ->
                     let node data explorerName (holders: TestItemDTO array) =
-                        { TestName.NameHierarchy.Data = data
-                          TestName.NameHierarchy.FullName = explorerName
-                          TestName.NameHierarchy.Name = labelUnder parentFullName fullName
-                          TestName.NameHierarchy.Children =
-                            holders
-                            |> Array.collect (fun dto -> childrenOf (Some dto.Id))
-                            |> build (Some fullName) }
+                        {
+                            TestName.NameHierarchy.Data = data
+                            TestName.NameHierarchy.FullName = explorerName
+                            TestName.NameHierarchy.Name = labelUnder parentFullName fullName
+                            TestName.NameHierarchy.Children =
+                                holders
+                                |> Array.collect (fun dto -> childrenOf (Some dto.Id))
+                                |> build (Some fullName)
+                        }
 
                     let tests, groupings = named |> Array.partition (fun dto -> dto.IsLeaf)
 
@@ -1096,7 +1153,9 @@ module TestItem =
                 testsForFile.tests
                 |> Array.map (fromTestAdapter testItemFactory fileUri projectPath)
 
-            [| fromProject testItemFactory projectPath project.Info.TargetFramework fileTests |])
+            [|
+                fromProject testItemFactory projectPath project.Info.TargetFramework fileTests
+            |])
 
     let tryGetById (testId: TestId) (rootCollection: TestItem array) : TestItem option =
         let projectPath, fullTestName = componentizeId testId
@@ -1161,13 +1220,15 @@ module TestItem =
                 | Some existing -> existing
                 | None ->
                     itemFactory
-                        { id = id
-                          label = currentLabel.Text
-                          uri = maybeLocation |> LocationRecord.tryGetUri
-                          range = maybeLocation |> LocationRecord.tryGetRange
-                          children = [||]
-                          testFramework = None
-                          serverId = None }
+                        {
+                            id = id
+                            label = currentLabel.Text
+                            uri = maybeLocation |> LocationRecord.tryGetUri
+                            range = maybeLocation |> LocationRecord.tryGetRange
+                            children = [||]
+                            testFramework = None
+                            serverId = None
+                        }
 
             collection.add (testItem)
 
@@ -1219,9 +1280,11 @@ module ProjectExt =
     let isTestProject (project: Project) =
         let testProjectIndicators =
             set
-                [ "Microsoft.TestPlatform.TestHost"
-                  "Microsoft.NET.Test.Sdk"
-                  "Microsoft.Testing.Platform" ]
+                [
+                    "Microsoft.TestPlatform.TestHost"
+                    "Microsoft.NET.Test.Sdk"
+                    "Microsoft.Testing.Platform"
+                ]
 
         project.Info.IsTestProject
         || project.PackageReferences
@@ -1244,13 +1307,15 @@ module TestDiscovery =
         let cloneWithUri (target: TestItem, withUri: TestItem) =
             let replacementItem =
                 testItemFactory
-                    { id = target.id
-                      label = target.label
-                      uri = withUri.uri
-                      range = withUri.range
-                      children = target.children.TestItems()
-                      testFramework = withUri?testFramework
-                      serverId = target.ServerId }
+                    {
+                        id = target.id
+                        label = target.label
+                        uri = withUri.uri
+                        range = withUri.range
+                        children = target.children.TestItems()
+                        testFramework = withUri?testFramework
+                        serverId = target.ServerId
+                    }
 
             (replacementItem, withUri)
 
@@ -1365,7 +1430,8 @@ module TestDiscovery =
                     let testItemFactory (testItemBuilder: TestItem.TestItemBuilder) =
                         testItemFactory
                             { testItemBuilder with
-                                testFramework = testFramework }
+                                testFramework = testFramework
+                            }
 
                     TestItem.fromNamedHierarchy testItemFactory tryGetLocation projectPath hierarchy
 
@@ -1379,8 +1445,10 @@ module TestDiscovery =
 
         let detectablePackageToFramework =
             dict
-                [ "Expecto", TestFrameworkId.Expecto
-                  "xunit.abstractions", TestFrameworkId.XUnit ]
+                [
+                    "Expecto", TestFrameworkId.Expecto
+                    "xunit.abstractions", TestFrameworkId.XUnit
+                ]
 
         let getPackageName (pr: PackageReference) = pr.Name
 
@@ -1402,7 +1470,8 @@ module TestDiscovery =
     let discoverTestsByCliListTests testItemFactory tryGetLocation cancellationToken (project: Project) =
         promise {
 
-            let! testNames = DotnetCli.listTests project.Project project.Info.TargetFramework false cancellationToken
+            let! testNames =
+                DotnetCli.listTests project.Project project.Info.TargetFramework false cancellationToken
 
             let detectedTestFramework = tryInferTestFrameworkFromPackage project
 
@@ -1410,7 +1479,8 @@ module TestDiscovery =
                 testItemFactory
                     { testItemBuilder with
                         testFramework = detectedTestFramework
-                        serverId = None }
+                        serverId = None
+                    }
 
             let testHierarchy =
                 testNames
@@ -1476,7 +1546,7 @@ module Interactions =
 
         let showError (testRun: TestRun) message (testItems: TestItem array) =
             let showSingle testItem =
-                testRun.errored (testItem, !^ vscode.TestMessage.Create(!^message))
+                testRun.errored (testItem, !^vscode.TestMessage.Create(!^message))
 
             testItems |> Array.iter showSingle
 
@@ -1547,8 +1617,10 @@ module Interactions =
                 | Some grandParent ->
                     TestName.appendSegment
                         (TestItem.getFullName grandParent.id)
-                        { Text = test.label
-                          SeparatorBefore = string TestName.pathSeparator }
+                        {
+                            Text = test.label
+                            SeparatorBefore = string TestName.pathSeparator
+                        }
 
             let getFilterPath (test: TestItem) =
                 if
@@ -1645,7 +1717,8 @@ module Interactions =
                 testItemFactory
                     { ti with
                         testFramework = testResult.TestFramework
-                        serverId = None }
+                        serverId = None
+                    }
 
             TestItem.getOrMakeHierarchyPath
                 rootTestCollection
@@ -1693,18 +1766,20 @@ module Interactions =
         let expected, actual =
             TestResult.tryExtractExpectedAndActual trxResult.UnitTestResult.Output.ErrorInfo.Message
 
-        { ServerId = None
-          FullTestName = trxResult.UnitTest.FullName
-          Outcome = !!trxResult.UnitTestResult.Outcome
-          Output = trxResult.UnitTestResult.Output.StdOut
-          ErrorMessage = trxResult.UnitTestResult.Output.ErrorInfo.Message
-          ErrorStackTrace = trxResult.UnitTestResult.Output.ErrorInfo.StackTrace
-          Expected = expected
-          Actual = actual
-          Timing = trxResult.UnitTestResult.Duration.Milliseconds
-          TestFramework = TestFrameworkId.tryFromExecutorUri trxResult.UnitTest.TestMethod.AdapterTypeName
-          ProjectFilePath = projectFilePath
-          TargetFramework = targetFramework }
+        {
+            ServerId = None
+            FullTestName = trxResult.UnitTest.FullName
+            Outcome = !!trxResult.UnitTestResult.Outcome
+            Output = trxResult.UnitTestResult.Output.StdOut
+            ErrorMessage = trxResult.UnitTestResult.Output.ErrorInfo.Message
+            ErrorStackTrace = trxResult.UnitTestResult.Output.ErrorInfo.StackTrace
+            Expected = expected
+            Actual = actual
+            Timing = trxResult.UnitTestResult.Duration.Milliseconds
+            TestFramework = TestFrameworkId.tryFromExecutorUri trxResult.UnitTest.TestMethod.AdapterTypeName
+            ProjectFilePath = projectFilePath
+            TargetFramework = targetFramework
+        }
 
     type TrimMissing = bool
 
@@ -1843,11 +1918,13 @@ module Interactions =
 
                 (Option.isSome runRequest.``include``) && (not isOnlyProjectSelected)
 
-            { ProjectPath = projectPath
-              TargetFramework = project.Info.TargetFramework
-              ShouldDebug = shouldDebug
-              HasIncludeFilter = hasIncludeFilter
-              Tests = replaceProjectRootIfPresent tests })
+            {
+                ProjectPath = projectPath
+                TargetFramework = project.Info.TargetFramework
+                ShouldDebug = shouldDebug
+                HasIncludeFilter = hasIncludeFilter
+                Tests = replaceProjectRootIfPresent tests
+            })
 
     let discoverTests_WithLanguageServer testItemFactory (rootTestCollection: TestItemCollection) tryGetLocation =
         withProgress NoCancel
@@ -1857,8 +1934,10 @@ module Interactions =
                     logger.Info message
 
                     p.report
-                        {| message = Some message
-                           increment = None |}
+                        {|
+                            message = Some message
+                            increment = None
+                        |}
 
                 let mergeTestItemCollections (target: TestItem array) (addition: TestItem array) : TestItem array =
                     let rec recurse (target: TestItem array) (addition: TestItem array) : TestItem array =
@@ -2212,16 +2291,18 @@ module Interactions =
             else
                 let possibleDiscoveryFailures =
                     Array.concat
-                        [ let getProjectTests (ti: TestItem) = ti.children.TestItems()
+                        [
+                            let getProjectTests (ti: TestItem) = ti.children.TestItems()
 
-                          listDiscoveredPerProject
-                          |> Array.filter (snd >> getProjectTests >> Array.isEmpty)
-                          |> Array.map (fst >> ProjectPath.fromProject)
+                            listDiscoveredPerProject
+                            |> Array.filter (snd >> getProjectTests >> Array.isEmpty)
+                            |> Array.map (fst >> ProjectPath.fromProject)
 
-                          trxDiscoveryProjects
-                          |> Array.ofList
-                          |> Array.map ProjectPath.fromProject
-                          |> Array.filter (makeTrxPath >> Path.tryPath >> Option.isNone) ]
+                            trxDiscoveryProjects
+                            |> Array.ofList
+                            |> Array.map ProjectPath.fromProject
+                            |> Array.filter (makeTrxPath >> Path.tryPath >> Option.isNone)
+                        ]
 
                 if (not << Array.isEmpty) possibleDiscoveryFailures then
                     let projectList = String.Join("\n", possibleDiscoveryFailures)
@@ -2246,8 +2327,10 @@ module Interactions =
                     logger.Info message
 
                     p.report
-                        {| message = Some message
-                           increment = None |}
+                        {|
+                            message = Some message
+                            increment = None
+                        |}
 
                 let cancellationToken =
                     CancellationToken.mergeTokens [ cancellationToken; progressCancelToken ]
@@ -2269,7 +2352,10 @@ module Interactions =
                         promise {
                             let projectPath = project.Project
                             logger.Info($"Building {projectPath}")
-                            let! processExit = MSBuild.invokeMSBuildWithCancel projectPath "Build" cancellationToken
+
+                            let! processExit =
+                                MSBuild.invokeMSBuildWithCancel projectPath "Build" cancellationToken
+
                             return (project, processExit)
                         })
 
@@ -2381,7 +2467,7 @@ let activate (context: ExtensionContext) =
 
     let testItemFactory = TestItem.itemFactoryForController testController
     let locationCache = CodeLocationCache()
-    let workspaceRoot = workspace.rootPath.Value
+    let workspaceRoot = (workspaceRootPath ()).Value
 
     let storageUri =
         context.storageUri
@@ -2418,8 +2504,7 @@ let activate (context: ExtensionContext) =
             displacedFragmentMapCache
 
     let codeTestsDiscoveredMailbox =
-        MailboxProcessor<TestForFile>
-            .Start(Mailbox.continuousLoop onTestsDiscoveredInCode)
+        MailboxProcessor<TestForFile>.Start(Mailbox.continuousLoop onTestsDiscoveredInCode)
 
     Notifications.testDetected.Invoke(fun testsForFile ->
         codeTestsDiscoveredMailbox.Post(testsForFile)

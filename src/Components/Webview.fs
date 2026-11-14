@@ -82,8 +82,10 @@ module Webviews =
                     let values =
                         values
                         |> Array.map (fun (title, headerKey) ->
-                            {| title = title
-                               columnDataKey = headerKey |})
+                            {|
+                                title = title
+                                columnDataKey = headerKey
+                            |})
 
                     js $"grid.columnDefinitions = {JS.JSON.stringify values}"
 
@@ -141,11 +143,13 @@ module Webviews =
                 viewType,
                 title,
                 viewOptions,
-                {| enableScripts = enableScripts
-                   enableCommandUris = enableCommandUris
-                   enableFindWidget = enableFindWidget
-                   resourceRoots = resourceRoots
-                   retainContextWhenHidden = retainContextWhenHidden |}
+                {|
+                    enableScripts = enableScripts
+                    enableCommandUris = enableCommandUris
+                    enableFindWidget = enableFindWidget
+                    resourceRoots = resourceRoots
+                    retainContextWhenHidden = retainContextWhenHidden
+                |}
             )
 
         /// <summary>
@@ -170,13 +174,8 @@ module Webviews =
         /// <param name="styles">The css strings for the styles to add to the webview</param>
         /// <param name="scripts">The js strings for the scripts to add to the webview</param>
         static member render
-            (
-                ctx: ExtensionContext,
-                wbp: WebviewPanel,
-                content: string,
-                ?styles: string seq,
-                ?scripts: string seq
-            ) =
+            (ctx: ExtensionContext, wbp: WebviewPanel, content: string, ?styles: string seq, ?scripts: string seq)
+            =
             let styles = defaultArg styles Seq.empty<string>
             let scripts = defaultArg scripts Seq.empty<string>
 

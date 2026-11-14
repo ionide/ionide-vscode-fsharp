@@ -37,9 +37,11 @@ module Fsi =
                     let! choice =
                         window.showInformationMessage (
                             "You are running .Net Core version of FsAutoComplete, we recommend also using .Net Core version of F# REPL (`dotnet fsi`). Should we change your settings (`FSharp.useSdkScripts`). This requires .Net Core 3.X?",
-                            [| Message.choice "Update settings"
-                               Message.choice "Ignore"
-                               Message.choice "Don't show again" |]
+                            [|
+                                Message.choice "Update settings"
+                                Message.choice "Ignore"
+                                Message.choice "Don't show again"
+                            |]
                         )
 
                     match choice with
@@ -156,10 +158,12 @@ module Fsi =
                                     let x = row.Split([| "###IONIDESEP###" |], StringSplitOptions.None)
 
 
-                                    {| name = x[0]
-                                       value = x[1]
-                                       Type = x[2]
-                                       step = x[3] |})
+                                    {|
+                                        name = x[0]
+                                        value = x[1]
+                                        Type = x[2]
+                                        step = x[3]
+                                    |})
 
                             values <- datagridContent |> Array.map (fun x -> x.name, x.value) |> Array.toList
                             // ensure column order
@@ -193,10 +197,12 @@ module Fsi =
                                     let x = row.Split([| "###IONIDESEP###" |], StringSplitOptions.None)
 
                                     box
-                                        {| name = x[0]
-                                           parameters = x[1]
-                                           returnType = x[2]
-                                           step = x[3] |})
+                                        {|
+                                            name = x[0]
+                                            parameters = x[1]
+                                            returnType = x[2]
+                                            step = x[3]
+                                        |})
 
                             let grid, script =
                                 VsHtml.datagrid (
@@ -234,9 +240,11 @@ module Fsi =
                                     let signature = extractSignature x[1]
 
                                     box
-                                        {| Name = x[0]
-                                           Signature = signature
-                                           Step = x[2] |})
+                                        {|
+                                            Name = x[0]
+                                            Signature = signature
+                                            Step = x[2]
+                                        |})
 
                             let grid, script = VsHtml.datagrid ("types-content", datagridContent)
 
@@ -252,14 +260,11 @@ module Fsi =
                     and set (v: Event<unit> option): unit = ()
 
                 member this.provideInlayHints
-                    (
-                        document: TextDocument,
-                        range: Vscode.Range,
-                        token: CancellationToken
-                    ) : ProviderResult<ResizeArray<InlayHint>> =
+                    (document: TextDocument, range: Vscode.Range, token: CancellationToken)
+                    : ProviderResult<ResizeArray<InlayHint>> =
                     promise {
                         let! symbols =
-                            Vscode.commands.executeCommand<ResizeArray<DocumentSymbol>> (
+                            Vscode.commands.executeCommand<ResizeArray<DocumentSymbol>>(
                                 "vscode.executeDocumentSymbolProvider",
                                 Some(box document.uri)
                             )
@@ -305,7 +310,8 @@ module Fsi =
                     |> unbox
 
                 member this.resolveInlayHint(hint: InlayHint, token: CancellationToken) : ProviderResult<InlayHint> =
-                    hint |> unbox }
+                    hint |> unbox
+            }
 
         let activate context selector (dispsables: ResizeArray<Disposable>) =
             languages.registerInlayHintsProvider (selector, provider) |> dispsables.Add
@@ -331,16 +337,7 @@ module Fsi =
                 file, dir, line
 
             | None ->
-                let dir =
-                    workspace.rootPath
-                    |> Option.defaultWith (fun () ->
-                        workspace.workspaceFolders
-                        |> Option.bind (fun folders ->
-                            if folders.Count > 0 then
-                                Some(string folders.[0].uri.fsPath)
-                            else
-                                None)
-                        |> Option.defaultValue (node.os.tmpdir ()))
+                let dir = workspaceRootPath () |> Option.defaultWith (fun () -> node.os.tmpdir ())
 
                 node.path.join (dir, "tmp.fsx"), dir, 1
 
@@ -429,7 +426,8 @@ module Fsi =
                     }
                     |> Promise.toThenable
 
-                Some(U2.Case2 work) }
+                Some(U2.Case2 work)
+        }
 
     let private start () =
         promise {
@@ -525,9 +523,11 @@ module Fsi =
 
     let private moveCursorDownOneLine () =
         let args =
-            {| ``to`` = "down"
-               by = "line"
-               value = 1 |}
+            {|
+                ``to`` = "down"
+                by = "line"
+                value = 1
+            |}
 
         commands.executeCommand ("cursorMove", Some(box args)) |> Promise.ofThenable
 
@@ -649,11 +649,13 @@ module Fsi =
         None
 
     let private fsiInitCommandsForProject (project: Project) =
-        [| yield!
-               project.References
-               |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not)
-               |> Seq.map (sprintf "#r @\"%s\"")
-           yield! project.Files |> Seq.map (sprintf "#load @\"%s\"") |]
+        [|
+            yield!
+                project.References
+                |> Seq.filter (fun n -> n.EndsWith "FSharp.Core.dll" |> not && n.EndsWith "mscorlib.dll" |> not)
+                |> Seq.map (sprintf "#r @\"%s\"")
+            yield! project.Files |> Seq.map (sprintf "#load @\"%s\"")
+        |]
 
     let sendReferencesForProject project =
         promise {
@@ -677,15 +679,7 @@ module Fsi =
 
         promise {
             let workspaceRoot =
-                workspace.rootPath
-                |> Option.defaultWith (fun () ->
-                    workspace.workspaceFolders
-                    |> Option.bind (fun folders ->
-                        if folders.Count > 0 then
-                            Some(string folders.[0].uri.fsPath)
-                        else
-                            None)
-                    |> Option.defaultValue (node.os.tmpdir ()))
+                workspaceRootPath () |> Option.defaultWith (fun () -> node.os.tmpdir ())
 
             let path = node.path.join (workspaceRoot, "references.fsx")
 

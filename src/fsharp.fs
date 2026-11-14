@@ -14,20 +14,24 @@ let private logger =
     ConsoleAndOutputChannelLogger(Some "Main", Level.DEBUG, Some defaultOutputChannel, Some Level.DEBUG)
 
 let private requiredExtensions =
-    [ "ms-dotnettools.csharp" // VSCode C# extension
-      "anysphere.csharp" // Cursor C# extension
-      "muhammad-sammy.csharp" ] // Free/Libre C# extension
+    [
+        "ms-dotnettools.csharp" // VSCode C# extension
+        "anysphere.csharp" // Cursor C# extension
+        "muhammad-sammy.csharp"
+    ] // Free/Libre C# extension
 
 let private checkCSharpExtension () =
     requiredExtensions
     |> List.exists (fun extId -> extensions.getExtension extId |> Option.isSome)
 
 type Api =
-    { ProjectLoadedEvent: Event<DTO.Project>
-      BuildProject: DTO.Project -> JS.Promise<string>
-      BuildProjectFast: DTO.Project -> JS.Promise<string>
-      GetProjectLauncher: OutputChannel -> DTO.Project -> (string list -> JS.Promise<ChildProcess>) option
-      DebugProject: DTO.Project -> string[] -> JS.Promise<unit> }
+    {
+        ProjectLoadedEvent: Event<DTO.Project>
+        BuildProject: DTO.Project -> JS.Promise<string>
+        BuildProjectFast: DTO.Project -> JS.Promise<string>
+        GetProjectLauncher: OutputChannel -> DTO.Project -> (string list -> JS.Promise<ChildProcess>) option
+        DebugProject: DTO.Project -> string[] -> JS.Promise<unit>
+    }
 
 
 let private activateLanguageServiceRestart (context: ExtensionContext) =
@@ -67,8 +71,10 @@ let private doActivate (context: ExtensionContext) : JS.Promise<Api> =
             progressOpts,
             (fun p ctok ->
                 let pm =
-                    {| message = Some "Loading projects"
-                       increment = None |}
+                    {|
+                        message = Some "Loading projects"
+                        increment = None
+                    |}
 
                 p.report pm
 
@@ -86,8 +92,10 @@ let private doActivate (context: ExtensionContext) : JS.Promise<Api> =
                     logger.Error $"Error loading all projects: %A{e}"
 
                     let pm =
-                        {| message = Some "Error loading projects"
-                           increment = None |}
+                        {|
+                            message = Some "Error loading projects"
+                            increment = None
+                        |}
 
                     p.report pm)
                 |> Promise.toThenable)
@@ -141,11 +149,13 @@ let private doActivate (context: ExtensionContext) : JS.Promise<Api> =
         Project.projectLoaded.Invoke(fun n -> !!(setTimeout (fun _ -> event.fire n) 500.))
         |> ignore
 
-        { ProjectLoadedEvent = event.event
-          BuildProject = buildProject
-          BuildProjectFast = buildProjectFast
-          GetProjectLauncher = Project.getLauncher
-          DebugProject = Debugger.debugProject })
+        {
+            ProjectLoadedEvent = event.event
+            BuildProject = buildProject
+            BuildProjectFast = buildProjectFast
+            GetProjectLauncher = Project.getLauncher
+            DebugProject = Debugger.debugProject
+        })
     |> Promise.catch (fun e ->
         logger.Error $"Error activating features: %A{e}"
         Unchecked.defaultof<_>)

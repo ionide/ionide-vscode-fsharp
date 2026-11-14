@@ -29,7 +29,7 @@ module Json =
     /// Instantiate F# objects from JSON
     let inline ofJson<'a> json : 'a =
         // see https://fable.io/blog/Migration-to-Fable2.html#breaking-changes
-        Decode.Auto.unsafeFromString<'a> (json)
+        Decode.Auto.unsafeFromString<'a>(json)
 
 [<RequireQualifiedAccess>]
 module CodeRange =
@@ -137,7 +137,7 @@ module Document =
 module Configuration =
 
     let tryGet key =
-        let configuredValue = workspace.getConfiguration().get (key)
+        let configuredValue = workspace.getConfiguration().get(key)
 
         if configuredValue = Some "" then None else configuredValue
 
@@ -146,27 +146,23 @@ module Configuration =
         workspace.getConfiguration().get(key).Value
 
     let get defaultValue key =
-        workspace.getConfiguration().get (key, defaultValue)
+        workspace.getConfiguration().get(key, defaultValue)
 
     let getInContext context defaultValue key =
-        workspace.getConfiguration(scope = U4.Case1 context).get (key, defaultValue)
+        workspace.getConfiguration(scope = U4.Case1 context).get(key, defaultValue)
 
     /// write the value to the given key in the workspace configuration
     let set key value =
-        workspace
-            .getConfiguration()
-            .update (key, value, configurationTarget = U2.Case1 ConfigurationTarget.Workspace)
+        workspace.getConfiguration().update(key, value, configurationTarget = U2.Case1 ConfigurationTarget.Workspace)
 
     /// write the value to the given key in the global configuration
     let setGlobal key value =
-        workspace
-            .getConfiguration()
-            .update (key, value, configurationTarget = U2.Case1 ConfigurationTarget.Global)
+        workspace.getConfiguration().update(key, value, configurationTarget = U2.Case1 ConfigurationTarget.Global)
 
     let setForFsharpLanguageOnly key value target =
         workspace
             .getConfiguration(scope = ConfigurationScope.Case4 {| languageId = "fsharp"; uri = None |})
-            .update (key, value, configurationTarget = U2.Case1 target, overrideInLanguage = true)
+            .update(key, value, configurationTarget = U2.Case1 target, overrideInLanguage = true)
 
 [<AutoOpen>]
 module Utils =
@@ -176,6 +172,16 @@ module Utils =
 
     [<Emit("$0 === undefined")>]
     let isUndefined (x: 'a) : bool = jsNative
+
+    /// The path of the first workspace folder, or None without a workspace.
+    /// This is what the deprecated `workspace.rootPath` returns.
+    let workspaceRootPath () : string option =
+        workspace.workspaceFolders
+        |> Option.bind (fun folders ->
+            if folders.Count > 0 then
+                Some folders.[0].uri.fsPath
+            else
+                None)
 
     type System.Collections.Generic.Dictionary<'key, 'value> with
 
@@ -247,7 +253,7 @@ module JS =
         [<Emit("{}")>]
         static member empty: JsObjectAsDictionary<'a> = jsNative
 
-    let inline undefined<'a> = unbox<'a> ()
+    let inline undefined<'a> = unbox<'a>()
 
 [<AutoOpen>]
 module Patterns =

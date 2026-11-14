@@ -1,0 +1,10 @@
+{
+  "name": "csharp",
+  "displayName": "C# extension stub for the smoke test",
+  "description": "Ionide only activates when a C# extension is installed. This stub has the id of the C# extension, so the smoke test does not have to download it.",
+  "publisher": "ms-dotnettools",
+  "version": "0.0.0",
+  "engines": {
+    "vscode": "^1.100.0"
+  }
+}

@@ -13,10 +13,6 @@
       <Paket>True</Paket>
       <Link>paket-files/Helpers.fs</Link>
     </Compile>
-    <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Fable.Import.Showdown.fs">
-      <Paket>True</Paket>
-      <Link>paket-files/Fable.Import.Showdown.fs</Link>
-    </Compile>
     <Compile Include="..\paket-files\ionide\ionide-vscode-helpers\src\Fable.Import.VSCode.LanguageServer.fs">
       <Paket>True</Paket>
       <Link>paket-files/Fable.Import.VSCode.LanguageServer.fs</Link>

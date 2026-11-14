@@ -24,10 +24,8 @@ module Project =
         | NotRestored of path: string * error: string
         | LanguageNotSupported of path: string
 
-    let private emptyProjectsMap: Dictionary<ProjectFilePath, ProjectLoadingState> =
+    let private loadedProjects: Dictionary<ProjectFilePath, ProjectLoadingState> =
         Dictionary()
-
-    let mutable private loadedProjects = emptyProjectsMap
 
     let mutable private loadedWorkspace: WorkspacePeekFound option = None
 
@@ -120,7 +118,7 @@ module Project =
         lst
 
     let isIgnored (path: string) =
-        let relativePath = node.path.relative (workspace.rootPath.Value, path)
+        let relativePath = node.path.relative ((workspaceRootPath ()).Value, path)
 
         let isSubDir p =
             let relativeToDir = node.path.relative (p, relativePath)
@@ -141,7 +139,7 @@ module Project =
 
                     if excluded |> Array.contains s' then
                         []
-                    elif node.fs.statSync(U2.Case1 s).isDirectory () then
+                    elif node.fs.statSync(U2.Case1 s).isDirectory() then
                         findProjs (s)
                     else if s.EndsWith ".fsproj" then
                         [ s ]
@@ -150,7 +148,7 @@ module Project =
                 with _ ->
                     [])
 
-        match workspace.rootPath with
+        match workspaceRootPath () with
         | None -> []
         | Some rootPath -> findProjs rootPath
 
@@ -166,7 +164,7 @@ module Project =
 
                     if excluded |> Array.contains s' then
                         []
-                    elif node.fs.statSync(U2.Case1 s).isDirectory () then
+                    elif node.fs.statSync(U2.Case1 s).isDirectory() then
                         findProjs (s)
                     elif s.EndsWith ".fsproj" || s.EndsWith ".csproj" || s.EndsWith ".vbproj" then
                         [ s ]
@@ -175,12 +173,12 @@ module Project =
                 with _ ->
                     [])
 
-        match workspace.rootPath with
+        match workspaceRootPath () with
         | None -> []
         | Some rootPath -> rootPath |> findProjs
 
     let private clearLoadedProjects () =
-        loadedProjects <- emptyProjectsMap
+        loadedProjects.Clear()
         setAnyProjectContext false
 
     let load comingFromRestore (path: string) =
@@ -281,7 +279,7 @@ module Project =
 
                         if excluded |> Array.contains s' then
                             []
-                        elif node.fs.statSync(U2.Case1 s).isDirectory () then
+                        elif node.fs.statSync(U2.Case1 s).isDirectory() then
                             findProjs (s)
                         else if s.EndsWith "fsac.cache" then
                             [ s ]
@@ -290,7 +288,7 @@ module Project =
                     with _ ->
                         [])
 
-        match workspace.rootPath with
+        match workspaceRootPath () with
         | None -> []
         | Some rootPath -> findProjs rootPath
 
@@ -318,9 +316,11 @@ module Project =
             extensionWorkspaceState <- Some context.workspaceState
 
         let private parse (value: string) =
-            let fullPath = node.path.resolve (workspace.rootPath.Value, value)
+            let fullPath = node.path.resolve ((workspaceRootPath ()).Value, value)
 
-            if value.ToLowerInvariant().EndsWith(".sln") then
+            let lower = value.ToLowerInvariant()
+
+            if lower.EndsWith(".sln") || lower.EndsWith(".slnx") then
                 ConfiguredWorkspace.Solution fullPath
             else
                 ConfiguredWorkspace.Directory fullPath
@@ -359,10 +359,10 @@ module Project =
                     None
 
         let private getStringFromWorkspaceConfig () =
-            workspace.getConfiguration().get<string> (key)
+            workspace.getConfiguration().get<string>(key)
 
         let private getStringFromExtensionState () =
-            extensionWorkspaceState.Value.get<string> (key)
+            extensionWorkspaceState.Value.get<string>(key)
 
         let get () =
             match parseAndValidate (getStringFromWorkspaceConfig ()) with
@@ -385,7 +385,7 @@ module Project =
 
             if isConfiguredInWorkspace () then
                 let relativePath =
-                    let raw = node.path.relative (workspace.rootPath.Value, configuredPath)
+                    let raw = node.path.relative ((workspaceRootPath ()).Value, configuredPath)
 
                     if not (node.path.isAbsolute raw) && not (raw.StartsWith "..") then
                         "./" + raw
@@ -445,7 +445,7 @@ module Project =
                 item.description <- Some(sprintf "Directory with %i projects" dir.Fsprojs.Length)
                 item
             | WorkspacePeekFound.Solution sln ->
-                let relative = node.path.relative (workspace.rootPath.Value, sln.Path)
+                let relative = node.path.relative ((workspaceRootPath ()).Value, sln.Path)
                 let item = createEmpty<QuickPickItem>
                 item.label <- sprintf "%s%s" check relative
                 item.description <- Some(sprintf "Solution with %i projects" (countProjectsInSln sln))
@@ -502,11 +502,13 @@ module Project =
             fun args ->
                 let cmd =
                     ResizeArray(
-                        [ "run"
-                          "--project"
-                          project.Project
-                          if not (List.isEmpty args) then
-                              " -- " ]
+                        [
+                            "run"
+                            "--project"
+                            project.Project
+                            if not (List.isEmpty args) then
+                                " -- "
+                        ]
                         @ args
                     )
 
@@ -523,11 +525,13 @@ module Project =
             fun args ->
                 let cmd =
                     ResizeArray(
-                        [ "run"
-                          "--project"
-                          project.Project
-                          if not (List.isEmpty args) then
-                              " -- " ]
+                        [
+                            "run"
+                            "--project"
+                            project.Project
+                            if not (List.isEmpty args) then
+                                " -- "
+                        ]
                         @ args
                     )
 
@@ -544,18 +548,21 @@ module Project =
             let fsprojs = findAll ()
 
             let wdir =
-                { WorkspacePeekFoundDirectory.Directory = workspace.rootPath.Value
-                  Fsprojs = fsprojs |> Array.ofList }
+                {
+                    WorkspacePeekFoundDirectory.Directory = (workspaceRootPath ()).Value
+                    Fsprojs = fsprojs |> Array.ofList
+                }
 
             return WorkspacePeekFound.Directory wdir
         }
 
     let private workspacePeek () =
         promise {
-            if None = workspace.rootPath then
+            if None = workspaceRootPath () then
                 return []
             else
-                let! ws = LanguageService.workspacePeek workspace.rootPath.Value deepLevel (excluded |> List.ofArray)
+                let! ws =
+                    LanguageService.workspacePeek (workspaceRootPath ()).Value deepLevel (excluded |> List.ofArray)
 
                 return
                     ws.Found
@@ -642,6 +649,46 @@ module Project =
                 setAnyProjectContext true
         | None -> ()
 
+    /// FSAC fails the whole workspaceLoad request when it can't load any project, for example when MSBuild itself
+    /// fails to load. Without this, the projects stay in "Loading" and every editor request fails with
+    /// "Couldn't find ... in LoadedProjects".
+    let private reportWorkspaceLoadFailure (projs: string array) (unexpectedStopsBefore: int) (e: exn) =
+        let details = string e.Message
+
+        let report (summary: string) =
+            logger.Error($"Loading the workspace failed: %s{details}")
+
+            for p in projs do
+                match tryFindInWorkspace p with
+                | Some(ProjectLoadingState.Loaded _) -> ()
+                | _ -> updateInWorkspace p (ProjectLoadingState.Failed(p, summary))
+
+            loadedWorkspace |> Option.iter (workspaceChangedEmitter.fire)
+
+            promise {
+                let showOutput = "Show output"
+
+                let! choice =
+                    window.showErrorMessage ($"F# projects could not be loaded: {summary}", showOutput)
+
+                if choice = Some showOutput then
+                    LanguageService.client
+                    |> Option.iter (fun cl -> cl.outputChannel.show (preserveFocus = true))
+            }
+            |> ignore
+
+        // The request also fails when the load stops early: -32097 when the connection closes, -32096 when the
+        // client isn't running, -32800 when the request is cancelled. Only a connection that closed because FSAC
+        // stopped by itself is a failure, not a stop or restart that was asked for, like closing VS Code.
+        match e?code |> unbox<int> with
+        | -32097 when LanguageService.unexpectedServerStopCount () <> unexpectedStopsBefore ->
+            // the client restarts FSAC, and restartedAfterUnexpectedStop loads the workspace again
+            report "the F# language server stopped while loading them. Ionide restarts it and loads them again."
+        | -32097
+        | -32096
+        | -32800 -> logger.Debug($"Loading the workspace did not complete: %s{details}")
+        | _ -> report (details.Split([| '\n' |]).[0].Trim())
+
     let private initWorkspaceHelper x =
         clearLoadedProjects ()
         loadedWorkspace <- Some x
@@ -657,7 +704,12 @@ module Project =
         | WorkspacePeekFound.Directory _ when not (projs |> Array.isEmpty) -> setAnyProjectContext true
         | _ -> ()
 
-        projs |> List.ofArray |> LanguageService.workspaceLoad |> Promise.map ignore
+        let unexpectedStopsBefore = LanguageService.unexpectedServerStopCount ()
+
+        projs
+        |> List.ofArray
+        |> LanguageService.workspaceLoad
+        |> Promise.catch (reportWorkspaceLoadFailure projs unexpectedStopsBefore)
 
 
     let initWorkspace () =
@@ -758,6 +810,17 @@ module Project =
 
                 ShowStatus.CreateOrShow(ProjectStatus.path, name) |> box |> Some)
         )
+        |> context.Subscribe
+
+        // a restarted FSAC starts without a workspace, so load it again
+        LanguageService.restartedAfterUnexpectedStop.Invoke(fun () ->
+            logger.Info("The F# language server restarted, loading the workspace again")
+
+            initWorkspace ()
+            |> Promise.catch (fun e -> logger.Error $"Error loading projects: %A{e}")
+            |> ignore
+
+            None)
         |> context.Subscribe
 
         initWorkspace ()

@@ -69,17 +69,23 @@ module LanguageService =
         type VersionedTextDocumentIdentifier = { Uri: DocumentUri; Version: float }
 
         type TextDocumentPositionParams =
-            { TextDocument: TextDocumentIdentifier
-              Position: Position }
+            {
+                TextDocument: TextDocumentIdentifier
+                Position: Position
+            }
 
         type VersionedTextDocumentPositionParams =
-            { TextDocument: VersionedTextDocumentIdentifier
-              Position: Position }
+            {
+                TextDocument: VersionedTextDocumentIdentifier
+                Position: Position
+            }
 
         type FileParams = { Project: TextDocumentIdentifier }
 
         type WorkspaceLoadParms =
-            { TextDocuments: TextDocumentIdentifier[] }
+            {
+                TextDocuments: TextDocumentIdentifier[]
+            }
 
         type HighlightingRequest =
             { TextDocument: TextDocumentIdentifier }
@@ -91,8 +97,10 @@ module LanguageService =
             { TextDocument: TextDocumentIdentifier }
 
         type LspRange =
-            { start: Fable.Import.VSCode.Vscode.Position
-              ``end``: Fable.Import.VSCode.Vscode.Position }
+            {
+                start: Fable.Import.VSCode.Vscode.Position
+                ``end``: Fable.Import.VSCode.Vscode.Position
+            }
 
         type TestRunRequest =
             {
@@ -111,6 +119,22 @@ module LanguageService =
 
     let mutable client: LanguageClient option = None
 
+    /// How often FSAC stopped without being asked to (a crash or an exit), so a failed request can tell that apart
+    /// from a stop or restart that was asked for.
+    let mutable private unexpectedServerStops = 0
+
+    /// A function rather than the mutable itself: Fable moves a single-use read of a module-level mutable to where
+    /// the value is used, which would turn a snapshot taken before a request into a read after it failed.
+    let unexpectedServerStopCount () = unexpectedServerStops
+
+    let mutable private restartingAfterUnexpectedStop = false
+
+    let private restartedAfterUnexpectedStopEmitter = vscode.EventEmitter.Create<unit>()
+
+    /// Fires when the client restarted FSAC by itself after it stopped unexpectedly.
+    /// The new FSAC has no workspace loaded yet.
+    let restartedAfterUnexpectedStop = restartedAfterUnexpectedStopEmitter.event
+
     let inline checkNotificationAndCast<'t> (response: Types.PlainNotification) : 't option =
         if isNullOrUndefined response then
             None
@@ -119,13 +143,13 @@ module LanguageService =
 
     let selector: DocumentSelector =
         let fileSchemeFilter: DocumentFilter =
-            jsOptions<TextDocumentFilter> (fun f ->
+            jsOptions<TextDocumentFilter>(fun f ->
                 f.language <- Some "fsharp"
                 f.scheme <- Some "file")
             |> U2.Case1
 
         let untitledSchemeFilter: DocumentFilter =
-            jsOptions<TextDocumentFilter> (fun f ->
+            jsOptions<TextDocumentFilter>(fun f ->
                 f.language <- Some "fsharp"
                 f.scheme <- Some "untitled")
             |> U2.Case1
@@ -222,7 +246,7 @@ Consider:
                     return Core.Error "Could not find 'dotnet'"
         }
 
-    /// runs `dotnet --version` in the current rootPath to determine the resolved sdk version from the global.json file.
+    /// runs `dotnet --version` in the workspace root to determine the resolved sdk version from the global.json file.
     let sdkVersion () =
         promise {
             let! dotnet = tryFindDotnet ()
@@ -236,11 +260,98 @@ Consider:
                 | Some e -> return Core.Error $"error while invoking: {e.message}"
                 | None ->
                     let stdoutTrimmed = stdout.TrimEnd()
-                    let semver = semver.parse (Some(U2.Case1 stdoutTrimmed))
+                    let semver = semver.parse stdoutTrimmed
 
                     match semver with
                     | None -> return Core.Error $"unable to parse version string '{stdoutTrimmed}'"
                     | Some semver -> return Core.Ok semver
+        }
+
+    /// runs `dotnet --list-runtimes` to find the versions of the installed Microsoft.NETCore.App runtimes.
+    let netCoreRuntimeVersions (dotnet: string) =
+        promise {
+            // Not Process.exec: it joins the stdout chunks with a newline, and a chunk can end in the middle of a line.
+            let! (error: obj option), stdout =
+                Promise.create (fun resolve _ ->
+                    let stdout = ResizeArray()
+
+                    Process.spawn dotnet (ResizeArray [ "--list-runtimes" ])
+                    |> Process.onOutput (fun chunk -> stdout.Add(string chunk))
+                    |> Process.onErrorOutput ignore // drain stderr, a full pipe would block the process
+                    |> Process.onError (fun e -> resolve (Some e, ""))
+                    |> Process.onClose (fun _ _ -> resolve (None, String.concat "" stdout))
+                    |> ignore)
+
+            match error with
+            | Some e -> return Core.Error $"error while invoking: {e?message}"
+            | None ->
+                // lines look like `Microsoft.NETCore.App 10.0.13 [/usr/share/dotnet/shared/Microsoft.NETCore.App]`
+                return
+                    stdout.Split([| '\n' |])
+                    |> Array.choose (fun line ->
+                        let line = line.Trim()
+
+                        if line.StartsWith "Microsoft.NETCore.App " then
+                            semver.parse (line.Split([| ' ' |]).[1])
+                        else
+                            None)
+                    |> Core.Ok
+        }
+
+    /// FSAC only starts when a .NET runtime with at least the major version of its target framework is installed.
+    /// Tells the user how to install that runtime when it is missing, and returns whether FSAC can start.
+    /// When the installed runtimes can't be determined, FSAC is allowed to try.
+    let ensureRuntimeForFsac (dotnet: string) (fsacTfm: string) =
+        let requiredMajor =
+            if fsacTfm.StartsWith "netcoreapp" || not (fsacTfm.StartsWith "net") then
+                None
+            else
+                match Int32.TryParse(fsacTfm.Substring(3).Split([| '.' |]).[0]) with
+                | (true, major) -> Some major
+                | _ -> None
+
+        promise {
+            match requiredMajor with
+            | None -> return true
+            | Some requiredMajor ->
+                match! netCoreRuntimeVersions dotnet with
+                | Error e ->
+                    printfn $"Could not list the installed .NET runtimes: {e}"
+                    return true
+                | Ok runtimes when runtimes.Length = 0 -> return true
+                | Ok runtimes when runtimes |> Array.exists (fun v -> int v.major >= requiredMajor) -> return true
+                | Ok runtimes ->
+                    let installed = runtimes |> Array.map (fun v -> v.raw) |> String.concat ", "
+                    let downloadUrl = $"https://dotnet.microsoft.com/download/dotnet/{requiredMajor}.0"
+                    let installDocsUrl = "https://learn.microsoft.com/dotnet/core/install/"
+                    let download = $"Download .NET {requiredMajor}"
+                    let installDocs = "Installation guide"
+
+                    let msg =
+                        $"Ionide needs the .NET {requiredMajor} runtime to run the F# language server, but '{dotnet}' only has these runtimes: {installed}. Install .NET {requiredMajor} (the SDK includes the runtime) and restart VS Code. If .NET {requiredMajor} is installed somewhere else, point the 'FSharp.dotnetRoot' setting to it."
+
+                    printfn $"{msg}"
+
+                    // don't wait for the user to pick an option, FSAC can't start either way
+                    promise {
+                        let! selection = window.showErrorMessage (msg, download, installDocs)
+
+                        let url =
+                            match selection with
+                            | Some s when s = download -> Some downloadUrl
+                            | Some s when s = installDocs -> Some installDocsUrl
+                            | _ -> None
+
+                        match url with
+                        | Some url ->
+                            let! _ = env.openExternal (vscode.Uri.parse url)
+                            ()
+                        | None -> ()
+                    }
+                    |> Promise.catch (fun e -> printfn $"Could not open the .NET install link: %A{e}")
+                    |> ignore
+
+                    return false
         }
 
 
@@ -249,8 +360,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = uri.ToDocumentUri }
-                  Position = { Line = line; Character = col } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                    Position = { Line = line; Character = col }
+                }
 
             cl.sendRequest ("fsharp/f1Help", req)
             |> Promise.map checkNotificationAndCast<Result<string>>
@@ -260,8 +373,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = uri.ToDocumentUri }
-                  Position = { Line = line; Character = col } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                    Position = { Line = line; Character = col }
+                }
 
             cl.sendRequest ("fsharp/documentation", req)
             |> Promise.map checkNotificationAndCast<Result<DocumentationDescription>>
@@ -271,8 +386,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req =
-                { DocumentationForSymbolRequest.Assembly = assembly
-                  XmlSig = xmlSig }
+                {
+                    DocumentationForSymbolRequest.Assembly = assembly
+                    XmlSig = xmlSig
+                }
 
             cl.sendRequest ("fsharp/documentationSymbol", req)
             |> Promise.map checkNotificationAndCast<Result<DocumentationDescription>>
@@ -282,8 +399,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = uri.ToDocumentUri }
-                  Position = { Line = line; Character = col } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                    Position = { Line = line; Character = col }
+                }
 
             cl.sendRequest ("fsharp/signature", req)
             |> Promise.map checkNotificationAndCast<Result<string>>
@@ -293,8 +412,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.TextDocumentPositionParams =
-                { TextDocument = { Uri = uri.ToDocumentUri }
-                  Position = { Line = line; Character = col } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                    Position = { Line = line; Character = col }
+                }
 
             cl.sendRequest ("fsharp/signatureData", req)
             |> Promise.map checkNotificationAndCast<SignatureDataResult>
@@ -304,10 +425,14 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.VersionedTextDocumentPositionParams =
-                { TextDocument =
-                    { Uri = fileUri.ToDocumentUri
-                      Version = version }
-                  Position = { Line = line; Character = col } }
+                {
+                    TextDocument =
+                        {
+                            Uri = fileUri.ToDocumentUri
+                            Version = version
+                        }
+                    Position = { Line = line; Character = col }
+                }
 
             cl.sendRequest ("fsharp/documentationGenerator", req)
             |> Promise.map (fun _ -> ())
@@ -316,7 +441,10 @@ Consider:
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req: Types.FileParams = { Project = { Uri = uri.ToDocumentUri } }
+            let req: Types.FileParams =
+                {
+                    Project = { Uri = uri.ToDocumentUri }
+                }
 
             cl.sendRequest ("fsharp/lineLens", req)
             |> Promise.map checkNotificationAndCast<Result<Symbols[]>>
@@ -332,7 +460,9 @@ Consider:
 
     let fsdn (signature: string) =
         let parse (ws: obj) =
-            { FsdnResponse.Functions = ws?Functions |> unbox }
+            {
+                FsdnResponse.Functions = ws?Functions |> unbox
+            }
 
         match client with
         | None -> Promise.empty
@@ -358,9 +488,11 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: DotnetNew.DotnetNewRunRequest =
-                { Template = template
-                  Output = output
-                  Name = name }
+                {
+                    Template = template
+                    Output = output
+                    Name = name
+                }
 
             cl.sendRequest ("fsharp/dotnetnewrun", req) |> Promise.map ignore
 
@@ -369,8 +501,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetProjectRequest =
-                { Target = target
-                  Reference = reference }
+                {
+                    Target = target
+                    Reference = reference
+                }
 
             cl.sendRequest ("fsharp/dotnetaddproject", req) |> Promise.map ignore
 
@@ -379,8 +513,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetProjectRequest =
-                { Target = target
-                  Reference = reference }
+                {
+                    Target = target
+                    Reference = reference
+                }
 
             cl.sendRequest ("fsharp/dotnetremoveproject", req) |> Promise.map ignore
 
@@ -389,8 +525,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetProjectRequest =
-                { Target = target
-                  Reference = reference }
+                {
+                    Target = target
+                    Reference = reference
+                }
 
             cl.sendRequest ("fsharp/dotnetaddsln", req) |> Promise.map ignore
 
@@ -399,8 +537,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFileRequest =
-                { FsProj = fsproj
-                  FileVirtualPath = file }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                }
 
             cl.sendRequest ("fsproj/moveFileUp", req) |> Promise.map ignore
 
@@ -409,8 +549,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFileRequest =
-                { FsProj = fsproj
-                  FileVirtualPath = file }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                }
 
             cl.sendRequest ("fsproj/moveFileDown", req) |> Promise.map ignore
 
@@ -419,9 +561,11 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFile2Request =
-                { FsProj = fsproj
-                  FileVirtualPath = file
-                  NewFile = newFile }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                    NewFile = newFile
+                }
 
             cl.sendRequest ("fsproj/addFileAbove", req) |> Promise.map ignore
 
@@ -430,9 +574,11 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFile2Request =
-                { FsProj = fsproj
-                  FileVirtualPath = file
-                  NewFile = newFile }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                    NewFile = newFile
+                }
 
             cl.sendRequest ("fsproj/addFileBelow", req) |> Promise.map ignore
 
@@ -441,8 +587,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFileRequest =
-                { FsProj = fsproj
-                  FileVirtualPath = file }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                }
 
             cl.sendRequest ("fsproj/addFile", req) |> Promise.map ignore
 
@@ -451,8 +599,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFileRequest =
-                { FsProj = fsproj
-                  FileVirtualPath = file }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                }
 
             cl.sendRequest ("fsproj/addExistingFile", req) |> Promise.map ignore
 
@@ -461,9 +611,11 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetRenameFileRequest =
-                { FsProj = fsproj
-                  OldFileVirtualPath = file
-                  NewFileName = newFile }
+                {
+                    FsProj = fsproj
+                    OldFileVirtualPath = file
+                    NewFileName = newFile
+                }
 
             cl.sendRequest ("fsproj/renameFile", req) |> Promise.map ignore
 
@@ -472,8 +624,10 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: FsProj.DotnetFileRequest =
-                { FsProj = fsproj
-                  FileVirtualPath = file }
+                {
+                    FsProj = fsproj
+                    FileVirtualPath = file
+                }
 
             cl.sendRequest ("fsproj/removeFile", req) |> Promise.map ignore
 
@@ -512,8 +666,10 @@ Consider:
                     let folderData: WorkspacePeekFoundSolutionItemKindFolder = data |> unbox
 
                     let folder: WorkspacePeekFoundSolutionItemKindFolder =
-                        { Files = folderData.Files
-                          Items = folderData.Items |> Array.choose mapItem }
+                        {
+                            Files = folderData.Files
+                            Items = folderData.Items |> Array.choose mapItem
+                        }
 
                     Some(WorkspacePeekFoundSolutionItemKind.Folder folder)
                 | "msbuildFormat" -> Some(WorkspacePeekFoundSolutionItemKind.MsbuildFormat(data |> unbox))
@@ -522,9 +678,11 @@ Consider:
             match mapItemKind f.Kind with
             | Some kind ->
                 Some
-                    { WorkspacePeekFoundSolutionItem.Guid = f.Guid
-                      Name = f.Name
-                      Kind = kind }
+                    {
+                        WorkspacePeekFoundSolutionItem.Guid = f.Guid
+                        Name = f.Name
+                        Kind = kind
+                    }
             | None -> None
 
         let mapFound (f: obj) : WorkspacePeekFound option =
@@ -534,23 +692,29 @@ Consider:
             | "directory" -> Some(WorkspacePeekFound.Directory(data |> unbox))
             | "solution" ->
                 let sln =
-                    { WorkspacePeekFoundSolution.Path = data?Path |> unbox
-                      Configurations = data?Configurations |> unbox
-                      Items = data?Items |> unbox |> Array.choose mapItem }
+                    {
+                        WorkspacePeekFoundSolution.Path = data?Path |> unbox
+                        Configurations = data?Configurations |> unbox
+                        Items = data?Items |> unbox |> Array.choose mapItem
+                    }
 
                 Some(WorkspacePeekFound.Solution sln)
             | _ -> None
 
         let parse (ws: obj) =
-            { WorkspacePeek.Found = ws?Found |> unbox |> Array.choose mapFound }
+            {
+                WorkspacePeek.Found = ws?Found |> unbox |> Array.choose mapFound
+            }
 
         match client with
         | None -> Promise.empty
         | Some cl ->
             let req =
-                { WorkspacePeekRequest.Directory = dir
-                  Deep = deep
-                  ExcludedDirs = excludedDirs |> Array.ofList }
+                {
+                    WorkspacePeekRequest.Directory = dir
+                    Deep = deep
+                    ExcludedDirs = excludedDirs |> Array.ofList
+                }
 
             cl.sendRequest ("fsharp/workspacePeek", req)
             |> Promise.map (fun (res: Types.PlainNotification) ->
@@ -562,7 +726,9 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.WorkspaceLoadParms =
-                { TextDocuments = projects |> List.map (fun s -> { Types.Uri = s }) |> List.toArray }
+                {
+                    TextDocuments = projects |> List.map (fun s -> { Types.Uri = s }) |> List.toArray
+                }
 
             cl.sendRequest ("fsharp/workspaceLoad", req) |> Promise.map ignore
 
@@ -578,7 +744,10 @@ Consider:
         match client with
         | None -> Promise.empty
         | Some cl ->
-            let req: Types.HighlightingRequest = { TextDocument = { Uri = uri.ToDocumentUri } }
+            let req: Types.HighlightingRequest =
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                }
 
             cl.sendRequest ("fsharp/highlighting", req)
             |> Promise.map (fun (res: obj) -> res?data)
@@ -588,7 +757,9 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.FSharpLiterateRequest =
-                { TextDocument = { Uri = uri.ToDocumentUri } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                }
 
             cl.sendRequest ("fsharp/fsharpLiterate", req)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<FSharpLiterateResult>)
@@ -598,7 +769,9 @@ Consider:
         | None -> Promise.empty
         | Some cl ->
             let req: Types.FSharpPipelineHintsRequest =
-                { TextDocument = { Uri = uri.ToDocumentUri } }
+                {
+                    TextDocument = { Uri = uri.ToDocumentUri }
+                }
 
             cl.sendRequest ("fsharp/pipelineHint", req)
             |> Promise.map checkNotificationAndCast<PipelineHintsResult>
@@ -651,10 +824,12 @@ Consider:
             )
 
             let request: Types.TestRunRequest =
-                { LimitToProjects = projectSubset
-                  TestCaseFilter = testCaseFilter
-                  TestIds = testIds
-                  AttachDebugger = attachDebugger }
+                {
+                    LimitToProjects = projectSubset
+                    TestCaseFilter = testCaseFilter
+                    TestIds = testIds
+                    AttachDebugger = attachDebugger
+                }
 
             cl.sendRequest ("test/runTests", request)
             |> Promise.map (fun (res: Types.PlainNotification) -> res.content |> ofJson<RunTestsResult>)
@@ -682,35 +857,56 @@ Consider:
 
             let restarts = new ResizeArray<_>()
 
-            let errorHandling =
-                {
+            // vscode-languageclient 8 expects { action, message } from the error handler, but the bindings still
+            // declare a bare CloseAction/ErrorAction, and Fable coerces an enum return value to an integer. The client
+            // reads `.action` of a bare number as undefined and then neither restarts nor reports a crashed server.
+            // So the handler is a plain JS object.
+            let handlerResult (action: obj) (message: string option) : obj =
+                createObj
+                    [
+                        "action" ==> action
+                        match message with
+                        | Some m -> "message" ==> m
+                        | None -> ()
+                    ]
 
-                  new ErrorHandler with
-                      member this.closed() : CloseAction =
-                          restarts.Add(1)
+            let errorHandling: ErrorHandler =
+                createObj
+                    [
+                        "closed"
+                        ==> Func<obj>(fun () ->
+                            // the client only calls this when the connection closes while it isn't stopping
+                            unexpectedServerStops <- unexpectedServerStops + 1
+                            restarts.Add(1)
 
-                          if restarts |> Seq.length < 5 then
-                              CloseAction.Restart
-                          else
+                            if restarts |> Seq.length < 5 then
+                                logger.Error("The F# language server stopped unexpectedly, restarting it")
+                                restartingAfterUnexpectedStop <- true
+                                handlerResult CloseAction.Restart None
+                            else
+                                logger.Error("Server closed")
 
-                              logger.Error("Server closed")
-                              CloseAction.DoNotRestart
+                                handlerResult
+                                    CloseAction.DoNotRestart
+                                    (Some
+                                        "The F# language server stopped unexpectedly 5 times and will not be restarted. See the F# output for the cause, then run 'F#: Restart Language Service'."))
 
-                      member this.error(error: Exception, message: Message, count: float) : ErrorAction =
-                          logger.Error($"Error from server: {error} {message} {count}")
+                        "error"
+                        ==> Func<Exception, Message, float, obj>(fun error message count ->
+                            logger.Error($"Error from server: {error} {message} {count}")
 
-                          if count < 3.0 then
-                              ErrorAction.Continue
-                          else
-                              ErrorAction.Shutdown
-
-                }
+                            if count < 3.0 then
+                                handlerResult ErrorAction.Continue None
+                            else
+                                handlerResult ErrorAction.Shutdown None)
+                    ]
+                |> unbox
 
             let initOpts = createObj [ "AutomaticWorkspaceInit" ==> false ]
 
             let synch = createEmpty<Client.SynchronizeOptions>
-            synch.configurationSection <- Some !^ "FSharp"
-            synch.fileEvents <- Some(!^ ResizeArray([ fileDeletedWatcher ]))
+            synch.configurationSection <- Some !^"FSharp"
+            synch.fileEvents <- Some(!^ResizeArray([ fileDeletedWatcher ]))
 
             // this type needs to be updated on the bindings - DocumentSelector is a (string|DocumentFilter) [] now only.
             // that's why we need to coerce it here.
@@ -729,6 +925,15 @@ Consider:
             opts
 
         let cl = LanguageClient("FSharp", "F#", options, clientOpts, false)
+
+        cl.onDidChangeState.Invoke(fun e ->
+            if e.newState = State.Running && restartingAfterUnexpectedStop then
+                restartingAfterUnexpectedStop <- false
+                restartedAfterUnexpectedStopEmitter.fire ()
+
+            None)
+        |> ignore
+
         client <- Some cl
         cl
 
@@ -778,8 +983,12 @@ Consider:
             let gcNoAffinitize =
                 "Fsharp.fsac.gc.noAffinitize" |> Configuration.tryGet |> Option.bind tryBool
 
+            // VS Code returns 0 for an integer setting that isn't set
             let gcHeapCount =
-                "FSharp.fsac.gc.heapCount" |> Configuration.tryGet |> Option.bind tryInt
+                "FSharp.fsac.gc.heapCount"
+                |> Configuration.tryGet
+                |> Option.bind tryInt
+                |> Option.filter (fun count -> count > 0)
 
             let parallelReferenceResolution =
                 "FSharp.fsac.parallelReferenceResolution" |> Configuration.get false
@@ -799,7 +1008,7 @@ Consider:
             let findBestTFM (availableTFMs: string seq) (tfm: string) =
                 let tfmToSemVer (t: string) =
                     t.Replace("netcoreapp", "").Replace("net", "").Split([| '.' |], 2)
-                    |> fun ver -> semver.parse (!! $"{ver[0]}.{ver[1]}.0")
+                    |> fun ver -> semver.parse $"{ver[0]}.{ver[1]}.0"
 
                 let tfmMap =
                     availableTFMs
@@ -817,7 +1026,7 @@ Consider:
                     Seq.last availableTFMs
                 | Some ver ->
                     tfmMap
-                    |> Seq.skipWhile (fun (_, v) -> (semver.compare (!!v, !!ver)) = enum -1) // skip while fsac tfm is less than target tfm
+                    |> Seq.skipWhile (fun (_, v) -> semver.compare (v, ver) = -1) // skip while fsac tfm is less than target tfm
                     |> Seq.tryHead // get first fsac tfm that is greater than or equal to target tfm
                     |> Option.map fst
                     |> Option.defaultWith (fun () -> Seq.last availableTFMs)
@@ -841,8 +1050,7 @@ Consider:
                 let baseName = node.path.basename folder
 
                 baseName.StartsWith("net")
-                && let stat = node.fs.statSync (!!folder) in
-                   stat.isDirectory ()
+                && let stat = node.fs.statSync (!!folder) in stat.isDirectory ()
 
             /// locates the FSAC dll and TFM for that dll given a host TFM
             let fsacPathForTfm (tfm: string) : string * string =
@@ -880,7 +1088,7 @@ Consider:
                 | 2, 0 -> "netcoreapp2.0"
                 | n, _ -> $"net{n}.0"
 
-            let discoverDotnetArgs () =
+            let discoverDotnetArgs dotnet =
                 promise {
 
                     let! sdkVersionAtRootPath = sdkVersion ()
@@ -896,34 +1104,26 @@ Consider:
                         let fsacTfm, fsacPath = fsacPathForTfm sdkTfm
                         printfn "Parsed TFM to fsac path: %s" fsacPath
 
-                        let userDotnetArgs = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
+                        let! canStart = ensureRuntimeForFsac dotnet fsacTfm
 
-                        let hasUserRollForward =
-                            userDotnetArgs
-                            |> Array.tryFindIndex (fun a -> a = "--roll-forward")
-                            |> Option.map (fun _ -> true)
-                            |> Option.defaultValue false
+                        if not canStart then
+                            failwith $"No .NET runtime found to run FSAC, which targets {fsacTfm}"
 
-                        let hasUserFxVersion =
-                            userDotnetArgs
-                            |> Array.tryFindIndex (fun a -> a = "--fx-version")
-                            |> Option.map (fun _ -> true)
-                            |> Option.defaultValue false
+                        let args = "FSharp.fsac.dotnetArgs" |> Configuration.get [||]
 
-                        let shouldApplyImplicitRollForward =
-                            not (hasUserFxVersion || hasUserRollForward) && sdkTfm <> fsacTfm // if the SDK doesn't match one of our FSAC TFMs, then we're in compat mode
-
-                        let args = userDotnetArgs
-
+                        // FSAC's runtimeconfig already rolls forward to the latest major, but the host skips preview
+                        // runtimes while a release runtime fits. FSAC loads MSBuild from the workspace SDK, and a
+                        // preview SDK (for example 11.0.100-rc.2) needs its own preview runtime, so allow it then.
+                        // Only for preview SDKs: the variable also reaches the processes FSAC starts.
                         let envVariables =
-                            [ if shouldApplyImplicitRollForward then
-                                  "DOTNET_ROLL_FORWARD", box "LatestMajor"
-                              match sdkVersion.prerelease with
-                              | null -> ()
-                              | pres when Seq.length pres > 0 -> "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1
-                              | _ -> () ]
+                            [
+                                match sdkVersion.prerelease with
+                                | null -> ()
+                                | pres when Seq.length pres > 0 -> "DOTNET_ROLL_FORWARD_TO_PRERELEASE", box 1
+                                | _ -> ()
+                            ]
 
-                        return args, envVariables, fsacPath, sdkVersion
+                        return args, envVariables, fsacPath
                 }
 
             /// Converts true to 1 and false to 0
@@ -932,53 +1132,36 @@ Consider:
 
             let spawnNetCore dotnet : JS.Promise<Executable> =
                 promise {
-                    let! (fsacDotnetArgs, fsacEnvVars, fsacPath, sdkVersion) = discoverDotnetArgs ()
-                    // Only set DOTNET_GCHeapCount if we're on .NET 7 or higher
-                    // .NET 6 has some issues with this env var on linux
-                    // https://github.com/ionide/ionide-vscode-fsharp/issues/1899
+                    let! (fsacDotnetArgs, rollForwardEnvVars, fsacPath) = discoverDotnetArgs dotnet
+                    // FSAC runs on the .NET 10 runtime or later, so the GC defaults don't depend on the SDK version.
 
-                    let versionSupportingDATASGCMode = (semver.parse (Some(U2.Case1 "9.0.0"))).Value
-                    let isdotnet8 = sdkVersion.major = 8
+                    // datas is on by default for server GC since .NET 9
+                    let useDatas = gcServerUseDatas |> Option.defaultValue true
 
-                    let isNet9orHigher =
-                        semver.cmp (U2.Case2 sdkVersion, Operator.GTE, U2.Case2 versionSupportingDATASGCMode)
-
-                    // datas is on by 9
-                    let useDatas =
-                        match gcServerUseDatas with
-                        | Some b -> b
-                        | None -> isNet9orHigher
-
-                    let gcNoAffinitize =
-                        match gcNoAffinitize with
-                        | Some b -> b
-                        | None -> isdotnet8 || not useDatas // no need to affinitize on 9 because Datas
-
-                    let gcHeapCount =
-                        match gcHeapCount with
-                        | Some i -> Some i
-                        | None -> if isdotnet8 then Some 2 else None
+                    let gcNoAffinitize = gcNoAffinitize |> Option.defaultValue false
 
                     let fsacEnvVars =
-                        [ yield! fsacEnvVars
+                        [ // always set, the .NET 10 runtime turns DATAS on for server GC when this is missing
+                            yield "DOTNET_GCDynamicAdaptationMode", box (boolToInt useDatas) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#dynamic-adaptation-to-application-sizes-datas
 
-                          if useDatas then
-                              // DATAS and affinitization/heap management seem to be mutually exclusive, so we enforce that here.
-                              yield "DOTNET_GCDynamicAdaptationMode", box (boolToInt useDatas) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#dynamic-adaptation-to-application-sizes-datas
-                          else
-                              // it doesn't really make sense to set GCNoAffinitize without setting GCHeapCount
-                              yield "DOTNET_GCNoAffinitize", box (boolToInt gcNoAffinitize) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#affinitize
+                            // DATAS and affinitization/heap management seem to be mutually exclusive, so we enforce that here.
+                            if not useDatas then
+                                // it doesn't really make sense to set GCNoAffinitize without setting GCHeapCount, 0 is the runtime default
+                                yield "DOTNET_GCNoAffinitize", box (boolToInt gcNoAffinitize) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#affinitize
 
-                              yield!
-                                  gcHeapCount
-                                  |> Option.map (fun hc -> "DOTNET_GCHeapCount", box (hc.ToString("X")))
-                                  |> Option.toList // Requires hexadecimal value https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#heap-count
+                                yield!
+                                    gcHeapCount
+                                    |> Option.map (fun hc -> "DOTNET_GCHeapCount", box (hc.ToString("X")))
+                                    |> Option.toList // Requires hexadecimal value https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#heap-count
 
-                          yield "DOTNET_GCConserveMemory", box gcConserveMemory //https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory
-                          yield "DOTNET_GCServer", box (boolToInt gcServer) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#workstation-vs-server
+                            yield "DOTNET_GCConserveMemory", box gcConserveMemory //https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#conserve-memory
+                            yield "DOTNET_GCServer", box (boolToInt gcServer) // https://learn.microsoft.com/en-us/dotnet/core/runtime-config/garbage-collector#workstation-vs-server
 
-                          if parallelReferenceResolution then
-                              yield "FCS_ParallelReferenceResolution", box "true" ]
+                            if parallelReferenceResolution then
+                                yield "FCS_ParallelReferenceResolution", box "true"
+
+                            yield! rollForwardEnvVars
+                        ]
 
                     logger.Debug $"""FSAC (NETCORE): '%s{fsacPath}'"""
 
@@ -1002,29 +1185,31 @@ Consider:
                     let additionalFSACArgs = "FSharp.fsac.fsacArgs" |> Configuration.get [||]
 
                     let args =
-                        [ yield! fsacDotnetArgs
-                          yield fsacPath
-                          if fsacAttachDebugger then
-                              yield "--attachdebugger"
-                              yield "--wait-for-debugger"
-                          if enableProjectGraph then
-                              yield "--project-graph-enabled"
-                          if openTelemetryEnabled then
-                              yield "--otel-exporter-enabled"
-                          if verbose then
-                              yield "--verbose"
-                          if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0 then
-                              yield "--filter"
-                              yield! fsacSilencedLogs
-                          if useTransparentCompiler then
-                              yield "--use-fcs-transparent-compiler"
-                          match c.storageUri with
-                          | Some uri ->
-                              let storageDir = uri.fsPath
-                              yield "--state-directory"
-                              yield storageDir
-                          | None -> ()
-                          yield! additionalFSACArgs ]
+                        [
+                            yield! fsacDotnetArgs
+                            yield fsacPath
+                            if fsacAttachDebugger then
+                                yield "--attachdebugger"
+                                yield "--wait-for-debugger"
+                            if enableProjectGraph then
+                                yield "--project-graph-enabled"
+                            if openTelemetryEnabled then
+                                yield "--otel-exporter-enabled"
+                            if verbose then
+                                yield "--verbose"
+                            if fsacSilencedLogs <> null && fsacSilencedLogs.Length > 0 then
+                                yield "--filter"
+                                yield! fsacSilencedLogs
+                            if useTransparentCompiler then
+                                yield "--use-fcs-transparent-compiler"
+                            match c.storageUri with
+                            | Some uri ->
+                                let storageDir = uri.fsPath
+                                yield "--state-directory"
+                                yield storageDir
+                            | None -> ()
+                            yield! additionalFSACArgs
+                        ]
                         |> ResizeArray
 
                     let executable = createEmpty<Executable>
@@ -1070,9 +1255,11 @@ Consider:
                 |> Seq.tryFind (fun n -> n.document.uri.ToDocumentUri.ToLowerInvariant() = uri.ToLowerInvariant())
                 |> Option.iter (fun te ->
                     let ev =
-                        { Notifications.uri = uri
-                          Notifications.version = te.document.version
-                          Notifications.document = te.document }
+                        {
+                            Notifications.uri = uri
+                            Notifications.version = te.document.version
+                            Notifications.document = te.document
+                        }
 
                     Notifications.onDocumentParsedEmitter.fire ev))
         )

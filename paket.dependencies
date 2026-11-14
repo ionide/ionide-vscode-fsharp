@@ -9,13 +9,12 @@ nuget Fable.Browser.Dom
 
 nuget Fable.HtmlConverter
 
-nuget Thoth.Json 7.0
+nuget Thoth.Json
 
 git https://github.com/ionide/ionide-fsgrammar.git master
 
 github ionide/ionide-vscode-helpers:8e81bc03f11f07b8e0811b3d4598eadc78f32f2f src/Fable.Import.VSCode.fs
 github ionide/ionide-vscode-helpers:8e81bc03f11f07b8e0811b3d4598eadc78f32f2f src/Helpers.fs
-github ionide/ionide-vscode-helpers:8e81bc03f11f07b8e0811b3d4598eadc78f32f2f src/Fable.Import.Showdown.fs
 github ionide/ionide-vscode-helpers:8e81bc03f11f07b8e0811b3d4598eadc78f32f2f src/Fable.Import.VSCode.LanguageServer.fs
 
 group fsac
@@ -23,29 +22,3 @@ group fsac
   storage: packages
   framework: netstandard2.0
   nuget fsautocomplete
-
-group build
-  source https://api.nuget.org/v3/index.json
-  storage: none
-  framework: net8.0
-
-  nuget Fake.Core.Target
-  nuget Fake.Core.Process
-  nuget Fake.Core.ReleaseNotes
-  nuget Fake.Core.Environment
-  nuget Fake.Core.UserInput
-  nuget Fake.DotNet.Cli
-  nuget Fake.DotNet.AssemblyInfoFile
-  nuget Fake.DotNet.Paket
-  nuget Fake.DotNet.MsBuild
-  nuget Fake.IO.FileSystem
-  nuget Fake.IO.Zip
-  nuget Fake.Api.GitHub
-  nuget Fake.Tools.Git
-  nuget Fake.JavaScript.Yarn
-  nuget Octokit <= 0.49.0
-
-  // Enforce updated binlog parser until Fake gets an update, so we're not stuck
-  // on an old sdk version.
-  // ref: https://github.com/fsprojects/FAKE/issues/2744
-  nuget MSBuild.StructuredLogger >= 2.2

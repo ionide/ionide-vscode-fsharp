@@ -26,7 +26,7 @@ assignees: ''
 
 ### Machine infos
  - OS: Windows/Mac/Linux
- - .NET SDK version: [e.g. 5.0.100]
+ - .NET SDK version: [e.g. 10.0.100]
  - Ionide version: [e.g 5.0.1, don't use descriptions like `latest` ]
 
 ### Additional context

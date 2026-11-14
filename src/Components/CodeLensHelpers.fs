@@ -14,8 +14,10 @@ module CodeLensHelpers =
     type LspPosition = { line: uint32; character: uint32 }
 
     type LspRange =
-        { start: LspPosition
-          ``end``: LspPosition }
+        {
+            start: LspPosition
+            ``end``: LspPosition
+        }
 
     type LspLocation = { uri: string; range: LspRange }
 
@@ -48,8 +50,8 @@ module CodeLensHelpers =
 
     let activate (context: ExtensionContext) =
         (unbox<CustomIExports> commands)
-            .registerCommand (
+            .registerCommand(
                 "fsharp.showReferences",
-                unbox<(LspUri -> LspPosition -> LspLocation seq -> obj option)> (showReferences)
+                unbox<(LspUri -> LspPosition -> LspLocation seq -> obj option)>(showReferences)
             )
         |> context.Subscribe

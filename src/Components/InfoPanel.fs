@@ -24,13 +24,6 @@ module InfoPanel =
 
     module Panel =
 
-        let showdownOptions =
-            Fable.Import.Showdown.showdown.getDefaultOptions () :?> Fable.Import.Showdown.Showdown.ConverterOptions
-
-        showdownOptions.tables <- Some true
-
-        let showdown = Fable.Import.Showdown.showdown.Converter.Create(showdownOptions)
-
         let mutable panel: WebviewPanel option = None
 
         let mutable locked = false
@@ -38,7 +31,7 @@ module InfoPanel =
         let setContent str =
             panel
             |> Option.iter (fun p ->
-                let str = showdown.makeHtml str
+                let str = Marked.marked.parse (str, {| async = false |})
 
                 let str =
                     sprintf
@@ -137,46 +130,47 @@ module InfoPanel =
                     |> fsharpBlock
 
                 let res =
-                    [| yield sigContent
-                       if not (String.IsNullOrWhiteSpace commentContent) then
-                           yield "---"
-                           yield commentContent
-                           yield "\n"
-                       if not (String.IsNullOrWhiteSpace types) then
-                           yield "---"
-                           yield "#### Declared Types"
-                           yield types
-                           yield "\n"
-                       if not (String.IsNullOrWhiteSpace attrs) then
-                           yield "---"
-                           yield "#### Attributes"
-                           yield attrs
-                           yield "\n"
-                       if not (String.IsNullOrWhiteSpace intfs) then
-                           yield "---"
-                           yield "#### Implemented Interfaces"
-                           yield intfs
-                           yield "\n"
-                       if not (String.IsNullOrWhiteSpace ctors) then
-                           yield "---"
-                           yield "#### Constructors"
-                           yield ctors
-                           yield "\n"
-                       if not (String.IsNullOrWhiteSpace fncs) then
-                           yield "---"
-                           yield "#### Functions"
-                           yield fncs
-                           yield "\n"
-                       if not (String.IsNullOrWhiteSpace fields) then
-                           yield "---"
-                           yield "#### Fields"
-                           yield fields
-                           yield "\n"
-                       if not (String.IsNullOrWhiteSpace footerContent) then
-                           yield "---"
-                           yield (footerContent)
+                    [|
+                        yield sigContent
+                        if not (String.IsNullOrWhiteSpace commentContent) then
+                            yield "---"
+                            yield commentContent
+                            yield "\n"
+                        if not (String.IsNullOrWhiteSpace types) then
+                            yield "---"
+                            yield "#### Declared Types"
+                            yield types
+                            yield "\n"
+                        if not (String.IsNullOrWhiteSpace attrs) then
+                            yield "---"
+                            yield "#### Attributes"
+                            yield attrs
+                            yield "\n"
+                        if not (String.IsNullOrWhiteSpace intfs) then
+                            yield "---"
+                            yield "#### Implemented Interfaces"
+                            yield intfs
+                            yield "\n"
+                        if not (String.IsNullOrWhiteSpace ctors) then
+                            yield "---"
+                            yield "#### Constructors"
+                            yield ctors
+                            yield "\n"
+                        if not (String.IsNullOrWhiteSpace fncs) then
+                            yield "---"
+                            yield "#### Functions"
+                            yield fncs
+                            yield "\n"
+                        if not (String.IsNullOrWhiteSpace fields) then
+                            yield "---"
+                            yield "#### Fields"
+                            yield fields
+                            yield "\n"
+                        if not (String.IsNullOrWhiteSpace footerContent) then
+                            yield "---"
+                            yield (footerContent)
 
-                       |]
+                    |]
                     |> String.concat "\n"
 
                 Some res
@@ -228,9 +222,11 @@ module InfoPanel =
             | None ->
                 let opts =
                     createObj
-                        [ "enableCommandUris" ==> true
-                          "enableFindWidget" ==> true
-                          "retainContextWhenHidden" ==> true ]
+                        [
+                            "enableCommandUris" ==> true
+                            "enableFindWidget" ==> true
+                            "retainContextWhenHidden" ==> true
+                        ]
 
                 let viewOpts = createObj [ "preserveFocus" ==> true; "viewColumn" ==> -2 ]
 

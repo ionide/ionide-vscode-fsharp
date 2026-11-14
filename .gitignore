@@ -1,4 +1,8 @@
 release/bin
+# copies the build makes from the root of the repository
+release/CHANGELOG.md
+release/LICENSE.md
+release/README.md
 release/bin_ff
 release/bin_forge
 release/bin_profiler
@@ -81,9 +85,10 @@ types.txt
 fsacpath.txt
 /out/
 
-build/bin
-build/obj
 
 # include vscode ui toolkit minified release file
 !release/toolkit.min.js
-release/fsharp.js.LICENSE.txt
+
+# the smoke test, and the VS Code it downloads
+!test/smoke/*.js
+.vscode-test/

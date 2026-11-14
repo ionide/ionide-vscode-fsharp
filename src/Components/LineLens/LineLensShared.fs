@@ -52,9 +52,12 @@ module Documents =
             { info with
                 cache =
                     Some
-                        { version = version
-                          decorations = decorations
-                          textEditors = ResizeArray() } }
+                        {
+                            version = version
+                            decorations = decorations
+                            textEditors = ResizeArray()
+                        }
+            }
 
         documents |> set info.uri updated
         updated
@@ -97,9 +100,11 @@ module LineLensDecorations =
 type LineLensConfig = { enabled: bool; prefix: string }
 
 type LineLensState =
-    { documents: Documents.Documents
-      decorationType: TextEditorDecorationType
-      disposables: ResizeArray<Disposable> }
+    {
+        documents: Documents.Documents
+        decorationType: TextEditorDecorationType
+        disposables: ResizeArray<Disposable>
+    }
 
 type DecorationUpdate =
     ConsoleAndOutputChannelLogger
@@ -253,9 +258,11 @@ type LineLens
         disposables.Add(workspace.onDidCloseTextDocument.Invoke(unbox closedTextDocumentHandler))
 
         let newState =
-            { decorationType = decorationType
-              disposables = disposables
-              documents = Documents.create () }
+            {
+                decorationType = decorationType
+                disposables = disposables
+                documents = Documents.create ()
+            }
 
         state <- Some newState
 

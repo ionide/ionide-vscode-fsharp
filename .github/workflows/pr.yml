@@ -3,32 +3,55 @@ name: Build Pull Requests
 on:
   push:
     branches:
-      - '*'
+      - main
   pull_request:
-    branches:
-      - '*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build:
 
     strategy:
       matrix:
-        # ubuntu build not supported in paket.dependencies for repo builds,
-        # need to add linux commands first
-        os: [windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false # we have timing issues on some OS, so we want them all to run
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-    - uses: actions/setup-node@v3
+    - uses: actions/checkout@v7
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
       with:
-        node-version: '22'
-        cache: 'yarn'
+        global-json-file: global.json
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: '.tool-versions'
+        cache: 'npm'
     - name: Restore tools
       run: dotnet tool restore
-    - run: yarn global add @vscode/vsce
-    - name: Run Test
-      run: dotnet run --project build -- -t Build
+    # A version that is not higher than the newest release fails here, so it never reaches main.
+    # Detect reads the tags of the repository, one OS is enough.
+    - name: Check the release notes version
+      if: runner.os == 'Linux'
+      run: dotnet fsi build.fsx -p Detect
+    # Package checks the formatting, builds and packages the .vsix, so a PR runs everything the
+    # release runs before it publishes.
+    - name: Build and package
+      run: dotnet fsi build.fsx -p Package
+    # The smoke test starts VS Code, which needs a display. The Linux runner has none, so it runs
+    # under xvfb there.
+    - name: Smoke test
+      timeout-minutes: 15
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          xvfb-run -a dotnet fsi build.fsx -p Test
+        else
+          dotnet fsi build.fsx -p Test
+        fi

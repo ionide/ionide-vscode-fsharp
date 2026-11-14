@@ -9,7 +9,7 @@ module LanguageConfiguration =
     let mutable private reference: Disposable option = None
 
     let indentationRules =
-        jsOptions<IndentationRule> (fun o ->
+        jsOptions<IndentationRule>(fun o ->
             o.increaseIndentPattern <-
                 Regex(
                     """^(\s*(module|type|let|static member|member)\b.*=\s*)$|^(\s*(with get|and set)\b.*=.*)$|^(\s*(if|elif|then|else|static member|member)).*$"""
@@ -20,22 +20,22 @@ module LanguageConfiguration =
     let setLanguageConfiguration (triggerNotification: bool) =
         // Config always setted
         let config =
-            jsOptions<LanguageConfiguration> (fun o ->
+            jsOptions<LanguageConfiguration>(fun o ->
                 o.onEnterRules <-
                     Some
                     <| ResizeArray<OnEnterRule>(
                         [|
-                           // Doc single-line comment
-                           // Example: ///
-                           jsOptions<OnEnterRule> (fun rule ->
-                               rule.action <-
-                                   jsOptions<EnterAction> (fun action ->
-                                       action.indentAction <- IndentAction.None
-                                       action.appendText <- Some "/// ")
+                            // Doc single-line comment
+                            // Example: ///
+                            jsOptions<OnEnterRule>(fun rule ->
+                                rule.action <-
+                                    jsOptions<EnterAction>(fun action ->
+                                        action.indentAction <- IndentAction.None
+                                        action.appendText <- Some "/// ")
 
-                               rule.beforeText <- Regex("^\s*\/{3}.*$"))
+                                rule.beforeText <- Regex("^\s*\/{3}.*$"))
 
-                           |]
+                        |]
                     ))
 
         let activateSmartIndent = "FSharp.smartIndent" |> Configuration.get false
