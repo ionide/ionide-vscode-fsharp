@@ -105,7 +105,11 @@ module LanguageService =
         type TestRunRequest =
             {
                 LimitToProjects: string array option
+                /// A VSTest filter expression. The server rejects it together with `TestIds`.
                 TestCaseFilter: string option
+                /// Names the tests to run by the `Id` discovery reported for each. `None` runs
+                /// every test of the projects being run; an empty array runs none.
+                TestIds: string array option
                 AttachDebugger: bool
             }
 
@@ -797,6 +801,7 @@ Consider:
         (onAttachDebugger: ProcessId -> JS.Promise<bool>)
         (projectSubset: string array option)
         (testCaseFilter: string option)
+        (testIds: string array option)
         (attachDebugger: bool)
         =
         match client with
@@ -822,6 +827,7 @@ Consider:
                 {
                     LimitToProjects = projectSubset
                     TestCaseFilter = testCaseFilter
+                    TestIds = testIds
                     AttachDebugger = attachDebugger
                 }
 
