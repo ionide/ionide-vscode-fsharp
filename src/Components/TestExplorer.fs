@@ -1015,23 +1015,40 @@ module TestItem =
         /// its full name, which FSAC does not keep unique among siblings: a grouping can share its
         /// name with a test, and tests can share a display name. A grouping is shown as one node
         /// with the test of its name, and each further test of a name gets a numbered name, so that
-        /// no sibling replaces another in the tree.
+        /// no sibling replaces another in the tree. A node is labelled by what its full name adds
+        /// to its parent's, so a test whose own name holds `.` or `+` keeps its whole name.
         let hierarchyOfDtos (flatTests: TestItemDTO array) : TestName.NameHierarchy<TestItemDTO> array =
             let byParent = flatTests |> Array.groupBy (fun dto -> dto.ParentId) |> Map.ofArray
 
             let childrenOf parentId =
                 byParent |> Map.tryFind parentId |> Option.defaultValue [||]
 
-            let rec build (siblings: TestItemDTO array) : TestName.NameHierarchy<TestItemDTO> array =
+            let labelUnder (parentFullName: string option) (fullName: string) =
+                match parentFullName with
+                | None -> fullName
+                | Some parent when
+                    fullName.Length > parent.Length + 1
+                    && fullName.StartsWith(parent)
+                    && (fullName.[parent.Length] = '.' || fullName.[parent.Length] = '+')
+                    ->
+                    fullName.Substring(parent.Length + 1)
+                | Some _ -> (TestName.splitSegments fullName |> List.last).Text
+
+            let rec build
+                (parentFullName: string option)
+                (siblings: TestItemDTO array)
+                : TestName.NameHierarchy<TestItemDTO> array =
                 siblings
                 |> Array.groupBy (fun dto -> dto.FullName)
                 |> Array.collect (fun (fullName, named) ->
                     let node data explorerName (holders: TestItemDTO array) =
                         { TestName.NameHierarchy.Data = data
                           TestName.NameHierarchy.FullName = explorerName
-                          TestName.NameHierarchy.Name = (TestName.splitSegments fullName |> List.last).Text
+                          TestName.NameHierarchy.Name = labelUnder parentFullName fullName
                           TestName.NameHierarchy.Children =
-                            holders |> Array.collect (fun dto -> childrenOf (Some dto.Id)) |> build }
+                            holders
+                            |> Array.collect (fun dto -> childrenOf (Some dto.Id))
+                            |> build (Some fullName) }
 
                     let tests, groupings = named |> Array.partition (fun dto -> dto.IsLeaf)
 
@@ -1045,7 +1062,7 @@ module TestItem =
                             else
                                 node (Some test) $"{fullName} #{index + 1}" [| test |]))
 
-            childrenOf None |> build
+            childrenOf None |> build None
 
         let mapDtosForProject ((projectPath, targetFramework), flatTests) =
             let namedHierarchies = hierarchyOfDtos flatTests
